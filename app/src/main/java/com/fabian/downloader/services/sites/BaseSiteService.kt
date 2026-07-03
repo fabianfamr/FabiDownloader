@@ -19,7 +19,6 @@ abstract class BaseSiteService : SiteService {
         // Default request configurations
         request.addOption("--referer", "https://www.google.com/")
         request.addOption("--force-ipv4")
-        request.addOption("--no-check-certificate")
         request.addOption("--geo-bypass")
         request.addOption("--quiet")
         request.addOption("--no-warnings")
@@ -29,7 +28,6 @@ abstract class BaseSiteService : SiteService {
         // Default downloader options
         request.addOption("--no-overwrites")
         request.addOption("--no-mtime")
-        request.addOption("--no-check-certificate")
         request.addOption("--geo-bypass")
         request.addOption("--socket-timeout", "30")
         request.addOption("--retries", "10")
@@ -50,7 +48,6 @@ abstract class BaseSiteService : SiteService {
             }
             
             if (!com.fabian.downloader.ui.AppSettings.playlistEnabled) {
-                addOption("--flat-playlist")
                 addOption("--no-playlist")
             }
             addOption("--no-cache-dir")
