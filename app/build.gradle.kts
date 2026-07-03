@@ -9,7 +9,7 @@ plugins {
 
 android {
   namespace = "com.fabian.downloader"
-  compileSdk { version = release(36) { minorApiLevel = 1 } }
+  compileSdk = 37
 
   val versionFile = rootProject.file("VERSION")
   val parsedVersionName = if (versionFile.exists()) versionFile.readText().trim() else "2.11.0"
@@ -17,7 +17,7 @@ android {
   defaultConfig {
     applicationId = "com.fabian.downloader"
     minSdk = 24
-    targetSdk = 36
+    targetSdk = 37
     versionCode = 56
     versionName = parsedVersionName
 
