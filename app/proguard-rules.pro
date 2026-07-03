@@ -80,4 +80,8 @@
 -keep class com.fabian.downloader.services.sites.SiteResult { *; }
 -keep class com.fabian.downloader.services.sites.DownloadFormat { *; }
 
+# Apache Commons Compress rules for YoutubeDL-Android
+-keep class org.apache.commons.compress.archivers.zip.** { *; }
+-dontwarn org.apache.commons.compress.**
+
 

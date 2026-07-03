@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +28,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import android.content.Intent
+import android.content.ClipData
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -76,6 +76,7 @@ fun DownloadsScreen(database: AppDatabase, modifier: Modifier = Modifier) {
     var itemToDelete by remember { mutableStateOf<Long?>(null) }
     var errorToShow by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
+    @Suppress("DEPRECATION")
     val clipboardManager = LocalClipboardManager.current
 
     val toggleSelection: (Long) -> Unit = { id ->
@@ -347,16 +348,12 @@ fun DownloadsScreen(database: AppDatabase, modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
         ) {
-            TabRow(
+            SecondaryTabRow(
                 selectedTabIndex = pagerState.currentPage,
                 containerColor = Color.Transparent,
                 contentColor = MaterialTheme.colorScheme.primary,
-                indicator = { tabPositions ->
-                    TabRowDefaults.SecondaryIndicator(
-                        Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
-                        height = 0.dp, // No default line, we want absolute custom feel
-                        color = Color.Transparent
-                    )
+                indicator = {
+                    // Custom indicator is handled by the Tab background itself
                 },
                 divider = {},
                 modifier = Modifier.fillMaxWidth()
@@ -735,6 +732,7 @@ fun MobileDownloadingItem(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f)
                         )
+                        @Suppress("DEPRECATION")
                         val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
                         val context = androidx.compose.ui.platform.LocalContext.current
                         IconButton(
