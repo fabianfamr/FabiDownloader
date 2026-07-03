@@ -32,6 +32,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Create empty .env file
+        run: touch .env
+
       - name: Generar Keystore temporal
         run: |
           keytool -genkey -v -keystore app/keystore.jks \
