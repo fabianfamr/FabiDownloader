@@ -49,10 +49,12 @@ class YtdlpExtractor {
             
             addOption("--referer", "https://www.google.com/")
             addOption("--force-ipv4")
-            // addOption("--no-check-certificate") // Removed for security as per user request
+            addOption("--no-check-certificate")
             addOption("--geo-bypass")
             addOption("--quiet")
             addOption("--no-warnings")
+            addOption("--ignore-errors")
+            addOption("--no-mtime")
         }
 
         try {

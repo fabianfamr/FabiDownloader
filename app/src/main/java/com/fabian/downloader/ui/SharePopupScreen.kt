@@ -919,61 +919,61 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
                                         fontWeight = FontWeight.ExtraBold,
                                         letterSpacing = 0.2.sp
                                     )
-                                }
-                                       Spacer(modifier = Modifier.height(18.dp))
+                                                   Spacer(modifier = Modifier.height(24.dp))
 
-                        // Unified High-Fidelity Primary Action Button
-                        Button(
-                            onClick = {
-                                if (cleanUrl.isNotEmpty() && !isExtracting) {
-                                    viewModel.downloadVideo(
-                                        url = cleanUrl,
-                                        quality = selectedOption.quality,
-                                        format = selectedOption.format,
-                                        title = videoTitle,
-                                        thumbnailUrl = videoThumbnailUrl
+                            // Unified High-Fidelity Primary Action Button
+                            Button(
+                                onClick = {
+                                    if (cleanUrl.isNotEmpty() && !isExtracting) {
+                                        viewModel.downloadVideo(
+                                            url = cleanUrl,
+                                            quality = selectedOption.quality,
+                                            format = selectedOption.format,
+                                            title = videoTitle,
+                                            thumbnailUrl = videoThumbnailUrl
+                                        )
+                                        showSuccessDialog = true
+                                    }
+                                },
+                                enabled = !isExtracting,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(60.dp),
+                                shape = RoundedCornerShape(20.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isExtracting) platformColor.copy(alpha = 0.4f) else platformColor,
+                                    contentColor = Color.White,
+                                    disabledContainerColor = platformColor.copy(alpha = 0.4f),
+                                    disabledContentColor = Color.White.copy(alpha = 0.8f)
+                                ),
+                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 0.dp)
+                            ) {
+                                if (isExtracting) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.5.dp,
+                                        color = Color.White
                                     )
-                                    showSuccessDialog = true
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = "Analizando enlace...",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.CloudDownload,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = if (isResolvingSize) "Calculando peso..." else "Descargar en ${selectedOption.quality}",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        letterSpacing = 0.5.sp
+                                    )
                                 }
-                            },
-                            enabled = !isExtracting,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(58.dp),
-                            shape = RoundedCornerShape(20.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = platformColor,
-                                contentColor = Color.White,
-                                disabledContainerColor = platformColor.copy(alpha = 0.5f),
-                                disabledContentColor = Color.White.copy(alpha = 0.7f)
-                            ),
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 0.dp)
-                        ) {
-                            if (isExtracting) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    strokeWidth = 2.dp,
-                                    color = Color.White
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = "Preparando motor...",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.CloudDownload,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = if (isResolvingSize) "Calculando peso..." else "Descargar en ${selectedOption.quality}",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    letterSpacing = 0.5.sp
-                                )
                             }
                         }
                     }
@@ -982,7 +982,7 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
         }
     }
     }
-    }
+}
 
 @Composable
 fun FormatRow(
