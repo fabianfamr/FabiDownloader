@@ -614,133 +614,60 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 12.dp),
+                            .padding(bottom = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Prepárate para Descargar",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                letterSpacing = (-0.5).sp
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Configura tus preferencias de audio o video",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = if (isExtracting) "Analizando metadatos..." else "Configura tus preferencias",
+                                fontSize = 13.sp,
+                                color = if (isExtracting) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = if (isExtracting) FontWeight.SemiBold else FontWeight.Normal
                             )
                         }
                         
                         IconButton(
                             onClick = onClose,
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(40.dp)
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = "Cerrar",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
 
-                    // If loading, show elegant progress bar
-                    if (isExtracting) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(260.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    strokeWidth = 3.dp,
-                                    modifier = Modifier.size(46.dp)
-                                )
-                                Spacer(modifier = Modifier.height(18.dp))
-                                Text(
-                                    text = "Conectando con el motor de extracción...",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Esto puede tomar unos segundos",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                    fontSize = 11.sp
-                                )
-                            }
-                        }
-                    } else if (errorMessage != null) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(260.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.padding(16.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(56.dp)
-                                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.1f), CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = "Error",
-                                        tint = MaterialTheme.colorScheme.error,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    text = errorMessage!!,
-                                    color = MaterialTheme.colorScheme.error,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Text(
-                                    text = "Asegúrate de que el enlace sea correcto y de tener conexión estable.",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 12.sp,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(horizontal = 24.dp)
-                                )
-                            }
-                        }
-                    } else {
-                        // Dynamic Title Card displaying platform branding and video details
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 16.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                            shape = RoundedCornerShape(16.dp),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                        ) {
+                    // Dynamic Title Card displaying platform branding and video details
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                        shape = RoundedCornerShape(20.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                    ) {
+                        Box {
                             Row(
                                 modifier = Modifier.padding(12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .width(100.dp)
-                                        .height(56.dp)
-                                        .clip(RoundedCornerShape(10.dp))
+                                        .width(110.dp)
+                                        .height(62.dp)
+                                        .clip(RoundedCornerShape(12.dp))
                                         .background(platformColor.copy(alpha = 0.15f)),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -757,26 +684,98 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
                                             imageVector = platformIcon,
                                             contentDescription = null,
                                             tint = platformColor,
-                                            modifier = Modifier.size(28.dp)
+                                            modifier = Modifier.size(32.dp)
                                         )
+                                    }
+                                    
+                                    if (isExtracting) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(Color.Black.copy(alpha = 0.3f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(20.dp),
+                                                strokeWidth = 2.dp,
+                                                color = Color.White
+                                            )
+                                        }
                                     }
                                 }
                                 Spacer(modifier = Modifier.width(14.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = videoTitle,
+                                        text = if (videoTitle == "Analizando enlace compartido...") "Obteniendo título..." else videoTitle,
                                         color = MaterialTheme.colorScheme.onSurface,
                                         fontSize = 14.sp,
-                                        fontWeight = FontWeight.SemiBold,
+                                        fontWeight = FontWeight.Bold,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
                                         lineHeight = 18.sp
                                     )
+                                    if (sourceDomain != "Enlace Externo") {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Surface(
+                                            color = platformColor.copy(alpha = 0.15f),
+                                            shape = RoundedCornerShape(4.dp)
+                                        ) {
+                                            Text(
+                                                text = sourceDomain,
+                                                color = platformColor,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Black,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                letterSpacing = 0.5.sp
+                                            )
+                                        }
+                                    }
                                 }
                             }
+                            
+                            if (isExtracting) {
+                                LinearProgressIndicator(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .align(Alignment.BottomCenter)
+                                        .height(2.dp),
+                                    color = platformColor,
+                                    trackColor = Color.Transparent
+                                )
+                            }
                         }
+                    }
 
-                        // Premium Segmented Switch Tab Row
+                    if (errorMessage != null) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp),
+                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = errorMessage!!,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+
+                    // Premium Segmented Switch Tab Row
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -952,7 +951,6 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
             }
         }
     }
-}
 
 @Composable
 fun FormatRow(
@@ -960,30 +958,42 @@ fun FormatRow(
     isSelected: Boolean,
     onSelect: () -> Unit
 ) {
+    val backgroundColor = if (isSelected) {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+    }
+    
+    val borderColor = if (isSelected) {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+    } else {
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.05f)
+    }
+
     Surface(
         onClick = onSelect,
-        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f) else Color.Transparent,
-        shape = RoundedCornerShape(12.dp),
+        color = backgroundColor,
+        shape = RoundedCornerShape(16.dp),
         border = BorderStroke(
-            width = 1.dp,
-            color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) else Color.Transparent
+            width = if (isSelected) 1.5.dp else 1.dp,
+            color = borderColor
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 14.dp),
+                .padding(vertical = 14.dp, horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(42.dp)
                     .background(
-                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
+                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(12.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -991,11 +1001,11 @@ fun FormatRow(
                     imageVector = if (option.category == "Music") Icons.Default.Audiotrack else Icons.Default.OndemandVideo,
                     contentDescription = null,
                     tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(22.dp)
                 )
             }
             
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(16.dp))
             
             Column(
                 modifier = Modifier.weight(1f)
@@ -1008,8 +1018,8 @@ fun FormatRow(
                     Text(
                         text = option.title,
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 15.sp,
+                        fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
                         modifier = Modifier.weight(1f, fill = false),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -1017,18 +1027,17 @@ fun FormatRow(
                     
                     if (option.badge != null) {
                         Spacer(modifier = Modifier.width(8.dp))
-                        Box(
-                            modifier = Modifier
-                                .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f), RoundedCornerShape(4.dp))
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        Surface(
+                            color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(6.dp)
                         ) {
                             Text(
                                 text = option.badge,
-                                color = MaterialTheme.colorScheme.secondary,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                                softWrap = false
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                maxLines = 1
                             )
                         }
                     }
@@ -1038,8 +1047,8 @@ fun FormatRow(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = option.description,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        fontSize = 12.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -1048,23 +1057,31 @@ fun FormatRow(
             
             Spacer(modifier = Modifier.width(12.dp))
             
-            Text(
-                text = option.sizeStr,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = option.sizeStr,
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = option.format,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
             
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(16.dp))
             
             Box(
                 modifier = Modifier
-                    .size(20.dp)
+                    .size(24.dp)
                     .clip(CircleShape)
                     .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
                     .border(
-                        width = if (isSelected) 0.dp else 1.5.dp,
-                        color = if (isSelected) Color.Transparent else MaterialTheme.colorScheme.outline,
+                        width = if (isSelected) 0.dp else 2.dp,
+                        color = if (isSelected) Color.Transparent else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -1074,7 +1091,7 @@ fun FormatRow(
                         imageVector = Icons.Default.Check,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(12.dp)
+                        modifier = Modifier.size(14.dp)
                     )
                 }
             }
