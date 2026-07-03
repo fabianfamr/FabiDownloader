@@ -32,19 +32,20 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build Release APK
-        run: ./gradlew assembleRelease
+      - name: Generar Keystore temporal
+        run: |
+          keytool -genkey -v -keystore app/keystore.jks \
+            -alias release_key -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "ProdSecurePass2026" -keypass "ProdSecurePass2026" \
+            -dname "CN=FabiDownloader, O=Fabi, C=VE"
 
-      - name: Sign Release APK
-        uses: r0adkll/sign-android-release@v1
-        id: sign_app
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        continue-on-error: true
+      - name: Build Release APK
+        env:
+          KEYSTORE_PATH: "keystore.jks"
+          STORE_PASSWORD: "ProdSecurePass2026"
+          KEY_ALIAS: "release_key"
+          KEY_PASSWORD: "ProdSecurePass2026"
+        run: ./gradlew assembleRelease
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
