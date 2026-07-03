@@ -71,6 +71,8 @@
 -dontwarn okio.**
 -dontwarn javax.annotation.**
 -dontwarn org.conscrypt.**
+-dontwarn java.beans.**
+-dontwarn org.tukaani.xz.**
 
 # Keep our Room entities and ViewModel fields to prevent DB column name mismatch
 -keep class com.fabian.downloader.database.** { *; }
