@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="download"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_download"
+        android:shortcutShortLabel="@string/shortcut_download"
+        android:shortcutLongLabel="@string/shortcut_download">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.fabian.downloader"
+            android:targetClass="com.fabian.downloader.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="library"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_video"
+        android:shortcutShortLabel="@string/shortcut_library"
+        android:shortcutLongLabel="@string/shortcut_library">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.fabian.downloader"
+            android:targetClass="com.fabian.downloader.MainActivity">
+            <extra
+                android:name="navigate_to_downloads"
+                android:value="true" />
+        </intent>
+    </shortcut>
+</shortcuts>

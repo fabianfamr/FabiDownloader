@@ -1,0 +1,94 @@
+package com.fabian.downloader.services.sites
+
+import android.util.Log
+import com.fabian.downloader.services.InfoMedia
+import com.fabian.downloader.services.YtdlpDownloader
+import com.fabian.downloader.services.YtdlpExtractor
+import com.yausername.youtubedl_android.YoutubeDL
+import com.yausername.youtubedl_android.YoutubeDLRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.io.File
+
+abstract class BaseSiteService : SiteService {
+
+    private val downloader = YtdlpDownloader()
+
+    open fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
+        // Default request configurations
+        request.addOption("--referer", "https://www.google.com/")
+        request.addOption("--force-ipv4")
+        request.addOption("--no-check-certificate")
+        request.addOption("--geo-bypass")
+        request.addOption("--quiet")
+        request.addOption("--no-warnings")
+    }
+
+    open fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
+        // Default downloader options
+        request.addOption("--no-overwrites")
+        request.addOption("--no-mtime")
+        request.addOption("--no-check-certificate")
+        request.addOption("--geo-bypass")
+        request.addOption("--socket-timeout", "30")
+        request.addOption("--retries", "10")
+        request.addOption("--fragment-retries", "10")
+        request.addOption("--no-cache-dir")
+        request.addOption("--referer", "https://www.google.com/")
+        request.addOption("--force-ipv4")
+        request.addOption("--no-warnings")
+    }
+
+    override suspend fun extractMetadata(url: String): InfoMedia? = withContext(Dispatchers.IO) {
+        val request = YoutubeDLRequest(url).apply {
+            addOption("--dump-json")
+            
+            val cookiesFile = File(com.fabian.downloader.MyApplication.getInstance().filesDir, "cookies.txt")
+            if (cookiesFile.exists() && cookiesFile.length() > 0) {
+                addOption("--cookies", cookiesFile.absolutePath)
+            }
+            
+            if (!com.fabian.downloader.ui.AppSettings.playlistEnabled) {
+                addOption("--flat-playlist")
+                addOption("--no-playlist")
+            }
+            addOption("--no-cache-dir")
+            
+            customizeExtractorRequest(this, url)
+        }
+
+        try {
+            val response = YoutubeDL.getInstance().execute(request)
+            val jsonRaw = response.out ?: return@withContext null
+            val json = JSONObject(jsonRaw)
+
+            return@withContext com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, "Desconocido", "Video de $displayName")
+        } catch (e: Exception) {
+            Log.e("BaseSiteService", "Error extracting info for $url in service $siteId: ${e.message}", e)
+            return@withContext null
+        }
+    }
+
+    override suspend fun download(
+        url: String,
+        quality: String,
+        format: String,
+        destFolder: File,
+        fileNameWithoutExt: String, processId: String?,
+        onProgress: (progress: Float, sizeText: String, speedText: String) -> Unit
+    ): Boolean = withContext(Dispatchers.IO) {
+        downloader.descargar(
+            videoUrl = url,
+            quality = quality,
+            format = format,
+            destFolder = destFolder,
+            fileNameWithoutExt = fileNameWithoutExt,
+            processId = processId ?: java.util.UUID.randomUUID().toString(),
+            customizeRequest = { request ->
+                customizeDownloaderRequest(request, url)
+            },
+            alProgresar = onProgress
+        )
+    }
+}
