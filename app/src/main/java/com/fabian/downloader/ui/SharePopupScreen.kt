@@ -48,18 +48,19 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
         DownloadOption("video_hq", "High quality (720p)", "MP4", "720p", "Video")
     )
     
+    // Default to Fast (360p) as shown in the Snaptube screenshot
     var selectedOptionId by remember { mutableStateOf("video_fast") }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     
     ModalBottomSheet(
         onDismissRequest = onClose,
         sheetState = sheetState,
-        containerColor = Color(0xFF191919),
-        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+        containerColor = Color(0xFF121212), // Sleek pitch black/dark gray container
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
         dragHandle = {
             BottomSheetDefaults.DragHandle(
                 color = Color.DarkGray,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 10.dp)
             )
         }
     ) {
@@ -67,20 +68,24 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 24.dp)
+                .padding(bottom = 32.dp)
         ) {
             Text(
                 text = "Download video as",
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 24.dp)
+                modifier = Modifier.padding(vertical = 12.dp)
             )
             
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // --- MUSIC SECTION ---
             Text(
                 text = "Music",
                 color = Color.Gray,
                 fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             musicOptions.forEach { option ->
@@ -92,12 +97,14 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(18.dp))
             
+            // --- VIDEO SECTION ---
             Text(
                 text = "Video",
                 color = Color.Gray,
                 fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             videoOptions.forEach { option ->
@@ -109,30 +116,9 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
                 )
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
             
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "More formats",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = "All >",
-                    color = Color.Gray,
-                    fontSize = 14.sp
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
+            // --- HIGH FIDELITY DOWNLOAD BUTTON ---
             Button(
                 onClick = {
                     if (cleanUrl.isNotEmpty()) {
@@ -143,7 +129,7 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
                                 url = cleanUrl,
                                 quality = selected.quality,
                                 format = selected.format,
-                                title = null,
+                                title = "Procesando enlace...",
                                 thumbnailUrl = null
                             )
                             onClose()
@@ -152,17 +138,19 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(28.dp),
+                    .height(54.dp),
+                shape = RoundedCornerShape(27.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFCC00),
+                    containerColor = Color(0xFFFFCC00), // Vibrant golden yellow
                     contentColor = Color.Black
-                )
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp, pressedElevation = 0.dp)
             ) {
                 Text(
-                    text = "Download",
+                    text = "Descargar",
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.5.sp
                 )
             }
         }
@@ -180,13 +168,13 @@ fun FormatRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onSelect)
-            .padding(vertical = 12.dp),
+            .padding(vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color.Gray,
+            tint = Color.LightGray,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -194,6 +182,7 @@ fun FormatRow(
             text = option.title,
             color = Color.White,
             fontSize = 16.sp,
+            fontWeight = FontWeight.Normal,
             modifier = Modifier.weight(1f)
         )
         
@@ -205,7 +194,7 @@ fun FormatRow(
                     shape = CircleShape
                 )
                 .then(
-                    if (!isSelected) Modifier.border(2.dp, Color.Gray, CircleShape) else Modifier
+                    if (!isSelected) Modifier.border(1.5.dp, Color.Gray, CircleShape) else Modifier
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -214,7 +203,7 @@ fun FormatRow(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
                     tint = Color.Black,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(14.dp)
                 )
             }
         }
