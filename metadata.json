@@ -1,6 +1,0 @@
-{
-  "name": "Fabi Downloader",
-  "description": "Potente descargador de videos y audio de múltiples plataformas con soporte para YouTube, Instagram, TikTok y más.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

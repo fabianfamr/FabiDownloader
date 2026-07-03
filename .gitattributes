@@ -1,4 +1,0 @@
-# Ensure gradle-wrapper.jar is treated as binary
-*.jar binary
-gradlew text eol=lf
-gradlew.bat text eol=crlf
