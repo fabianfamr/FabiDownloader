@@ -120,6 +120,12 @@ object YtdlpParser {
             for (i in 0 until formats.length()) {
                 val formatoObj = formats.optJSONObject(i) ?: continue
                 val height = formatoObj.optInt("height", 0)
+                val width = formatoObj.optInt("width", 0)
+                val realHeight = if (height > 0) height else if (width > 0) {
+                    // Estimar altura para videos verticales o formatos extraños si falta height
+                    if (width > height) (width * 9 / 16) else width
+                } else 0
+                
                 val ext = formatoObj.optString("ext", "")
                 val vcodec = formatoObj.optString("vcodec", "")
                 val bytes = getFilesize(formatoObj, duracionSegundos)
@@ -130,8 +136,8 @@ object YtdlpParser {
                 if (vcodec == "none" || vcodec.contains("audio only")) {
                     if (ext == "m4a") sizesMap["audio_m4a"] = mb
                     if (ext == "mp3" || vcodec == "none" || vcodec.contains("audio only")) sizesMap["audio_mp3"] = mb
-                } else if (height > 0) {
-                    sizesMap["video_${height}p"] = mb
+                } else if (realHeight > 0) {
+                    sizesMap["video_${realHeight}p"] = mb
                 }
                 
                 if (totalBytes > tamañoBytesMax) tamañoBytesMax = totalBytes

@@ -11,17 +11,13 @@ class YouTubeService : BaseSiteService() {
 
     override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         super.customizeExtractorRequest(request, url)
-        request.addOption("--extractor-args", "youtube:player-client=android,web,ios")
-        request.addOption("--user-agent", "com.google.android.youtube/19.29.37 (Linux; U; Android 14; en_US) gzip")
-        request.addOption("--add-header", "X-Youtube-Client-Name: 3")
-        request.addOption("--add-header", "X-Youtube-Client-Version: 19.29.37")
+        request.addOption("--extractor-args", "youtube:player-client=ios,web,android")
+        request.addOption("--user-agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1")
     }
 
     override fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
         super.customizeDownloaderRequest(request, url)
-        request.addOption("--extractor-args", "youtube:player-client=android,web,ios")
-        request.addOption("--user-agent", "com.google.android.youtube/19.29.37 (Linux; U; Android 14; en_US) gzip")
-        request.addOption("--add-header", "X-Youtube-Client-Name: 3")
-        request.addOption("--add-header", "X-Youtube-Client-Version: 19.29.37")
+        request.addOption("--extractor-args", "youtube:player-client=ios,web,android")
+        request.addOption("--user-agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1")
     }
 }

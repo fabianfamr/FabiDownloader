@@ -46,7 +46,8 @@ class YtdlpDownloader {
                 val height = quality.filter { it.isDigit() }.ifEmpty { "720" }
                 when (fallbackLevel) {
                     0 -> {
-                        addOption("-f", "bv*[ext=mp4][height<=?$height]+ba[ext=m4a]/b[ext=mp4][height<=?$height]/bv*[height<=?$height]+ba/b[height<=?$height]/bv*+ba/b/best")
+                        // Priorizar mejor video hasta la altura deseada + mejor audio, luego cualquier formato combinado
+                        addOption("-f", "bv*[height<=$height]+ba/b[height<=$height]/bv*+ba/b/best")
                     }
                     1 -> {
                         addOption("-f", "bv*+ba/b/best")
@@ -56,7 +57,6 @@ class YtdlpDownloader {
                     }
                 }
                 addOption("--merge-output-format", "mp4")
-                addOption("--recode-video", "mp4")
             }
             
             addOption("-o", "${destFolder.absolutePath}/$fileNameWithoutExt.%(ext)s")
@@ -105,17 +105,14 @@ class YtdlpDownloader {
             addOption("--no-cache-dir")
             
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player-client=android,web,ios")
+                addOption("--extractor-args", "youtube:player-client=ios,web,android")
                 
                 val customUa = com.fabian.downloader.ui.AppSettings.customUserAgent
                 if (customUa.isNotEmpty()) {
                     addOption("--user-agent", customUa)
                 } else {
-                    addOption("--user-agent", "com.google.android.youtube/19.29.37 (Linux; U; Android 14; en_US) gzip")
+                    addOption("--user-agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1")
                 }
-                
-                addOption("--add-header", "X-Youtube-Client-Name: 3")
-                addOption("--add-header", "X-Youtube-Client-Version: 19.29.37")
             }
             
             addOption("--referer", "https://www.google.com/")

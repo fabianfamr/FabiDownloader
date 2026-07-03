@@ -23,6 +23,8 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.Spring
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.CloudDownload
 import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
@@ -237,14 +239,17 @@ fun getDynamicOptionsFromExtraction(
         // En la vista normal, limitamos las opciones para no saturar
         val targetHeights = if (!isMore) {
             val subset = mutableListOf<Int>()
-            val best = detectedHeights.firstOrNull { it <= 1080 } ?: detectedHeights.firstOrNull()
-            if (best != null) subset.add(best)
+            // Priorizar 1080p, luego 720p, luego 360p para la vista rápida
+            val high = detectedHeights.find { it == 1080 } ?: detectedHeights.firstOrNull { it > 720 && it < 2160 } ?: detectedHeights.firstOrNull { it >= 720 }
+            if (high != null) subset.add(high)
             
-            val middle = detectedHeights.find { it == 720 } ?: detectedHeights.find { it == 480 }
-            if (middle != null && !subset.contains(middle)) subset.add(middle)
+            val middle = detectedHeights.find { it == 720 && !subset.contains(720) } ?: detectedHeights.find { it == 480 && !subset.contains(480) }
+            if (middle != null) subset.add(middle)
             
-            val low = detectedHeights.find { it == 360 } ?: detectedHeights.find { it == 240 }
-            if (low != null && !subset.contains(low)) subset.add(low)
+            val low = detectedHeights.find { it == 360 && !subset.contains(360) } ?: detectedHeights.find { it == 240 && !subset.contains(240) }
+            if (low != null) subset.add(low)
+            
+            if (subset.isEmpty() && detectedHeights.isNotEmpty()) subset.add(detectedHeights.first())
             
             subset.sortedDescending()
         } else {
@@ -256,16 +261,15 @@ fun getDynamicOptionsFromExtraction(
             val sizeMb = formatSizes[key] ?: 0.0
             val sizeStr = if (sizeMb > 0.0) String.format(java.util.Locale.US, "%.1f MB", sizeMb) else "Auto"
             
-            val (qualityName, badge) = when (height) {
-                2160 -> Pair("2160p (4K)", "4K 🔥")
-                1440 -> Pair("1440p (2K)", "2K ⭐")
-                1080 -> Pair("1080p (Full HD)", "1080p ✨")
-                720 -> Pair("720p (HD)", "720p")
-                480 -> Pair("480p", "480p")
-                360 -> Pair("360p", "360p")
-                240 -> Pair("240p", "Baja")
-                144 -> Pair("144p", "Ahorro")
-                else -> Pair("${height}p", null)
+            val (qualityName, badge) = when {
+                height >= 2160 -> Pair("${height}p (4K)", "4K 🔥")
+                height >= 1440 -> Pair("${height}p (2K)", "2K ⭐")
+                height >= 1080 -> Pair("${height}p (Full HD)", "1080p ✨")
+                height >= 720 -> Pair("${height}p (HD)", "720p")
+                height >= 480 -> Pair("480p", "480p")
+                height >= 360 -> Pair("360p", "360p")
+                height >= 240 -> Pair("240p", "Baja")
+                else -> Pair("${height}p", "Ahorro")
             }
 
             list.add(
@@ -885,35 +889,43 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
                             }
 
                             // Show more / high-quality formats switch button at the end of the list
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(14.dp))
                             Surface(
                                 onClick = { isMoreFormats = !isMoreFormats },
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
-                                shape = RoundedCornerShape(12.dp),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.08f)),
+                                color = if (isMoreFormats) platformColor.copy(alpha = 0.08f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                shape = RoundedCornerShape(16.dp),
+                                border = BorderStroke(
+                                    1.dp, 
+                                    if (isMoreFormats) platformColor.copy(alpha = 0.3f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                                ),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp),
+                                    modifier = Modifier.padding(vertical = 14.dp, horizontal = 16.dp),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
+                                    Icon(
+                                        imageVector = if (isMoreFormats) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                        contentDescription = null,
+                                        tint = platformColor,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = if (isMoreFormats) "Ocultar formatos avanzados" else "Mostrar todos los formatos (Full HD / Audio 320K)",
+                                        text = if (isMoreFormats) "Ver menos opciones" else "Ver todos los formatos (Full HD / 4K / 320K)",
                                         color = platformColor,
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        letterSpacing = 0.2.sp
                                     )
                                 }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(18.dp))
+                                       Spacer(modifier = Modifier.height(18.dp))
 
                         // Unified High-Fidelity Primary Action Button
                         Button(
                             onClick = {
-                                if (cleanUrl.isNotEmpty()) {
+                                if (cleanUrl.isNotEmpty() && !isExtracting) {
                                     viewModel.downloadVideo(
                                         url = cleanUrl,
                                         quality = selectedOption.quality,
@@ -924,32 +936,52 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
                                     showSuccessDialog = true
                                 }
                             },
+                            enabled = !isExtracting,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(54.dp),
-                            shape = RoundedCornerShape(27.dp),
+                                .height(58.dp),
+                            shape = RoundedCornerShape(20.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = platformColor,
-                                contentColor = Color.White
+                                contentColor = Color.White,
+                                disabledContainerColor = platformColor.copy(alpha = 0.5f),
+                                disabledContentColor = Color.White.copy(alpha = 0.7f)
                             ),
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 0.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.CloudDownload,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = if (isResolvingSize) "Calculando peso..." else "Descargar ${selectedOption.format} (${selectedOption.sizeStr})",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                            if (isExtracting) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp,
+                                    color = Color.White
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Preparando motor...",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.CloudDownload,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = if (isResolvingSize) "Calculando peso..." else "Descargar en ${selectedOption.quality}",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    letterSpacing = 0.5.sp
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+    }
+    }
     }
 
 @Composable

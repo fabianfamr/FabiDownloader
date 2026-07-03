@@ -43,10 +43,8 @@ class YtdlpExtractor {
             
             if (isYoutube) {
                 // Configuración específica para YouTube para evadir bot detection
-                addOption("--extractor-args", "youtube:player-client=android,web,ios")
-                addOption("--user-agent", "com.google.android.youtube/19.29.37 (Linux; U; Android 14; en_US) gzip")
-                addOption("--add-header", "X-Youtube-Client-Name: 3")
-                addOption("--add-header", "X-Youtube-Client-Version: 19.29.37")
+                addOption("--extractor-args", "youtube:player-client=ios,web,android")
+                addOption("--user-agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1")
             }
             
             addOption("--referer", "https://www.google.com/")
