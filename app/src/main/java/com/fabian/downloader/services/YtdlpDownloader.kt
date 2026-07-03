@@ -145,12 +145,17 @@ class YtdlpDownloader {
             val customArgs = com.fabian.downloader.ui.AppSettings.customArguments
             if (customArgs.isNotEmpty()) {
                 try {
-                    val allowedArgs = setOf("--sleep-requests", "--sleep-interval", "--max-sleep-interval", "--limit-rate", "--socket-timeout", "--abort-on-error", "--user-agent", "--referer", "--proxy", "--geo-verification-proxy", "--yes-playlist", "--no-playlist", "--flat-playlist")
+                    val allowedArgs = setOf(
+                        "--sleep-requests", "--sleep-interval", "--max-sleep-interval", 
+                        "--limit-rate", "--socket-timeout", "--abort-on-error", 
+                        "--user-agent", "--referer", "--proxy", "--geo-verification-proxy", 
+                        "--yes-playlist", "--no-playlist", "--flat-playlist"
+                    )
                     val tokens = customArgs.trim().split(Regex("\\s+"))
                     var i = 0
                     while (i < tokens.size) {
                         val token = tokens[i]
-                        if (token.startsWith("-")) {
+                        if (token.startsWith("--")) {
                             if (allowedArgs.contains(token)) {
                                 if (i + 1 < tokens.size && !tokens[i + 1].startsWith("-")) {
                                     addOption(token, tokens[i + 1])
@@ -160,8 +165,8 @@ class YtdlpDownloader {
                                     i += 1
                                 }
                             } else {
-                                Log.w("YtdlpDownloader", "Blocked custom argument: $token")
-                                i += 1 // Skip this token, maybe also skip the next if it's a value, but we can't tell easily. Let's skip safely.
+                                Log.w("YtdlpDownloader", "Blocked unauthorized argument: $token")
+                                i += 1
                                 if (i < tokens.size && !tokens[i].startsWith("-")) {
                                     i += 1
                                 }
@@ -171,7 +176,7 @@ class YtdlpDownloader {
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("YtdlpDownloader", "Error parsing custom arguments: ${e.message}")
+                    Log.e("YtdlpDownloader", "Error parsing custom arguments", e)
                 }
             }
 

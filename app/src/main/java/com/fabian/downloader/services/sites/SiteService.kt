@@ -14,7 +14,7 @@ interface SiteService {
         try {
             val host = java.net.URI(url).host?.lowercase() ?: return false
             return supportedUrlPatterns.any { pattern ->
-                host.contains(pattern.lowercase())
+                host == pattern.lowercase() || host.endsWith(".$pattern", ignoreCase = true)
             }
         } catch (e: Exception) {
             return supportedUrlPatterns.any { pattern ->

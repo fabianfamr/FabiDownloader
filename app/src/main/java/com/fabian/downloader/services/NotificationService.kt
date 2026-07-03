@@ -51,6 +51,9 @@ class NotificationService(private val context: Context) {
         }
     }
 
+    private val thumbnailCache = mutableMapOf<String, Bitmap>()
+    private var lastSummaryPostTime = 0L
+
     suspend fun showDownloadProgress(
         id: Int, 
         title: String, 
@@ -65,12 +68,19 @@ class NotificationService(private val context: Context) {
         }
 
         val largeIcon = if (!thumbnailUrl.isNullOrEmpty()) {
-            val bitmap = getBitmapFromUrl(thumbnailUrl)
-            if (bitmap != null) {
-                val density = context.resources.displayMetrics.density
-                val sizePx = (64 * density).toInt()
-                Bitmap.createScaledBitmap(bitmap, sizePx, sizePx, true)
-            } else null
+            val cached = thumbnailCache[thumbnailUrl]
+            if (cached != null) {
+                cached
+            } else {
+                val bitmap = getBitmapFromUrl(thumbnailUrl)
+                if (bitmap != null) {
+                    val density = context.resources.displayMetrics.density
+                    val sizePx = (64 * density).toInt()
+                    val scaled = Bitmap.createScaledBitmap(bitmap, sizePx, sizePx, true)
+                    thumbnailCache[thumbnailUrl] = scaled
+                    scaled
+                } else null
+            }
         } else null
 
         // Crear Intent de Acción Pausar/Cancelar
@@ -89,15 +99,6 @@ class NotificationService(private val context: Context) {
             pauseIntent,
             flags
         )
-
-        val summaryNotification = NotificationCompat.Builder(context, channelProgressId)
-            .setContentTitle("Descargas activas")
-            .setSmallIcon(R.drawable.ic_cloud_download)
-            .setStyle(NotificationCompat.InboxStyle()
-                .setSummaryText("Descargando archivos"))
-            .setGroup(groupId)
-            .setGroupSummary(true)
-            .build()
 
         val isPreparing = progress < 0
         val contentText = StringBuilder()
@@ -126,7 +127,21 @@ class NotificationService(private val context: Context) {
             .build()
 
         notificationManager.notify(id, notification)
-        notificationManager.notify(0, summaryNotification) // Summary ID is 0
+        
+        // Throttled summary post (every 2 seconds)
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastSummaryPostTime > 2000L) {
+            val summaryNotification = NotificationCompat.Builder(context, channelProgressId)
+                .setContentTitle("Descargas activas")
+                .setSmallIcon(R.drawable.ic_cloud_download)
+                .setStyle(NotificationCompat.InboxStyle()
+                    .setSummaryText("Descargando archivos"))
+                .setGroup(groupId)
+                .setGroupSummary(true)
+                .build()
+            notificationManager.notify(0, summaryNotification)
+            lastSummaryPostTime = currentTime
+        }
     }
 
     suspend fun showDownloadSuccess(id: Int, title: String, thumbnailUrl: String? = null) {

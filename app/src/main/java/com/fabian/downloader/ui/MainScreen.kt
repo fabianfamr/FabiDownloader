@@ -69,10 +69,15 @@ fun MainScreen(
     )
 
     // Observe downloads flow in real-time
-    val downloadsList by database.downloadDao().getAllDownloads().collectAsState(initial = emptyList())
-    // Get last 3 downloads
+    val downloadsList by database.downloadDao().getAllDownloads().collectAsStateWithLifecycle(initialValue = emptyList())
+    // Get last 3 completed downloads
     val recentDownloads by remember(downloadsList) {
-        derivedStateOf { downloadsList.sortedByDescending { it.timestamp }.take(3) }
+        derivedStateOf { 
+            downloadsList
+                .filter { it.isCompleted }
+                .sortedByDescending { it.timestamp }
+                .take(3) 
+        }
     }
     
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -563,7 +568,7 @@ fun MainScreen(
                                         )
                                     }
                                     Text(
-                                        text = "Completado",
+                                        text = if (record.isCompleted) "Completado" else "En progreso",
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                     )

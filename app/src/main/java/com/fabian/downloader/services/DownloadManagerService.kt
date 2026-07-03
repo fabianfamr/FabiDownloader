@@ -88,8 +88,10 @@ class DownloadManagerService private constructor(
                         nextToProcess.take(slotsAvailable).forEach { record ->
                             processingIds.add(record.id)
                             
-                            // Iniciar Foreground Service antes de comenzar procesamiento pesado
-                            DownloadForegroundService.start(application)
+                            // Iniciar Foreground Service en el hilo principal antes de comenzar procesamiento pesado
+                            withContext(Dispatchers.Main) {
+                                DownloadForegroundService.start(application)
+                            }
                             
                             serviceScope.launch {
                                 try {
@@ -98,7 +100,9 @@ class DownloadManagerService private constructor(
                                     processingIds.remove(record.id)
                                     // Si no quedan más descargas en progreso, detener el Foreground Service
                                     if (processingIds.isEmpty()) {
-                                        DownloadForegroundService.stop(application)
+                                        withContext(Dispatchers.Main) {
+                                            DownloadForegroundService.stop(application)
+                                        }
                                     }
                                 }
                             }
@@ -222,15 +226,12 @@ class DownloadManagerService private constructor(
                 val fileNameWithoutExt = "${sanitizedTitle}_$id"
 
                 service.download(url, quality, format, destFolder, fileNameWithoutExt, processId = id.toString()) { progress, sizeText, speedText ->
-                    serviceScope.launch {
-                        // Stop if paused
-                        val currentRecord = storageService.getDownloadById(id)
-                        if (currentRecord == null || currentRecord.isPaused) {
-                            // Stop signal handled by destroyProcess via reflection in pause
-                        } else {
-                            val currentTime = System.currentTimeMillis()
-                            if (currentTime - lastProgressUpdate > 1000 || progress >= 100f) {
-                                lastProgressUpdate = currentTime
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastProgressUpdate > 1000 || progress >= 100f) {
+                        lastProgressUpdate = currentTime
+                        serviceScope.launch {
+                            val currentRecord = storageService.getDownloadById(id)
+                            if (currentRecord != null && !currentRecord.isPaused) {
                                 val displaySize = if (sizeText == "Descargando...") {
                                     currentRecord.size.takeIf { it != "0 MB" && it.isNotEmpty() } ?: "Descargando..."
                                 } else {

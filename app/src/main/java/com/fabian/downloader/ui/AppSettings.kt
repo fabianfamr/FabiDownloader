@@ -3,6 +3,9 @@ package com.fabian.downloader.ui
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -196,18 +199,21 @@ object AppSettings {
         }
 
     private fun writeCookiesFile(text: String) {
-        try {
-            val context = com.fabian.downloader.MyApplication.getInstance()
-            val file = java.io.File(context.filesDir, "cookies.txt")
-            if (text.isBlank()) {
-                if (file.exists()) {
-                    file.delete()
+        // Run I/O in a background thread to avoid ANR
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                val context = com.fabian.downloader.MyApplication.getInstance()
+                val file = java.io.File(context.filesDir, "cookies.txt")
+                if (text.isBlank()) {
+                    if (file.exists()) {
+                        file.delete()
+                    }
+                } else {
+                    file.writeText(text)
                 }
-            } else {
-                file.writeText(text)
+            } catch (e: Exception) {
+                android.util.Log.e("AppSettings", "Error writing cookies file", e)
             }
-        } catch (e: Exception) {
-            android.util.Log.e("AppSettings", "Error writing cookies file", e)
         }
     }
 

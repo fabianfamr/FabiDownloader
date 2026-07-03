@@ -7,19 +7,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 fun getPlatformIconAndColor(url: String, format: String): Pair<ImageVector, Color> {
     val lowerUrl = url.lowercase()
-    val isAudio = format.contains("MP3") || format.contains("M4A")
+    val upperFormat = format.uppercase()
+    val isAudio = upperFormat.contains("MP3") || upperFormat.contains("M4A") || upperFormat.contains("OGG") || upperFormat.contains("WAV")
+    
     return when {
-        lowerUrl.contains("youtube") || lowerUrl.contains("youtu.be") -> 
+        lowerUrl.contains("youtube.com") || lowerUrl.contains("youtu.be") || lowerUrl.contains("shorts") -> 
             Pair(Icons.Default.PlayCircle, Color(0xFFFF0000))
-        lowerUrl.contains("instagram") -> 
+        lowerUrl.contains("instagram.com") -> 
             Pair(Icons.Default.CameraAlt, Color(0xFFE1306C))
-        lowerUrl.contains("facebook") || lowerUrl.contains("fb.watch") -> 
+        lowerUrl.contains("facebook.com") || lowerUrl.contains("fb.watch") -> 
             Pair(Icons.Default.Facebook, Color(0xFF1877F2))
-        lowerUrl.contains("tiktok") -> 
-            Pair(Icons.Default.Album, Color(0xFF222222))
-        lowerUrl.contains("twitter") || lowerUrl.contains("x.com") -> 
-            Pair(Icons.Default.Share, Color(0xFF121212))
-        lowerUrl.contains("twitch") || lowerUrl.contains("twitch.tv") -> 
+        lowerUrl.contains("tiktok.com") -> 
+            Pair(Icons.Default.Album, Color(0xFF010101))
+        lowerUrl.contains("twitter.com") || lowerUrl.contains("x.com") -> 
+            Pair(Icons.Default.Share, Color(0xFF000000))
+        lowerUrl.contains("twitch.tv") -> 
             Pair(Icons.Default.VideogameAsset, Color(0xFF9146FF))
         lowerUrl.contains("kick.com") -> 
             Pair(Icons.Default.LiveTv, Color(0xFF53FC18))
