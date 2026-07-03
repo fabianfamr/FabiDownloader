@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Environment
 import java.io.File
 
+@Suppress("DEPRECATION")
 object PathUtils {
     fun getDownloadFolder(context: Context, format: String): File {
         val isVideo = format.equals("MP4", ignoreCase = true) || format.equals("WEBM", ignoreCase = true)

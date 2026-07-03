@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -121,7 +122,7 @@ fun DownloadSettingsContent(
                     AppSettings.embedMetadata = it
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                ToggleSetting(Icons.Default.PlaylistPlay, "Permitir listas de reproducción", AppSettings.playlistEnabled) {
+                ToggleSetting(Icons.AutoMirrored.Filled.PlaylistPlay, "Permitir listas de reproducción", AppSettings.playlistEnabled) {
                     AppSettings.playlistEnabled = it
                 }
             }

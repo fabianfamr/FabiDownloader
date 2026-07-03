@@ -48,13 +48,17 @@
 # kotlinx.serialization rules
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.AnnotationsKt
--keep,allowclassmerging,allowemptyclassmembers class * {
+
+# Keep serializable classes and their fields
+-keepclassmembers class * {
     @kotlinx.serialization.Serializable <fields>;
 }
+
 -keepnames class kotlinx.serialization.internal.**
 -keepclassmembers class kotlinx.serialization.internal.** {
     *** Companion;
 }
+
 -keepclasseswithmembers class * {
     @kotlinx.serialization.Serializable <init>(...);
 }

@@ -13,7 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Audiotrack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -371,38 +371,34 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
         
         try {
             val result = viewModel.extractVideoInfo(cleanUrl)
-            if (result != null) {
-                if (result.title != "Video sin título" && result.title != "Desconocido") {
-                    videoTitle = result.title
-                } else if (initialTitle == "Analizando enlace compartido...") {
-                    videoTitle = result.title
-                }
-                videoThumbnailUrl = result.thumbnailUrl
-                platformId = result.platformId
-                platformName = result.platformName
-                brandColorHex = result.brandColorHex
-                sourceDomain = result.platformName
-                
-                // Generar dinámicamente las opciones basadas en lo que realmente existe en el video
-                defaultOptions = getDynamicOptionsFromExtraction(result.formatSizes, false)
-                moreOptions = getDynamicOptionsFromExtraction(result.formatSizes, true)
-                
-                val allOptions = defaultOptions + moreOptions
-                if (allOptions.none { it.id == selectedOptionId }) {
-                    val defaultVideo = defaultOptions.find { it.category == "Video" } ?: defaultOptions.firstOrNull()
-                    if (defaultVideo != null) {
-                        selectedOptionId = defaultVideo.id
-                        selectedTab = "Video"
-                    } else {
-                        val firstOpt = defaultOptions.firstOrNull()
-                        if (firstOpt != null) {
-                            selectedOptionId = firstOpt.id
-                            selectedTab = firstOpt.category
-                        }
+            if (result.title != "Video sin título" && result.title != "Desconocido") {
+                videoTitle = result.title
+            } else if (initialTitle == "Analizando enlace compartido...") {
+                videoTitle = result.title
+            }
+            videoThumbnailUrl = result.thumbnailUrl
+            platformId = result.platformId
+            platformName = result.platformName
+            brandColorHex = result.brandColorHex
+            sourceDomain = result.platformName
+            
+            // Generar dinámicamente las opciones basadas en lo que realmente existe en el video
+            defaultOptions = getDynamicOptionsFromExtraction(result.formatSizes, false)
+            moreOptions = getDynamicOptionsFromExtraction(result.formatSizes, true)
+            
+            val allOptions = defaultOptions + moreOptions
+            if (allOptions.none { it.id == selectedOptionId }) {
+                val defaultVideo = defaultOptions.find { it.category == "Video" } ?: defaultOptions.firstOrNull()
+                if (defaultVideo != null) {
+                    selectedOptionId = defaultVideo.id
+                    selectedTab = "Video"
+                } else {
+                    val firstOpt = defaultOptions.firstOrNull()
+                    if (firstOpt != null) {
+                        selectedOptionId = firstOpt.id
+                        selectedTab = firstOpt.category
                     }
                 }
-            } else {
-                errorMessage = "No se pudo extraer información del video."
             }
         } catch (e: Exception) {
             errorMessage = "Error al conectar con el servicio: ${e.message}"

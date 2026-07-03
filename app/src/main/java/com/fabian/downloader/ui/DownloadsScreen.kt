@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -51,6 +52,7 @@ import kotlinx.coroutines.launch
 fun DownloadsScreen(database: AppDatabase, modifier: Modifier = Modifier) {
     val viewModel: DownloadsViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return DownloadsViewModel(database) as T
             }
@@ -310,7 +312,7 @@ fun DownloadsScreen(database: AppDatabase, modifier: Modifier = Modifier) {
                             .size(40.dp)
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
                     ) {
-                        Icon(Icons.Default.Sort, "Ordenar", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(Icons.AutoMirrored.Filled.Sort, "Ordenar", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     DropdownMenu(
                         expanded = expanded, 

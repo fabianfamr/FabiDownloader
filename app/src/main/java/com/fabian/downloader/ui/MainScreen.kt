@@ -62,6 +62,7 @@ fun MainScreen(
     
     val viewModel: MainViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return MainViewModel(application, database) as T
             }
@@ -80,7 +81,7 @@ fun MainScreen(
         }
     }
     
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     var clipboardUrl by remember { mutableStateOf<String?>(null) }
     var urlToDownloadInDialog by remember { mutableStateOf<String?>(null) }
     var lastProcessedClipboardUrl by remember { mutableStateOf("") }

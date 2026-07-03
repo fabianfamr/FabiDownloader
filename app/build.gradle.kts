@@ -36,6 +36,8 @@ android {
   packaging {
     jniLibs {
       useLegacyPackaging = true
+      doNotStrip.add("**/libpython.zip.so")
+      doNotStrip.add("**/libffmpeg.zip.so")
     }
     resources {
       pickFirsts.add("lib/**/libc++_shared.so")
@@ -74,7 +76,6 @@ android {
       isCrunchPngs = true
       isMinifyEnabled = true
       isShrinkResources = true
-      isZipAlignEnabled = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }

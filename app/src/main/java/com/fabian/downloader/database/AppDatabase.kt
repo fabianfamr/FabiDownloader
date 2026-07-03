@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.room.migration.Migration
 
-@Database(entities = [DownloadRecord::class, SearchHistoryRecord::class], version = 8)
+@Database(entities = [DownloadRecord::class, SearchHistoryRecord::class], version = 8, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun downloadDao(): DownloadDao
     abstract fun searchHistoryDao(): SearchHistoryDao
