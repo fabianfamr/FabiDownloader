@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.fabian.downloader.database.AppDatabase
+import com.fabian.downloader.MainActivity
 import com.fabian.downloader.ui.MainViewModel
 import com.fabian.downloader.ui.SharePopupScreen
 import com.fabian.downloader.ui.theme.MyApplicationTheme
