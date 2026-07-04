@@ -1,4 +1,4 @@
-package com.fabian.downloader
+package com.fabian.downloader.services
 
 import android.content.BroadcastReceiver
 import android.content.Context

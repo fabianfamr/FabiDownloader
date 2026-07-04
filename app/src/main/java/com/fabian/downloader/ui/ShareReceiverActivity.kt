@@ -1,4 +1,4 @@
-package com.fabian.downloader
+package com.fabian.downloader.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.room.Room
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.ui.MainViewModel
 import com.fabian.downloader.ui.SharePopupScreen

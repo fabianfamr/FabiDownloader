@@ -9,7 +9,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.fabian.downloader.DownloadActionReceiver
+import com.fabian.downloader.services.DownloadActionReceiver
 import com.fabian.downloader.R
 import java.net.URL
 import kotlinx.coroutines.Dispatchers

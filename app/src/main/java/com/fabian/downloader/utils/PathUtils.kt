@@ -18,35 +18,32 @@ object PathUtils {
                 if (!downloadFabiFolder.exists()) {
                     downloadFabiFolder.mkdirs()
                 }
-                var isWritable = downloadFabiFolder.canWrite()
-                if (!isWritable && downloadFabiFolder.exists()) {
-                    // Try to create a dummy temp file to verify writability
-                    val testFile = File(downloadFabiFolder, ".test_write")
-                    if (testFile.createNewFile()) {
-                        testFile.delete()
-                        isWritable = true
-                    }
-                }
-                if (isWritable) {
-                    android.util.Log.d("PathUtils", "Using public Download folder: ${downloadFabiFolder.absolutePath}")
+                
+                // On Android 10+, even if mkdirs returns true, we might not have permission to write files
+                val testFile = File(downloadFabiFolder, ".test_write_${System.currentTimeMillis()}")
+                if (testFile.createNewFile()) {
+                    testFile.delete()
+                    android.util.Log.d("PathUtils", "Successfully verified public Download folder: ${downloadFabiFolder.absolutePath}")
                     return downloadFabiFolder
                 }
             } catch (e: Exception) {
-                android.util.Log.e("PathUtils", "Failed to use public Download folder", e)
+                android.util.Log.e("PathUtils", "Public Download folder is NOT writable: ${e.message}")
             }
         }
 
         // 2. Try Android/media/com.fabian.downloader/FabiDownloader/video or .../audio
-        // This is writable without permissions in 10+ and scanned by some media scanners.
+        // This is much better than private storage because it's scanned by Media Store and visible in Gallery.
         val mediaDirs = context.externalMediaDirs
-        val mediaDir = mediaDirs.firstOrNull()
-        if (mediaDir != null) {
+        for (mediaDir in mediaDirs) {
+            if (mediaDir == null) continue
             val targetFolder = File(mediaDir, relativeSubfolder)
             try {
                 if (!targetFolder.exists()) {
                     targetFolder.mkdirs()
                 }
-                if (targetFolder.exists() && targetFolder.canWrite()) {
+                val testFile = File(targetFolder, ".test_write_${System.currentTimeMillis()}")
+                if (testFile.createNewFile()) {
+                    testFile.delete()
                     android.util.Log.d("PathUtils", "Using externalMediaDirs folder: ${targetFolder.absolutePath}")
                     return targetFolder
                 }
@@ -63,7 +60,9 @@ object PathUtils {
                 if (!targetFolder.exists()) {
                     targetFolder.mkdirs()
                 }
-                if (targetFolder.exists() && targetFolder.canWrite()) {
+                val testFile = File(targetFolder, ".test_write_${System.currentTimeMillis()}")
+                if (testFile.createNewFile()) {
+                    testFile.delete()
                     android.util.Log.d("PathUtils", "Using appExternalDownloadDir folder: ${targetFolder.absolutePath}")
                     return targetFolder
                 }
@@ -72,11 +71,12 @@ object PathUtils {
             }
         }
         
-        // 4. Ultimate fallback to app's private files dir
+        // 4. Ultimate fallback to app's private files dir (User doesn't want this, but we need something)
         val fallbackFolder = File(context.filesDir, relativeSubfolder)
         if (!fallbackFolder.exists()) {
             fallbackFolder.mkdirs()
         }
+        android.util.Log.w("PathUtils", "FALLBACK to private storage! This is what the user wants to avoid: ${fallbackFolder.absolutePath}")
         return fallbackFolder
     }
 

@@ -18,7 +18,7 @@ android {
     applicationId = "com.fabian.downloader"
     minSdk = 24
     targetSdk = 37
-    versionCode = 59
+    versionCode = 60
     versionName = parsedVersionName
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
