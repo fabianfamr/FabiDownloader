@@ -19,6 +19,7 @@ import com.fabian.downloader.ui.theme.MyApplicationTheme
 class MainActivity : ComponentActivity() {
     lateinit var database: AppDatabase
     private val startOnDownloadsState = mutableStateOf(false)
+    private val initialPageState = mutableStateOf(0)
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -32,15 +33,22 @@ class MainActivity : ComponentActivity() {
         database = AppDatabase.getInstance(this)
         
         startOnDownloadsState.value = intent.getBooleanExtra("navigate_to_downloads", false)
+        initialPageState.value = intent.getIntExtra("initialPage", 0)
         
         checkAndRequestNotifications()
         enableEdgeToEdge()
         setContent {
             val themePreference = com.fabian.downloader.ui.AppSettings.themePreference
             MyApplicationTheme(themePreference = themePreference) {
-                FabiDownloaderApp(database, startOnDownloadsState.value) {
-                    startOnDownloadsState.value = false
-                }
+                FabiDownloaderApp(
+                    database = database,
+                    startOnDownloads = startOnDownloadsState.value,
+                    initialPage = initialPageState.value,
+                    onConsumedStartOnDownloads = {
+                        startOnDownloadsState.value = false
+                        initialPageState.value = 0
+                    }
+                )
             }
         }
     }
@@ -50,6 +58,7 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
         if (intent.getBooleanExtra("navigate_to_downloads", false)) {
             startOnDownloadsState.value = true
+            initialPageState.value = intent.getIntExtra("initialPage", 0)
         }
     }
 

@@ -54,7 +54,11 @@ import kotlin.random.Random
 import kotlinx.coroutines.launch
 
 @Composable
-fun DownloadsScreen(database: AppDatabase, modifier: Modifier = Modifier) {
+fun DownloadsScreen(
+    database: AppDatabase,
+    modifier: Modifier = Modifier,
+    initialPage: Int = 0
+) {
     val viewModel: DownloadsViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -233,8 +237,14 @@ fun DownloadsScreen(database: AppDatabase, modifier: Modifier = Modifier) {
     }
 
     val tabs = listOf("Descargados", "En progreso")
-    val pagerState = rememberPagerState(pageCount = { tabs.size })
+    val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(initialPage) {
+        if (initialPage in 0 until tabs.size) {
+            pagerState.scrollToPage(initialPage)
+        }
+    }
 
     Column(
         modifier = modifier

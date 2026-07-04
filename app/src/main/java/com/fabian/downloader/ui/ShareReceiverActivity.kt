@@ -68,7 +68,16 @@ class ShareReceiverActivity : ComponentActivity() {
                 SharePopupScreen(
                     url = sharedText, 
                     viewModel = viewModel,
-                    onClose = { finish() }
+                    onClose = { finish() },
+                    onNavigateToDownloads = {
+                        val intent = Intent(this@ShareReceiverActivity, MainActivity::class.java).apply {
+                            putExtra("navigate_to_downloads", true)
+                            putExtra("initialPage", 1) // Go to "En progreso" tab
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                        }
+                        startActivity(intent)
+                        finish()
+                    }
                 )
             }
         }

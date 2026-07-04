@@ -28,12 +28,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FabiDownloaderApp(
     database: AppDatabase,
     startOnDownloads: Boolean = false,
+    initialPage: Int = 0,
     onConsumedStartOnDownloads: () -> Unit = {}
 ) {
     val navController = rememberNavController()
@@ -44,7 +47,7 @@ fun FabiDownloaderApp(
 
     LaunchedEffect(startOnDownloads) {
         if (startOnDownloads) {
-            navController.navigate(Screen.Downloads.route) {
+            navController.navigate(Screen.Downloads.route + "?initialPage=$initialPage") {
                 popUpTo(navController.graph.startDestinationId) { saveState = true }
                 launchSingleTop = true
                 restoreState = true
@@ -123,7 +126,7 @@ fun FabiDownloaderApp(
                         windowInsets = WindowInsets(0)
                     ) {
                         screens.forEach { screen ->
-                            val isSelected = currentRoute == screen.route
+                            val isSelected = currentRoute?.startsWith(screen.route) == true
                             
                             val animatedWeight by animateFloatAsState(
                                 targetValue = if (isSelected) 1f else 0f,
@@ -134,7 +137,7 @@ fun FabiDownloaderApp(
                             NavigationBarItem(
                                 selected = isSelected,
                                 onClick = {
-                                    if (currentRoute != screen.route) {
+                                    if (currentRoute != screen.route && currentRoute?.startsWith(screen.route) != true) {
                                         navController.navigate(screen.route) {
                                             popUpTo(navController.graph.startDestinationId) { saveState = true }
                                             launchSingleTop = true
@@ -198,11 +201,22 @@ fun FabiDownloaderApp(
                     MainScreen(
                         database = database,
                         snackbarHostState = snackbarHostState,
-                        onNavigateToDownloads = { navController.navigate(Screen.Downloads.route) }
+                        onNavigateToDownloads = {
+                            navController.navigate(Screen.Downloads.route + "?initialPage=1")
+                        }
                     )
                 }
-                composable(Screen.Downloads.route) {
-                    DownloadsScreen(database = database)
+                composable(
+                    route = Screen.Downloads.route + "?initialPage={initialPage}",
+                    arguments = listOf(
+                        navArgument("initialPage") {
+                            type = NavType.IntType
+                            defaultValue = 0
+                        }
+                    )
+                ) { backStackEntry ->
+                    val page = backStackEntry.arguments?.getInt("initialPage") ?: 0
+                    DownloadsScreen(database = database, initialPage = page)
                 }
                 composable(Screen.Settings.route) {
                     SettingsScreen(
