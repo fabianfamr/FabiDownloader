@@ -1,16 +1,16 @@
 ========================================================================
-FABI DOWNLOADER - LICENCIA Y CONDICIONES DE USO
+FABI DOWNLOADER - LICENSE AND TERMS OF USE
 ========================================================================
 
-Fabi Downloader es una aplicación de código abierto para la descarga ágil y
-eficiente de contenido multimedia. Todo el código fuente de este repositorio
-se distribuye bajo los términos de la Licencia MIT.
+Fabi Downloader is an open-source application designed for fast and
+efficient multimedia downloads. All source code within this repository
+is distributed under the terms of the MIT License.
 
-A continuación se detalla el texto legal oficial de la licencia, seguido de
-aclaraciones y directrices adicionales sobre el uso del proyecto.
+Below is the official legal text of the license, followed by additional
+clarifications and guidelines regarding the project's use.
 
 ------------------------------------------------------------------------
-1. LICENCIA LEGAL OFICIAL (MIT LICENSE)
+1. OFFICIAL LEGAL LICENSE TEXT (MIT LICENSE)
 ------------------------------------------------------------------------
 
 MIT License
@@ -36,35 +36,35 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ------------------------------------------------------------------------
-2. DIRECTRICES Y ACLARACIONES DEL PROYECTO
+2. PROJECT GUIDELINES AND CLARIFICATIONS
 ------------------------------------------------------------------------
 
-Para facilitar el entendimiento de esta licencia, el desarrollador comparte las
-siguientes pautas generales de colaboración y uso:
+To facilitate the understanding of this license, the developer shares the
+following general guidelines for use and collaboration:
 
-* Libertad de Uso y Modificación:
-  Puedes estudiar el código, modificarlo para adaptarlo a tus necesidades,
-  compilar tus propias versiones e incluso incorporarlo en tus propios desarrollos,
-  sean estos de carácter personal, educativo o comercial. El único requisito
-  legal es conservar el encabezado de Copyright original de Fabian ツ.
+* Freedom of Use and Modification:
+  You are free to study the code, modify it to suit your needs, compile your
+  own builds, and even integrate it into your own software projects, whether
+  personal, educational, or commercial. The only legal requirement is to
+  preserve the original Copyright notice of Fabian ツ.
 
-* Distribución y Bifurcaciones (Forks):
-  Si creas una versión derivada o distribuyes copias de este software, te
-  agradecemos incluir una atribución visible y un enlace al repositorio de desarrollo
-  original en GitHub (https://github.com/fabianfamr/FabiDownloader).
+* Distribution and Forks:
+  If you create a derivative version or distribute copies of this software,
+  we greatly appreciate a visible attribution and link back to the original
+  GitHub development repository (https://github.com/fabianfamr/FabiDownloader).
 
-* Exclusión de Responsabilidad y Garantías:
-  Fabi Downloader es una herramienta de software. El desarrollador no asume
-  ninguna responsabilidad por el uso inadecuado o ilegal de la aplicación,
-  incluyendo la descarga de material protegido por derechos de autor sin la
-  autorización expresa de sus respectivos titulares. El usuario final es el único
-  responsable del cumplimiento de los términos de servicio de los sitios web
-  desde los que descarga información.
+* Disclaimer of Liability and Warranties:
+  Fabi Downloader is provided as-is, as a software tool. The developer assumes
+  no liability for any misuse or illegal use of the application, including
+  downloading copyrighted material without the express consent of the owner.
+  The end user is solely responsible for complying with the terms of service of
+  the platforms from which they download content.
 
-* Motores y Librerías de Terceros:
-  Este proyecto hace uso de tecnologías externas muy potentes (como el motor de
-  descarga yt-dlp y la biblioteca youtubedl-android). Estos componentes externos
-  están protegidos por sus propios creadores y se rigen bajo sus respectivas
-  licencias de distribución libre. Eres responsable de cumplir también con sus
-  términos al compilar y distribuir Fabi Downloader.
+* Third-Party Engines and Libraries:
+  This project utilizes powerful external technologies (such as the yt-dlp
+  download engine and the youtubedl-android library). These components are protected
+  by their respective creators and are governed by their own open-source distribution
+  licenses. You are responsible for complying with their terms when building
+  and distributing Fabi Downloader.
+
 
