@@ -2,6 +2,8 @@ package com.fabian.downloader.ui
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -37,6 +40,21 @@ fun SettingsScreen(
     var currentCookiesText by remember { mutableStateOf(AppSettings.cookiesText) }
     var isUpdatingYtdlp by remember { mutableStateOf(false) }
 
+    var generalVisible by remember { mutableStateOf(false) }
+    var downloadVisible by remember { mutableStateOf(false) }
+    var engineVisible by remember { mutableStateOf(false) }
+    var aboutVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        generalVisible = true
+        kotlinx.coroutines.delay(70)
+        downloadVisible = true
+        kotlinx.coroutines.delay(70)
+        engineVisible = true
+        kotlinx.coroutines.delay(70)
+        aboutVisible = true
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -46,11 +64,7 @@ fun SettingsScreen(
         // Header
         Text(
             text = "Configuración",
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Black,
-                fontSize = 28.sp,
-                letterSpacing = (-0.5).sp
-            ),
+            style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
         Text(
@@ -68,115 +82,143 @@ fun SettingsScreen(
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
-            SettingSectionHeader("Preferencias Generales")
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+            AnimatedVisibility(
+                visible = generalVisible,
+                enter = fadeIn(tween(350)) + slideInVertically(initialOffsetY = { 30 }, animationSpec = tween(350, easing = FastOutSlowInEasing))
             ) {
                 Column {
-                    SettingItem(Icons.Default.Palette, "Tema", trailing = AppSettings.themePreference) {
-                        val nextIndex = (AppSettings.themeOptions.indexOf(AppSettings.themePreference) + 1) % AppSettings.themeOptions.size
-                        AppSettings.themePreference = AppSettings.themeOptions[nextIndex]
-                    }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    val currentClipboardLabel = when (AppSettings.clipboardAction) {
-                        "banner" -> "Mostrar banner"
-                        "auto" -> "Abrir automáticamente"
-                        else -> "Desactivado"
-                    }
-                    SettingItem(Icons.Default.ContentPaste, "Detección de portapapeles", trailing = currentClipboardLabel) {
-                        showClipboardDialog = true
-                    }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    ToggleSetting(Icons.Default.Notifications, "Notificaciones de sistema", AppSettings.notificationsEnabled) {
-                        AppSettings.notificationsEnabled = it
-                    }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    ToggleSetting(Icons.Default.NetworkCell, "Ahorro de datos (red móvil)", AppSettings.dataSaverEnabled) {
-                        AppSettings.dataSaverEnabled = it
-                    }
-                }
-            }
-            
-            SettingSectionHeader("Configuración de Descargas")
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
-            ) {
-                Column {
-                    SettingItem(Icons.Default.Settings, "Ajustes avanzados de descarga", trailing = null) {
-                        onNavigateToDownloadSettings()
-                    }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    ToggleSetting(Icons.Default.DeleteForever, "Confirmar al eliminar", AppSettings.confirmOnDelete) {
-                        AppSettings.confirmOnDelete = it
-                    }
-                }
-            }
-            
-            SettingSectionHeader("Conectividad y Motores")
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
-            ) {
-                Column {
-                    SettingItem(Icons.Default.Refresh, "Actualizar motor yt-dlp", trailing = if (isUpdatingYtdlp) "Actualizando..." else "Actualizar") {
-                        if (!isUpdatingYtdlp) {
-                            isUpdatingYtdlp = true
-                            scope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                                try {
-                                    val result = com.yausername.youtubedl_android.YoutubeDL.getInstance().updateYoutubeDL(context)
-                                    val statusMsg = when (result) {
-                                        com.yausername.youtubedl_android.YoutubeDL.UpdateStatus.DONE -> "¡Actualizado con éxito!"
-                                        com.yausername.youtubedl_android.YoutubeDL.UpdateStatus.ALREADY_UP_TO_DATE -> "Ya está en la versión más reciente"
-                                        else -> "Estado: $result"
-                                    }
-                                    scope.launch {
-                                        snackbarHostState?.showSnackbar(statusMsg)
-                                    }
-                                } catch (e: Exception) {
-                                    scope.launch {
-                                        snackbarHostState?.showSnackbar("Error al actualizar: ${e.message}")
-                                    }
-                                } finally {
-                                    isUpdatingYtdlp = false
-                                }
+                    SettingSectionHeader("Preferencias Generales")
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+                    ) {
+                        Column {
+                            SettingItem(Icons.Default.Palette, "Tema", trailing = AppSettings.themePreference) {
+                                val nextIndex = (AppSettings.themeOptions.indexOf(AppSettings.themePreference) + 1) % AppSettings.themeOptions.size
+                                AppSettings.themePreference = AppSettings.themeOptions[nextIndex]
+                            }
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                            val currentClipboardLabel = when (AppSettings.clipboardAction) {
+                                "banner" -> "Mostrar banner"
+                                "auto" -> "Abrir automáticamente"
+                                else -> "Desactivado"
+                            }
+                            SettingItem(Icons.Default.ContentPaste, "Detección de portapapeles", trailing = currentClipboardLabel) {
+                                showClipboardDialog = true
+                            }
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                            ToggleSetting(Icons.Default.Notifications, "Notificaciones de sistema", AppSettings.notificationsEnabled) {
+                                AppSettings.notificationsEnabled = it
+                            }
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                            ToggleSetting(Icons.Default.NetworkCell, "Ahorro de datos (red móvil)", AppSettings.dataSaverEnabled) {
+                                AppSettings.dataSaverEnabled = it
                             }
                         }
                     }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingItem(Icons.Default.Lock, "Configurar Cookies (cookies.txt)", trailing = if (AppSettings.cookiesText.isNotEmpty()) "Configurado" else "No configurado") {
-                        currentCookiesText = AppSettings.cookiesText
-                        showCookiesDialog = true
+                }
+            }
+            
+            AnimatedVisibility(
+                visible = downloadVisible,
+                enter = fadeIn(tween(350)) + slideInVertically(initialOffsetY = { 30 }, animationSpec = tween(350, easing = FastOutSlowInEasing))
+            ) {
+                Column {
+                    SettingSectionHeader("Configuración de Descargas")
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+                    ) {
+                        Column {
+                            SettingItem(Icons.Default.Settings, "Ajustes avanzados de descarga", trailing = null) {
+                                onNavigateToDownloadSettings()
+                            }
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                            ToggleSetting(Icons.Default.DeleteForever, "Confirmar al eliminar", AppSettings.confirmOnDelete) {
+                                AppSettings.confirmOnDelete = it
+                            }
+                        }
                     }
                 }
             }
             
-            SettingSectionHeader("Acerca de Fabi Downloader")
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+            AnimatedVisibility(
+                visible = engineVisible,
+                enter = fadeIn(tween(350)) + slideInVertically(initialOffsetY = { 30 }, animationSpec = tween(350, easing = FastOutSlowInEasing))
             ) {
                 Column {
-                    SettingItem(Icons.Default.Info, "Versión de la Aplicación", trailing = BuildConfig.VERSION_NAME) {
-                        scope.launch { snackbarHostState?.showSnackbar("Fabi Downloader v${BuildConfig.VERSION_NAME}") }
+                    SettingSectionHeader("Conectividad y Motores")
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+                    ) {
+                        Column {
+                            SettingItem(Icons.Default.Refresh, "Actualizar motor yt-dlp", trailing = if (isUpdatingYtdlp) "Actualizando..." else "Actualizar") {
+                                if (!isUpdatingYtdlp) {
+                                    isUpdatingYtdlp = true
+                                    scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                                        try {
+                                            val result = com.yausername.youtubedl_android.YoutubeDL.getInstance().updateYoutubeDL(context)
+                                            val statusMsg = when (result) {
+                                                com.yausername.youtubedl_android.YoutubeDL.UpdateStatus.DONE -> "¡Actualizado con éxito!"
+                                                com.yausername.youtubedl_android.YoutubeDL.UpdateStatus.ALREADY_UP_TO_DATE -> "Ya está en la versión más reciente"
+                                                else -> "Estado: $result"
+                                            }
+                                            scope.launch {
+                                                snackbarHostState?.showSnackbar(statusMsg)
+                                            }
+                                        } catch (e: Exception) {
+                                            scope.launch {
+                                                snackbarHostState?.showSnackbar("Error al actualizar: ${e.message}")
+                                            }
+                                        } finally {
+                                            isUpdatingYtdlp = false
+                                        }
+                                    }
+                                }
+                            }
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                            SettingItem(Icons.Default.Lock, "Configurar Cookies (cookies.txt)", trailing = if (AppSettings.cookiesText.isNotEmpty()) "Configurado" else "No configurado") {
+                                currentCookiesText = AppSettings.cookiesText
+                                showCookiesDialog = true
+                            }
+                        }
                     }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingItem(Icons.Default.Code, "Repositorio GitHub", trailing = "Abrir") {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/fabianfamr/FabiDownloader"))
-                        context.startActivity(intent)
-                    }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingItem(Icons.Default.Gavel, "Licencia", trailing = "MIT") {
-                        scope.launch { snackbarHostState?.showSnackbar("Licencia MIT - Código Abierto") }
+                }
+            }
+            
+            AnimatedVisibility(
+                visible = aboutVisible,
+                enter = fadeIn(tween(350)) + slideInVertically(initialOffsetY = { 30 }, animationSpec = tween(350, easing = FastOutSlowInEasing))
+            ) {
+                Column {
+                    SettingSectionHeader("Acerca de Fabi Downloader")
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+                    ) {
+                        Column {
+                            SettingItem(Icons.Default.Info, "Versión de la Aplicación", trailing = BuildConfig.VERSION_NAME) {
+                                scope.launch { snackbarHostState?.showSnackbar("Fabi Downloader v${BuildConfig.VERSION_NAME}") }
+                            }
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                            SettingItem(Icons.Default.Code, "Repositorio GitHub", trailing = "Abrir") {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/fabianfamr/FabiDownloader"))
+                                context.startActivity(intent)
+                            }
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                            SettingItem(Icons.Default.Gavel, "Licencia", trailing = "MIT") {
+                                scope.launch { snackbarHostState?.showSnackbar("Licencia MIT - Código Abierto") }
+                            }
+                        }
                     }
                 }
             }

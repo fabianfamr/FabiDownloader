@@ -562,21 +562,44 @@ fun FormatRow(
     isSelected: Boolean,
     onSelect: () -> Unit
 ) {
+    val animatedBgColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f) else Color.Transparent,
+        animationSpec = tween(250, easing = FastOutSlowInEasing),
+        label = "rowBg"
+    )
+    val animatedBorderColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.25f) else Color.Transparent,
+        animationSpec = tween(250, easing = FastOutSlowInEasing),
+        label = "rowBorder"
+    )
+    val animatedScale by animateFloatAsState(
+        targetValue = if (isSelected) 1.01f else 1f,
+        animationSpec = tween(250, easing = FastOutSlowInEasing),
+        label = "rowScale"
+    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = animatedScale
+                scaleY = animatedScale
+            }
+            .clip(RoundedCornerShape(12.dp))
+            .background(animatedBgColor)
+            .border(1.dp, animatedBorderColor, RoundedCornerShape(12.dp))
             .clickable(onClick = onSelect)
-            .padding(vertical = 12.dp),
+            .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             tint = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(22.dp)
         )
         
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(14.dp))
         
         Column(
             modifier = Modifier.weight(1f)
@@ -584,8 +607,8 @@ fun FormatRow(
             Text(
                 text = option.title,
                 color = if (isSelected) Color.White else Color.LightGray,
-                fontSize = 15.sp,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                fontSize = 14.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
             )
             
             if (option.sizeStr.isNotEmpty()) {
@@ -593,14 +616,14 @@ fun FormatRow(
                 Text(
                     text = "Tamaño: ${option.sizeStr}",
                     color = Color.Gray,
-                    fontSize = 12.sp
+                    fontSize = 11.sp
                 )
             }
         }
         
         Box(
             modifier = Modifier
-                .size(22.dp)
+                .size(20.dp)
                 .background(
                     color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
                     shape = CircleShape
@@ -615,7 +638,7 @@ fun FormatRow(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
                     tint = Color.Black,
-                    modifier = Modifier.size(14.dp)
+                    modifier = Modifier.size(12.dp)
                 )
             }
         }

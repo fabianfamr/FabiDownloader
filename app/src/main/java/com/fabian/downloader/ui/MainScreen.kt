@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -43,6 +44,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.database.DownloadRecord
 import kotlinx.coroutines.launch
@@ -147,6 +149,40 @@ fun MainScreen(
         }
     }
 
+    // Entrance animation states
+    var headerVisible by remember { mutableStateOf(false) }
+    var searchBarVisible by remember { mutableStateOf(false) }
+    var contentVisible by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(Unit) {
+        headerVisible = true
+        kotlinx.coroutines.delay(120)
+        searchBarVisible = true
+        kotlinx.coroutines.delay(100)
+        contentVisible = true
+    }
+
+    // Pulsing glow animation for the icon
+    val infiniteTransition = rememberInfiniteTransition(label = "iconGlow")
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.15f,
+        targetValue = 0.35f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowAlpha"
+    )
+    val glowScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowScale"
+    )
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -161,69 +197,106 @@ fun MainScreen(
         ) {
             Spacer(modifier = Modifier.height(36.dp))
 
-            // Premium Styled App Brand Header
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                color = Color.Transparent
+            // Premium Styled App Brand Header with entrance animation
+            AnimatedVisibility(
+                visible = headerVisible,
+                enter = fadeIn(animationSpec = tween(500)) + slideInVertically(
+                    initialOffsetY = { -40 },
+                    animationSpec = tween(500, easing = FastOutSlowInEasing)
+                )
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    color = Color.Transparent
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(72.dp)
-                            .background(
-                                brush = Brush.radialGradient(
-                                    colors = listOf(
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
-                                        Color.Transparent
-                                    )
-                                ),
-                                shape = CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.CloudDownload,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(38.dp)
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // Animated glow ring
+                            Box(
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .graphicsLayer {
+                                        scaleX = glowScale
+                                        scaleY = glowScale
+                                        alpha = glowAlpha
+                                    }
+                                    .background(
+                                        brush = Brush.radialGradient(
+                                            colors = listOf(
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                                                Color.Transparent
+                                            )
+                                        ),
+                                        shape = CircleShape
+                                    )
+                            )
+                            // Inner icon container
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .background(
+                                        brush = Brush.linearGradient(
+                                            colors = listOf(
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
+                                            )
+                                        ),
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CloudDownload,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(30.dp)
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = "Fabi Downloader",
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            textAlign = TextAlign.Center
+                        )
+                        
+                        Text(
+                            text = "Descarga videos y audio al instante",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(top = 6.dp),
+                            textAlign = TextAlign.Center
                         )
                     }
-                    
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        text = "Fabi Downloader",
-                        style = MaterialTheme.typography.headlineLarge.copy(
-                            fontWeight = FontWeight.Black,
-                            fontSize = 32.sp,
-                            letterSpacing = (-0.75).sp
-                        ),
-                        color = MaterialTheme.colorScheme.onBackground,
-                        textAlign = TextAlign.Center
-                    )
-                    
-                    Text(
-                        text = "Descarga videos y audio al instante",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                        modifier = Modifier.padding(top = 4.dp),
-                        textAlign = TextAlign.Center
-                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(36.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Modern Floating glass-capsule Link Bar
+            // Modern Floating glass-capsule Link Bar with entrance animation
+            AnimatedVisibility(
+                visible = searchBarVisible,
+                enter = fadeIn(animationSpec = tween(400, delayMillis = 50)) + slideInVertically(
+                    initialOffsetY = { 30 },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            ) {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(64.dp),
+                    .height(60.dp),
                 shape = RoundedCornerShape(32.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                 border = BorderStroke(1.2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
@@ -325,11 +398,13 @@ fun MainScreen(
                 }
             }
 
+            } // end AnimatedVisibility for search bar
+
             // Quick One-Touch Actions for Audio & Video
             AnimatedVisibility(
                 visible = query.isNotEmpty() && (query.startsWith("http://") || query.startsWith("https://") || (query.contains(".") && !query.contains(" "))),
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
+                enter = fadeIn(tween(250)) + expandVertically(animationSpec = tween(300, easing = FastOutSlowInEasing)),
+                exit = fadeOut(tween(200)) + shrinkVertically(animationSpec = tween(250, easing = FastOutSlowInEasing))
             ) {
                 Card(
                     modifier = Modifier
@@ -470,7 +545,15 @@ fun MainScreen(
 
             Spacer(modifier = Modifier.height(36.dp))
 
-            // Recent Downloads
+            // Recent Downloads with entrance animation
+            AnimatedVisibility(
+                visible = contentVisible && recentDownloads.isNotEmpty(),
+                enter = fadeIn(tween(400, delayMillis = 100)) + slideInVertically(
+                    initialOffsetY = { 40 },
+                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                )
+            ) {
+            Column {
             if (recentDownloads.isNotEmpty()) {
                 Row(
                     modifier = Modifier
@@ -586,6 +669,8 @@ fun MainScreen(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
+            } // end Column
+            } // end AnimatedVisibility for recent downloads
 
             // Animated clipboard card
             AnimatedVisibility(

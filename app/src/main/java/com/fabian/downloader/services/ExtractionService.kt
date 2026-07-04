@@ -49,7 +49,7 @@ class ExtractionService {
             
             val call = client.newCall(request)
             if (downloadId != null) {
-                com.fabian.downloader.services.DownloadManagerService.instance?.registerActiveCall(downloadId, call)
+                com.fabian.downloader.services.DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).registerActiveCall(downloadId, call)
             }
             
             try {
@@ -68,7 +68,7 @@ class ExtractionService {
                 }
             } finally {
                 if (downloadId != null) {
-                    com.fabian.downloader.services.DownloadManagerService.instance?.unregisterActiveCall(downloadId)
+                    com.fabian.downloader.services.DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).unregisterActiveCall(downloadId)
                 }
             }
         } catch (e: Exception) {
@@ -94,7 +94,7 @@ class ExtractionService {
                 
                 val call = client.newCall(request)
                 if (downloadId != null) {
-                    com.fabian.downloader.services.DownloadManagerService.instance?.registerActiveCall(downloadId, call)
+                    com.fabian.downloader.services.DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).registerActiveCall(downloadId, call)
                 }
                 
                 try {
@@ -161,7 +161,7 @@ class ExtractionService {
                     }
                 } finally {
                     if (downloadId != null) {
-                        com.fabian.downloader.services.DownloadManagerService.instance?.unregisterActiveCall(downloadId)
+                        com.fabian.downloader.services.DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).unregisterActiveCall(downloadId)
                     }
                 }
             } catch (e: Exception) {

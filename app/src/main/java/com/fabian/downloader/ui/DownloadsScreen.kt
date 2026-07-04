@@ -1,10 +1,13 @@
 package com.fabian.downloader.ui
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -15,8 +18,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
@@ -284,11 +289,7 @@ fun DownloadsScreen(database: AppDatabase, modifier: Modifier = Modifier) {
             ) {
                 Text(
                     text = "Biblioteca",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Black,
-                        fontSize = 28.sp,
-                        letterSpacing = (-0.5).sp
-                    ),
+                    style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f)
                 )
@@ -344,43 +345,47 @@ fun DownloadsScreen(database: AppDatabase, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .padding(horizontal = 20.dp, vertical = 8.dp)
                 .fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
         ) {
-            SecondaryTabRow(
-                selectedTabIndex = pagerState.currentPage,
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.primary,
-                indicator = {
-                    // Custom indicator is handled by the Tab background itself
-                },
-                divider = {},
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 tabs.forEachIndexed { index, title ->
                     val isSelected = pagerState.currentPage == index
-                    Tab(
-                        selected = isSelected,
-                        onClick = { 
+                    val animatedBgAlpha by animateFloatAsState(
+                        targetValue = if (isSelected) 1f else 0f,
+                        animationSpec = tween(250, easing = FastOutSlowInEasing),
+                        label = "tabBg"
+                    )
+                    Surface(
+                        onClick = {
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(index)
                             }
                         },
-                        text = { 
-                            Text(
-                                text = title, 
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                fontSize = 14.sp
-                            ) 
-                        },
                         modifier = Modifier
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent),
-                        selectedContentColor = MaterialTheme.colorScheme.onPrimary,
-                        unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                            .weight(1f)
+                            .height(40.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = animatedBgAlpha),
+                        contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text(
+                                text = title,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -398,16 +403,29 @@ fun DownloadsScreen(database: AppDatabase, modifier: Modifier = Modifier) {
                 if (page == 0) {
                     // Descargados
                     if (completed.isNotEmpty()) {
-                        items(completed, key = { it.id }) { record ->
-                            MobileDownloadedItem(
-                                record = record, 
-                                onPlay = { 
-                                    if (isSelectionMode) toggleSelection(record.id) else openFile(record) 
-                                }, 
-                                onDelete = { handleDelete(record.id) },
-                                isSelected = selectedIds.contains(record.id),
-                                onLongPress = { toggleSelection(record.id) }
-                            )
+                        itemsIndexed(completed, key = { _, it -> it.id }) { index, record ->
+                            val itemVisible = remember { mutableStateOf(false) }
+                            LaunchedEffect(record.id) {
+                                kotlinx.coroutines.delay(index.coerceAtMost(8) * 40L)
+                                itemVisible.value = true
+                            }
+                            AnimatedVisibility(
+                                visible = itemVisible.value,
+                                enter = fadeIn(tween(300)) + slideInVertically(
+                                    initialOffsetY = { 30 },
+                                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                                )
+                            ) {
+                                MobileDownloadedItem(
+                                    record = record, 
+                                    onPlay = { 
+                                        if (isSelectionMode) toggleSelection(record.id) else openFile(record) 
+                                    }, 
+                                    onDelete = { handleDelete(record.id) },
+                                    isSelected = selectedIds.contains(record.id),
+                                    onLongPress = { toggleSelection(record.id) }
+                                )
+                            }
                         }
                     } else {
                         item {
@@ -455,14 +473,27 @@ fun DownloadsScreen(database: AppDatabase, modifier: Modifier = Modifier) {
                 } else {
                     // En progreso
                     if (downloading.isNotEmpty()) {
-                        items(downloading, key = { it.id }) { record ->
-                            MobileDownloadingItem(
-                                record = record,
-                                onPause = { viewModel.pauseDownload(record.id) },
-                                onResume = { viewModel.resumeDownload(record.id) },
-                                onDelete = { handleDelete(record.id) },
-                                onShowErrorDetails = { errorToShow = it }
-                            )
+                        itemsIndexed(downloading, key = { _, it -> it.id }) { index, record ->
+                            val itemVisible = remember { mutableStateOf(false) }
+                            LaunchedEffect(record.id) {
+                                kotlinx.coroutines.delay(index.coerceAtMost(8) * 40L)
+                                itemVisible.value = true
+                            }
+                            AnimatedVisibility(
+                                visible = itemVisible.value,
+                                enter = fadeIn(tween(300)) + slideInVertically(
+                                    initialOffsetY = { 30 },
+                                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                                )
+                            ) {
+                                MobileDownloadingItem(
+                                    record = record,
+                                    onPause = { viewModel.pauseDownload(record.id) },
+                                    onResume = { viewModel.resumeDownload(record.id) },
+                                    onDelete = { handleDelete(record.id) },
+                                    onShowErrorDetails = { errorToShow = it }
+                                )
+                            }
                         }
                     } else {
                         item {
@@ -784,8 +815,8 @@ fun MobileDownloadingItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (record.progress < 0) "Conectando..." else "Progreso: ${record.progress}%", 
-                        style = MaterialTheme.typography.labelMedium,
+                        text = if (record.progress < 0) "Conectando..." else "${record.progress}%", 
+                        style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                         maxLines = 1,
@@ -800,27 +831,34 @@ fun MobileDownloadingItem(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(start = 8.dp).weight(1f, fill = false),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.End
+                        textAlign = TextAlign.End
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
+
+                val animatedProgress by animateFloatAsState(
+                    targetValue = if (record.progress < 0) 0f else record.progress / 100f,
+                    animationSpec = tween(600, easing = FastOutSlowInEasing),
+                    label = "progress"
+                )
+
                 if (record.progress < 0) {
                     LinearProgressIndicator(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(8.dp)
-                            .clip(CircleShape),
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp)),
                         color = MaterialTheme.colorScheme.primary,
                         trackColor = MaterialTheme.colorScheme.surfaceVariant,
                         strokeCap = StrokeCap.Round
                     )
                 } else {
                     LinearProgressIndicator(
-                        progress = { record.progress / 100f },
+                        progress = { animatedProgress },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(8.dp)
-                            .clip(CircleShape),
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp)),
                         color = MaterialTheme.colorScheme.primary,
                         trackColor = MaterialTheme.colorScheme.surfaceVariant,
                         strokeCap = StrokeCap.Round
