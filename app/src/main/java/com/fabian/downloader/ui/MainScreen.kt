@@ -683,9 +683,9 @@ fun MainScreen(
                         .fillMaxWidth()
                         .padding(vertical = 16.dp)
                         .testTag("clipboard_notification_card"),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
-                    shape = RoundedCornerShape(24.dp),
-                    border = BorderStroke(1.2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    shape = RoundedCornerShape(20.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
                 ) {
                     Column(
                         modifier = Modifier.padding(18.dp)
@@ -712,12 +712,12 @@ fun MainScreen(
                                     text = "Enlace detectado en portapapeles",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = clipboardUrl ?: "",
                                     fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -732,7 +732,7 @@ fun MainScreen(
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Descartar",
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
@@ -817,7 +817,11 @@ fun MainScreen(
             SharePopupScreen(
                 url = urlToDownloadInDialog!!,
                 viewModel = viewModel,
-                onClose = { urlToDownloadInDialog = null }
+                onClose = { urlToDownloadInDialog = null },
+                onNavigateToDownloads = {
+                    urlToDownloadInDialog = null
+                    onNavigateToDownloads()
+                }
             )
         }
     }

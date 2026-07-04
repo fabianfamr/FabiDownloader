@@ -91,7 +91,9 @@ fun FabiDownloaderApp(
             val outlineColor = MaterialTheme.colorScheme.outline
 
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding(),
                 color = surfaceColor,
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp
@@ -118,7 +120,7 @@ fun FabiDownloaderApp(
                     NavigationBar(
                         containerColor = Color.Transparent,
                         tonalElevation = 0.dp,
-                        modifier = Modifier.height(72.dp)
+                        windowInsets = WindowInsets(0)
                     ) {
                         screens.forEach { screen ->
                             val isSelected = currentRoute == screen.route
