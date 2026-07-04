@@ -307,7 +307,7 @@ fun DownloadsScreen(database: AppDatabase, modifier: Modifier = Modifier) {
                 }
 
                 var expanded by remember { mutableStateOf(false) }
-                Box {
+                Box(contentAlignment = Alignment.TopEnd) {
                     IconButton(
                         onClick = { expanded = true },
                         modifier = Modifier
@@ -317,20 +317,33 @@ fun DownloadsScreen(database: AppDatabase, modifier: Modifier = Modifier) {
                         Icon(Icons.AutoMirrored.Filled.Sort, "Ordenar", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     DropdownMenu(
-                        expanded = expanded, 
+                        expanded = expanded,
                         onDismissRequest = { expanded = false },
-                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                MaterialTheme.colorScheme.surfaceVariant,
+                                RoundedCornerShape(16.dp)
+                            )
                     ) {
                         listOf("Fecha", "Nombre", "Tamaño").forEach { option ->
                             DropdownMenuItem(
-                                text = { Text(option, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface) },
+                                text = {
+                                    Text(
+                                        option,
+                                        fontWeight = if (sortOrder == option) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (sortOrder == option) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                },
                                 onClick = {
                                     sortOrder = option
                                     expanded = false
                                 },
                                 leadingIcon = {
                                     if (sortOrder == option) {
-                                        Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary)
+                                        Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                    } else {
+                                        Spacer(Modifier.size(16.dp))
                                     }
                                 }
                             )
@@ -392,7 +405,9 @@ fun DownloadsScreen(database: AppDatabase, modifier: Modifier = Modifier) {
 
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
             verticalAlignment = Alignment.Top
         ) { page ->
             LazyColumn(

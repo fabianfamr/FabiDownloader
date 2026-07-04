@@ -285,13 +285,17 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
                                     letterSpacing = 1.sp,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
-                                musicOptions.forEach { option ->
-                                    FormatRow(
-                                        option = option,
-                                        icon = Icons.Default.MusicNote,
-                                        isSelected = selectedOptionId == option.id,
-                                        onSelect = { selectedOptionId = option.id }
-                                    )
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    musicOptions.forEach { option ->
+                                        FormatRow(
+                                            option = option,
+                                            icon = Icons.Default.MusicNote,
+                                            isSelected = selectedOptionId == option.id,
+                                            onSelect = { selectedOptionId = option.id }
+                                        )
+                                    }
                                 }
                                 
                                 Spacer(modifier = Modifier.height(16.dp))
@@ -307,13 +311,17 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
                                     letterSpacing = 1.sp,
                                     modifier = Modifier.padding(bottom = 8.dp)
                                 )
-                                videoOptions.forEach { option ->
-                                    FormatRow(
-                                        option = option,
-                                        icon = Icons.Default.PlayCircleOutline,
-                                        isSelected = selectedOptionId == option.id,
-                                        onSelect = { selectedOptionId = option.id }
-                                    )
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    videoOptions.forEach { option ->
+                                        FormatRow(
+                                            option = option,
+                                            icon = Icons.Default.PlayCircleOutline,
+                                            isSelected = selectedOptionId == option.id,
+                                            onSelect = { selectedOptionId = option.id }
+                                        )
+                                    }
                                 }
                             }
                             
