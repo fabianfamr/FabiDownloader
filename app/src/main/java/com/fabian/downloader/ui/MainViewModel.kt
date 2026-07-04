@@ -33,6 +33,18 @@ class MainViewModel(application: Application, private val database: AppDatabase)
         return extractionService.extractVideoInfo(url)
     }
 
+    suspend fun extractTitle(url: String): String {
+        return extractionService.extractTitle(url)
+    }
+
+    suspend fun extractThumbnail(url: String): String? {
+        return extractionService.extractThumbnail(url)
+    }
+
+    suspend fun extractFormatSizes(url: String): Map<String, Double> {
+        return extractionService.extractFormatSizes(url)
+    }
+
     suspend fun getRealSizeAndUrl(url: String, quality: String, format: String): Pair<String, String> {
         return extractionService.getRealSizeAndUrl(url, quality, format)
     }

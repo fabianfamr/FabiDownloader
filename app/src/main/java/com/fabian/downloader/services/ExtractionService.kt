@@ -203,114 +203,192 @@ class ExtractionService {
         // ahorrando la ejecución de yt-dlp que es sumamente pesada.
         private val metadataCache = java.util.concurrent.ConcurrentHashMap<String, InfoMedia>()
         private val videoCache = java.util.concurrent.ConcurrentHashMap<String, ExtractedVideo>()
+
+        // Cachés individuales para optimización y rapidez
+        private val titleCache = java.util.concurrent.ConcurrentHashMap<String, String>()
+        private val thumbnailCache = java.util.concurrent.ConcurrentHashMap<String, String?>()
+        private val sizeCache = java.util.concurrent.ConcurrentHashMap<String, Map<String, Double>>()
+    }
+
+    suspend fun extractTitle(url: String, downloadId: Long? = null): String = withContext(Dispatchers.IO) {
+        val cleanUrl = url.trim()
+
+        // 1. Check title cache
+        titleCache[cleanUrl]?.let { return@withContext it }
+
+        // 2. Check full video or metadata caches
+        videoCache[cleanUrl]?.title?.let {
+            titleCache[cleanUrl] = it
+            return@withContext it
+        }
+        metadataCache[cleanUrl]?.titulo?.let {
+            if (it != "Desconocido" && it.isNotEmpty()) {
+                titleCache[cleanUrl] = it
+                return@withContext it
+            }
+        }
+
+        // 3. Try super fast oEmbed
+        val oEmbed = getOEmbedInfo(cleanUrl, downloadId)
+        if (oEmbed != null) {
+            titleCache[cleanUrl] = oEmbed.first
+            oEmbed.second?.let { thumbnailCache[cleanUrl] = it }
+            return@withContext oEmbed.first
+        }
+
+        // 4. Try HTML Scraping
+        val scraped = scrapeHtmlMetadata(cleanUrl, downloadId)
+        if (scraped != null) {
+            titleCache[cleanUrl] = scraped.first
+            scraped.second?.let { thumbnailCache[cleanUrl] = it }
+            return@withContext scraped.first
+        }
+
+        // 5. Run yt-dlp (metadata extraction) - only as fallback since it's slower
+        val service = SiteServiceProvider.getServiceForUrl(cleanUrl)
+        try {
+            val info = service.extractMetadata(cleanUrl)
+            if (info != null) {
+                metadataCache[cleanUrl] = info
+                if (info.titulo != "Desconocido" && info.titulo.isNotEmpty()) {
+                    titleCache[cleanUrl] = info.titulo
+                    return@withContext info.titulo
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ExtractionService", "Failed to extract title with yt-dlp for $cleanUrl", e)
+        }
+
+        // 6. Generic Fallback
+        val fallback = if (service.siteId == "generic") "Enlace Directo" else "Video de ${service.displayName}"
+        titleCache[cleanUrl] = fallback
+        return@withContext fallback
+    }
+
+    suspend fun extractThumbnail(url: String, downloadId: Long? = null): String? = withContext(Dispatchers.IO) {
+        val cleanUrl = url.trim()
+
+        // 1. Check thumbnail cache
+        if (thumbnailCache.containsKey(cleanUrl)) {
+            return@withContext thumbnailCache[cleanUrl]
+        }
+
+        // 2. Check full video or metadata caches
+        videoCache[cleanUrl]?.thumbnailUrl?.let {
+            thumbnailCache[cleanUrl] = it
+            return@withContext it
+        }
+        metadataCache[cleanUrl]?.miniaturaUrl?.let {
+            if (it.isNotEmpty()) {
+                thumbnailCache[cleanUrl] = it
+                return@withContext it
+            }
+        }
+
+        val ytId = extractYoutubeVideoId(cleanUrl)
+        val fallbackThumbnail = if (ytId != null) "https://img.youtube.com/vi/$ytId/hqdefault.jpg" else null
+
+        // 3. Try super fast oEmbed
+        val oEmbed = getOEmbedInfo(cleanUrl, downloadId)
+        if (oEmbed != null) {
+            titleCache[cleanUrl] = oEmbed.first
+            val thumb = oEmbed.second ?: fallbackThumbnail
+            thumbnailCache[cleanUrl] = thumb
+            return@withContext thumb
+        }
+
+        // 4. Try HTML Scraping
+        val scraped = scrapeHtmlMetadata(cleanUrl, downloadId)
+        if (scraped != null) {
+            titleCache[cleanUrl] = scraped.first
+            val thumb = scraped.second ?: fallbackThumbnail
+            thumbnailCache[cleanUrl] = thumb
+            return@withContext thumb
+        }
+
+        // 5. Run yt-dlp (metadata extraction) - only as fallback
+        val service = SiteServiceProvider.getServiceForUrl(cleanUrl)
+        try {
+            val info = service.extractMetadata(cleanUrl)
+            if (info != null) {
+                metadataCache[cleanUrl] = info
+                if (info.miniaturaUrl.isNotEmpty()) {
+                    thumbnailCache[cleanUrl] = info.miniaturaUrl
+                    return@withContext info.miniaturaUrl
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ExtractionService", "Failed to extract thumbnail with yt-dlp for $cleanUrl", e)
+        }
+
+        thumbnailCache[cleanUrl] = fallbackThumbnail
+        return@withContext fallbackThumbnail
+    }
+
+    suspend fun extractFormatSizes(url: String, downloadId: Long? = null): Map<String, Double> = withContext(Dispatchers.IO) {
+        val cleanUrl = url.trim()
+
+        // 1. Check size cache
+        sizeCache[cleanUrl]?.let { return@withContext it }
+
+        // 2. Check metadata or video cache
+        metadataCache[cleanUrl]?.formatSizes?.let {
+            if (it.isNotEmpty()) {
+                sizeCache[cleanUrl] = it
+                return@withContext it
+            }
+        }
+        videoCache[cleanUrl]?.formatSizes?.let {
+            if (it.isNotEmpty()) {
+                sizeCache[cleanUrl] = it
+                return@withContext it
+            }
+        }
+
+        // 3. Extract metadata using yt-dlp (required for exact sizes)
+        val service = SiteServiceProvider.getServiceForUrl(cleanUrl)
+        try {
+            val info = service.extractMetadata(cleanUrl)
+            if (info != null) {
+                metadataCache[cleanUrl] = info
+                val sizes = info.formatSizes
+                sizeCache[cleanUrl] = sizes
+                return@withContext sizes
+            }
+        } catch (e: Exception) {
+            Log.e("ExtractionService", "Failed to extract format sizes with yt-dlp for $cleanUrl", e)
+        }
+
+        return@withContext emptyMap()
     }
 
     suspend fun extractVideoInfo(url: String, downloadId: Long? = null): ExtractedVideo = withContext(Dispatchers.IO) {
         val cleanUrl = url.trim()
-        
-        // 0. Comprobar caché de videos extraídos
-        videoCache[cleanUrl]?.let {
-            Log.d("ExtractionService", "Cache HIT for video info: $cleanUrl")
-            return@withContext it
-        }
+
+        // Check videoCache first
+        videoCache[cleanUrl]?.let { return@withContext it }
 
         val service = SiteServiceProvider.getServiceForUrl(cleanUrl)
-        val ytId = extractYoutubeVideoId(cleanUrl)
-        val fallbackThumbnail = if (ytId != null) "https://img.youtube.com/vi/$ytId/hqdefault.jpg" else null
 
-        // 1. Intentar con el SiteService (yt-dlp) con caché para InfoMedia
-        var info = metadataCache[cleanUrl]
-        if (info == null) {
-            info = service.extractMetadata(cleanUrl)
-            if (info != null) {
-                metadataCache[cleanUrl] = info
-            }
-        } else {
-            Log.d("ExtractionService", "Cache HIT for site metadata: $cleanUrl")
-        }
+        val title = extractTitle(cleanUrl, downloadId)
+        val thumbnailUrl = extractThumbnail(cleanUrl, downloadId)
+        val formatSizes = extractFormatSizes(cleanUrl, downloadId)
 
-        val extractedVideo = if (info != null && info.titulo != "Video de ${service.displayName}" && info.titulo != "Video sin título" && info.titulo != "Desconocido") {
-            val sizeStr = if (info.pesoEstimadoMB > 0) String.format(java.util.Locale.US, "%.1f MB", info.pesoEstimadoMB) else "Auto"
-            ExtractedVideo(
-                title = info.titulo,
-                availableFormats = listOf("MP4", "MP3", "M4A"),
-                size = sizeStr,
-                thumbnailUrl = info.miniaturaUrl.ifEmpty { fallbackThumbnail },
-                formatSizes = info.formatSizes,
-                platformId = service.siteId,
-                platformName = service.displayName,
-                brandColorHex = service.brandColorHex
-            )
-        } else null
+        val maxMb = formatSizes.values.maxOrNull() ?: 0.0
+        val sizeStr = if (maxMb > 0.0) String.format(java.util.Locale.US, "%.1f MB", maxMb) else "Auto"
 
-        if (extractedVideo != null) {
-            videoCache[cleanUrl] = extractedVideo
-            return@withContext extractedVideo
-        }
-        
-        // 2. Fallback a oEmbed (YouTube, TikTok, etc.)
-        val oEmbed = getOEmbedInfo(cleanUrl, downloadId)
-        if (oEmbed != null) {
-            val res = ExtractedVideo(
-                title = oEmbed.first,
-                availableFormats = listOf("MP4", "MP3", "M4A"),
-                size = "Auto",
-                thumbnailUrl = oEmbed.second ?: fallbackThumbnail,
-                platformId = service.siteId,
-                platformName = service.displayName,
-                brandColorHex = service.brandColorHex
-            )
-            videoCache[cleanUrl] = res
-            return@withContext res
-        }
-
-        // 3. Fallback a Scraper de HTML (para Instagram, Facebook, Twitter, Twitch, Kick, etc.)
-        val scraped = scrapeHtmlMetadata(cleanUrl, downloadId)
-        if (scraped != null) {
-            val sizeStr = if (info != null && info.pesoEstimadoMB > 0) String.format(java.util.Locale.US, "%.1f MB", info.pesoEstimadoMB) else "Auto"
-            val formatSizes = info?.formatSizes ?: emptyMap()
-            val res = ExtractedVideo(
-                title = scraped.first,
-                availableFormats = listOf("MP4", "MP3", "M4A"),
-                size = sizeStr,
-                thumbnailUrl = scraped.second ?: info?.miniaturaUrl?.takeIf { it.isNotEmpty() } ?: fallbackThumbnail,
-                formatSizes = formatSizes,
-                platformId = service.siteId,
-                platformName = service.displayName,
-                brandColorHex = service.brandColorHex
-            )
-            videoCache[cleanUrl] = res
-            return@withContext res
-        }
-
-        // 4. Si el SiteService nos dio algo (aunque fuera un título genérico) lo usamos si no pudimos hacer scraper
-        if (info != null) {
-            val sizeStr = if (info.pesoEstimadoMB > 0) String.format(java.util.Locale.US, "%.1f MB", info.pesoEstimadoMB) else "Auto"
-            val res = ExtractedVideo(
-                title = info.titulo,
-                availableFormats = listOf("MP4", "MP3", "M4A"),
-                size = sizeStr,
-                thumbnailUrl = info.miniaturaUrl.ifEmpty { fallbackThumbnail },
-                formatSizes = info.formatSizes,
-                platformId = service.siteId,
-                platformName = service.displayName,
-                brandColorHex = service.brandColorHex
-            )
-            videoCache[cleanUrl] = res
-            return@withContext res
-        }
-
-        // Final Fallback
-        val finalFallback = ExtractedVideo(
-            title = if (service.siteId == "generic") "Enlace Directo" else "Video de ${service.displayName}",
+        val res = ExtractedVideo(
+            title = title,
             availableFormats = listOf("MP4", "MP3", "M4A"),
-            size = "Auto",
-            thumbnailUrl = fallbackThumbnail,
+            size = sizeStr,
+            thumbnailUrl = thumbnailUrl,
+            formatSizes = formatSizes,
             platformId = service.siteId,
             platformName = service.displayName,
             brandColorHex = service.brandColorHex
         )
-        return@withContext finalFallback
+        videoCache[cleanUrl] = res
+        return@withContext res
     }
 
     suspend fun getRealSizeAndUrl(url: String, quality: String, format: String): Pair<String, String> = withContext(Dispatchers.IO) {

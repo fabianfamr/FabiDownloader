@@ -10,7 +10,33 @@ object PathUtils {
         val isVideo = format.equals("MP4", ignoreCase = true) || format.equals("WEBM", ignoreCase = true)
         val relativeSubfolder = if (isVideo) "FabiDownloader/video" else "FabiDownloader/audio"
         
-        // 1. Try Android/media/com.fabian.downloader/FabiDownloader/video or .../audio
+        // 1. Try standard public Download/FabiDownloader/... (This is what the user expects!)
+        val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        if (publicDownloads != null) {
+            val downloadFabiFolder = File(publicDownloads, relativeSubfolder)
+            try {
+                if (!downloadFabiFolder.exists()) {
+                    downloadFabiFolder.mkdirs()
+                }
+                var isWritable = downloadFabiFolder.canWrite()
+                if (!isWritable && downloadFabiFolder.exists()) {
+                    // Try to create a dummy temp file to verify writability
+                    val testFile = File(downloadFabiFolder, ".test_write")
+                    if (testFile.createNewFile()) {
+                        testFile.delete()
+                        isWritable = true
+                    }
+                }
+                if (isWritable) {
+                    android.util.Log.d("PathUtils", "Using public Download folder: ${downloadFabiFolder.absolutePath}")
+                    return downloadFabiFolder
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PathUtils", "Failed to use public Download folder", e)
+            }
+        }
+
+        // 2. Try Android/media/com.fabian.downloader/FabiDownloader/video or .../audio
         // This is writable without permissions in 10+ and scanned by some media scanners.
         val mediaDirs = context.externalMediaDirs
         val mediaDir = mediaDirs.firstOrNull()
@@ -21,6 +47,7 @@ object PathUtils {
                     targetFolder.mkdirs()
                 }
                 if (targetFolder.exists() && targetFolder.canWrite()) {
+                    android.util.Log.d("PathUtils", "Using externalMediaDirs folder: ${targetFolder.absolutePath}")
                     return targetFolder
                 }
             } catch (e: Exception) {
@@ -28,7 +55,7 @@ object PathUtils {
             }
         }
 
-        // 2. Try App's external Download directory (Android/data/com.fabian.downloader/files/Download/...)
+        // 3. Try App's external Download directory (Android/data/com.fabian.downloader/files/Download/...)
         val appExternalDownloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
         if (appExternalDownloadDir != null) {
             val targetFolder = File(appExternalDownloadDir, relativeSubfolder)
@@ -37,23 +64,8 @@ object PathUtils {
                     targetFolder.mkdirs()
                 }
                 if (targetFolder.exists() && targetFolder.canWrite()) {
+                    android.util.Log.d("PathUtils", "Using appExternalDownloadDir folder: ${targetFolder.absolutePath}")
                     return targetFolder
-                }
-            } catch (e: Exception) {
-                // ignore
-            }
-        }
-        
-        // 3. Fallback to standard Download/FabiDownloader/... (May fail in 10+ without legacy storage)
-        val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        if (publicDownloads != null) {
-            val downloadFabiFolder = File(publicDownloads, relativeSubfolder)
-            try {
-                if (!downloadFabiFolder.exists()) {
-                    downloadFabiFolder.mkdirs()
-                }
-                if (downloadFabiFolder.exists() && downloadFabiFolder.canWrite()) {
-                    return downloadFabiFolder
                 }
             } catch (e: Exception) {
                 // ignore

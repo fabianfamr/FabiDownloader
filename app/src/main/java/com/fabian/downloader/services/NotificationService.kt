@@ -52,7 +52,7 @@ class NotificationService(private val context: Context) {
     }
 
     private val thumbnailCache = mutableMapOf<String, Bitmap>()
-    private var lastSummaryPostTime = 0L
+    private val shownSuccessIds = java.util.Collections.synchronizedSet(mutableSetOf<Int>())
 
     suspend fun showDownloadProgress(
         id: Int, 
@@ -67,84 +67,15 @@ class NotificationService(private val context: Context) {
             return
         }
 
-        val largeIcon = if (!thumbnailUrl.isNullOrEmpty()) {
-            val cached = thumbnailCache[thumbnailUrl]
-            if (cached != null) {
-                cached
-            } else {
-                val bitmap = getBitmapFromUrl(thumbnailUrl)
-                if (bitmap != null) {
-                    val density = context.resources.displayMetrics.density
-                    val sizePx = (64 * density).toInt()
-                    val scaled = Bitmap.createScaledBitmap(bitmap, sizePx, sizePx, true)
-                    thumbnailCache[thumbnailUrl] = scaled
-                    scaled
-                } else null
-            }
-        } else null
-
-        // Crear Intent de Acción Pausar/Cancelar
-        val pauseIntent = Intent(context, DownloadActionReceiver::class.java).apply {
-            action = "com.fabian.downloader.ACTION_PAUSE"
-            putExtra("EXTRA_DOWNLOAD_ID", id.toLong())
-        }
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
-        val pausePendingIntent = PendingIntent.getBroadcast(
-            context,
-            id,
-            pauseIntent,
-            flags
-        )
-
-        val isPreparing = progress < 0
-        val contentText = StringBuilder()
-        if (isPreparing) {
-            contentText.append("Preparando descarga...")
-        } else {
-            contentText.append("Descargando... $progress%")
-        }
-
-        if (!speed.isNullOrEmpty() && speed != "Esperando..." && speed != "Conectando...") {
-            contentText.append(" • ").append(speed)
-        }
-        if (!size.isNullOrEmpty() && size != "En cola..." && size != "Auto") {
-            contentText.append(" • ").append(size)
-        }
-
-        val notification = NotificationCompat.Builder(context, channelProgressId)
-            .setContentTitle(title)
-            .setContentText(contentText.toString())
-            .setSmallIcon(R.drawable.ic_cloud_download)
-            .setLargeIcon(largeIcon)
-            .setProgress(100, if (isPreparing) 0 else progress, isPreparing)
-            .setGroup(groupId)
-            .setOngoing(true)
-            .addAction(android.R.drawable.ic_media_pause, "Pausar", pausePendingIntent)
-            .build()
-
-        notificationManager.notify(id, notification)
-        
-        // Throttled summary post (every 2 seconds)
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - lastSummaryPostTime > 2000L) {
-            val summaryNotification = NotificationCompat.Builder(context, channelProgressId)
-                .setContentTitle("Descargas activas")
-                .setSmallIcon(R.drawable.ic_cloud_download)
-                .setStyle(NotificationCompat.InboxStyle()
-                    .setSummaryText("Descargando archivos"))
-                .setGroup(groupId)
-                .setGroupSummary(true)
-                .build()
-            notificationManager.notify(0, summaryNotification)
-            lastSummaryPostTime = currentTime
-        }
+        // Quitar la notificación de descargas activas (no mostrar progreso menor a 100%)
+        return
     }
 
     suspend fun showDownloadSuccess(id: Int, title: String, thumbnailUrl: String? = null) {
+        if (!shownSuccessIds.add(id)) {
+            return
+        }
+
         // Primero, cancelar la notificación del canal de progreso
         notificationManager.cancel(id)
 
@@ -202,6 +133,7 @@ class NotificationService(private val context: Context) {
     }
 
     suspend fun showDownloadFailed(id: Int, title: String, errorMsg: String, thumbnailUrl: String? = null) {
+        shownSuccessIds.remove(id)
         // Cancelar el progreso primero
         notificationManager.cancel(id)
 
@@ -261,6 +193,7 @@ class NotificationService(private val context: Context) {
     }
     
     fun cancelNotification(id: Int) {
+        shownSuccessIds.remove(id)
         notificationManager.cancel(id)
         notificationManager.cancel(id + 300000)
         notificationManager.cancel(id + 500000)

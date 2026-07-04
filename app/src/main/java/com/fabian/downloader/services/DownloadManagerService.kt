@@ -8,6 +8,9 @@ import com.fabian.downloader.network.ConnectionService
 import com.fabian.downloader.ui.AppSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -57,6 +60,11 @@ class DownloadManagerService private constructor(
     private val activeCalls = java.util.concurrent.ConcurrentHashMap<Long, okhttp3.Call>()
     private val processingIds = java.util.concurrent.ConcurrentSkipListSet<Long>()
     private var isQueueProcessorRunning = false
+    private val queueTrigger = MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
+
+    fun triggerQueue() {
+        queueTrigger.tryEmit(Unit)
+    }
 
     fun registerActiveCall(id: Long, call: okhttp3.Call) {
         activeCalls[id] = call
@@ -74,7 +82,19 @@ class DownloadManagerService private constructor(
         if (isQueueProcessorRunning) return
         isQueueProcessorRunning = true
         serviceScope.launch {
-            while (true) {
+            // Trigger immediately on start
+            triggerQueue()
+            
+            // Collect signals from either direct triggers or a 3-second fallback timer
+            merge(
+                queueTrigger,
+                flow {
+                    while (true) {
+                        emit(Unit)
+                        kotlinx.coroutines.delay(3000)
+                    }
+                }
+            ).collect {
                 try {
                     val activeInDb = storageService.getActiveDownloadsDirect()
                     val nextToProcess = activeInDb.filter {
@@ -88,22 +108,12 @@ class DownloadManagerService private constructor(
                         nextToProcess.take(slotsAvailable).forEach { record ->
                             processingIds.add(record.id)
                             
-                            // Iniciar Foreground Service en el hilo principal antes de comenzar procesamiento pesado
-                            withContext(Dispatchers.Main) {
-                                DownloadForegroundService.start(application)
-                            }
-                            
                             serviceScope.launch {
                                 try {
                                     runDownloadDirect(record.id)
                                 } finally {
                                     processingIds.remove(record.id)
-                                    // Si no quedan más descargas en progreso, detener el Foreground Service
-                                    if (processingIds.isEmpty()) {
-                                        withContext(Dispatchers.Main) {
-                                            DownloadForegroundService.stop(application)
-                                        }
-                                    }
+                                    triggerQueue() // Trigger again to let other queued items start instantly
                                 }
                             }
                         }
@@ -111,7 +121,6 @@ class DownloadManagerService private constructor(
                 } catch (e: Exception) {
                     Log.e("DownloadManager", "Error in queue loop", e)
                 }
-                kotlinx.coroutines.delay(1500)
             }
         }
     }
@@ -177,6 +186,7 @@ class DownloadManagerService private constructor(
                         storageService.updateDownloadProgressAndSizeAndSpeed(existingId, 0, "En cola...", "Esperando...")
                     }
                 }
+                triggerQueue()
             } catch (e: Exception) {
                 Log.e("DownloadManager", "Error in startDownload", e)
             }
@@ -202,28 +212,51 @@ class DownloadManagerService private constructor(
                     return@launch
                 }
 
-                // Si se inició como una descarga rápida y tiene un título provisional, resolvemos la info real antes de empezar
-                if (videoTitle == "Procesando enlace..." || videoTitle == "Analizando enlace compartido...") {
-                    try {
-                        storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, "Obteniendo info...", "Preparando...")
-                        val result = extractionService.extractVideoInfo(url, id)
-                        videoTitle = result.title
-                        passedThumbnailUrl = result.thumbnailUrl
-                        storageService.updateDownloadInfoWithThumbnail(id, videoTitle, "Descargando...", passedThumbnailUrl)
-                    } catch (e: Exception) {
-                        Log.e("DownloadManager", "Error resolviendo título en descarga directa", e)
-                        videoTitle = "Descarga_$id"
+                // Si se inició como una descarga rápida y tiene un título provisional, resolvemos la info real en segundo plano
+                val isProvisional = videoTitle == "Procesando enlace..." || videoTitle == "Analizando enlace compartido..."
+                var resolvedTitle: String? = null
+                var resolvedThumb: String? = null
+                
+                if (isProvisional) {
+                    val domainName = url.substringAfter("://").substringBefore("/").removePrefix("www.").substringBefore(".")
+                    val quickTitle = if (domainName.isNotEmpty()) {
+                        domainName.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() } + "_$id"
+                    } else {
+                        "Descarga_$id"
                     }
+                    videoTitle = quickTitle
+                    storageService.updateDownloadInfoWithThumbnail(id, videoTitle, "Conectando...", null)
                 }
+
+                val titleJob = if (isProvisional) {
+                    serviceScope.launch {
+                        try {
+                            resolvedTitle = kotlinx.coroutines.withTimeoutOrNull(10000) {
+                                extractionService.extractTitle(url, id)
+                            }
+                            resolvedThumb = kotlinx.coroutines.withTimeoutOrNull(10000) {
+                                extractionService.extractThumbnail(url, id)
+                            }
+                            if (resolvedTitle != null) {
+                                val oldTitle = videoTitle
+                                videoTitle = resolvedTitle!!
+                                passedThumbnailUrl = resolvedThumb
+                                storageService.updateDownloadInfoWithThumbnail(id, videoTitle, "Descargando...", passedThumbnailUrl)
+                                Log.d("DownloadManager", "Resolved provisional title in background: $oldTitle -> $videoTitle")
+                            }
+                        } catch (e: Exception) {
+                            Log.e("DownloadManager", "Error resolving title in background", e)
+                        }
+                    }
+                } else null
 
                 storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, "Conectando...", "Conectando...")
 
                 val service = com.fabian.downloader.services.sites.SiteServiceProvider.getServiceForUrl(url)
                 var lastProgressUpdate = System.currentTimeMillis()
 
-                val sanitizedTitle = sanitizeFileName(videoTitle)
+                val fileNameWithoutExt = if (isProvisional) "download_temp_$id" else "${sanitizeFileName(videoTitle)}_$id"
                 val destFolder = com.fabian.downloader.utils.PathUtils.getDownloadFolder(application, format)
-                val fileNameWithoutExt = "${sanitizedTitle}_$id"
 
                 service.download(url, quality, format, destFolder, fileNameWithoutExt, processId = id.toString()) { progress, sizeText, speedText ->
                     val currentTime = System.currentTimeMillis()
@@ -254,6 +287,13 @@ class DownloadManagerService private constructor(
                     }
                 }
 
+                // Esperar a que se resuelva el título real en segundo plano para poder renombrar el archivo correctamente al finalizar
+                titleJob?.join()
+
+                val finalTitle = videoTitle
+                val finalSanitizedTitle = sanitizeFileName(finalTitle)
+                val finalFileName = "${finalSanitizedTitle}_$id"
+
                 storageService.updateDownloadProgressAndSizeAndSpeed(id, 100, "Completado", "Completado")
                 storageService.markAsCompleted(id)
 
@@ -264,6 +304,30 @@ class DownloadManagerService private constructor(
                 if (actualFile != null) {
                     val ext = actualFile.extension.uppercase()
                     storageService.updateDownloadFormat(id, ext)
+                    
+                    var finalFile = actualFile
+                    if (fileNameWithoutExt != finalFileName) {
+                        val destinationFile = File(destFolder, "${finalFileName}.${actualFile.extension}")
+                        if (actualFile.renameTo(destinationFile)) {
+                            Log.d("DownloadManager", "Successfully renamed file from $fileNameWithoutExt to $finalFileName")
+                            finalFile = destinationFile
+                        } else {
+                            Log.w("DownloadManager", "Failed to rename file from $fileNameWithoutExt to $finalFileName")
+                        }
+                    }
+
+                    // Escanear el archivo para que aparezca inmediatamente en el sistema / galería / descargas
+                    try {
+                        android.media.MediaScannerConnection.scanFile(
+                            application,
+                            arrayOf(finalFile.absolutePath),
+                            null
+                        ) { path, uri ->
+                            Log.d("DownloadManager", "MediaScanner: Archivo escaneado $path -> Uri: $uri")
+                        }
+                    } catch (e: Exception) {
+                        Log.e("DownloadManager", "Error al escanear archivo con MediaScannerConnection", e)
+                    }
                 }
                 
                 if (AppSettings.notificationsEnabled) {
