@@ -12,14 +12,14 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
     val downloads: Flow<List<DownloadRecord>> = database.downloadDao().getAllDownloads()
 
     fun pauseDownload(id: Long) {
-        DownloadManagerService.instance?.pauseDownload(id)
+        DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).pauseDownload(id)
     }
 
     fun resumeDownload(id: Long) {
         viewModelScope.launch {
             val record = database.downloadDao().getDownloadById(id)
             if (record != null) {
-                DownloadManagerService.instance?.startDownload(
+                DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).startDownload(
                     rawUrl = record.url,
                     quality = record.quality,
                     format = record.format,
@@ -33,7 +33,7 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
 
     fun deleteDownload(id: Long) {
         viewModelScope.launch {
-            val dm = DownloadManagerService.instance
+            val dm = DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance())
             if (dm != null) {
                 dm.deleteDownload(id)
             } else {
@@ -44,7 +44,7 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
 
     fun clearCompletedDownloads() {
         viewModelScope.launch {
-            DownloadManagerService.instance?.clearCompletedDownloads()
+            DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).clearCompletedDownloads()
         }
     }
 }

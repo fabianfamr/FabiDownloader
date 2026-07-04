@@ -21,13 +21,7 @@ class MainViewModel(application: Application, private val database: AppDatabase)
     private val connectionService = ConnectionService()
     private val notificationService = NotificationService(application)
 
-    private val downloadManager = DownloadManagerService.getInstance(
-        application,
-        storageService,
-        extractionService,
-        connectionService,
-        notificationService
-    )
+    private val downloadManager = DownloadManagerService.getInstance(application)
 
     suspend fun extractVideoInfo(url: String): ExtractionService.ExtractedVideo {
         return extractionService.extractVideoInfo(url)

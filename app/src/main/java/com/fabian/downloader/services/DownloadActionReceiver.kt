@@ -30,7 +30,7 @@ class DownloadActionReceiver : BroadcastReceiver() {
             try {
                 when (action) {
                     "com.fabian.downloader.ACTION_PAUSE" -> {
-                        DownloadManagerService.instance?.pauseDownload(downloadId)
+                        DownloadManagerService.getInstance(context).pauseDownload(downloadId)
                     }
                     "com.fabian.downloader.ACTION_OPEN" -> {
                         openFile(context, downloadId)
@@ -53,7 +53,7 @@ class DownloadActionReceiver : BroadcastReceiver() {
         val record = database.downloadDao().getDownloadById(downloadId) ?: return
         
         withContext(Dispatchers.Main) {
-            DownloadManagerService.instance?.startDownload(
+            DownloadManagerService.getInstance(context).startDownload(
                 rawUrl = record.url,
                 quality = record.quality,
                 format = record.format,
