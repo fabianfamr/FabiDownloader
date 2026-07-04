@@ -33,12 +33,7 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
 
     fun deleteDownload(id: Long) {
         viewModelScope.launch {
-            val dm = DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance())
-            if (dm != null) {
-                dm.deleteDownload(id)
-            } else {
-                database.downloadDao().deleteDownload(id)
-            }
+            DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).deleteDownload(id)
         }
     }
 

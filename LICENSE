@@ -1,0 +1,70 @@
+========================================================================
+FABI DOWNLOADER - LICENCIA Y CONDICIONES DE USO
+========================================================================
+
+Fabi Downloader es una aplicación de código abierto para la descarga ágil y
+eficiente de contenido multimedia. Todo el código fuente de este repositorio
+se distribuye bajo los términos de la Licencia MIT.
+
+A continuación se detalla el texto legal oficial de la licencia, seguido de
+aclaraciones y directrices adicionales sobre el uso del proyecto.
+
+------------------------------------------------------------------------
+1. LICENCIA LEGAL OFICIAL (MIT LICENSE)
+------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2026 Fabian ツ
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+------------------------------------------------------------------------
+2. DIRECTRICES Y ACLARACIONES DEL PROYECTO
+------------------------------------------------------------------------
+
+Para facilitar el entendimiento de esta licencia, el desarrollador comparte las
+siguientes pautas generales de colaboración y uso:
+
+* Libertad de Uso y Modificación:
+  Puedes estudiar el código, modificarlo para adaptarlo a tus necesidades,
+  compilar tus propias versiones e incluso incorporarlo en tus propios desarrollos,
+  sean estos de carácter personal, educativo o comercial. El único requisito
+  legal es conservar el encabezado de Copyright original de Fabian ツ.
+
+* Distribución y Bifurcaciones (Forks):
+  Si creas una versión derivada o distribuyes copias de este software, te
+  agradecemos incluir una atribución visible y un enlace al repositorio de desarrollo
+  original en GitHub (https://github.com/fabianfamr/FabiDownloader).
+
+* Exclusión de Responsabilidad y Garantías:
+  Fabi Downloader es una herramienta de software. El desarrollador no asume
+  ninguna responsabilidad por el uso inadecuado o ilegal de la aplicación,
+  incluyendo la descarga de material protegido por derechos de autor sin la
+  autorización expresa de sus respectivos titulares. El usuario final es el único
+  responsable del cumplimiento de los términos de servicio de los sitios web
+  desde los que descarga información.
+
+* Motores y Librerías de Terceros:
+  Este proyecto hace uso de tecnologías externas muy potentes (como el motor de
+  descarga yt-dlp y la biblioteca youtubedl-android). Estos componentes externos
+  están protegidos por sus propios creadores y se rigen bajo sus respectivas
+  licencias de distribución libre. Eres responsable de cumplir también con sus
+  términos al compilar y distribuir Fabi Downloader.
+
