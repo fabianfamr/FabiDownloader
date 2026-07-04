@@ -295,7 +295,7 @@ fun SharePopupScreen(url: String, viewModel: MainViewModel, onClose: () -> Unit)
                                 }
                                 
                                 Spacer(modifier = Modifier.height(16.dp))
-                                Divider(color = Color(0xFF242428), thickness = 1.dp)
+                                HorizontalDivider(color = Color(0xFF242428), thickness = 1.dp)
                                 Spacer(modifier = Modifier.height(16.dp))
                                 
                                 // --- VIDEO SECTION ---

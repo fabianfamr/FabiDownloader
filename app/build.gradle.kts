@@ -12,13 +12,15 @@ android {
   compileSdk = 37
 
   val versionFile = rootProject.file("VERSION")
-  val parsedVersionName = if (versionFile.exists()) versionFile.readText().trim() else "2.11.0"
+  val versionLines = if (versionFile.exists()) versionFile.readLines() else listOf("2.22.2", "62")
+  val parsedVersionName = versionLines.getOrNull(0)?.trim() ?: "2.22.2"
+  val parsedVersionCode = versionLines.getOrNull(1)?.trim()?.toIntOrNull() ?: 62
 
   defaultConfig {
     applicationId = "com.fabian.downloader"
     minSdk = 24
     targetSdk = 37
-    versionCode = 60
+    versionCode = parsedVersionCode
     versionName = parsedVersionName
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
