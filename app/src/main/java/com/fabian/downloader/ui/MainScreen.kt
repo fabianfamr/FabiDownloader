@@ -191,11 +191,12 @@ fun MainScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(36.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Premium Styled App Brand Header with entrance animation
             AnimatedVisibility(
@@ -296,7 +297,7 @@ fun MainScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(60.dp),
+                    .heightIn(min = 60.dp),
                 shape = RoundedCornerShape(32.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                 border = BorderStroke(1.2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
@@ -384,7 +385,7 @@ fun MainScreen(
                         shape = RoundedCornerShape(26.dp),
                         contentPadding = PaddingValues(horizontal = 22.dp),
                         modifier = Modifier
-                            .height(50.dp)
+                            .heightIn(min = 50.dp)
                             .padding(end = 2.dp)
                             .testTag("submit_link_button"),
                         colors = ButtonDefaults.buttonColors(
@@ -463,7 +464,7 @@ fun MainScreen(
                                 },
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(52.dp)
+                                    .heightIn(min = 52.dp)
                                     .testTag("quick_audio_mp3_button"),
                                 shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
@@ -474,7 +475,7 @@ fun MainScreen(
                             ) {
                                 Icon(Icons.Default.MusicNote, null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Solo MP3", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                Text("Solo MP3", fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
 
                             // Audio M4A button
@@ -494,7 +495,7 @@ fun MainScreen(
                                 },
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(52.dp)
+                                    .heightIn(min = 52.dp)
                                     .testTag("quick_audio_m4a_button"),
                                 shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
@@ -505,7 +506,7 @@ fun MainScreen(
                             ) {
                                 Icon(Icons.Default.MusicNote, null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Solo M4A", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                Text("Solo M4A", fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
 
                             // Video MP4 button
@@ -525,7 +526,7 @@ fun MainScreen(
                                 },
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(52.dp)
+                                    .heightIn(min = 52.dp)
                                     .testTag("quick_video_mp4_button"),
                                 shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
@@ -536,7 +537,7 @@ fun MainScreen(
                             ) {
                                 Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Video MP4", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                Text("Video MP4", fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
                     }

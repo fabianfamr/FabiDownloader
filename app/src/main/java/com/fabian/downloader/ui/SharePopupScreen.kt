@@ -29,6 +29,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.fabian.downloader.services.ExtractionService
 import kotlinx.coroutines.launch
@@ -354,7 +356,7 @@ fun SharePopupScreen(
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(56.dp),
+                                    .heightIn(min = 56.dp),
                                 shape = RoundedCornerShape(28.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary, // Premium Cyan
@@ -712,133 +714,138 @@ fun DownloadStartedDialog(
         }
     }
 
-    // Dim overlay
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = alpha.value * 0.7f))
-            .clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) { onDismiss() },
-        contentAlignment = Alignment.Center
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        // Dialog card
-        Surface(
+        // Dim overlay
+        Box(
             modifier = Modifier
-                .padding(horizontal = 40.dp)
-                .graphicsLayer {
-                    scaleX = scale.value
-                    scaleY = scale.value
-                    this.alpha = alpha.value
-                }
-                .clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) { /* consume click */ },
-            shape = RoundedCornerShape(28.dp),
-            color = Color(0xFF1A1A1E),
-            border = BorderStroke(1.dp, Color(0xFF2A2A30))
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = alpha.value * 0.7f))
+                .clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) { onDismiss() },
+            contentAlignment = Alignment.Center
         ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 28.dp, vertical = 32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            // Dialog card
+            Surface(
+                modifier = Modifier
+                    .padding(horizontal = 40.dp)
+                    .graphicsLayer {
+                        scaleX = scale.value
+                        scaleY = scale.value
+                        this.alpha = alpha.value
+                    }
+                    .clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) { /* consume click */ },
+                shape = RoundedCornerShape(28.dp),
+                color = Color(0xFF1A1A1E),
+                border = BorderStroke(1.dp, Color(0xFF2A2A30))
             ) {
-                // Glowing icon circle
-                val infiniteTransition = rememberInfiniteTransition(label = "glow")
-                val glowAlpha by infiniteTransition.animateFloat(
-                    initialValue = 0.2f,
-                    targetValue = 0.5f,
-                    animationSpec = infiniteRepeatable(
-                        tween(1200, easing = FastOutSlowInEasing),
-                        RepeatMode.Reverse
-                    ),
-                    label = "glowAlpha"
-                )
-
-                Box(contentAlignment = Alignment.Center) {
-                    // Outer glow ring
-                    Box(
-                        modifier = Modifier
-                            .size(84.dp)
-                            .background(
-                                androidx.compose.ui.graphics.Color(0xFF00E5FF).copy(alpha = glowAlpha),
-                                CircleShape
-                            )
-                    )
-                    // Inner icon circle
-                    Box(
-                        modifier = Modifier
-                            .size(68.dp)
-                            .background(MaterialTheme.colorScheme.primary, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CloudDownload,
-                            contentDescription = null,
-                            tint = Color.Black,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = "¡Descarga iniciada!",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = (-0.3).sp,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Tu descarga ha comenzado en segundo plano",
-                    color = Color(0xFF8A8A92),
-                    fontSize = 13.sp,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 18.sp
-                )
-
-                Spacer(modifier = Modifier.height(28.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                Column(
+                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // "Ahora no" button
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        border = BorderStroke(1.dp, Color(0xFF3A3A42)),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color(0xFFAAAAAA)
+                    // Glowing icon circle
+                    val infiniteTransition = rememberInfiniteTransition(label = "glow")
+                    val glowAlpha by infiniteTransition.animateFloat(
+                        initialValue = 0.2f,
+                        targetValue = 0.5f,
+                        animationSpec = infiniteRepeatable(
+                            tween(1200, easing = FastOutSlowInEasing),
+                            RepeatMode.Reverse
+                        ),
+                        label = "glowAlpha"
+                    )
+
+                    Box(contentAlignment = Alignment.Center) {
+                        // Outer glow ring
+                        Box(
+                            modifier = Modifier
+                                .size(84.dp)
+                                .background(
+                                    androidx.compose.ui.graphics.Color(0xFF00E5FF).copy(alpha = glowAlpha),
+                                    CircleShape
+                                )
                         )
-                    ) {
-                        Text(
-                            "Ahora no",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
-                        )
+                        // Inner icon circle
+                        Box(
+                            modifier = Modifier
+                                .size(68.dp)
+                                .background(MaterialTheme.colorScheme.primary, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CloudDownload,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
                     }
 
-                    // "Ver descargas" button
-                    Button(
-                        onClick = onViewDownloads,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = Color.Black
-                        )
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text(
+                        text = "¡Descarga iniciada!",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = (-0.3).sp,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Tu descarga ha comenzado en segundo plano",
+                        color = Color(0xFF8A8A92),
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 18.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(28.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            "Ver",
-                            fontWeight = FontWeight.Black,
-                            fontSize = 14.sp
-                        )
+                        // "Ahora no" button
+                        OutlinedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier
+                                .weight(1f)
+                                .heightIn(min = 48.dp),
+                            shape = RoundedCornerShape(24.dp),
+                            border = BorderStroke(1.dp, Color(0xFF3A3A42)),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = Color(0xFFAAAAAA)
+                            )
+                        ) {
+                            Text(
+                                "Ahora no",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
+
+                        // "Ver descargas" button
+                        Button(
+                            onClick = onViewDownloads,
+                            modifier = Modifier
+                                .weight(1f)
+                                .heightIn(min = 48.dp),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = Color.Black
+                            )
+                        ) {
+                            Text(
+                                "Ver",
+                                fontWeight = FontWeight.Black,
+                                fontSize = 14.sp
+                            )
+                        }
                     }
                 }
             }

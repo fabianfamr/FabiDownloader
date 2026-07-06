@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -63,6 +64,7 @@ class ShareReceiverActivity : ComponentActivity() {
         val viewModel = ViewModelProvider(this, factory)[MainViewModel::class.java]
         
         checkAndRequestNotifications()
+        enableEdgeToEdge()
         
         setContent {
             MyApplicationTheme {
