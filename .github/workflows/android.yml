@@ -58,7 +58,7 @@ jobs:
 
       - name: Get Version
         id: get_version
-        run: echo "VERSION=$(cat VERSION | tr -d '\r\n')" >> $GITHUB_OUTPUT
+        run: echo "VERSION=$(head -n 1 VERSION | tr -d '\r\n')" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

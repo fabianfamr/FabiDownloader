@@ -1,1 +1,0 @@
-Added comprehensive settings, library context menu, removed platform badges from start screen, and renamed app title to FabiDownloader.
