@@ -280,106 +280,80 @@ fun SharePopupScreen(
                             // Video Metadata Header Card
                             VideoMetadataHeader(video, platformIcon, platformColor)
                             
-                            Spacer(modifier = Modifier.height(20.dp))
+                            Spacer(modifier = Modifier.height(24.dp))
                             
-                            // Options List
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(Color(0xFF161619))
-                                    .padding(16.dp)
+                            // --- MUSIC SECTION ---
+                            Text(
+                                text = "MÚSICA",
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 1.5.sp,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            )
+                            
+                            // Grid of Music Options (2 columns)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                // --- MUSIC SECTION ---
-                                Text(
-                                    text = "MÚSICA (AUDIO)",
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.sp,
-                                    modifier = Modifier.padding(bottom = 8.dp)
-                                )
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    musicOptions.forEach { option ->
-                                        FormatRow(
+                                musicOptions.forEach { option ->
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        SnaptubeFormatCard(
                                             option = option,
                                             icon = Icons.Default.MusicNote,
-                                            isSelected = selectedOptionId == option.id,
-                                            onSelect = { selectedOptionId = option.id }
-                                        )
-                                    }
-                                }
-                                
-                                Spacer(modifier = Modifier.height(16.dp))
-                                HorizontalDivider(color = Color(0xFF242428), thickness = 1.dp)
-                                Spacer(modifier = Modifier.height(16.dp))
-                                
-                                // --- VIDEO SECTION ---
-                                Text(
-                                    text = "VIDEO (MP4)",
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.sp,
-                                    modifier = Modifier.padding(bottom = 8.dp)
-                                )
-                                Column(
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    videoOptions.forEach { option ->
-                                        FormatRow(
-                                            option = option,
-                                            icon = Icons.Default.PlayCircleOutline,
-                                            isSelected = selectedOptionId == option.id,
-                                            onSelect = { selectedOptionId = option.id }
+                                            accentColor = MaterialTheme.colorScheme.primary,
+                                            onClick = {
+                                                viewModel.downloadVideo(
+                                                    url = cleanUrl,
+                                                    quality = option.quality,
+                                                    format = option.format,
+                                                    title = video.title,
+                                                    thumbnailUrl = video.thumbnailUrl
+                                                )
+                                                showDownloadStartedDialog = true
+                                            }
                                         )
                                     }
                                 }
                             }
                             
-                            Spacer(modifier = Modifier.height(28.dp))
+                            Spacer(modifier = Modifier.height(24.dp))
                             
-                            // Download button
-                            Button(
-                                onClick = {
-                                    val allOptions = musicOptions + videoOptions
-                                    val selected = allOptions.find { it.id == selectedOptionId }
-                                    if (selected != null) {
-                                        viewModel.downloadVideo(
-                                            url = cleanUrl,
-                                            quality = selected.quality,
-                                            format = selected.format,
-                                            title = video.title,
-                                            thumbnailUrl = video.thumbnailUrl
-                                        )
-                                        showDownloadStartedDialog = true
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(min = 56.dp),
-                                shape = RoundedCornerShape(28.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary, // Premium Cyan
-                                    contentColor = Color.Black
-                                ),
-                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                            // --- VIDEO SECTION ---
+                            Text(
+                                text = "VIDEO",
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 1.5.sp,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            )
+                            
+                            // Grid of Video Options (2 columns)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.CloudDownload,
-                                    contentDescription = null,
-                                    tint = Color.Black,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Descargar",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 0.2.sp
-                                )
+                                videoOptions.forEach { option ->
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        SnaptubeFormatCard(
+                                            option = option,
+                                            icon = Icons.Default.PlayArrow,
+                                            accentColor = MaterialTheme.colorScheme.primary,
+                                            onClick = {
+                                                viewModel.downloadVideo(
+                                                    url = cleanUrl,
+                                                    quality = option.quality,
+                                                    format = option.format,
+                                                    title = video.title,
+                                                    thumbnailUrl = video.thumbnailUrl
+                                                )
+                                                showDownloadStartedDialog = true
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -880,4 +854,88 @@ fun DownloadStartedDialog(
         }
     }
 }
+
+@Composable
+fun SnaptubeFormatCard(
+    option: DownloadOption,
+    icon: ImageVector,
+    accentColor: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF161619)
+        ),
+        border = BorderStroke(1.dp, Color(0xFF242428))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp, horizontal = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Circle with icon or format label
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(accentColor.copy(alpha = 0.12f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = accentColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(10.dp))
+            
+            // Format + Quality Text
+            val qualityLabel = when(option.quality) {
+                "320" -> "320 kbps"
+                "128" -> "128 kbps"
+                "360p" -> "360p"
+                "720p" -> "720p HD"
+                else -> option.quality
+            }
+            
+            Text(
+                text = "${option.format} ($qualityLabel)",
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(6.dp))
+            
+            // Size Text
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CloudDownload,
+                    contentDescription = null,
+                    tint = Color.Gray,
+                    modifier = Modifier.size(12.dp)
+                )
+                Text(
+                    text = if (option.sizeStr.isEmpty() || option.sizeStr == "X") "Auto" else option.sizeStr,
+                    color = Color.Gray,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
+}
+
 
