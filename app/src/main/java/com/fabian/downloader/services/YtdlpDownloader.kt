@@ -105,13 +105,11 @@ class YtdlpDownloader {
             addOption("--no-cache-dir")
             
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player-client=ios,web,android")
+                addOption("--extractor-args", "youtube:player-client=android,web")
                 
                 val customUa = com.fabian.downloader.ui.AppSettings.customUserAgent
                 if (customUa.isNotEmpty()) {
                     addOption("--user-agent", customUa)
-                } else {
-                    addOption("--user-agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1")
                 }
             }
             
