@@ -35,6 +35,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import android.content.Intent
 import android.content.ClipData
 import android.widget.Toast
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.pager.HorizontalPager
@@ -908,6 +910,8 @@ fun MobileDownloadingItem(
                     }
                 }
                 if (!isFailed) {
+                    var showMenu by remember { mutableStateOf(false) }
+                    
                     IconButton(
                         onClick = { if (record.isPaused) onResume() else onPause() },
                         modifier = Modifier
@@ -922,18 +926,61 @@ fun MobileDownloadingItem(
                         )
                     }
                     Spacer(modifier = Modifier.width(6.dp))
-                    IconButton(
-                        onClick = onDelete, 
-                        modifier = Modifier
-                            .size(38.dp)
-                            .background(C_border, CircleShape)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert, 
-                            contentDescription = "Opciones", 
-                            modifier = Modifier.size(18.dp), 
-                            tint = C_white
-                        )
+                    Box {
+                        IconButton(
+                            onClick = { showMenu = true }, 
+                            modifier = Modifier
+                                .size(38.dp)
+                                .background(C_border, CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert, 
+                                contentDescription = "Opciones", 
+                                modifier = Modifier.size(18.dp), 
+                                tint = C_white
+                            )
+                        }
+                        
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false },
+                            modifier = Modifier.background(Color(0xFF1E1E22), RoundedCornerShape(12.dp))
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(if (record.isPaused) "Reanudar" else "Pausar", color = C_white) },
+                                leadingIcon = { 
+                                    Icon(
+                                        if (record.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause, 
+                                        null, 
+                                        tint = C_accent, 
+                                        modifier = Modifier.size(18.dp)
+                                    ) 
+                                },
+                                onClick = { 
+                                    showMenu = false
+                                    if (record.isPaused) onResume() else onPause()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Copiar Enlace", color = C_white) },
+                                leadingIcon = { Icon(Icons.Default.ContentCopy, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
+                                onClick = { 
+                                    showMenu = false
+                                    val clipboard = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("URL", record.url))
+                                    Toast.makeText(ctx, "Enlace copiado", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                            HorizontalDivider(color = C_border, thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+                            DropdownMenuItem(
+                                text = { Text("Cancelar", color = C_red) },
+                                leadingIcon = { Icon(Icons.Default.Close, null, tint = C_red, modifier = Modifier.size(18.dp)) },
+                                onClick = { 
+                                    showMenu = false
+                                    onDelete()
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -1090,6 +1137,7 @@ fun MobileDownloadingItem(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: () -> Unit, isSelected: Boolean, onLongPress: () -> Unit) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
@@ -1111,6 +1159,7 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
         t
     }
     val (platformIcon, platformColor) = getPlatformIconAndColor(record.url, record.format)
+    var showMenu by remember { mutableStateOf(false) }
 
     Surface(
         shape = RoundedCornerShape(24.dp),
@@ -1118,12 +1167,11 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
         border = if (isSelected) BorderStroke(2.dp, C_accent) else BorderStroke(1.dp, C_border),
         modifier = Modifier
             .fillMaxWidth()
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { onPlay() },
-                    onLongPress = { onLongPress() }
-                )
-            }
+            .clip(RoundedCornerShape(24.dp))
+            .combinedClickable(
+                onClick = { onPlay() },
+                onLongClick = { onLongPress() }
+            )
     ) {
         Row(
             modifier = Modifier
@@ -1193,18 +1241,62 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                 }
             }
             
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier
-                    .size(38.dp)
-                    .background(C_border, CircleShape)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert, 
-                    contentDescription = "Opciones", 
-                    tint = C_white,
-                    modifier = Modifier.size(18.dp)
-                )
+            Box {
+                IconButton(
+                    onClick = { showMenu = true },
+                    modifier = Modifier
+                        .size(38.dp)
+                        .background(C_border, CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert, 
+                        contentDescription = "Opciones", 
+                        tint = C_white,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    modifier = Modifier.background(Color(0xFF1E1E22), RoundedCornerShape(12.dp))
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Reproducir", color = C_white) },
+                        leadingIcon = { Icon(Icons.Default.PlayArrow, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
+                        onClick = { 
+                            showMenu = false
+                            onPlay()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Compartir", color = C_white) },
+                        leadingIcon = { Icon(Icons.Default.Share, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
+                        onClick = { 
+                            showMenu = false
+                            // Acción de compartir
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Copiar Enlace", color = C_white) },
+                        leadingIcon = { Icon(Icons.Default.ContentCopy, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
+                        onClick = { 
+                            showMenu = false
+                            val clipboard = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("URL", record.url))
+                            Toast.makeText(ctx, "Enlace copiado", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                    HorizontalDivider(color = C_border, thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+                    DropdownMenuItem(
+                        text = { Text("Eliminar", color = C_red) },
+                        leadingIcon = { Icon(Icons.Default.Delete, null, tint = C_red, modifier = Modifier.size(18.dp)) },
+                        onClick = { 
+                            showMenu = false
+                            onDelete()
+                        }
+                    )
+                }
             }
         }
     }
