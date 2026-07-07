@@ -149,26 +149,42 @@ fun DownloadsScreen(
         }
     }
     
+    val C_bg = Color(0xFF0A0A0C)
+    val C_card = Color(0xFF161619)
+    val C_card2 = Color(0xFF1E1E22)
+    val C_border = Color(0xFF242428)
+    val C_accent = Color(0xFF00E5FF)
+    val C_accentDim = Color(0x1A00E5FF)
+    val C_accentGlow = Color(0x3800E5FF)
+    val C_white = Color(0xFFFFFFFF)
+    val C_gray1 = Color(0xFF8A8A96)
+    val C_gray2 = Color(0xFF4A4A56)
+    val C_gray3 = Color(0xFF32323A)
+    val C_red = Color(0xFFEF5350)
+    val C_redDim = Color(0x1FEF5350)
+    val C_green = Color(0xFF2ECC71)
+    val C_amber = Color(0xFFF59E0B)
+
     if (itemToDelete != null) {
         AlertDialog(
             onDismissRequest = { itemToDelete = null },
-            title = { Text("Eliminar Descarga", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
-            containerColor = MaterialTheme.colorScheme.surface,
-            text = { Text("¿Estás seguro de que deseas eliminar este archivo?", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+            title = { Text("Eliminar Descarga", fontWeight = FontWeight.Bold, color = C_white) },
+            containerColor = C_card,
+            text = { Text("¿Estás seguro de que deseas eliminar este archivo?", color = C_gray1) },
             confirmButton = {
                 Button(
                     onClick = {
                         viewModel.deleteDownload(itemToDelete!!)
                         itemToDelete = null
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.buttonColors(containerColor = C_red)
                 ) {
                     Text("Eliminar", color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { itemToDelete = null }) {
-                    Text("Cancelar", color = MaterialTheme.colorScheme.primary)
+                    Text("Cancelar", color = C_accent)
                 }
             }
         )
@@ -179,12 +195,12 @@ fun DownloadsScreen(
             onDismissRequest = { errorToShow = null },
             title = { 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.ErrorOutline, null, tint = MaterialTheme.colorScheme.error)
+                    Icon(Icons.Default.ErrorOutline, null, tint = C_red)
                     Spacer(Modifier.width(8.dp))
-                    Text("Detalles del Error", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text("Detalles del Error", fontWeight = FontWeight.Bold, color = C_white)
                 }
             },
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = C_card,
             text = {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Surface(
@@ -192,9 +208,9 @@ fun DownloadsScreen(
                             .fillMaxWidth()
                             .weight(1f, fill = false)
                             .heightIn(max = 300.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        color = C_card2,
                         shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                        border = BorderStroke(1.dp, C_border)
                     ) {
                         Text(
                             text = errorToShow!!,
@@ -202,7 +218,7 @@ fun DownloadsScreen(
                                 .padding(16.dp)
                                 .verticalScroll(rememberScrollState()),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = C_gray1
                         )
                     }
                 }
@@ -213,7 +229,7 @@ fun DownloadsScreen(
                         clipboardManager.setText(AnnotatedString(errorToShow!!))
                         Toast.makeText(context, "Error copiado al portapapeles", Toast.LENGTH_SHORT).show()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    colors = ButtonDefaults.buttonColors(containerColor = C_accent, contentColor = Color(0xFF0A0A0C))
                 ) {
                     Icon(Icons.Default.ContentCopy, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
@@ -222,14 +238,14 @@ fun DownloadsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { errorToShow = null }) {
-                    Text("Cerrar", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Cerrar", color = C_white)
                 }
             }
         )
     }
 
     val handleDelete: (Long) -> Unit = { id ->
-        if (com.fabian.downloader.ui.AppSettings.confirmOnDelete) {
+        if (AppSettings.confirmOnDelete) {
             itemToDelete = id
         } else {
             viewModel.deleteDownload(id)
@@ -249,7 +265,7 @@ fun DownloadsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(C_bg)
     ) {
         // Modern Title Header
         if (isSelectionMode) {
@@ -257,9 +273,9 @@ fun DownloadsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                color = C_accentDim,
                 shape = RoundedCornerShape(20.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
+                border = BorderStroke(1.dp, C_accentGlow)
             ) {
                 Row(
                     modifier = Modifier
@@ -268,25 +284,25 @@ fun DownloadsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = { selectedIds = emptySet() }) {
-                        Icon(Icons.Default.Close, "Cancelar selección", tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Icon(Icons.Default.Close, "Cancelar selección", tint = C_accent)
                     }
                     Text(
                         text = "${selectedIds.size} seleccionados",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = C_white,
                         modifier = Modifier
                             .weight(1f)
                             .padding(horizontal = 12.dp)
                     )
                     IconButton(onClick = { shareSelectedFiles() }) {
-                        Icon(Icons.Default.Share, "Compartir", tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Icon(Icons.Default.Share, "Compartir", tint = C_accent)
                     }
                     IconButton(onClick = { 
                         selectedIds.forEach { viewModel.deleteDownload(it) }
                         selectedIds = emptySet()
                     }) {
-                        Icon(Icons.Default.Delete, "Eliminar", tint = MaterialTheme.colorScheme.error)
+                        Icon(Icons.Default.Delete, "Eliminar", tint = C_red)
                     }
                 }
             }
@@ -300,7 +316,8 @@ fun DownloadsScreen(
                 Text(
                     text = "Biblioteca",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = C_white,
                     modifier = Modifier.weight(1f)
                 )
                 
@@ -309,9 +326,9 @@ fun DownloadsScreen(
                         onClick = { viewModel.clearCompletedDownloads() },
                         modifier = Modifier
                             .size(40.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
+                            .background(C_card2, CircleShape)
                     ) {
-                        Icon(Icons.Default.DeleteSweep, "Limpiar historial", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(Icons.Default.DeleteSweep, "Limpiar historial", tint = C_gray1)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                 }
@@ -322,19 +339,16 @@ fun DownloadsScreen(
                         onClick = { expanded = true },
                         modifier = Modifier
                             .size(40.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
+                            .background(C_card2, CircleShape)
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.Sort, "Ordenar", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(Icons.AutoMirrored.Filled.Sort, "Ordenar", tint = C_gray1)
                     }
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
-                            .background(
-                                MaterialTheme.colorScheme.surfaceVariant,
-                                RoundedCornerShape(16.dp)
-                            )
+                            .background(C_card)
                     ) {
                         listOf("Fecha", "Nombre", "Tamaño").forEach { option ->
                             DropdownMenuItem(
@@ -342,7 +356,7 @@ fun DownloadsScreen(
                                     Text(
                                         option,
                                         fontWeight = if (sortOrder == option) FontWeight.Bold else FontWeight.Medium,
-                                        color = if (sortOrder == option) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                        color = if (sortOrder == option) C_accent else C_white
                                     )
                                 },
                                 onClick = {
@@ -351,7 +365,7 @@ fun DownloadsScreen(
                                 },
                                 leadingIcon = {
                                     if (sortOrder == option) {
-                                        Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                                        Icon(Icons.Default.Check, null, tint = C_accent, modifier = Modifier.size(16.dp))
                                     } else {
                                         Spacer(Modifier.size(16.dp))
                                     }
@@ -363,14 +377,14 @@ fun DownloadsScreen(
             }
         }
 
-        // Segmented pill control for Tabs
+        // Custom Tab Control with sliding accent indicator (exactly like Figma React prototype)
         Surface(
             modifier = Modifier
                 .padding(horizontal = 20.dp, vertical = 8.dp)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
+            color = C_card,
+            border = BorderStroke(1.dp, C_border)
         ) {
             Row(
                 modifier = Modifier
@@ -395,8 +409,9 @@ fun DownloadsScreen(
                             .weight(1f)
                             .height(40.dp),
                         shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = animatedBgAlpha),
-                        contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                        color = C_accent.copy(alpha = animatedBgAlpha * 0.15f),
+                        border = if (isSelected) BorderStroke(1.dp, C_accentGlow) else null,
+                        contentColor = if (isSelected) C_accent else C_gray1
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,
@@ -426,7 +441,7 @@ fun DownloadsScreen(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 if (page == 0) {
-                    // Descargados
+                    // Descargados (Completados)
                     if (completed.isNotEmpty()) {
                         itemsIndexed(completed, key = { _, it -> it.id }) { index, record ->
                             val itemVisible = remember { mutableStateOf(false) }
@@ -467,26 +482,26 @@ fun DownloadsScreen(
                                     Box(
                                         modifier = Modifier
                                             .size(80.dp)
-                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape),
+                                            .background(C_card2, CircleShape),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.FolderOpen, 
                                             contentDescription = null, 
-                                            tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f), 
+                                            tint = C_gray1, 
                                             modifier = Modifier.size(36.dp)
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(18.dp))
                                     Text(
                                         "No hay descargas completadas", 
-                                        color = MaterialTheme.colorScheme.onSurface, 
+                                        color = C_white, 
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
                                         "Copia un enlace para comenzar a descargar", 
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), 
+                                        color = C_gray1, 
                                         fontSize = 13.sp,
                                         modifier = Modifier.padding(top = 4.dp),
                                         textAlign = TextAlign.Center
@@ -535,26 +550,26 @@ fun DownloadsScreen(
                                     Box(
                                         modifier = Modifier
                                             .size(80.dp)
-                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape),
+                                            .background(C_card2, CircleShape),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.CloudQueue, 
                                             contentDescription = null, 
-                                            tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f), 
+                                            tint = C_gray1, 
                                             modifier = Modifier.size(36.dp)
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(18.dp))
                                     Text(
                                         "No hay descargas en progreso", 
-                                        color = MaterialTheme.colorScheme.onSurface, 
+                                        color = C_white, 
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
                                         "Las descargas activas aparecerán aquí", 
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), 
+                                        color = C_gray1, 
                                         fontSize = 13.sp,
                                         modifier = Modifier.padding(top = 4.dp),
                                         textAlign = TextAlign.Center
@@ -577,6 +592,18 @@ fun MobileDownloadingItem(
     onDelete: () -> Unit,
     onShowErrorDetails: (String) -> Unit
 ) {
+    val C_card = Color(0xFF161619)
+    val C_border = Color(0xFF242428)
+    val C_accent = Color(0xFF00E5FF)
+    val C_accentDim = Color(0x1A00E5FF)
+    val C_accentGlow = Color(0x3800E5FF)
+    val C_white = Color(0xFFFFFFFF)
+    val C_gray1 = Color(0xFF8A8A96)
+    val C_red = Color(0xFFEF5350)
+    val C_redDim = Color(0x1FEF5350)
+    val C_green = Color(0xFF2ECC71)
+    val C_amber = Color(0xFFF59E0B)
+
     val isFailed = record.title.startsWith("Fallo: ")
     val cleanTitle = remember(record.title) {
         var t = record.title
@@ -601,9 +628,9 @@ fun MobileDownloadingItem(
     }
 
     Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+        color = C_card,
         shape = RoundedCornerShape(24.dp),
-        border = BorderStroke(1.dp, if (isFailed) MaterialTheme.colorScheme.error.copy(alpha = 0.25f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
+        border = BorderStroke(1.dp, if (isFailed) C_red.copy(alpha = 0.35f) else C_border),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -621,7 +648,7 @@ fun MobileDownloadingItem(
                         .clip(RoundedCornerShape(16.dp))
                         .background(
                             color = if (isFailed) {
-                                if (isNetworkError) Color(0xFFFF9800).copy(alpha = 0.12f) else MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
+                                if (isNetworkError) C_amber.copy(alpha = 0.15f) else C_redDim
                             } else {
                                 platformColor.copy(alpha = 0.12f)
                             }
@@ -645,7 +672,7 @@ fun MobileDownloadingItem(
                             contentDescription = null, 
                             modifier = Modifier.size(28.dp),
                             tint = if (isFailed) {
-                                if (isNetworkError) Color(0xFFFF9800) else MaterialTheme.colorScheme.error
+                                if (isNetworkError) C_amber else C_red
                             } else {
                                 platformColor
                             }
@@ -657,7 +684,7 @@ fun MobileDownloadingItem(
                     Text(
                         text = cleanTitle, 
                         style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface, 
+                        color = C_white, 
                         fontWeight = FontWeight.Bold, 
                         maxLines = 1, 
                         overflow = TextOverflow.Ellipsis
@@ -684,27 +711,27 @@ fun MobileDownloadingItem(
                         
                         if (isFailed) {
                             Surface(
-                                color = if (isNetworkError) Color(0xFFFF9800).copy(alpha = 0.12f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                                color = if (isNetworkError) C_amber.copy(alpha = 0.12f) else C_redDim,
                                 shape = RoundedCornerShape(6.dp)
                             ) {
                                 Text(
                                     text = if (isNetworkError) "Error de Red" else "Fallo", 
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isNetworkError) Color(0xFFFF9800) else MaterialTheme.colorScheme.error,
+                                    color = if (isNetworkError) C_amber else C_red,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
                             }
                         } else if (record.isPaused) {
                             Surface(
-                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                                color = C_amber.copy(alpha = 0.12f),
                                 shape = RoundedCornerShape(6.dp)
                             ) {
                                 Text(
                                     text = "Pausado", 
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    color = C_amber,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
                             }
@@ -716,13 +743,13 @@ fun MobileDownloadingItem(
                         onClick = { if (record.isPaused) onResume() else onPause() },
                         modifier = Modifier
                             .size(38.dp)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape)
+                            .background(C_accentDim, CircleShape)
                     ) {
                         Icon(
                             imageVector = if (record.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = C_accent
                         )
                     }
                     Spacer(modifier = Modifier.width(6.dp))
@@ -730,13 +757,13 @@ fun MobileDownloadingItem(
                         onClick = onDelete, 
                         modifier = Modifier
                             .size(38.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
+                            .background(C_border, CircleShape)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close, 
                             contentDescription = "Cancelar", 
                             modifier = Modifier.size(16.dp), 
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = C_white
                         )
                     }
                 }
@@ -745,9 +772,9 @@ fun MobileDownloadingItem(
             if (isFailed) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Surface(
-                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f),
+                    color = C_redDim,
                     shape = RoundedCornerShape(14.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.1f)),
+                    border = BorderStroke(1.dp, C_red.copy(alpha = 0.2f)),
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onShowErrorDetails(record.size) }
@@ -759,7 +786,7 @@ fun MobileDownloadingItem(
                         Icon(
                             imageVector = Icons.Default.Info,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
+                            tint = C_red,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -783,7 +810,7 @@ fun MobileDownloadingItem(
                         Text(
                             text = cleanErrorMsg,
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            color = C_white,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f)
@@ -793,15 +820,15 @@ fun MobileDownloadingItem(
                         val context = androidx.compose.ui.platform.LocalContext.current
                         IconButton(
                             onClick = {
-                                clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(record.size))
-                                android.widget.Toast.makeText(context, "Error copiado", android.widget.Toast.LENGTH_SHORT).show()
+                                clipboardManager.setText(AnnotatedString(record.size))
+                                Toast.makeText(context, "Error copiado", Toast.LENGTH_SHORT).show()
                             },
                             modifier = Modifier.size(24.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ContentCopy,
                                 contentDescription = "Copiar error",
-                                tint = MaterialTheme.colorScheme.error,
+                                tint = C_red,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -814,7 +841,7 @@ fun MobileDownloadingItem(
                 ) {
                     FilledTonalButton(
                         onClick = onDelete,
-                        colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer),
+                        colors = ButtonDefaults.filledTonalButtonColors(containerColor = C_redDim, contentColor = C_red),
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier.weight(1f)
                     ) {
@@ -823,6 +850,7 @@ fun MobileDownloadingItem(
                     
                     Button(
                         onClick = onResume,
+                        colors = ButtonDefaults.buttonColors(containerColor = C_accent, contentColor = Color(0xFF0A0A0C)),
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier.weight(1.4f)
                     ) {
@@ -843,7 +871,7 @@ fun MobileDownloadingItem(
                         text = if (record.progress < 0) "Conectando..." else "${record.progress}%", 
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = C_accent,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -851,7 +879,7 @@ fun MobileDownloadingItem(
                     Text(
                         text = speedText, 
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        color = C_gray1,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -873,8 +901,8 @@ fun MobileDownloadingItem(
                             .fillMaxWidth()
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        color = C_accent,
+                        trackColor = C_border,
                         strokeCap = StrokeCap.Round
                     )
                 } else {
@@ -884,8 +912,8 @@ fun MobileDownloadingItem(
                             .fillMaxWidth()
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        color = C_accent,
+                        trackColor = C_border,
                         strokeCap = StrokeCap.Round
                     )
                 }
@@ -896,6 +924,16 @@ fun MobileDownloadingItem(
 
 @Composable
 fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: () -> Unit, isSelected: Boolean, onLongPress: () -> Unit) {
+    val C_card = Color(0xFF161619)
+    val C_border = Color(0xFF242428)
+    val C_accent = Color(0xFF00E5FF)
+    val C_accentDim = Color(0x1A00E5FF)
+    val C_accentGlow = Color(0x3800E5FF)
+    val C_white = Color(0xFFFFFFFF)
+    val C_gray1 = Color(0xFF8A8A96)
+    val C_red = Color(0xFFEF5350)
+    val C_green = Color(0xFF2ECC71)
+
     val cleanTitle = remember(record.title) {
         var t = record.title
         while (t.startsWith("Fallo: ")) {
@@ -907,8 +945,8 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
 
     Surface(
         shape = RoundedCornerShape(24.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
+        color = if (isSelected) C_accentDim else C_card,
+        border = if (isSelected) BorderStroke(2.dp, C_accent) else BorderStroke(1.dp, C_border),
         modifier = Modifier
             .fillMaxWidth()
             .pointerInput(Unit) {
@@ -952,7 +990,7 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                 Text(
                     text = cleanTitle, 
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface, 
+                    color = C_white, 
                     fontWeight = FontWeight.Bold, 
                     maxLines = 1, 
                     overflow = TextOverflow.Ellipsis
@@ -974,12 +1012,12 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
                     }
-                    Box(modifier = Modifier.size(3.dp).background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f), CircleShape))
+                    Box(modifier = Modifier.size(3.dp).background(C_gray1, CircleShape))
                     Text(
                         text = record.size, 
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        color = C_gray1,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -990,16 +1028,15 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                 onClick = onDelete,
                 modifier = Modifier
                     .size(38.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f), CircleShape)
+                    .background(C_border, CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.DeleteOutline, 
                     contentDescription = "Eliminar", 
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    tint = C_red,
                     modifier = Modifier.size(18.dp)
                 )
             }
         }
     }
 }
-
