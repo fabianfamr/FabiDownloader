@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Adjust app preferences</string>
+    <string name="settings_section_general">General Preferences</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_clipboard">Clipboard Detection</string>
+    <string name="settings_clipboard_banner">Show banner</string>
+    <string name="settings_clipboard_auto">Open automatically</string>
+    <string name="settings_clipboard_disabled">Disabled</string>
+    <string name="settings_notifications">System notifications</string>
+    <string name="settings_data_saver">Data saver (mobile network)</string>
+    <string name="settings_section_downloads">Download Settings</string>
+    <string name="settings_advanced_downloads">Advanced download settings</string>
+    <string name="settings_confirm_delete">Confirm deletion</string>
+    <string name="settings_section_engine">Connectivity &amp; Engines</string>
+    <string name="settings_update_engine">Update yt-dlp engine</string>
+    <string name="settings_updating">Updating...</string>
+    <string name="settings_update">Update</string>
+    <string name="settings_update_success">Updated successfully!</string>
+    <string name="settings_update_latest">Already on the latest version</string>
+    <string name="settings_update_status">Status: %1$s</string>
+    <string name="settings_update_error">Error updating: %1$s</string>
+    <string name="settings_cookies">Configure Cookies (cookies.txt)</string>
+    <string name="settings_configured">Configured</string>
+    <string name="settings_not_configured">Not configured</string>
+    <string name="settings_section_about">About Fabi Downloader</string>
+    <string name="settings_version">App Version</string>
+    <string name="settings_version_value">Fabi Downloader v%1$s</string>
+    <string name="settings_github">GitHub Repository</string>
+    <string name="settings_open">Open</string>
+    <string name="settings_license">License</string>
+    <string name="settings_license_value">MIT License - Open Source</string>
+    <string name="settings_cookies_description">Paste the contents of a cookies.txt file in Netscape format for downloads with age restrictions, private content, or limits (e.g., private Instagram or YouTube).</string>
+    <string name="settings_cookies_placeholder"># Netscape HTTP Cookie File...</string>
+    <string name="settings_cookies_saved">Cookies saved successfully</string>
+    <string name="settings_save_button">Save</string>
+    <string name="settings_cancel_button">Cancel</string>
+</resources>

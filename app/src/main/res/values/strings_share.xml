@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="share_error_empty">El enlace compartido está vacío</string>
+    <string name="share_direct_link">Enlace Directo</string>
+    <string name="share_video_of">Video de %1$s</string>
+    <string name="share_error_analyze">No se pudo analizar el enlace. ¿Quieres intentar una descarga rápida?</string>
+    <string name="share_options_title">Opciones de Descarga</string>
+    <string name="share_close">Cerrar</string>
+    <string name="share_download_prefix">Descarga_%1$s</string>
+    <string name="share_music_section">MÚSICA</string>
+    <string name="share_video_section">VIDEO</string>
+    <string name="share_download_button">Descargar</string>
+    <string name="share_select_option">Selecciona una opción</string>
+    <string name="share_thumbnail">Miniatura del video</string>
+    <string name="share_analyzing">Analizando enlace...</string>
+    <string name="share_error">Error</string>
+    <string name="share_retry">Reintentar</string>
+    <string name="share_quick_download">Descarga Rápida</string>
+    <string name="share_size">Tamaño:</string>
+    <string name="share_started_title">¡Descarga iniciada!</string>
+    <string name="share_started_subtitle">Tu descarga ha comenzado en segundo plano</string>
+    <string name="share_not_now">Ahora no</string>
+    <string name="share_view">Ver</string>
+</resources>

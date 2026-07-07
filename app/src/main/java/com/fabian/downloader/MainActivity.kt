@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import androidx.room.Room
 import com.fabian.downloader.database.AppDatabase
@@ -38,7 +39,7 @@ class MainActivity : ComponentActivity() {
         checkAndRequestNotifications()
         enableEdgeToEdge()
         setContent {
-            val themePreference = com.fabian.downloader.ui.AppSettings.themePreference
+            val themePreference by com.fabian.downloader.ui.AppSettings.themePreferenceState
             MyApplicationTheme(themePreference = themePreference) {
                 FabiDownloaderApp(
                     database = database,

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Configuración</string>
+    <string name="settings_subtitle">Ajusta las preferencias de la aplicación</string>
+    <string name="settings_section_general">Preferencias Generales</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_clipboard">Detección de portapapeles</string>
+    <string name="settings_clipboard_banner">Mostrar banner</string>
+    <string name="settings_clipboard_auto">Abrir automáticamente</string>
+    <string name="settings_clipboard_disabled">Desactivado</string>
+    <string name="settings_notifications">Notificaciones de sistema</string>
+    <string name="settings_data_saver">Ahorro de datos (red móvil)</string>
+    <string name="settings_section_downloads">Configuración de Descargas</string>
+    <string name="settings_advanced_downloads">Ajustes avanzados de descarga</string>
+    <string name="settings_confirm_delete">Confirmar al eliminar</string>
+    <string name="settings_section_engine">Conectividad y Motores</string>
+    <string name="settings_update_engine">Actualizar motor yt-dlp</string>
+    <string name="settings_updating">Actualizando...</string>
+    <string name="settings_update">Actualizar</string>
+    <string name="settings_update_success">¡Actualizado con éxito!</string>
+    <string name="settings_update_latest">Ya está en la versión más reciente</string>
+    <string name="settings_update_status">Estado: %1$s</string>
+    <string name="settings_update_error">Error al actualizar: %1$s</string>
+    <string name="settings_cookies">Configurar Cookies (cookies.txt)</string>
+    <string name="settings_configured">Configurado</string>
+    <string name="settings_not_configured">No configurado</string>
+    <string name="settings_section_about">Acerca de Fabi Downloader</string>
+    <string name="settings_version">Versión de la Aplicación</string>
+    <string name="settings_version_value">Fabi Downloader v%1$s</string>
+    <string name="settings_github">Repositorio GitHub</string>
+    <string name="settings_open">Abrir</string>
+    <string name="settings_license">Licencia</string>
+    <string name="settings_license_value">Licencia MIT - Código Abierto</string>
+    <string name="settings_cookies_description">Pega el contenido de un archivo cookies.txt en formato Netscape para descargas con restricciones de edad, privadas o con límites (ej. Instagram privado o YouTube).</string>
+    <string name="settings_cookies_placeholder"># Netscape HTTP Cookie File...</string>
+    <string name="settings_cookies_saved">Cookies guardadas con éxito</string>
+    <string name="settings_save_button">Guardar</string>
+    <string name="settings_cancel_button">Cancelar</string>
+</resources>

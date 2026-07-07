@@ -1,4 +1,5 @@
 package com.fabian.downloader.ui
+import androidx.compose.ui.res.stringResource
 
 import android.util.Log
 import androidx.compose.animation.*
@@ -60,6 +61,7 @@ fun SharePopupScreen(
     onClose: () -> Unit,
     onNavigateToDownloads: (() -> Unit)? = null
 ) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     val cleanUrl = remember(url) { extractUrl(url) }
     
     // Extraction states
@@ -75,7 +77,7 @@ fun SharePopupScreen(
     // Trigger metadata extraction when dialog opens
     LaunchedEffect(cleanUrl) {
         if (cleanUrl.isEmpty()) {
-            errorMsg = "El enlace compartido está vacío"
+            errorMsg = ctx.getString(R.string.share_error_empty)
             isLoading = false
             return@LaunchedEffect
         }
@@ -113,17 +115,17 @@ fun SharePopupScreen(
             // Wait for Title and Icon to load so we can transition out of loading state quickly
             jobTitleAndIcon.join()
             if (title == null) {
-                title = if (service.siteId == "generic") "Enlace Directo" else "Video de ${service.displayName}"
+                title = if (service.siteId == "generic") ctx.getString(R.string.share_direct_link) else ctx.getString(R.string.share_video_of, service.displayName)
             }
             isLoading = false
         } catch (e: Exception) {
             Log.e("SharePopupScreen", "Error in extraction coroutines", e)
-            errorMsg = "No se pudo analizar el enlace. ¿Quieres intentar una descarga rápida?"
+            errorMsg = ctx.getString(R.string.share_error_analyze)
             isLoading = false
         }
     }
     
-    val currentPlatform = platformInfoState ?: Triple("generic", "Enlace Directo", "#607D8B")
+    val currentPlatform = platformInfoState ?: Triple("generic", ctx.getString(R.string.share_direct_link), "#607D8B")
     val sizeText = remember(formatSizes) {
         if (formatSizes != null && formatSizes!!.isNotEmpty()) {
             val maxMb = formatSizes!!.values.maxOrNull() ?: 0.0
@@ -171,7 +173,7 @@ fun SharePopupScreen(
         }
     }
     
-    var selectedOptionId by remember { mutableStateOf("video_720") }
+    var selectedOptionId by remember { mutableStateOf(AppSettings.lastDownloadedOptionId) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     
     // Platform-specific brand color and icon
@@ -211,7 +213,7 @@ fun SharePopupScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Opciones de Descarga",
+                    text = ctx.getString(R.string.share_options_title),
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Black,
@@ -226,7 +228,7 @@ fun SharePopupScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Cerrar",
+                        contentDescription = ctx.getString(R.string.share_close),
                         tint = Color.LightGray,
                         modifier = Modifier.size(18.dp)
                     )
@@ -272,7 +274,7 @@ fun SharePopupScreen(
                                     format = if (selectedOptionId.startsWith("music")) {
                                         if (selectedOptionId == "music_classic") "MP3" else "M4A"
                                     } else "MP4",
-                                    title = "Descarga_${System.currentTimeMillis() % 100000}",
+                                    title = ctx.getString(R.string.share_download_prefix, (System.currentTimeMillis() % 100000).toString()),
                                     thumbnailUrl = null
                                 )
                                 onClose()
@@ -294,7 +296,7 @@ fun SharePopupScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "MÚSICA",
+                                    text = ctx.getString(R.string.share_music_section),
                                     color = Color(0xFFAAAAAA),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
@@ -337,7 +339,7 @@ fun SharePopupScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "VIDEO",
+                                    text = ctx.getString(R.string.share_video_section),
                                     color = Color(0xFFAAAAAA),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
@@ -373,11 +375,13 @@ fun SharePopupScreen(
                             Spacer(modifier = Modifier.height(32.dp))
                             
                             // Download button
+                            val isDownloadEnabled = (musicOptions + videoOptions).any { it.id == selectedOptionId }
                             Button(
                                 onClick = {
                                     val allOptions = musicOptions + videoOptions
                                     val selected = allOptions.find { it.id == selectedOptionId }
                                     if (selected != null) {
+                                        AppSettings.lastDownloadedOptionId = selected.id
                                         viewModel.downloadVideo(
                                             url = cleanUrl,
                                             quality = selected.quality,
@@ -388,25 +392,28 @@ fun SharePopupScreen(
                                         showDownloadStartedDialog = true
                                     }
                                 },
+                                enabled = isDownloadEnabled,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .heightIn(min = 54.dp),
                                 shape = RoundedCornerShape(27.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = Color.Black
+                                    contentColor = Color.Black,
+                                    disabledContainerColor = Color(0xFF161619),
+                                    disabledContentColor = Color.Gray
                                 ),
                                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.CloudDownload,
                                     contentDescription = null,
-                                    tint = Color.Black,
+                                    tint = if (isDownloadEnabled) Color.Black else Color.Gray,
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Descargar",
+                                    text = if (isDownloadEnabled) ctx.getString(R.string.share_download_button) else ctx.getString(R.string.share_select_option),
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 0.2.sp
@@ -440,6 +447,7 @@ fun SectionDivider(
     label: String,
     icon: ImageVector
 ) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -480,6 +488,7 @@ fun VideoMetadataHeader(
     platformIcon: ImageVector,
     platformColor: Color
 ) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -501,7 +510,7 @@ fun VideoMetadataHeader(
                 Box(modifier = Modifier.fillMaxSize()) {
                     AsyncImage(
                         model = video.thumbnailUrl,
-                        contentDescription = "Miniatura del video",
+                        contentDescription = ctx.getString(R.string.share_thumbnail),
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -580,6 +589,7 @@ fun VideoMetadataHeader(
 
 @Composable
 fun LoadingStateView(platformColor: Color, url: String) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     val infiniteTransition = rememberInfiniteTransition(label = "PulseEffect")
     val pulseAlpha by infiniteTransition.animateFloat(
         initialValue = 0.4f,
@@ -607,7 +617,7 @@ fun LoadingStateView(platformColor: Color, url: String) {
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
-            text = "Analizando enlace...",
+            text = ctx.getString(R.string.share_analyzing),
             color = Color.White,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
@@ -634,6 +644,7 @@ fun ErrorStateView(
     onRetry: () -> Unit,
     onQuickDownload: () -> Unit
 ) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -642,7 +653,7 @@ fun ErrorStateView(
     ) {
         Icon(
             imageVector = Icons.Default.ErrorOutline,
-            contentDescription = "Error",
+            contentDescription = ctx.getString(R.string.share_error),
             tint = MaterialTheme.colorScheme.error,
             modifier = Modifier.size(48.dp)
         )
@@ -670,7 +681,7 @@ fun ErrorStateView(
                 border = BorderStroke(1.dp, Color(0xFF242428)),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
             ) {
-                Text("Reintentar")
+                Text(ctx.getString(R.string.share_retry))
             }
             
             Button(
@@ -681,7 +692,7 @@ fun ErrorStateView(
                     contentColor = Color.Black
                 )
             ) {
-                Text("Descarga Rápida", fontWeight = FontWeight.Bold)
+                Text(ctx.getString(R.string.share_quick_download), fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -694,6 +705,7 @@ fun FormatRow(
     isSelected: Boolean,
     onSelect: () -> Unit
 ) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     val animatedBgColor by animateColorAsState(
         targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f) else Color.Transparent,
         animationSpec = tween(250, easing = FastOutSlowInEasing),
@@ -750,7 +762,7 @@ fun FormatRow(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "Tamaño:",
+                        text = ctx.getString(R.string.share_size),
                         color = Color.Gray,
                         fontSize = 11.sp
                     )
@@ -827,6 +839,7 @@ fun DownloadStartedDialog(
     onDismiss: () -> Unit,
     onViewDownloads: () -> Unit
 ) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     val scale = remember { Animatable(0.8f) }
     val alpha = remember { Animatable(0f) }
 
@@ -908,7 +921,7 @@ fun DownloadStartedDialog(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Text(
-                        text = "¡Descarga iniciada!",
+                        text = ctx.getString(R.string.share_started_title),
                         color = Color.White,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Black,
@@ -919,7 +932,7 @@ fun DownloadStartedDialog(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Tu descarga ha comenzado en segundo plano",
+                        text = ctx.getString(R.string.share_started_subtitle),
                         color = Color(0xFF8A8A92),
                         fontSize = 13.sp,
                         textAlign = TextAlign.Center,
@@ -932,7 +945,7 @@ fun DownloadStartedDialog(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // "Ahora no" button
+                        // ctx.getString(R.string.share_not_now) button
                         OutlinedButton(
                             onClick = onDismiss,
                             modifier = Modifier
@@ -945,7 +958,7 @@ fun DownloadStartedDialog(
                             )
                         ) {
                             Text(
-                                "Ahora no",
+                                ctx.getString(R.string.share_not_now),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp
                             )
@@ -964,7 +977,7 @@ fun DownloadStartedDialog(
                             )
                         ) {
                             Text(
-                                "Ver",
+                                ctx.getString(R.string.share_view),
                                 fontWeight = FontWeight.Black,
                                 fontSize = 14.sp
                             )
@@ -983,6 +996,7 @@ fun SnaptubeFormatItem(
     accentColor: Color,
     onClick: () -> Unit
 ) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     Box(
         modifier = Modifier
             .fillMaxWidth()

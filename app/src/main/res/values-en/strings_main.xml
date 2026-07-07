@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="main_error_file_not_found">The file does not exist or was deleted</string>
+    <string name="main_error_opening_file">Error opening: %1$s</string>
+    <string name="main_app_title">Downloader</string>
+    <string name="main_ready_to_download">Ready to download</string>
+    <string name="main_paste_link_title">Paste your link</string>
+    <string name="main_paste_link_subtitle">We detect the platform automatically</string>
+    <string name="main_input_placeholder">Paste video or audio link...</string>
+    <string name="main_clear_button">Clear</string>
+    <string name="main_paste_button">Paste</string>
+    <string name="main_analyze_button">Analyze Link</string>
+    <string name="main_analyzing">Analyzing...</string>
+    <string name="main_invalid_link">Please enter a valid link</string>
+    <string name="main_quick_download_title">One-Tap Download</string>
+    <string name="main_processing_link">Processing link...</string>
+    <string name="main_downloading_mp3">🎵 Downloading MP3 audio in background...</string>
+    <string name="main_only_mp3">MP3 Only</string>
+    <string name="main_downloading_m4a">🎵 Downloading M4A audio in background...</string>
+    <string name="main_only_m4a">M4A Only</string>
+    <string name="main_downloading_mp4">📹 Downloading MP4 video (720p) in background...</string>
+    <string name="main_video_mp4">MP4 Video</string>
+    <string name="main_recent_downloads">Recent Downloads</string>
+    <string name="main_view_all">View all</string>
+    <string name="main_completed">Completed</string>
+    <string name="main_in_progress">In progress</string>
+    <string name="main_clipboard_detected_title">Link detected in clipboard</string>
+    <string name="main_discard_button">Discard</string>
+    <string name="main_clipboard_audio_only">Audio Only</string>
+    <string name="main_analyze_short">Analyze</string>
+</resources>

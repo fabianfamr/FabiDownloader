@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="downloads_delete_title">Eliminar Descarga</string>
+    <string name="downloads_delete_message">¿Estás seguro de que deseas eliminar este archivo?</string>
+    <string name="downloads_delete_button">Eliminar</string>
+    <string name="downloads_cancel_button">Cancelar</string>
+    <string name="downloads_error_details_title">Detalles del Error</string>
+    <string name="downloads_error_copied">Error copiado al portapapeles</string>
+    <string name="downloads_copy_all_button">Copiar Todo</string>
+    <string name="downloads_close_button">Cerrar</string>
+    <string name="downloads_share_title">Compartir archivos</string>
+    <string name="downloads_share_empty">No hay archivos locales listos para compartir</string>
+    <string name="downloads_share_error">Error al compartir: %1$s</string>
+    <string name="downloads_selected_count">%1$d seleccionados</string>
+    <string name="downloads_cancel_selection">Cancelar selección</string>
+    <string name="downloads_share_icon">Compartir</string>
+    <string name="downloads_delete_icon">Eliminar</string>
+    <string name="downloads_library_title">Biblioteca</string>
+    <string name="downloads_clear_history">Limpiar historial</string>
+    <string name="downloads_sort">Ordenar</string>
+    <string name="downloads_sort_date">Fecha</string>
+    <string name="downloads_sort_name">Nombre</string>
+    <string name="downloads_sort_size">Tamaño</string>
+    <string name="downloads_tab_completed">Descargados</string>
+    <string name="downloads_tab_progress">En progreso</string>
+    <string name="downloads_empty_completed_title">No hay descargas completadas</string>
+    <string name="downloads_empty_completed_subtitle">Copia un enlace para comenzar a descargar</string>
+    <string name="downloads_empty_progress_title">No hay descargas en progreso</string>
+    <string name="downloads_empty_progress_subtitle">Las descargas activas aparecerán aquí</string>
+    <string name="downloads_error_network">Error de Red</string>
+    <string name="downloads_error_failed">Fallo</string>
+    <string name="downloads_status_paused">Pausado</string>
+    <string name="downloads_thumbnail">Miniatura</string>
+    <string name="downloads_error_extractor">Error interno del extractor (click para detalles)</string>
+    <string name="downloads_error_denied">Acceso denegado por el sitio web</string>
+    <string name="downloads_error_unavailable">Video no disponible o privado</string>
+    <string name="downloads_error_incomplete">Error de conexión: Lectura incompleta</string>
+    <string name="downloads_error_timeout">Tiempo de espera agotado</string>
+    <string name="downloads_error_embed">No se pudo extraer el video incrustado</string>
+    <string name="downloads_error_unknown">Error desconocido</string>
+    <string name="downloads_copy_error_icon">Copiar error</string>
+    <string name="downloads_retry_button">Reintentar</string>
+    <string name="downloads_connecting">Conectando...</string>
+</resources>

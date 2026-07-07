@@ -408,6 +408,24 @@ class DownloadManagerService private constructor(
         }
     }
     
+    fun deleteDownloadHistory(id: Long) {
+        serviceScope.launch {
+            activeCalls[id]?.cancel()
+            activeJobs[id]?.cancel()
+            activeCalls.remove(id)
+            activeJobs.remove(id)
+            
+            try {
+                com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
+            } catch (e: Exception) {
+                Log.e("DownloadManager", "Failed to destroy process", e)
+            }
+            
+            storageService.deleteDownload(id)
+            notificationService.cancelNotification(id.toInt())
+        }
+    }
+    
     fun clearCompletedDownloads() {
         serviceScope.launch {
             val completed = storageService.getAllDownloadsDirect().filter { it.isCompleted }

@@ -53,12 +53,14 @@ import com.fabian.downloader.database.DownloadRecord
 import kotlin.random.Random
 import kotlinx.coroutines.launch
 
+@androidx.compose.material3.ExperimentalMaterial3Api
 @Composable
 fun DownloadsScreen(
     database: AppDatabase,
     modifier: Modifier = Modifier,
     initialPage: Int = 0
 ) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     val viewModel: DownloadsViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -68,14 +70,17 @@ fun DownloadsScreen(
         }
     )
     val downloads by viewModel.downloads.collectAsStateWithLifecycle(initialValue = emptyList())
-    var sortOrder by remember { mutableStateOf("Fecha") }
+    val sortDateStr = stringResource(R.string.downloads_sort_date)
+    val sortNameStr = stringResource(R.string.downloads_sort_name)
+    val sortSizeStr = stringResource(R.string.downloads_sort_size)
+    var sortOrder by remember { mutableStateOf(sortDateStr) }
     val downloading = downloads.filter { !it.isCompleted }
-    val completed = remember(downloads, sortOrder) {
+    val completed = remember(downloads, sortOrder, sortDateStr, sortNameStr, sortSizeStr) {
         val list = downloads.filter { it.isCompleted }
         when (sortOrder) {
-            "Fecha" -> list.sortedByDescending { it.timestamp }
-            "Nombre" -> list.sortedBy { it.title }
-            "Tamaño" -> list.sortedByDescending { it.size }
+            sortDateStr -> list.sortedByDescending { it.timestamp }
+            sortNameStr -> list.sortedBy { it.title }
+            sortSizeStr -> list.sortedByDescending { it.size }
             else -> list
         }
     }
@@ -83,8 +88,8 @@ fun DownloadsScreen(
     var selectedIds by remember { mutableStateOf(setOf<Long>()) }
     val isSelectionMode = selectedIds.isNotEmpty()
     var itemToDelete by remember { mutableStateOf<Long?>(null) }
+    var menuRecord by remember { mutableStateOf<DownloadRecord?>(null) }
     var errorToShow by remember { mutableStateOf<String?>(null) }
-    val context = LocalContext.current
     @Suppress("DEPRECATION")
     val clipboardManager = LocalClipboardManager.current
 
@@ -94,11 +99,11 @@ fun DownloadsScreen(
 
     val openFile: (DownloadRecord) -> Unit = { record ->
         try {
-            val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(context, record.title, record.id, record.format)
+            val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(ctx, record.title, record.id, record.format)
             
             if (file.exists()) {
                 val uri = FileProvider.getUriForFile(
-                    context,
+                    ctx,
                     "com.fabian.downloader.fileprovider",
                     file
                 )
@@ -106,12 +111,12 @@ fun DownloadsScreen(
                     setDataAndType(uri, if (record.format == "MP4") "video/*" else "audio/*")
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                context.startActivity(intent)
+                ctx.startActivity(intent)
             } else {
-                Toast.makeText(context, "El archivo no existe o fue eliminado", Toast.LENGTH_SHORT).show()
+                Toast.makeText(ctx, ctx.getString(R.string.main_error_file_not_found), Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Toast.makeText(context, "Error al abrir: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(ctx, ctx.getString(R.string.main_error_opening_file, e.localizedMessage ?: ""), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -121,11 +126,11 @@ fun DownloadsScreen(
             selectedIds.forEach { id ->
                 val record = downloads.find { it.id == id }
                 if (record != null) {
-                    val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(context, record.title, record.id, record.format)
+                    val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(ctx, record.title, record.id, record.format)
                     
                     if (file.exists()) {
                         val uri = FileProvider.getUriForFile(
-                            context,
+                            ctx,
                             "com.fabian.downloader.fileprovider",
                             file
                         )
@@ -140,12 +145,12 @@ fun DownloadsScreen(
                     type = "*/*"
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                context.startActivity(Intent.createChooser(intent, "Compartir archivos"))
+                ctx.startActivity(Intent.createChooser(intent, ctx.getString(R.string.downloads_share_title)))
             } else {
-                Toast.makeText(context, "No hay archivos locales listos para compartir", Toast.LENGTH_SHORT).show()
+                Toast.makeText(ctx, ctx.getString(R.string.downloads_share_empty), Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Toast.makeText(context, "Error al compartir: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(ctx, ctx.getString(R.string.downloads_share_error, e.localizedMessage ?: ""), Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -165,12 +170,132 @@ fun DownloadsScreen(
     val C_green = Color(0xFF2ECC71)
     val C_amber = Color(0xFFF59E0B)
 
+    if (menuRecord != null) {
+        ModalBottomSheet(
+            onDismissRequest = { menuRecord = null },
+            containerColor = C_card,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = C_gray2) }
+        ) {
+            Column(modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)) {
+                if (menuRecord!!.isCompleted) {
+                    // Completed Options
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(menuRecord!!.url))
+                            Toast.makeText(ctx, "Enlace copiado", Toast.LENGTH_SHORT).show()
+                            menuRecord = null
+                        }.padding(20.dp, 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text("Copiar enlace", color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("URL: ${menuRecord!!.url.take(30)}...", color = C_gray1, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                    HorizontalDivider(color = C_border)
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            viewModel.deleteDownloadHistory(menuRecord!!.id)
+                            menuRecord = null
+                        }.padding(20.dp, 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.History, contentDescription = null, tint = C_white, modifier = Modifier.size(16.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text("Borrar del historial", color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("El archivo se conserva en la memoria del dispositivo", color = C_gray1, fontSize = 12.sp)
+                        }
+                    }
+                    HorizontalDivider(color = C_border)
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            itemToDelete = menuRecord!!.id
+                            menuRecord = null
+                        }.padding(20.dp, 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.size(32.dp).background(C_redDim, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.DeleteForever, contentDescription = null, tint = C_red, modifier = Modifier.size(16.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text("Eliminar descarga", color = C_red, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("Borrar del historial y eliminar archivo permanentemente", color = C_gray1, fontSize = 12.sp)
+                        }
+                    }
+                } else {
+                    // Active Download Options
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(menuRecord!!.url))
+                            Toast.makeText(ctx, "Enlace copiado", Toast.LENGTH_SHORT).show()
+                            menuRecord = null
+                        }.padding(20.dp, 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text("Copiar enlace", color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("URL: ${menuRecord!!.url.take(30)}...", color = C_gray1, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                    HorizontalDivider(color = C_border)
+                    // Active Download Controls
+                    val isPaused = menuRecord!!.isPaused
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            if (isPaused) viewModel.resumeDownload(menuRecord!!.id) else viewModel.pauseDownload(menuRecord!!.id)
+                            menuRecord = null
+                        }.padding(20.dp, 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.size(32.dp).background(C_accentDim, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                            Icon(if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(if (isPaused) "Reanudar descarga" else "Pausar descarga", color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(if (isPaused) "Continuar con la descarga" else "Detener temporalmente el progreso", color = C_gray1, fontSize = 12.sp)
+                        }
+                    }
+                    HorizontalDivider(color = C_border)
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            itemToDelete = menuRecord!!.id
+                            menuRecord = null
+                        }.padding(20.dp, 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.size(32.dp).background(C_redDim, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.DeleteForever, contentDescription = null, tint = C_red, modifier = Modifier.size(16.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text("Cancelar y eliminar", color = C_red, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("Detener la descarga y borrar el progreso actual", color = C_gray1, fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     if (itemToDelete != null) {
         AlertDialog(
             onDismissRequest = { itemToDelete = null },
-            title = { Text("Eliminar Descarga", fontWeight = FontWeight.Bold, color = C_white) },
+            title = { Text(stringResource(R.string.downloads_delete_title), fontWeight = FontWeight.Bold, color = C_white) },
             containerColor = C_card,
-            text = { Text("¿Estás seguro de que deseas eliminar este archivo?", color = C_gray1) },
+            text = { Text(stringResource(R.string.downloads_delete_message), color = C_gray1) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -179,12 +304,12 @@ fun DownloadsScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = C_red)
                 ) {
-                    Text("Eliminar", color = Color.White)
+                    Text(stringResource(R.string.downloads_delete_button), color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { itemToDelete = null }) {
-                    Text("Cancelar", color = C_accent)
+                    Text(stringResource(R.string.downloads_cancel_button), color = C_accent)
                 }
             }
         )
@@ -197,7 +322,7 @@ fun DownloadsScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.ErrorOutline, null, tint = C_red)
                     Spacer(Modifier.width(8.dp))
-                    Text("Detalles del Error", fontWeight = FontWeight.Bold, color = C_white)
+                    Text(stringResource(R.string.downloads_error_details_title), fontWeight = FontWeight.Bold, color = C_white)
                 }
             },
             containerColor = C_card,
@@ -227,18 +352,18 @@ fun DownloadsScreen(
                 Button(
                     onClick = {
                         clipboardManager.setText(AnnotatedString(errorToShow!!))
-                        Toast.makeText(context, "Error copiado al portapapeles", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(ctx, ctx.getString(R.string.downloads_error_copied), Toast.LENGTH_SHORT).show()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = C_accent, contentColor = Color(0xFF0A0A0C))
                 ) {
                     Icon(Icons.Default.ContentCopy, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Copiar Todo")
+                    Text(stringResource(R.string.downloads_copy_all_button))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { errorToShow = null }) {
-                    Text("Cerrar", color = C_white)
+                    Text(stringResource(R.string.downloads_close_button), color = C_white)
                 }
             }
         )
@@ -252,7 +377,7 @@ fun DownloadsScreen(
         }
     }
 
-    val tabs = listOf("Descargados", "En progreso")
+    val tabs = listOf(stringResource(R.string.downloads_tab_completed), ctx.getString(R.string.downloads_tab_progress))
     val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
@@ -284,10 +409,10 @@ fun DownloadsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = { selectedIds = emptySet() }) {
-                        Icon(Icons.Default.Close, "Cancelar selección", tint = C_accent)
+                        Icon(Icons.Default.Close, stringResource(R.string.downloads_cancel_selection), tint = C_accent)
                     }
                     Text(
-                        text = "${selectedIds.size} seleccionados",
+                        text = stringResource(R.string.downloads_selected_count, selectedIds.size),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = C_white,
@@ -296,13 +421,13 @@ fun DownloadsScreen(
                             .padding(horizontal = 12.dp)
                     )
                     IconButton(onClick = { shareSelectedFiles() }) {
-                        Icon(Icons.Default.Share, "Compartir", tint = C_accent)
+                        Icon(Icons.Default.Share, stringResource(R.string.downloads_share_icon), tint = C_accent)
                     }
                     IconButton(onClick = { 
                         selectedIds.forEach { viewModel.deleteDownload(it) }
                         selectedIds = emptySet()
                     }) {
-                        Icon(Icons.Default.Delete, "Eliminar", tint = C_red)
+                        Icon(Icons.Default.Delete, stringResource(R.string.downloads_delete_button), tint = C_red)
                     }
                 }
             }
@@ -314,7 +439,7 @@ fun DownloadsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Biblioteca",
+                    text = stringResource(R.string.downloads_library_title),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = C_white,
@@ -328,7 +453,7 @@ fun DownloadsScreen(
                             .size(40.dp)
                             .background(C_card2, CircleShape)
                     ) {
-                        Icon(Icons.Default.DeleteSweep, "Limpiar historial", tint = C_gray1)
+                        Icon(Icons.Default.DeleteSweep, stringResource(R.string.downloads_clear_history), tint = C_gray1)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                 }
@@ -341,7 +466,7 @@ fun DownloadsScreen(
                             .size(40.dp)
                             .background(C_card2, CircleShape)
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.Sort, "Ordenar", tint = C_gray1)
+                        Icon(Icons.AutoMirrored.Filled.Sort, stringResource(R.string.downloads_sort), tint = C_gray1)
                     }
                     DropdownMenu(
                         expanded = expanded,
@@ -350,7 +475,7 @@ fun DownloadsScreen(
                             .clip(RoundedCornerShape(16.dp))
                             .background(C_card)
                     ) {
-                        listOf("Fecha", "Nombre", "Tamaño").forEach { option ->
+                        listOf(stringResource(R.string.downloads_sort_date), stringResource(R.string.downloads_sort_name), stringResource(R.string.downloads_sort_size)).forEach { option ->
                             DropdownMenuItem(
                                 text = {
                                     Text(
@@ -461,7 +586,7 @@ fun DownloadsScreen(
                                     onPlay = { 
                                         if (isSelectionMode) toggleSelection(record.id) else openFile(record) 
                                     }, 
-                                    onDelete = { handleDelete(record.id) },
+                                    onDelete = { menuRecord = record },
                                     isSelected = selectedIds.contains(record.id),
                                     onLongPress = { toggleSelection(record.id) }
                                 )
@@ -494,13 +619,13 @@ fun DownloadsScreen(
                                     }
                                     Spacer(modifier = Modifier.height(18.dp))
                                     Text(
-                                        "No hay descargas completadas", 
+                                        stringResource(R.string.downloads_empty_completed_title), 
                                         color = C_white, 
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        "Copia un enlace para comenzar a descargar", 
+                                        stringResource(R.string.downloads_empty_completed_subtitle), 
                                         color = C_gray1, 
                                         fontSize = 13.sp,
                                         modifier = Modifier.padding(top = 4.dp),
@@ -530,7 +655,7 @@ fun DownloadsScreen(
                                     record = record,
                                     onPause = { viewModel.pauseDownload(record.id) },
                                     onResume = { viewModel.resumeDownload(record.id) },
-                                    onDelete = { handleDelete(record.id) },
+                                    onDelete = { menuRecord = record },
                                     onShowErrorDetails = { errorToShow = it }
                                 )
                             }
@@ -562,13 +687,13 @@ fun DownloadsScreen(
                                     }
                                     Spacer(modifier = Modifier.height(18.dp))
                                     Text(
-                                        "No hay descargas en progreso", 
+                                        stringResource(R.string.downloads_empty_progress_title), 
                                         color = C_white, 
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        "Las descargas activas aparecerán aquí", 
+                                        stringResource(R.string.downloads_empty_progress_subtitle), 
                                         color = C_gray1, 
                                         fontSize = 13.sp,
                                         modifier = Modifier.padding(top = 4.dp),
@@ -592,6 +717,8 @@ fun MobileDownloadingItem(
     onDelete: () -> Unit,
     onShowErrorDetails: (String) -> Unit
 ) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+
     val C_card = Color(0xFF161619)
     val C_border = Color(0xFF242428)
     val C_accent = Color(0xFF00E5FF)
@@ -658,7 +785,7 @@ fun MobileDownloadingItem(
                     if (!record.thumbnailUrl.isNullOrEmpty()) {
                         coil.compose.AsyncImage(
                             model = record.thumbnailUrl,
-                            contentDescription = "Miniatura",
+                            contentDescription = stringResource(R.string.downloads_thumbnail),
                             modifier = Modifier.fillMaxSize(),
                             contentScale = androidx.compose.ui.layout.ContentScale.Crop
                         )
@@ -715,7 +842,7 @@ fun MobileDownloadingItem(
                                 shape = RoundedCornerShape(6.dp)
                             ) {
                                 Text(
-                                    text = if (isNetworkError) "Error de Red" else "Fallo", 
+                                    text = if (isNetworkError) stringResource(R.string.downloads_error_network) else stringResource(R.string.downloads_error_failed), 
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isNetworkError) C_amber else C_red,
@@ -728,7 +855,7 @@ fun MobileDownloadingItem(
                                 shape = RoundedCornerShape(6.dp)
                             ) {
                                 Text(
-                                    text = "Pausado", 
+                                    text = stringResource(R.string.downloads_status_paused), 
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = C_amber,
@@ -760,9 +887,9 @@ fun MobileDownloadingItem(
                             .background(C_border, CircleShape)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Close, 
-                            contentDescription = "Cancelar", 
-                            modifier = Modifier.size(16.dp), 
+                            imageVector = Icons.Default.MoreVert, 
+                            contentDescription = "Opciones", 
+                            modifier = Modifier.size(18.dp), 
                             tint = C_white
                         )
                     }
@@ -798,13 +925,13 @@ fun MobileDownloadingItem(
                                 .trim()
                             
                             when {
-                                msg.contains("Traceback", ignoreCase = true) -> "Error interno del extractor (click para detalles)"
-                                msg.contains("HTTP Error 403", ignoreCase = true) -> "Acceso denegado por el sitio web"
-                                msg.contains("Video unavailable", ignoreCase = true) -> "Video no disponible o privado"
-                                msg.contains("Incomplete read", ignoreCase = true) -> "Error de conexión: Lectura incompleta"
-                                msg.contains("timeout", ignoreCase = true) -> "Tiempo de espera agotado"
-                                msg.contains("Downloading embed", ignoreCase = true) -> "No se pudo extraer el video incrustado"
-                                else -> msg.ifEmpty { "Error desconocido" }
+                                msg.contains("Traceback", ignoreCase = true) -> ctx.getString(R.string.downloads_error_extractor)
+                                msg.contains("HTTP Error 403", ignoreCase = true) -> ctx.getString(R.string.downloads_error_denied)
+                                msg.contains("Video unavailable", ignoreCase = true) -> ctx.getString(R.string.downloads_error_unavailable)
+                                msg.contains("Incomplete read", ignoreCase = true) -> ctx.getString(R.string.downloads_error_incomplete)
+                                msg.contains("timeout", ignoreCase = true) -> ctx.getString(R.string.downloads_error_timeout)
+                                msg.contains("Downloading embed", ignoreCase = true) -> ctx.getString(R.string.downloads_error_embed)
+                                else -> msg.ifEmpty { ctx.getString(R.string.downloads_error_unknown) }
                             }
                         }
                         Text(
@@ -817,17 +944,16 @@ fun MobileDownloadingItem(
                         )
                         @Suppress("DEPRECATION")
                         val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
-                        val context = androidx.compose.ui.platform.LocalContext.current
                         IconButton(
                             onClick = {
                                 clipboardManager.setText(AnnotatedString(record.size))
-                                Toast.makeText(context, "Error copiado", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(ctx, ctx.getString(R.string.downloads_error_copied), Toast.LENGTH_SHORT).show()
                             },
                             modifier = Modifier.size(24.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ContentCopy,
-                                contentDescription = "Copiar error",
+                                contentDescription = stringResource(R.string.downloads_copy_error_icon),
                                 tint = C_red,
                                 modifier = Modifier.size(16.dp)
                             )
@@ -845,7 +971,7 @@ fun MobileDownloadingItem(
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Eliminar", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text(stringResource(R.string.downloads_delete_button), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
                     
                     Button(
@@ -856,7 +982,7 @@ fun MobileDownloadingItem(
                     ) {
                         Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Reintentar", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text(stringResource(R.string.downloads_retry_button), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
                 }
             } else {
@@ -868,14 +994,14 @@ fun MobileDownloadingItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (record.progress < 0) "Conectando..." else "${record.progress}%", 
+                        text = if (record.progress < 0) stringResource(R.string.downloads_connecting) else "${record.progress}%", 
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = C_accent,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    val speedText = if (record.isPaused) "Pausado" else record.speed
+                    val speedText = if (record.isPaused) stringResource(R.string.downloads_status_paused) else record.speed
                     Text(
                         text = speedText, 
                         style = MaterialTheme.typography.labelSmall,
@@ -924,6 +1050,7 @@ fun MobileDownloadingItem(
 
 @Composable
 fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: () -> Unit, isSelected: Boolean, onLongPress: () -> Unit) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     val C_card = Color(0xFF161619)
     val C_border = Color(0xFF242428)
     val C_accent = Color(0xFF00E5FF)
@@ -972,7 +1099,7 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                 if (!record.thumbnailUrl.isNullOrEmpty()) {
                     coil.compose.AsyncImage(
                         model = record.thumbnailUrl,
-                        contentDescription = "Miniatura",
+                        contentDescription = stringResource(R.string.downloads_thumbnail),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop
                     )
@@ -1031,9 +1158,9 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                     .background(C_border, CircleShape)
             ) {
                 Icon(
-                    imageVector = Icons.Default.DeleteOutline, 
-                    contentDescription = "Eliminar", 
-                    tint = C_red,
+                    imageVector = Icons.Default.MoreVert, 
+                    contentDescription = "Opciones", 
+                    tint = C_white,
                     modifier = Modifier.size(18.dp)
                 )
             }

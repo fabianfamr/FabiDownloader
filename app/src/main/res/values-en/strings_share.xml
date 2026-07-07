@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="share_error_empty">The shared link is empty</string>
+    <string name="share_direct_link">Direct Link</string>
+    <string name="share_video_of">%1$s Video</string>
+    <string name="share_error_analyze">Could not analyze the link. Want to try a quick download?</string>
+    <string name="share_options_title">Download Options</string>
+    <string name="share_close">Close</string>
+    <string name="share_download_prefix">Download_%1$s</string>
+    <string name="share_music_section">MUSIC</string>
+    <string name="share_video_section">VIDEO</string>
+    <string name="share_download_button">Download</string>
+    <string name="share_select_option">Select an option</string>
+    <string name="share_thumbnail">Video thumbnail</string>
+    <string name="share_analyzing">Analyzing link...</string>
+    <string name="share_error">Error</string>
+    <string name="share_retry">Retry</string>
+    <string name="share_quick_download">Quick Download</string>
+    <string name="share_size">Size:</string>
+    <string name="share_started_title">Download started!</string>
+    <string name="share_started_subtitle">Your download has started in the background</string>
+    <string name="share_not_now">Not now</string>
+    <string name="share_view">View</string>
+</resources>

@@ -76,6 +76,8 @@ object AppSettings {
         }
 
     private val _themePreference = mutableStateOf("Sistema")
+    val themePreferenceState: androidx.compose.runtime.State<String> get() = _themePreference
+    
     var themePreference: String
         get() = _themePreference.value
         set(value) {
@@ -131,6 +133,14 @@ object AppSettings {
         set(value) {
             _clipboardAction.value = value
             saveString("clipboardAction", value)
+        }
+
+    private val _lastDownloadedOptionId = mutableStateOf("")
+    var lastDownloadedOptionId: String
+        get() = _lastDownloadedOptionId.value
+        set(value) {
+            _lastDownloadedOptionId.value = value
+            saveString("lastDownloadedOptionId", value)
         }
 
     private val _cookiesText = mutableStateOf("")
@@ -234,6 +244,7 @@ object AppSettings {
         _playlistEnabled.value = prefs.getBoolean("playlistEnabled", false)
         _maxConcurrentDownloads.value = prefs.getInt("maxConcurrentDownloads", 2)
         _clipboardAction.value = prefs.getString("clipboardAction", "banner") ?: "banner"
+        _lastDownloadedOptionId.value = prefs.getString("lastDownloadedOptionId", "") ?: ""
         
         _cookiesText.value = prefs.getString("cookiesText", "") ?: ""
         writeCookiesFile(_cookiesText.value)

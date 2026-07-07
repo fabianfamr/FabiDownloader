@@ -4,7 +4,9 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -89,89 +91,84 @@ fun FabiDownloaderApp(
             } 
         },
         bottomBar = {
-            val primaryColor = MaterialTheme.colorScheme.primary
-            val surfaceColor = MaterialTheme.colorScheme.surface
-            val outlineColor = MaterialTheme.colorScheme.outline
-
+            val C_sheet = Color(0xFF161619) // Matching React C.sheet
+            val C_border = Color(0xFF242428)
+            val C_accent = Color(0xFF00E5FF)
+            val C_gray1 = Color(0xFF8A8A96)
+            
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding(),
-                color = surfaceColor,
+                color = C_sheet,
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp
             ) {
                 Column {
-                    // Top divider line with subtle gradient
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(0.5.dp)
-                            .background(
-                                Brush.horizontalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        outlineColor.copy(alpha = 0.3f),
-                                        primaryColor.copy(alpha = 0.15f),
-                                        outlineColor.copy(alpha = 0.3f),
-                                        Color.Transparent
-                                    )
-                                )
-                            )
-                    )
+                    // Top divider line
+                    Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(C_border))
                     
-                    NavigationBar(
-                        containerColor = Color.Transparent,
-                        tonalElevation = 0.dp,
-                        windowInsets = WindowInsets(0)
+                    Row(
+                        modifier = Modifier.fillMaxWidth().height(72.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         screens.forEach { screen ->
                             val isSelected = currentRoute?.startsWith(screen.route) == true
                             
-                            val animatedWeight by animateFloatAsState(
-                                targetValue = if (isSelected) 1f else 0f,
-                                animationSpec = tween(300, easing = FastOutSlowInEasing),
-                                label = "navWeight"
-                            )
-
-                            NavigationBarItem(
-                                selected = isSelected,
-                                onClick = {
-                                    if (currentRoute != screen.route && currentRoute?.startsWith(screen.route) != true) {
-                                        navController.navigate(screen.route) {
-                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                            launchSingleTop = true
-                                            restoreState = true
+                            val animatedScale by animateFloatAsState(if (isSelected) 1.05f else 1f)
+                            
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .clickable {
+                                        if (currentRoute != screen.route && currentRoute?.startsWith(screen.route) != true) {
+                                            navController.navigate(screen.route) {
+                                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
                                         }
-                                    }
-                                },
-                                icon = {
+                                    },
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Box(
+                                    modifier = Modifier.graphicsLayer {
+                                        scaleX = animatedScale
+                                        scaleY = animatedScale
+                                    },
+                                    contentAlignment = Alignment.Center
+                                ) {
                                     Icon(
                                         imageVector = screen.icon,
                                         contentDescription = screen.title,
-                                        modifier = Modifier
-                                            .size(if (isSelected) 24.dp else 22.dp)
-                                            .graphicsLayer {
-                                                scaleX = 1f + (animatedWeight * 0.1f)
-                                                scaleY = 1f + (animatedWeight * 0.1f)
-                                            }
+                                        modifier = Modifier.size(24.dp),
+                                        tint = if (isSelected) C_accent else C_gray1
                                     )
-                                },
-                                label = { 
-                                    Text(
-                                        screen.title,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                        fontSize = 11.sp
-                                    ) 
-                                },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = primaryColor,
-                                    selectedTextColor = primaryColor,
-                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                    indicatorColor = primaryColor.copy(alpha = 0.12f)
+                                }
+                                
+                                Spacer(modifier = Modifier.height(4.dp))
+                                
+                                Text(
+                                    text = screen.title,
+                                    color = if (isSelected) C_accent else C_gray1,
+                                    fontSize = 10.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                                 )
-                            )
+                                
+                                // Active dot
+                                Box(modifier = Modifier.height(10.dp), contentAlignment = Alignment.Center) {
+                                    if (isSelected) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(4.dp)
+                                                .background(C_accent, CircleShape)
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -219,11 +216,7 @@ fun FabiDownloaderApp(
                     DownloadsScreen(database = database, initialPage = page)
                 }
                 composable(Screen.Settings.route) {
-                    SettingsScreen(
-                        database = database,
-                        snackbarHostState = snackbarHostState,
-                        onNavigateToDownloadSettings = { navController.navigate(Screen.DownloadSettings.route) },
-                    )
+                    SettingsScreen()
                 }
                 composable(
                     Screen.DownloadSettings.route,

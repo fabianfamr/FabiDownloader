@@ -36,6 +36,12 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
             DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).deleteDownload(id)
         }
     }
+    
+    fun deleteDownloadHistory(id: Long) {
+        viewModelScope.launch {
+            DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).deleteDownloadHistory(id)
+        }
+    }
 
     fun clearCompletedDownloads() {
         viewModelScope.launch {

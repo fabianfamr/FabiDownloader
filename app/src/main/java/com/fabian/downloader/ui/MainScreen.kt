@@ -57,10 +57,10 @@ fun MainScreen(
     snackbarHostState: SnackbarHostState? = null,
     onNavigateToDownloads: () -> Unit = {}
 ) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     var query by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val application = context.applicationContext as Application
+    val application = ctx.applicationContext as Application
     
     val viewModel: MainViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
@@ -88,7 +88,7 @@ fun MainScreen(
     var urlToDownloadInDialog by remember { mutableStateOf<String?>(null) }
     var lastProcessedClipboardUrl by remember { mutableStateOf("") }
     val clipboardManager = remember {
-        context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
     }
 
     DisposableEffect(lifecycleOwner) {
@@ -123,11 +123,11 @@ fun MainScreen(
 
     val openFile: (DownloadRecord) -> Unit = { record ->
         try {
-            val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(context, record.title, record.id, record.format)
+            val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(ctx, record.title, record.id, record.format)
             
             if (file.exists()) {
                 val uri = FileProvider.getUriForFile(
-                    context,
+                    ctx,
                     "com.fabian.downloader.fileprovider",
                     file
                 )
@@ -135,15 +135,15 @@ fun MainScreen(
                     setDataAndType(uri, if (record.format == "MP4") "video/*" else "audio/*")
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                context.startActivity(intent)
+                ctx.startActivity(intent)
             } else {
                 scope.launch {
-                    snackbarHostState?.showSnackbar("El archivo no existe o fue eliminado")
+                    snackbarHostState?.showSnackbar(ctx.getString(R.string.main_error_file_not_found))
                 }
             }
         } catch (e: Exception) {
             scope.launch {
-                snackbarHostState?.showSnackbar("Error al abrir: ${e.localizedMessage}")
+                snackbarHostState?.showSnackbar(ctx.getString(R.string.main_error_opening_file, e.localizedMessage ?: ""))
             }
         }
     }
@@ -248,7 +248,7 @@ fun MainScreen(
                         }
                         Column {
                             Text(
-                                text = "Downloader",
+                                text = stringResource(R.string.main_app_title),
                                 color = C_white,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.ExtraBold,
@@ -265,7 +265,7 @@ fun MainScreen(
                                         .background(C_green)
                                 )
                                 Text(
-                                    text = "Listo para descargar",
+                                    text = stringResource(R.string.main_ready_to_download),
                                     color = C_gray1,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Medium
@@ -274,19 +274,7 @@ fun MainScreen(
                         }
                     }
 
-                    Surface(
-                        color = C_accentDim,
-                        border = BorderStroke(1.dp, C_accentGlow),
-                        shape = RoundedCornerShape(6.dp)
-                    ) {
-                        Text(
-                            text = "v${com.fabian.downloader.BuildConfig.VERSION_NAME}",
-                            color = C_accent,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
-                        )
-                    }
+
                 }
             }
 
@@ -300,7 +288,7 @@ fun MainScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Pega tu enlace",
+                        text = stringResource(R.string.main_paste_link_title),
                         color = C_white,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.ExtraBold,
@@ -308,7 +296,7 @@ fun MainScreen(
                         lineHeight = 1.3.sp
                     )
                     Text(
-                        text = "Detectamos la plataforma automáticamente",
+                        text = stringResource(R.string.main_paste_link_subtitle),
                         color = C_gray1,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
@@ -318,60 +306,7 @@ fun MainScreen(
                 }
             }
 
-            // Platform Badges (exactly as React App.tsx)
-            AnimatedVisibility(
-                visible = searchBarVisible,
-                enter = fadeIn(tween(450)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(450, easing = FastOutSlowInEasing))
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.wrapContentSize()
-                    ) {
-                        platforms.forEach { p ->
-                            val active = detectedPlatform?.id == p.id
-                            val animatedScale by animateFloatAsState(if (active) 1.06f else 1f)
-                            
-                            Box(
-                                modifier = Modifier
-                                    .graphicsLayer(scaleX = animatedScale, scaleY = animatedScale)
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .background(if (active) p.color.copy(alpha = 0.1f) else C_card)
-                                    .border(
-                                        width = 1.5.dp,
-                                        color = if (active) p.color.copy(alpha = 0.5f) else C_border,
-                                        shape = RoundedCornerShape(20.dp)
-                                    )
-                                    .padding(horizontal = 10.dp, vertical = 5.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = p.icon,
-                                        contentDescription = p.label,
-                                        tint = if (active) p.color else C_gray1,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Text(
-                                        text = p.label,
-                                        color = if (active) C_white else C_gray1,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+
 
             // Unified Custom Text Field (exactly as React App.tsx)
             AnimatedVisibility(
@@ -416,7 +351,7 @@ fun MainScreen(
                             ) {
                                 if (query.isEmpty()) {
                                     Text(
-                                        text = "Pegar enlace de video o audio...",
+                                        text = stringResource(R.string.main_input_placeholder),
                                         color = C_gray1,
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Normal
@@ -458,7 +393,7 @@ fun MainScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Clear,
-                                    contentDescription = "Limpiar",
+                                    contentDescription = stringResource(R.string.main_clear_button),
                                     tint = C_gray1,
                                     modifier = Modifier.size(14.dp)
                                 )
@@ -494,12 +429,12 @@ fun MainScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.ContentPaste,
-                                    contentDescription = "Pegar",
+                                    contentDescription = stringResource(R.string.main_paste_button),
                                     tint = C_accent,
                                     modifier = Modifier.size(12.dp)
                                 )
                                 Text(
-                                    text = "Pegar",
+                                    text = stringResource(R.string.main_paste_button),
                                     color = C_accent,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
@@ -510,7 +445,7 @@ fun MainScreen(
                 }
             }
 
-            // Big CTA Button ("Analizar Enlace" - exactly as React App.tsx)
+            // Big CTA Button (stringResource(R.string.main_analyze_button) - exactly as React App.tsx)
             AnimatedVisibility(
                 visible = searchBarVisible,
                 enter = fadeIn(tween(550)) + slideInVertically(initialOffsetY = { 30 }, animationSpec = tween(550, easing = FastOutSlowInEasing))
@@ -529,7 +464,7 @@ fun MainScreen(
                                 query = ""
                             }
                         } else if (query.isNotEmpty()) {
-                            android.widget.Toast.makeText(context, "Por favor introduce un enlace válido", android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(ctx, ctx.getString(R.string.main_invalid_link), android.widget.Toast.LENGTH_SHORT).show()
                         }
                     },
                     enabled = query.isNotEmpty(),
@@ -562,7 +497,7 @@ fun MainScreen(
                                     strokeWidth = 2.dp
                                 )
                                 Text(
-                                    text = "Analizando...",
+                                    text = stringResource(R.string.main_analyzing),
                                     color = Color(0xFF0A0A0C),
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.ExtraBold
@@ -580,155 +515,11 @@ fun MainScreen(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    text = "Analizar Enlace",
+                                    text = stringResource(R.string.main_analyze_button),
                                     color = if (isQueryValid) Color(0xFF0A0A0C) else C_gray2,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.ExtraBold
                                 )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Quick One-Touch Actions for Audio & Video
-            AnimatedVisibility(
-                visible = query.isNotEmpty() && (query.startsWith("http://") || query.startsWith("https://") || (query.contains(".") && !query.contains(" "))),
-                enter = fadeIn(tween(250)) + expandVertically(animationSpec = tween(300, easing = FastOutSlowInEasing)),
-                exit = fadeOut(tween(200)) + shrinkVertically(animationSpec = tween(250, easing = FastOutSlowInEasing))
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 24.dp)
-                        .testTag("quick_download_panel"),
-                    shape = RoundedCornerShape(24.dp),
-                    color = C_card,
-                    border = BorderStroke(1.dp, C_border)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(18.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 16.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.AutoAwesome,
-                                contentDescription = null,
-                                tint = C_accent,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = "Descarga con un Solo Toque",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = C_white
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            // Audio MP3 button
-                            Button(
-                                onClick = {
-                                    val urlToDownload = query.trim()
-                                    viewModel.downloadVideo(
-                                        url = urlToDownload,
-                                        quality = "160",
-                                        format = "MP3",
-                                        title = "Procesando enlace..."
-                                    )
-                                    query = ""
-                                    scope.launch {
-                                        snackbarHostState?.showSnackbar("🎵 Descargando audio MP3 en segundo plano...")
-                                    }
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .heightIn(min = 52.dp)
-                                    .testTag("quick_audio_mp3_button"),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = C_accentDim,
-                                    contentColor = C_accent
-                                ),
-                                border = BorderStroke(1.dp, C_accentGlow),
-                                contentPadding = PaddingValues(horizontal = 4.dp)
-                            ) {
-                                Icon(Icons.Default.MusicNote, null, modifier = Modifier.size(16.dp), tint = C_accent)
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Solo MP3", fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, color = C_white)
-                            }
-
-                            // Audio M4A button
-                            Button(
-                                onClick = {
-                                    val urlToDownload = query.trim()
-                                    viewModel.downloadVideo(
-                                        url = urlToDownload,
-                                        quality = "128",
-                                        format = "M4A",
-                                        title = "Procesando enlace..."
-                                    )
-                                    query = ""
-                                    scope.launch {
-                                        snackbarHostState?.showSnackbar("🎵 Descargando audio M4A en segundo plano...")
-                                    }
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .heightIn(min = 52.dp)
-                                    .testTag("quick_audio_m4a_button"),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0x1AF59E0B),
-                                    contentColor = C_amber
-                                ),
-                                border = BorderStroke(1.dp, C_amber.copy(alpha = 0.22f)),
-                                contentPadding = PaddingValues(horizontal = 4.dp)
-                            ) {
-                                Icon(Icons.Default.MusicNote, null, modifier = Modifier.size(16.dp), tint = C_amber)
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Solo M4A", fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, color = C_white)
-                            }
-
-                            // Video MP4 button
-                            Button(
-                                onClick = {
-                                    val urlToDownload = query.trim()
-                                    viewModel.downloadVideo(
-                                        url = urlToDownload,
-                                        quality = "720p",
-                                        format = "MP4",
-                                        title = "Procesando enlace..."
-                                    )
-                                    query = ""
-                                    scope.launch {
-                                        snackbarHostState?.showSnackbar("📹 Descargando video MP4 (720p) en segundo plano...")
-                                    }
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .heightIn(min = 52.dp)
-                                    .testTag("quick_video_mp4_button"),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0x1A2ECC71),
-                                    contentColor = C_green
-                                ),
-                                border = BorderStroke(1.dp, C_green.copy(alpha = 0.22f)),
-                                contentPadding = PaddingValues(horizontal = 4.dp)
-                            ) {
-                                Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(16.dp), tint = C_green)
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Video MP4", fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, color = C_white)
                             }
                         }
                     }
@@ -754,13 +545,13 @@ fun MainScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Descargas Recientes",
+                            text = stringResource(R.string.main_recent_downloads),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = C_white
                         )
                         Text(
-                            text = "Ver todas",
+                            text = stringResource(R.string.main_view_all),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = C_accent,
@@ -833,7 +624,7 @@ fun MainScreen(
                                             )
                                         }
                                         Text(
-                                            text = if (record.isCompleted) "Completado" else "En progreso",
+                                            text = if (record.isCompleted) stringResource(R.string.main_completed) else stringResource(R.string.main_in_progress),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = C_gray1
                                         )
@@ -841,7 +632,7 @@ fun MainScreen(
                                 }
                                 Icon(
                                     imageVector = Icons.Default.CheckCircle,
-                                    contentDescription = "Completado",
+                                    contentDescription = stringResource(R.string.main_completed),
                                     tint = C_green,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -852,141 +643,6 @@ fun MainScreen(
                 }
             }
 
-            // Animated Clipboard Card
-            AnimatedVisibility(
-                visible = clipboardUrl != null,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                        .testTag("clipboard_notification_card"),
-                    color = C_card,
-                    shape = RoundedCornerShape(20.dp),
-                    border = BorderStroke(1.dp, C_accentGlow)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(18.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .background(C_accentDim, CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ContentPaste,
-                                    contentDescription = null,
-                                    tint = C_accent,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Enlace detectado en portapapeles",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = C_white
-                                )
-                                Text(
-                                    text = clipboardUrl ?: "",
-                                    fontSize = 12.sp,
-                                    color = C_gray1,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-                            IconButton(
-                                onClick = { clipboardUrl = null },
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .background(C_border, CircleShape)
-                                    .testTag("dismiss_clipboard_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Descartar",
-                                    tint = C_white,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(14.dp))
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            TextButton(
-                                onClick = {
-                                    query = clipboardUrl ?: ""
-                                    clipboardUrl = null
-                                },
-                                modifier = Modifier.testTag("paste_clipboard_button")
-                            ) {
-                                Text(
-                                    "Pegar", 
-                                    fontWeight = FontWeight.Bold,
-                                    color = C_accent
-                                )
-                            }
-                            
-                            FilledTonalButton(
-                                onClick = {
-                                    val urlToDownload = clipboardUrl
-                                    if (!urlToDownload.isNullOrEmpty()) {
-                                        viewModel.downloadVideo(
-                                            url = urlToDownload,
-                                            quality = "160",
-                                            format = "MP3",
-                                            title = "Procesando enlace..."
-                                        )
-                                        clipboardUrl = null
-                                        scope.launch {
-                                            snackbarHostState?.showSnackbar("🎵 Descargando audio MP3 en segundo plano...")
-                                        }
-                                    }
-                                },
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.testTag("clipboard_quick_audio_button"),
-                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp),
-                                colors = ButtonDefaults.filledTonalButtonColors(
-                                    containerColor = C_accentDim,
-                                    contentColor = C_accent
-                                )
-                            ) {
-                                Icon(Icons.Default.MusicNote, null, modifier = Modifier.size(15.dp), tint = C_accent)
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Solo Audio", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = C_white)
-                            }
-                            
-                            Button(
-                                onClick = {
-                                    val urlToDownload = clipboardUrl
-                                    if (!urlToDownload.isNullOrEmpty()) {
-                                        urlToDownloadInDialog = urlToDownload
-                                        clipboardUrl = null
-                                    }
-                                },
-                                modifier = Modifier.testTag("clipboard_analyze_button"),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = C_accent,
-                                    contentColor = Color(0xFF0A0A0C)
-                                )
-                            ) {
-                                Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(15.dp))
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Analizar", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                            }
-                        }
-                    }
-                }
-            }
 
             Spacer(modifier = Modifier.height(24.dp))
         }
