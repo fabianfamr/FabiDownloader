@@ -50,6 +50,10 @@ class MyApplication : Application() {
                 YoutubeDL.getInstance().init(this@MyApplication)
                 FFmpeg.getInstance().init(this@MyApplication)
                 
+                isInitialized = true
+                initLatch.countDown()
+                Log.d("yt-dlp", "Inicialización exitosa de componentes nativos")
+                
                 try {
                     val connectivityManager = getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
                     val network = connectivityManager.activeNetwork
@@ -70,11 +74,6 @@ class MyApplication : Application() {
                 } catch (e: Exception) {
                     Log.e("yt-dlp", "Fallo al actualizar yt-dlp (normal si no hay red o ya está actualizado)", e)
                 }
-
-                isInitialized = true
-                initLatch.countDown()
-
-                Log.d("yt-dlp", "Inicialización exitosa de componentes nativos")
             } catch (e: Exception) {
                 Log.e("yt-dlp", "Error crítico al inicializar binarios nativos", e)
                 isInitialized = true
