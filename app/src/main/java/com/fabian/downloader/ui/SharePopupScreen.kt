@@ -283,14 +283,26 @@ fun SharePopupScreen(
                             Spacer(modifier = Modifier.height(24.dp))
                             
                             // --- MUSIC SECTION ---
-                            Text(
-                                text = "MÚSICA",
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 1.5.sp,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "MÚSICA",
+                                    color = Color(0xFFAAAAAA),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.2.sp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                HorizontalDivider(
+                                    modifier = Modifier.weight(1f),
+                                    color = Color(0xFF242428),
+                                    thickness = 1.dp
+                                )
+                            }
                             
                             // Grid of Music Options (2 columns)
                             Row(
@@ -299,9 +311,8 @@ fun SharePopupScreen(
                             ) {
                                 musicOptions.forEach { option ->
                                     Box(modifier = Modifier.weight(1f)) {
-                                        SnaptubeFormatCard(
+                                        SnaptubeFormatItem(
                                             option = option,
-                                            icon = Icons.Default.MusicNote,
                                             accentColor = MaterialTheme.colorScheme.primary,
                                             onClick = {
                                                 viewModel.downloadVideo(
@@ -318,17 +329,29 @@ fun SharePopupScreen(
                                 }
                             }
                             
-                            Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(28.dp))
                             
                             // --- VIDEO SECTION ---
-                            Text(
-                                text = "VIDEO",
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 1.5.sp,
-                                modifier = Modifier.padding(bottom = 12.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "VIDEO",
+                                    color = Color(0xFFAAAAAA),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.2.sp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                HorizontalDivider(
+                                    modifier = Modifier.weight(1f),
+                                    color = Color(0xFF242428),
+                                    thickness = 1.dp
+                                )
+                            }
                             
                             // Grid of Video Options (2 columns)
                             Row(
@@ -337,9 +360,8 @@ fun SharePopupScreen(
                             ) {
                                 videoOptions.forEach { option ->
                                     Box(modifier = Modifier.weight(1f)) {
-                                        SnaptubeFormatCard(
+                                        SnaptubeFormatItem(
                                             option = option,
-                                            icon = Icons.Default.PlayArrow,
                                             accentColor = MaterialTheme.colorScheme.primary,
                                             onClick = {
                                                 viewModel.downloadVideo(
@@ -856,18 +878,26 @@ fun DownloadStartedDialog(
 }
 
 @Composable
-fun SnaptubeFormatCard(
+fun SnaptubeFormatItem(
     option: DownloadOption,
-    icon: ImageVector,
     accentColor: Color,
     onClick: () -> Unit
 ) {
+    val qualityTitle = when(option.quality) {
+        "320" -> "320 kbps"
+        "128" -> "128 kbps"
+        "360p" -> "360p"
+        "720p" -> "720p HD"
+        else -> option.quality
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .height(68.dp)
+            .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF161619)
         ),
@@ -875,65 +905,28 @@ fun SnaptubeFormatCard(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp, horizontal = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .fillMaxSize()
+                .padding(horizontal = 12.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Circle with icon or format label
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(accentColor.copy(alpha = 0.12f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = accentColor,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(10.dp))
-            
-            // Format + Quality Text
-            val qualityLabel = when(option.quality) {
-                "320" -> "320 kbps"
-                "128" -> "128 kbps"
-                "360p" -> "360p"
-                "720p" -> "720p HD"
-                else -> option.quality
-            }
-            
             Text(
-                text = "${option.format} ($qualityLabel)",
+                text = qualityTitle,
                 color = Color.White,
-                fontSize = 14.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                letterSpacing = 0.2.sp
             )
             
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             
-            // Size Text
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CloudDownload,
-                    contentDescription = null,
-                    tint = Color.Gray,
-                    modifier = Modifier.size(12.dp)
-                )
-                Text(
-                    text = if (option.sizeStr.isEmpty() || option.sizeStr == "X") "X" else option.sizeStr,
-                    color = Color.Gray,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
+            val sizeLabel = if (option.sizeStr.isEmpty() || option.sizeStr == "X") "X" else option.sizeStr
+            Text(
+                text = "${option.format}  •  $sizeLabel",
+                color = if (sizeLabel == "X") Color(0xFFEF5350) else Color.Gray,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }
