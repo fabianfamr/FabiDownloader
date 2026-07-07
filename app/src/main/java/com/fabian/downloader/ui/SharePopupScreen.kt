@@ -928,7 +928,7 @@ fun SnaptubeFormatCard(
                     modifier = Modifier.size(12.dp)
                 )
                 Text(
-                    text = if (option.sizeStr.isEmpty() || option.sizeStr == "X") "Auto" else option.sizeStr,
+                    text = if (option.sizeStr.isEmpty() || option.sizeStr == "X") "X" else option.sizeStr,
                     color = Color.Gray,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium
