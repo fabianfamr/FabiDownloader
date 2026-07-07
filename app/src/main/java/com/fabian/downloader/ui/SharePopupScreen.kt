@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+import com.fabian.downloader.R
+import androidx.compose.ui.res.painterResource
 import com.fabian.downloader.services.ExtractionService
 import kotlinx.coroutines.launch
 
@@ -648,11 +650,36 @@ fun FormatRow(
             
             if (option.sizeStr.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "Tamaño: ${option.sizeStr}",
-                    color = Color.Gray,
-                    fontSize = 11.sp
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Tamaño:",
+                        color = Color.Gray,
+                        fontSize = 11.sp
+                    )
+                    if (option.sizeStr == "X") {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_close),
+                            contentDescription = "No disponible",
+                            tint = Color(0xFFEF5350),
+                            modifier = Modifier.size(11.dp)
+                        )
+                    } else if (option.sizeStr == "...") {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 1.2f.dp,
+                            modifier = Modifier.size(10.dp)
+                        )
+                    } else {
+                        Text(
+                            text = option.sizeStr,
+                            color = Color.Gray,
+                            fontSize = 11.sp
+                        )
+                    }
+                }
             }
         }
         
@@ -670,7 +697,7 @@ fun FormatRow(
         ) {
             if (isSelected) {
                 Icon(
-                    imageVector = Icons.Default.Check,
+                    painter = painterResource(id = R.drawable.ic_check),
                     contentDescription = null,
                     tint = Color.Black,
                     modifier = Modifier.size(12.dp)
