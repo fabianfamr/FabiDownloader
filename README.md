@@ -7,7 +7,7 @@
 ## ✨ Key Features
 
 - **Multi-Platform Support**: Download content from your favorite social media and video sharing sites.
-- **Historial y Estadísticas**: Visualiza el total de tus descargas completadas y descargas en progreso directamente en las pestañas y mediante una elegante tarjeta informativa en tu biblioteca.
+- **Historial de Biblioteca**: Visualiza tus descargas completadas y en progreso directamente en tu biblioteca con una interfaz fluida e intuitiva.
 - **Background Downloads**: Keep your downloads running even when the app is in the background via a robust foreground service.
 - **Real-time Progress**: Stay informed with detailed notifications showing download speed, progress percentage, and file size.
 - **High-Quality Extraction**: Choose your preferred quality and format (Video/Audio).
@@ -45,12 +45,18 @@ The app supports a vast range of websites, including but not limited to:
 
 ---
 
-## 📊 Control de Descargas y Estadísticas Totales
+## 📥 Tarjeta de Descargas y Estadísticas (Download Hub)
 
-La aplicación te permite llevar un control minucioso de todo el contenido descargado mediante:
-1. **Contadores Dinámicos en Pestañas**: En la sección de **Biblioteca**, verás instantáneamente la cantidad exacta de archivos completados y en progreso en sus respectivas pestañas, por ejemplo: `Descargados (5)` y `En progreso (1)`.
-2. **Tarjeta de Estadísticas Históricas**: Al inicio de la lista de descargas completadas se muestra una tarjeta premium que calcula de forma automática y en tiempo real el **Total Histórico** de tus archivos descargados.
-3. **Gestión Completa**: Puedes buscar, ordenar por fecha, nombre o tamaño, compartir múltiples archivos a la vez o eliminarlos de manera segura tanto de la base de datos local como del almacenamiento.
+<div align="center">
+  
+| Fabi Downloader | Estado & Métricas |
+| :--- | :--- |
+| **Descargas Totales (GitHub)** | [![Descargas](https://img.shields.io/github/downloads/fabianajjdvd/downloader/total?style=for-the-badge&color=FF5722&logo=github&logoColor=white)](https://github.com/fabianajjdvd/downloader/releases) |
+| **Última Versión Estable** | [![Versión](https://img.shields.io/github/v/release/fabianajjdvd/downloader?style=for-the-badge&color=4CAF50&logo=android&logoColor=white)](https://github.com/fabianajjdvd/downloader/releases) |
+| **Tamaño del Repositorio** | [![Tamaño](https://img.shields.io/github/repo-size/fabianajjdvd/downloader?style=for-the-badge&color=2196F3&logo=git&logoColor=white)](https://github.com/fabianajjdvd/downloader) |
+| **Estado del Servicio** | ![Status](https://img.shields.io/badge/Status-Activo-brightgreen?style=for-the-badge) |
+
+</div>
 
 ---
 

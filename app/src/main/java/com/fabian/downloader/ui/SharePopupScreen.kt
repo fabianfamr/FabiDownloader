@@ -681,7 +681,7 @@ fun FormatRow(
 }
 
 fun getOptionSize(option: DownloadOption, formatSizes: Map<String, Double>?): String {
-    if (formatSizes == null) return "..."
+    if (formatSizes == null) return "X"
     if (formatSizes.isEmpty()) return "Auto"
     
     val qKey = option.quality.lowercase()

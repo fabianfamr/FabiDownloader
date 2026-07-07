@@ -236,7 +236,7 @@ fun DownloadsScreen(
         }
     }
 
-    val tabs = listOf("Descargados (${completed.size})", "En progreso (${downloading.size})")
+    val tabs = listOf("Descargados", "En progreso")
     val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
@@ -428,53 +428,6 @@ fun DownloadsScreen(
                 if (page == 0) {
                     // Descargados
                     if (completed.isNotEmpty()) {
-                        item {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-                                ),
-                                shape = RoundedCornerShape(16.dp),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = "Historial de descargas",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Text(
-                                            text = "Todos tus archivos completados",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    
-                                    Surface(
-                                        color = MaterialTheme.colorScheme.primaryContainer,
-                                        shape = RoundedCornerShape(12.dp)
-                                    ) {
-                                        Text(
-                                            text = "${completed.size} Total",
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                            style = MaterialTheme.typography.labelLarge,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
-                                    }
-                                }
-                            }
-                        }
                         itemsIndexed(completed, key = { _, it -> it.id }) { index, record ->
                             val itemVisible = remember { mutableStateOf(false) }
                             LaunchedEffect(record.id) {
