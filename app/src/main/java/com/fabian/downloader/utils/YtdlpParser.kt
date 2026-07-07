@@ -128,7 +128,25 @@ object YtdlpParser {
                 
                 val ext = formatoObj.optString("ext", "")
                 val vcodec = formatoObj.optString("vcodec", "")
-                val bytes = getFilesize(formatoObj, duracionSegundos)
+                var bytes = getFilesize(formatoObj, duracionSegundos)
+                
+                // Si bytes sigue siendo 0, estimar usando bitrates estándares basados en resolución y duración
+                if (bytes <= 0L && duracionSegundos > 0.0) {
+                    val estimatedBitrateKbps = when {
+                        realHeight >= 2160 -> 12000.0 // 4K
+                        realHeight >= 1440 -> 6000.0  // 2K
+                        realHeight >= 1080 -> 3500.0  // 1080p
+                        realHeight >= 720 -> 1800.0   // 720p
+                        realHeight >= 480 -> 800.0    // 480p
+                        realHeight >= 360 -> 400.0    // 360p
+                        realHeight >= 240 -> 250.0    // 240p
+                        vcodec == "none" || vcodec.contains("audio only") -> {
+                            if (ext == "m4a") 128.0 else 192.0
+                        }
+                        else -> 800.0
+                    }
+                    bytes = ((estimatedBitrateKbps * 1000.0 / 8.0) * duracionSegundos).toLong()
+                }
                 
                 val totalBytes = if (bytes > 0 && vcodec != "none" && !vcodec.contains("audio only")) bytes + bestAudioSize else bytes
                 val mb = if (totalBytes > 0) totalBytes / (1024.0 * 1024.0) else 0.0
@@ -162,6 +180,21 @@ object YtdlpParser {
             0L
         }
         if (filesizeApprox > 0L) return filesizeApprox
+
+        // Si no está disponible, estimar usando bitrate (tbr, vbr, abr) y la duración en segundos
+        if (durationSeconds > 0.0) {
+            val tbr = formatoObj.optDouble("tbr", 0.0)
+            val vbr = formatoObj.optDouble("vbr", 0.0)
+            val abr = formatoObj.optDouble("abr", 0.0)
+            val totalBitrate = if (tbr > 0.0) tbr else (vbr + abr)
+            if (totalBitrate > 0.0) {
+                // totalBitrate está en kbps. (kbps * 1000 / 8) * segundos = bytes
+                val estimatedBytes = (totalBitrate * 1000.0 / 8.0) * durationSeconds
+                if (estimatedBytes > 0.0) {
+                    return estimatedBytes.toLong()
+                }
+            }
+        }
 
         return 0L
     }

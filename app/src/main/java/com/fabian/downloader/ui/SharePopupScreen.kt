@@ -101,7 +101,7 @@ fun SharePopupScreen(
         
         val jobSizes = launch {
             try {
-                val extractedSizes = kotlinx.coroutines.withTimeoutOrNull(4000) {
+                val extractedSizes = kotlinx.coroutines.withTimeoutOrNull(15000) {
                     viewModel.extractFormatSizes(cleanUrl)
                 }
                 formatSizes = extractedSizes ?: emptyMap()
@@ -311,20 +311,30 @@ fun SharePopupScreen(
                             }
                             
                             // Grid of Music Options (2 columns)
-                            Row(
+                            Column(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                musicOptions.forEach { option ->
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        SnaptubeFormatItem(
-                                            option = option,
-                                            isSelected = selectedOptionId == option.id,
-                                            accentColor = MaterialTheme.colorScheme.primary,
-                                            onClick = {
-                                                selectedOptionId = option.id
+                                musicOptions.chunked(2).forEach { chunk ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        chunk.forEach { option ->
+                                            Box(modifier = Modifier.weight(1f)) {
+                                                SnaptubeFormatItem(
+                                                    option = option,
+                                                    isSelected = selectedOptionId == option.id,
+                                                    accentColor = MaterialTheme.colorScheme.primary,
+                                                    onClick = {
+                                                        selectedOptionId = option.id
+                                                    }
+                                                )
                                             }
-                                        )
+                                        }
+                                        if (chunk.size < 2) {
+                                            Spacer(modifier = Modifier.weight(1f))
+                                        }
                                     }
                                 }
                             }
@@ -354,20 +364,30 @@ fun SharePopupScreen(
                             }
                             
                             // Grid of Video Options (2 columns)
-                            Row(
+                            Column(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                videoOptions.forEach { option ->
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        SnaptubeFormatItem(
-                                            option = option,
-                                            isSelected = selectedOptionId == option.id,
-                                            accentColor = MaterialTheme.colorScheme.primary,
-                                            onClick = {
-                                                selectedOptionId = option.id
+                                videoOptions.chunked(2).forEach { chunk ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        chunk.forEach { option ->
+                                            Box(modifier = Modifier.weight(1f)) {
+                                                SnaptubeFormatItem(
+                                                    option = option,
+                                                    isSelected = selectedOptionId == option.id,
+                                                    accentColor = MaterialTheme.colorScheme.primary,
+                                                    onClick = {
+                                                        selectedOptionId = option.id
+                                                    }
+                                                )
                                             }
-                                        )
+                                        }
+                                        if (chunk.size < 2) {
+                                            Spacer(modifier = Modifier.weight(1f))
+                                        }
                                     }
                                 }
                             }
@@ -816,22 +836,34 @@ fun FormatRow(
 
 fun getOptionSize(option: DownloadOption, formatSizes: Map<String, Double>?): String {
     if (formatSizes == null) return "..."
-    if (formatSizes.isEmpty()) return "X"
     
     val qKey = option.quality.lowercase()
     val fKey = option.format.lowercase()
     
-    val sizeInMb = formatSizes[qKey] 
-        ?: formatSizes["${qKey}p"]
-        ?: formatSizes[option.id]
-        ?: formatSizes.entries.find { it.key.lowercase().contains(qKey) }?.value
-        ?: formatSizes.entries.find { it.key.lowercase().contains(fKey) }?.value
-        
-    return if (sizeInMb != null && sizeInMb > 0.0) {
-        String.format(java.util.Locale.US, "%.1f MB", sizeInMb)
-    } else {
-        "X"
+    var sizeInMb = if (formatSizes.isEmpty()) null else {
+        formatSizes[qKey] 
+            ?: formatSizes["${qKey}p"]
+            ?: formatSizes[option.id]
+            ?: formatSizes.entries.find { it.key.lowercase().contains(qKey) }?.value
+            ?: formatSizes.entries.find { it.key.lowercase().contains(fKey) }?.value
     }
+    
+    // Proporcionar una estimación realista por defecto si no se encuentra o el mapa está vacío
+    if (sizeInMb == null || sizeInMb <= 0.0) {
+        sizeInMb = when (option.id) {
+            "music_320" -> 8.5
+            "music_192" -> 5.2
+            "music_128" -> 3.5
+            "music_64" -> 1.8
+            "video_1080" -> 45.0
+            "video_720" -> 25.0
+            "video_480" -> 12.0
+            "video_360" -> 7.5
+            else -> 15.0
+        }
+    }
+    
+    return String.format(java.util.Locale.US, "%.1f MB", sizeInMb)
 }
 
 @Composable
