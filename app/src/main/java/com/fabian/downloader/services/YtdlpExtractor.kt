@@ -42,11 +42,13 @@ class YtdlpExtractor {
             addOption("--no-cache-dir")
             
             if (isYoutube) {
-                // Configuración específica para YouTube para evadir bot detection
-                addOption("--extractor-args", "youtube:player-client=ios,web,android")
-                addOption("--user-agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1")
+                // Configuración específica para YouTube para evadir bot detection y el límite de 70kb/s
+                addOption("--extractor-args", "youtube:player-client=android,web")
+                addOption("--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+                addOption("--youtube-skip-dash-manifest")
             }
             
+            addOption("--no-check-formats")
             addOption("--referer", "https://www.google.com/")
             addOption("--force-ipv4")
             addOption("--no-check-certificate")

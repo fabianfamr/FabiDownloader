@@ -84,39 +84,40 @@ fun SharePopupScreen(
         platformInfoState = Triple(service.siteId, service.displayName, service.brandColorHex)
         
         // Parallel extraction: Title/Icon (FAST) and Sizes (SLOW)
-        kotlinx.coroutines.coroutineScope {
-            val jobTitleAndIcon = launch {
-                try {
-                    val extractedTitle = viewModel.extractTitle(cleanUrl)
-                    val extractedThumb = viewModel.extractThumbnail(cleanUrl)
-                    title = extractedTitle
-                    thumbnailUrl = extractedThumb
-                } catch (e: Exception) {
-                    Log.e("SharePopupScreen", "Error extracting title/icon", e)
-                }
-            }
-            
-            val jobSizes = launch {
-                try {
-                    val extractedSizes = viewModel.extractFormatSizes(cleanUrl)
-                    formatSizes = extractedSizes
-                } catch (e: Exception) {
-                    Log.e("SharePopupScreen", "Error extracting sizes", e)
-                }
-            }
-            
+        val jobTitleAndIcon = launch {
             try {
-                // Wait for Title and Icon to load so we can transition out of loading state quickly
-                jobTitleAndIcon.join()
-                if (title == null) {
-                    title = if (service.siteId == "generic") "Enlace Directo" else "Video de ${service.displayName}"
-                }
-                isLoading = false
+                val extractedTitle = viewModel.extractTitle(cleanUrl)
+                val extractedThumb = viewModel.extractThumbnail(cleanUrl)
+                title = extractedTitle
+                thumbnailUrl = extractedThumb
             } catch (e: Exception) {
-                Log.e("SharePopupScreen", "Error in extraction coroutines", e)
-                errorMsg = "No se pudo analizar el enlace. ¿Quieres intentar una descarga rápida?"
-                isLoading = false
+                Log.e("SharePopupScreen", "Error extracting title/icon", e)
             }
+        }
+        
+        val jobSizes = launch {
+            try {
+                val extractedSizes = kotlinx.coroutines.withTimeoutOrNull(4000) {
+                    viewModel.extractFormatSizes(cleanUrl)
+                }
+                formatSizes = extractedSizes ?: emptyMap()
+            } catch (e: Exception) {
+                Log.e("SharePopupScreen", "Error extracting sizes", e)
+                formatSizes = emptyMap()
+            }
+        }
+        
+        try {
+            // Wait for Title and Icon to load so we can transition out of loading state quickly
+            jobTitleAndIcon.join()
+            if (title == null) {
+                title = if (service.siteId == "generic") "Enlace Directo" else "Video de ${service.displayName}"
+            }
+            isLoading = false
+        } catch (e: Exception) {
+            Log.e("SharePopupScreen", "Error in extraction coroutines", e)
+            errorMsg = "No se pudo analizar el enlace. ¿Quieres intentar una descarga rápida?"
+            isLoading = false
         }
     }
     
