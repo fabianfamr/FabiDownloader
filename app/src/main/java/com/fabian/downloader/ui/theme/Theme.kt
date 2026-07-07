@@ -16,18 +16,23 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF00E5FF), // Cyan/Teal Accent
-    onPrimary = Color(0xFF00333A),
-    secondary = Color(0xFF2979FF), // Electric Blue
-    onSecondary = Color.White,
-    tertiary = Color(0xFF1DE9B6),
-    surface = Color(0xFF0C0C0E), // Very dark charcoal surface
-    onSurface = Color.White,
-    background = Color(0xFF000000), // Pure AMOLED Black background
-    onBackground = Color.White,
-    surfaceVariant = Color(0xFF161619), // Dark slate/charcoal variant
-    onSurfaceVariant = Color(0xFF94A3B8),
-    outline = Color(0xFF242428)
+    primary = Accent,
+    onPrimary = Bg,
+    primaryContainer = AccentDim,
+    onPrimaryContainer = Accent,
+    secondary = Accent,
+    onSecondary = Bg,
+    background = Bg,
+    onBackground = White,
+    surface = Card,
+    onSurface = White,
+    surfaceVariant = Card2,
+    onSurfaceVariant = Gray1,
+    outline = Border,
+    error = Red,
+    onError = White,
+    errorContainer = RedDim,
+    onErrorContainer = Red
 )
 
 private val LightColorScheme = lightColorScheme(

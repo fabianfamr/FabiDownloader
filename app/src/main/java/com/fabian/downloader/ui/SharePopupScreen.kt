@@ -836,34 +836,36 @@ fun FormatRow(
 
 fun getOptionSize(option: DownloadOption, formatSizes: Map<String, Double>?): String {
     if (formatSizes == null) return "..."
+    if (formatSizes.isEmpty()) return "Auto"
     
-    val qKey = option.quality.lowercase()
-    val fKey = option.format.lowercase()
+    val qKey = option.quality.lowercase() // ej: "1080p", "320"
+    val fKey = option.format.lowercase()  // ej: "mp4", "mp3"
     
-    var sizeInMb = if (formatSizes.isEmpty()) null else {
-        formatSizes[qKey] 
-            ?: formatSizes["${qKey}p"]
-            ?: formatSizes[option.id]
-            ?: formatSizes.entries.find { it.key.lowercase().contains(qKey) }?.value
-            ?: formatSizes.entries.find { it.key.lowercase().contains(fKey) }?.value
+    // El parseador usa claves como "video_1080p" o "audio_mp3"
+    val sizeInMb = formatSizes[option.id] 
+        ?: formatSizes[qKey]
+        ?: formatSizes["video_$qKey"]
+        ?: formatSizes["audio_$fKey"]
+        ?: formatSizes.entries.find { it.key.contains(qKey, ignoreCase = true) }?.value
+        ?: formatSizes.entries.find { it.key.contains(fKey, ignoreCase = true) }?.value
+    
+    if (sizeInMb != null && sizeInMb > 0.0) {
+        return String.format(java.util.Locale.US, "%.1f MB", sizeInMb)
     }
     
-    // Proporcionar una estimación realista por defecto si no se encuentra o el mapa está vacío
-    if (sizeInMb == null || sizeInMb <= 0.0) {
-        sizeInMb = when (option.id) {
-            "music_320" -> 8.5
-            "music_192" -> 5.2
-            "music_128" -> 3.5
-            "music_64" -> 1.8
-            "video_1080" -> 45.0
-            "video_720" -> 25.0
-            "video_480" -> 12.0
-            "video_360" -> 7.5
-            else -> 15.0
-        }
+    // Estimación si no se encuentra
+    val estimate = when (option.id) {
+        "music_320" -> 8.5
+        "music_192" -> 5.2
+        "music_128" -> 3.5
+        "music_64" -> 1.8
+        "video_1080" -> 45.0
+        "video_720" -> 25.0
+        "video_480" -> 12.0
+        "video_360" -> 7.5
+        else -> 15.0
     }
-    
-    return String.format(java.util.Locale.US, "%.1f MB", sizeInMb)
+    return String.format(java.util.Locale.US, "%.1f MB", estimate)
 }
 
 @Composable

@@ -65,6 +65,7 @@ fun DownloadSettingsContent(
                 showQualityDialog = true
             }
         }
+        Spacer(modifier = Modifier.height(8.dp))
 
         SettingSectionHeader("Formato")
         Card(
@@ -83,6 +84,7 @@ fun DownloadSettingsContent(
                 }
             }
         }
+        Spacer(modifier = Modifier.height(8.dp))
 
         SettingSectionHeader("Almacenamiento y Velocidad")
         Card(
@@ -101,6 +103,7 @@ fun DownloadSettingsContent(
                 }
             }
         }
+        Spacer(modifier = Modifier.height(8.dp))
 
         SettingSectionHeader("Post-Procesamiento y Metadatos")
         Card(
@@ -127,6 +130,7 @@ fun DownloadSettingsContent(
                 }
             }
         }
+        Spacer(modifier = Modifier.height(8.dp))
 
         SettingSectionHeader("Integración y Red")
         Card(
@@ -153,6 +157,7 @@ fun DownloadSettingsContent(
                 }
             }
         }
+        Spacer(modifier = Modifier.height(8.dp))
 
         SettingSectionHeader("Motor de Consola yt-dlp")
         Card(
@@ -166,9 +171,69 @@ fun DownloadSettingsContent(
                     showThreadsDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.FilterNone, "Descargas simultáneas máximas", trailing = AppSettings.maxConcurrentDownloads.toString()) {
-                    showSimultaneousDialog = true
+                
+                // Stepper para descargas simultáneas
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.FilterNone, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Descargas simultáneas",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Máximo de transferencias activas",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            fontSize = 11.sp
+                        )
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        IconButton(
+                            onClick = { if (AppSettings.maxConcurrentDownloads > 1) AppSettings.maxConcurrentDownloads-- },
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                        ) {
+                            Text("−", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        }
+                        
+                        Text(
+                            text = AppSettings.maxConcurrentDownloads.toString(),
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Black,
+                            modifier = Modifier.widthIn(min = 20.dp),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        
+                        IconButton(
+                            onClick = { if (AppSettings.maxConcurrentDownloads < 5) AppSettings.maxConcurrentDownloads++ },
+                            modifier = Modifier
+                                .size(32.dp)
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                        ) {
+                            Text("+", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
+                
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
                 SettingItem(Icons.Default.Code, "Argumentos personalizados yt-dlp", trailing = AppSettings.customArguments.ifEmpty { "Ninguno" }) {
                     showCustomArgsDialog = true
@@ -358,7 +423,7 @@ fun ToggleSetting(icon: ImageVector, title: String, checked: Boolean, onCheckedC
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 16.dp, vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -421,7 +486,7 @@ fun SettingItem(icon: ImageVector, title: String, trailing: String? = null, onCl
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(

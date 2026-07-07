@@ -553,6 +553,34 @@ fun DownloadsScreen(
             }
         }
 
+        var filterType by remember { mutableStateOf("Todo") }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            listOf("Todo", "Música", "Video").forEach { type ->
+                val isSelected = filterType == type
+                Surface(
+                    onClick = { filterType = type },
+                    shape = RoundedCornerShape(10.dp),
+                    color = if (isSelected) C_accentDim else C_card2,
+                    border = if (isSelected) BorderStroke(1.dp, C_accent) else BorderStroke(1.dp, C_border),
+                    modifier = Modifier.height(30.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 12.dp)) {
+                        Text(
+                            text = type,
+                            color = if (isSelected) C_accent else C_gray1,
+                            fontSize = 12.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        )
+                    }
+                }
+            }
+        }
+
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
@@ -560,6 +588,20 @@ fun DownloadsScreen(
                 .weight(1f),
             verticalAlignment = Alignment.Top
         ) { page ->
+            val filteredCompleted = remember(completed, filterType) {
+                when (filterType) {
+                    "Música" -> completed.filter { it.format == "MP3" || it.format == "M4A" }
+                    "Video" -> completed.filter { it.format == "MP4" }
+                    else -> completed
+                }
+            }
+            val filteredDownloading = remember(downloading, filterType) {
+                when (filterType) {
+                    "Música" -> downloading.filter { it.format == "MP3" || it.format == "M4A" }
+                    "Video" -> downloading.filter { it.format == "MP4" }
+                    else -> downloading
+                }
+            }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
@@ -567,8 +609,8 @@ fun DownloadsScreen(
             ) {
                 if (page == 0) {
                     // Descargados (Completados)
-                    if (completed.isNotEmpty()) {
-                        itemsIndexed(completed, key = { _, it -> it.id }) { index, record ->
+                    if (filteredCompleted.isNotEmpty()) {
+                        itemsIndexed(filteredCompleted, key = { _, it -> it.id }) { index, record ->
                             val itemVisible = remember { mutableStateOf(false) }
                             LaunchedEffect(record.id) {
                                 kotlinx.coroutines.delay(index.coerceAtMost(8) * 40L)
@@ -637,8 +679,8 @@ fun DownloadsScreen(
                     }
                 } else {
                     // En progreso
-                    if (downloading.isNotEmpty()) {
-                        itemsIndexed(downloading, key = { _, it -> it.id }) { index, record ->
+                    if (filteredDownloading.isNotEmpty()) {
+                        itemsIndexed(filteredDownloading, key = { _, it -> it.id }) { index, record ->
                             val itemVisible = remember { mutableStateOf(false) }
                             LaunchedEffect(record.id) {
                                 kotlinx.coroutines.delay(index.coerceAtMost(8) * 40L)

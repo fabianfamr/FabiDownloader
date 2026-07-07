@@ -182,64 +182,28 @@ fun FabiDownloaderApp(
                 startDestination = Screen.Main.route,
                 modifier = Modifier.fillMaxSize(),
                 enterTransition = {
-                    val initialIndex = getRouteIndex(initialState.destination.route)
-                    val targetIndex = getRouteIndex(targetState.destination.route)
-                    if (targetIndex > initialIndex) {
-                        slideInHorizontally(
-                            initialOffsetX = { it },
-                            animationSpec = tween(350, easing = FastOutSlowInEasing)
-                        ) + fadeIn(animationSpec = tween(250))
-                    } else {
-                        slideInHorizontally(
-                            initialOffsetX = { -it },
-                            animationSpec = tween(350, easing = FastOutSlowInEasing)
-                        ) + fadeIn(animationSpec = tween(250))
-                    }
+                    slideInVertically(
+                        initialOffsetY = { 40 },
+                        animationSpec = tween(300, easing = EaseOutQuart)
+                    ) + fadeIn(animationSpec = tween(250))
                 },
                 exitTransition = {
-                    val initialIndex = getRouteIndex(initialState.destination.route)
-                    val targetIndex = getRouteIndex(targetState.destination.route)
-                    if (targetIndex > initialIndex) {
-                        slideOutHorizontally(
-                            targetOffsetX = { -it },
-                            animationSpec = tween(350, easing = FastOutSlowInEasing)
-                        ) + fadeOut(animationSpec = tween(200))
-                    } else {
-                        slideOutHorizontally(
-                            targetOffsetX = { it },
-                            animationSpec = tween(350, easing = FastOutSlowInEasing)
-                        ) + fadeOut(animationSpec = tween(200))
-                    }
+                    slideOutVertically(
+                        targetOffsetY = { -40 },
+                        animationSpec = tween(300, easing = EaseOutQuart)
+                    ) + fadeOut(animationSpec = tween(200))
                 },
                 popEnterTransition = {
-                    val initialIndex = getRouteIndex(initialState.destination.route)
-                    val targetIndex = getRouteIndex(targetState.destination.route)
-                    if (targetIndex > initialIndex) {
-                        slideInHorizontally(
-                            initialOffsetX = { it },
-                            animationSpec = tween(350, easing = FastOutSlowInEasing)
-                        ) + fadeIn(animationSpec = tween(250))
-                    } else {
-                        slideInHorizontally(
-                            initialOffsetX = { -it },
-                            animationSpec = tween(350, easing = FastOutSlowInEasing)
-                        ) + fadeIn(animationSpec = tween(250))
-                    }
+                    slideInVertically(
+                        initialOffsetY = { -40 },
+                        animationSpec = tween(300, easing = EaseOutQuart)
+                    ) + fadeIn(animationSpec = tween(250))
                 },
                 popExitTransition = {
-                    val initialIndex = getRouteIndex(initialState.destination.route)
-                    val targetIndex = getRouteIndex(targetState.destination.route)
-                    if (targetIndex > initialIndex) {
-                        slideOutHorizontally(
-                            targetOffsetX = { -it },
-                            animationSpec = tween(350, easing = FastOutSlowInEasing)
-                        ) + fadeOut(animationSpec = tween(200))
-                    } else {
-                        slideOutHorizontally(
-                            targetOffsetX = { it },
-                            animationSpec = tween(350, easing = FastOutSlowInEasing)
-                        ) + fadeOut(animationSpec = tween(200))
-                    }
+                    slideOutVertically(
+                        targetOffsetY = { 40 },
+                        animationSpec = tween(300, easing = EaseOutQuart)
+                    ) + fadeOut(animationSpec = tween(200))
                 }
             ) {
                 composable(Screen.Main.route) {
