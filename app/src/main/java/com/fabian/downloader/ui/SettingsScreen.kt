@@ -113,19 +113,24 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                 ) {
                     Column {
-                        Row(
-                            modifier = Modifier.padding(14.dp, 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(14.dp, 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
                                 Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
                                     Icon(Icons.Default.DarkMode, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
                                 }
                                 Text("Tema visual", color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                             }
                             Row(
-                                modifier = Modifier.background(C_card2, RoundedCornerShape(8.dp)).padding(4.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(C_card2, RoundedCornerShape(8.dp))
+                                    .padding(4.dp),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 val themes = listOf("Claro", "Oscuro", "Sistema")
@@ -133,10 +138,12 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                     val isSelected = AppSettings.themePreference == t
                                     Box(
                                         modifier = Modifier
+                                            .weight(1f)
                                             .clip(RoundedCornerShape(6.dp))
                                             .background(if (isSelected) C_accent else Color.Transparent)
                                             .clickable { AppSettings.themePreference = t }
-                                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                                            .padding(vertical = 8.dp),
+                                        contentAlignment = Alignment.Center
                                     ) {
                                         Text(text = t, color = if (isSelected) C_bg else C_gray1, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                     }
@@ -165,18 +172,18 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Column {
+                                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                                     Text("Descargas simultáneas", color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                                     Text("Máximo de transferencias activas", color = C_gray1, fontSize = 11.sp)
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Box(
-                                        modifier = Modifier.size(30.dp).background(C_card2, RoundedCornerShape(8.dp)).border(1.dp, C_border, RoundedCornerShape(8.dp)).clickable { maxConcurrent = maxOf(1, maxConcurrent - 1) },
+                                        modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(8.dp)).border(1.dp, C_border, RoundedCornerShape(8.dp)).clickable { maxConcurrent = maxOf(1, maxConcurrent - 1) },
                                         contentAlignment = Alignment.Center
                                     ) { Text("-", color = C_white, fontSize = 18.sp, fontWeight = FontWeight.Medium) }
                                     Text("$maxConcurrent", color = C_accent, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
                                     Box(
-                                        modifier = Modifier.size(30.dp).background(C_card2, RoundedCornerShape(8.dp)).border(1.dp, C_border, RoundedCornerShape(8.dp)).clickable { maxConcurrent = minOf(5, maxConcurrent + 1) },
+                                        modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(8.dp)).border(1.dp, C_border, RoundedCornerShape(8.dp)).clickable { maxConcurrent = minOf(5, maxConcurrent + 1) },
                                         contentAlignment = Alignment.Center
                                     ) { Text("+", color = C_white, fontSize = 18.sp, fontWeight = FontWeight.Medium) }
                                 }

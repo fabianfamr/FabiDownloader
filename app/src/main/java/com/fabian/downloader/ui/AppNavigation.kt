@@ -182,16 +182,64 @@ fun FabiDownloaderApp(
                 startDestination = Screen.Main.route,
                 modifier = Modifier.fillMaxSize(),
                 enterTransition = {
-                    fadeIn(animationSpec = tween(280, easing = FastOutSlowInEasing))
+                    val initialIndex = getRouteIndex(initialState.destination.route)
+                    val targetIndex = getRouteIndex(targetState.destination.route)
+                    if (targetIndex > initialIndex) {
+                        slideInHorizontally(
+                            initialOffsetX = { it },
+                            animationSpec = tween(350, easing = FastOutSlowInEasing)
+                        ) + fadeIn(animationSpec = tween(250))
+                    } else {
+                        slideInHorizontally(
+                            initialOffsetX = { -it },
+                            animationSpec = tween(350, easing = FastOutSlowInEasing)
+                        ) + fadeIn(animationSpec = tween(250))
+                    }
                 },
                 exitTransition = {
-                    fadeOut(animationSpec = tween(220, easing = FastOutSlowInEasing))
+                    val initialIndex = getRouteIndex(initialState.destination.route)
+                    val targetIndex = getRouteIndex(targetState.destination.route)
+                    if (targetIndex > initialIndex) {
+                        slideOutHorizontally(
+                            targetOffsetX = { -it },
+                            animationSpec = tween(350, easing = FastOutSlowInEasing)
+                        ) + fadeOut(animationSpec = tween(200))
+                    } else {
+                        slideOutHorizontally(
+                            targetOffsetX = { it },
+                            animationSpec = tween(350, easing = FastOutSlowInEasing)
+                        ) + fadeOut(animationSpec = tween(200))
+                    }
                 },
                 popEnterTransition = {
-                    fadeIn(animationSpec = tween(280, easing = FastOutSlowInEasing))
+                    val initialIndex = getRouteIndex(initialState.destination.route)
+                    val targetIndex = getRouteIndex(targetState.destination.route)
+                    if (targetIndex > initialIndex) {
+                        slideInHorizontally(
+                            initialOffsetX = { it },
+                            animationSpec = tween(350, easing = FastOutSlowInEasing)
+                        ) + fadeIn(animationSpec = tween(250))
+                    } else {
+                        slideInHorizontally(
+                            initialOffsetX = { -it },
+                            animationSpec = tween(350, easing = FastOutSlowInEasing)
+                        ) + fadeIn(animationSpec = tween(250))
+                    }
                 },
                 popExitTransition = {
-                    fadeOut(animationSpec = tween(220, easing = FastOutSlowInEasing))
+                    val initialIndex = getRouteIndex(initialState.destination.route)
+                    val targetIndex = getRouteIndex(targetState.destination.route)
+                    if (targetIndex > initialIndex) {
+                        slideOutHorizontally(
+                            targetOffsetX = { -it },
+                            animationSpec = tween(350, easing = FastOutSlowInEasing)
+                        ) + fadeOut(animationSpec = tween(200))
+                    } else {
+                        slideOutHorizontally(
+                            targetOffsetX = { it },
+                            animationSpec = tween(350, easing = FastOutSlowInEasing)
+                        ) + fadeOut(animationSpec = tween(200))
+                    }
                 }
             ) {
                 composable(Screen.Main.route) {
@@ -246,4 +294,13 @@ fun FabiDownloaderApp(
             }
         }
     }
+}
+
+private fun getRouteIndex(route: String?): Int {
+    if (route == null) return 0
+    if (route.startsWith(Screen.Main.route)) return 0
+    if (route.startsWith(Screen.Downloads.route)) return 1
+    if (route.startsWith(Screen.Settings.route)) return 2
+    if (route.startsWith(Screen.DownloadSettings.route)) return 3
+    return 0
 }
