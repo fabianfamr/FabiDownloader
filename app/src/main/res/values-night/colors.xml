@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores para iconos de accesos directos (shortcuts) en tema oscuro -->
+    <color name="shortcut_icon_fill">#E0ECEFF1</color>
+    <color name="shortcut_icon_stroke">#E0ECEFF1</color>
+    <color name="shortcut_icon_inner">#FF212121</color>
+</resources>

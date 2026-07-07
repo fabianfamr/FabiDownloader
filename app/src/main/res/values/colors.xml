@@ -1,3 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Colores para iconos de accesos directos (shortcuts) en tema claro -->
+    <color name="shortcut_icon_fill">#E0212121</color>
+    <color name="shortcut_icon_stroke">#E0212121</color>
+    <color name="shortcut_icon_inner">#FFFFFFFF</color>
 </resources>
