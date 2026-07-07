@@ -151,8 +151,10 @@ fun SharePopupScreen(
     
     val musicOptions = remember(formatSizes) {
         listOf(
-            DownloadOption("music_fast", "M4A - Rápido", "M4A", "128", "Music"),
-            DownloadOption("music_classic", "MP3 - Calidad Alta (320K)", "MP3", "320", "Music")
+            DownloadOption("music_320", "320 kbps", "MP3", "320", "Music"),
+            DownloadOption("music_192", "192 kbps", "MP3", "192", "Music"),
+            DownloadOption("music_128", "128 kbps", "MP3", "128", "Music"),
+            DownloadOption("music_64", "64 kbps", "M4A", "64", "Music")
         ).map { option ->
             option.copy(sizeStr = getOptionSize(option, formatSizes))
         }
@@ -160,14 +162,16 @@ fun SharePopupScreen(
     
     val videoOptions = remember(formatSizes) {
         listOf(
-            DownloadOption("video_fast", "MP4 - Rápido (360p)", "MP4", "360p", "Video"),
-            DownloadOption("video_hq", "MP4 - Calidad Alta (720p)", "MP4", "720p", "Video")
+            DownloadOption("video_1080", "1080p FHD", "MP4", "1080p", "Video"),
+            DownloadOption("video_720", "720p HD", "MP4", "720p", "Video"),
+            DownloadOption("video_480", "480p", "MP4", "480p", "Video"),
+            DownloadOption("video_360", "360p", "MP4", "360p", "Video")
         ).map { option ->
             option.copy(sizeStr = getOptionSize(option, formatSizes))
         }
     }
     
-    var selectedOptionId by remember { mutableStateOf("video_fast") }
+    var selectedOptionId by remember { mutableStateOf("video_720") }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     
     // Platform-specific brand color and icon
@@ -313,16 +317,10 @@ fun SharePopupScreen(
                                     Box(modifier = Modifier.weight(1f)) {
                                         SnaptubeFormatItem(
                                             option = option,
+                                            isSelected = selectedOptionId == option.id,
                                             accentColor = MaterialTheme.colorScheme.primary,
                                             onClick = {
-                                                viewModel.downloadVideo(
-                                                    url = cleanUrl,
-                                                    quality = option.quality,
-                                                    format = option.format,
-                                                    title = video.title,
-                                                    thumbnailUrl = video.thumbnailUrl
-                                                )
-                                                showDownloadStartedDialog = true
+                                                selectedOptionId = option.id
                                             }
                                         )
                                     }
@@ -362,20 +360,57 @@ fun SharePopupScreen(
                                     Box(modifier = Modifier.weight(1f)) {
                                         SnaptubeFormatItem(
                                             option = option,
+                                            isSelected = selectedOptionId == option.id,
                                             accentColor = MaterialTheme.colorScheme.primary,
                                             onClick = {
-                                                viewModel.downloadVideo(
-                                                    url = cleanUrl,
-                                                    quality = option.quality,
-                                                    format = option.format,
-                                                    title = video.title,
-                                                    thumbnailUrl = video.thumbnailUrl
-                                                )
-                                                showDownloadStartedDialog = true
+                                                selectedOptionId = option.id
                                             }
                                         )
                                     }
                                 }
+                            }
+
+                            Spacer(modifier = Modifier.height(32.dp))
+                            
+                            // Download button
+                            Button(
+                                onClick = {
+                                    val allOptions = musicOptions + videoOptions
+                                    val selected = allOptions.find { it.id == selectedOptionId }
+                                    if (selected != null) {
+                                        viewModel.downloadVideo(
+                                            url = cleanUrl,
+                                            quality = selected.quality,
+                                            format = selected.format,
+                                            title = video.title,
+                                            thumbnailUrl = video.thumbnailUrl
+                                        )
+                                        showDownloadStartedDialog = true
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 54.dp),
+                                shape = RoundedCornerShape(27.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = Color.Black
+                                ),
+                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CloudDownload,
+                                    contentDescription = null,
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Descargar",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 0.2.sp
+                                )
                             }
                         }
                     }
@@ -401,6 +436,45 @@ fun SharePopupScreen(
 }
 
 @Composable
+fun SectionDivider(
+    label: String,
+    icon: ImageVector
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color(0xFF8A8A96),
+                modifier = Modifier.size(13.dp)
+            )
+            Text(
+                text = label,
+                color = Color(0xFF8A8A96),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.1.sp
+            )
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = Color(0xFF242428),
+            thickness = 1.dp
+        )
+    }
+}
+
+@Composable
 fun VideoMetadataHeader(
     video: ExtractionService.ExtractedVideo,
     platformIcon: ImageVector,
@@ -409,42 +483,67 @@ fun VideoMetadataHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(Color(0xFF161619))
-            .border(1.dp, Color(0xFF242428), RoundedCornerShape(16.dp))
-            .padding(12.dp),
+            .border(1.5.dp, Color(0xFF242428), RoundedCornerShape(12.dp))
+            .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Thumbnail image or placeholder
         Box(
             modifier = Modifier
-                .size(width = 100.dp, height = 64.dp)
+                .size(width = 96.dp, height = 58.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color.Black),
+                .background(Color(0xFF1E1E22)),
             contentAlignment = Alignment.Center
         ) {
             if (!video.thumbnailUrl.isNullOrEmpty()) {
-                AsyncImage(
-                    model = video.thumbnailUrl,
-                    contentDescription = "Miniatura del video",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AsyncImage(
+                        model = video.thumbnailUrl,
+                        contentDescription = "Miniatura del video",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    // Decorative semi-transparent overlay with a small play icon
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.35f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(22.dp)
+                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                                .border(1.dp, Color.White.copy(alpha = 0.25f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(10.dp)
+                            )
+                        }
+                    }
+                }
             } else {
                 Icon(
                     imageVector = platformIcon,
                     contentDescription = null,
                     tint = platformColor,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
         
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         
         // Title & Source Info
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = video.title,
@@ -456,23 +555,23 @@ fun VideoMetadataHeader(
                 lineHeight = 18.sp
             )
             
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(
                     imageVector = platformIcon,
                     contentDescription = null,
-                    tint = platformColor,
+                    tint = if (video.platformName.lowercase().contains("youtube")) Color(0xFFFF0000) else platformColor,
                     modifier = Modifier.size(14.dp)
                 )
                 Text(
                     text = video.platformName,
-                    color = platformColor,
+                    color = Color(0xFF8A8A96),
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Medium
                 )
             }
         }
@@ -704,8 +803,8 @@ fun FormatRow(
 }
 
 fun getOptionSize(option: DownloadOption, formatSizes: Map<String, Double>?): String {
-    if (formatSizes == null) return "X"
-    if (formatSizes.isEmpty()) return "Auto"
+    if (formatSizes == null) return "..."
+    if (formatSizes.isEmpty()) return "X"
     
     val qKey = option.quality.lowercase()
     val fKey = option.format.lowercase()
@@ -719,7 +818,7 @@ fun getOptionSize(option: DownloadOption, formatSizes: Map<String, Double>?): St
     return if (sizeInMb != null && sizeInMb > 0.0) {
         String.format(java.util.Locale.US, "%.1f MB", sizeInMb)
     } else {
-        "Auto"
+        "X"
     }
 }
 
@@ -880,53 +979,96 @@ fun DownloadStartedDialog(
 @Composable
 fun SnaptubeFormatItem(
     option: DownloadOption,
+    isSelected: Boolean,
     accentColor: Color,
     onClick: () -> Unit
 ) {
-    val qualityTitle = when(option.quality) {
-        "320" -> "320 kbps"
-        "128" -> "128 kbps"
-        "360p" -> "360p"
-        "720p" -> "720p HD"
-        else -> option.quality
-    }
-
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(68.dp)
             .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF161619)
-        ),
-        border = BorderStroke(1.dp, Color(0xFF242428))
+            .clickable(onClick = onClick)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 12.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+        Card(
+            modifier = Modifier.fillMaxSize(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = if (isSelected) Color(0x1400E5FF) else Color(0xFF161619)
+            ),
+            border = BorderStroke(
+                width = 1.5.dp,
+                color = if (isSelected) accentColor else Color(0xFF242428)
+            )
         ) {
-            Text(
-                text = qualityTitle,
-                color = Color.White,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.2.sp
-            )
-            
-            Spacer(modifier = Modifier.height(4.dp))
-            
-            val sizeLabel = if (option.sizeStr.isEmpty() || option.sizeStr == "X") "X" else option.sizeStr
-            Text(
-                text = "${option.format}  •  $sizeLabel",
-                color = if (sizeLabel == "X") Color(0xFFEF5350) else Color.Gray,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = option.title,
+                    color = if (isSelected) accentColor else Color.White,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.2.sp
+                )
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                val sizeLabel = if (option.sizeStr.isEmpty()) "X" else option.sizeStr
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = option.format,
+                        color = Color(0xFF8A8A96),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "•",
+                        color = Color(0xFF4A4A56),
+                        fontSize = 10.sp
+                    )
+                    if (sizeLabel == "...") {
+                        CircularProgressIndicator(
+                            color = accentColor,
+                            strokeWidth = 1.2f.dp,
+                            modifier = Modifier.size(10.dp)
+                        )
+                    } else {
+                        Text(
+                            text = sizeLabel,
+                            color = if (sizeLabel == "X") Color(0xFFEF5350) else Color(0xFF8A8A96),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+        }
+
+        // Selected checkmark badge in top-right corner
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .padding(top = 6.dp, end = 6.dp)
+                    .size(18.dp)
+                    .background(accentColor, CircleShape)
+                    .align(Alignment.TopEnd),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color(0xFF0A0A0C),
+                    modifier = Modifier.size(12.dp)
+                )
+            }
         }
     }
 }
