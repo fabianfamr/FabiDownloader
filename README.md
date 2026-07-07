@@ -7,6 +7,7 @@
 ## ✨ Key Features
 
 - **Multi-Platform Support**: Download content from your favorite social media and video sharing sites.
+- **Historial y Estadísticas**: Visualiza el total de tus descargas completadas y descargas en progreso directamente en las pestañas y mediante una elegante tarjeta informativa en tu biblioteca.
 - **Background Downloads**: Keep your downloads running even when the app is in the background via a robust foreground service.
 - **Real-time Progress**: Stay informed with detailed notifications showing download speed, progress percentage, and file size.
 - **High-Quality Extraction**: Choose your preferred quality and format (Video/Audio).
@@ -41,6 +42,15 @@ The app supports a vast range of websites, including but not limited to:
 - **Coroutines & Flow**: Powering reactive and efficient asynchronous operations.
 - **yt-dlp**: The core engine driving powerful media extraction.
 - **OkHttp**: For reliable networking and API interactions.
+
+---
+
+## 📊 Control de Descargas y Estadísticas Totales
+
+La aplicación te permite llevar un control minucioso de todo el contenido descargado mediante:
+1. **Contadores Dinámicos en Pestañas**: En la sección de **Biblioteca**, verás instantáneamente la cantidad exacta de archivos completados y en progreso en sus respectivas pestañas, por ejemplo: `Descargados (5)` y `En progreso (1)`.
+2. **Tarjeta de Estadísticas Históricas**: Al inicio de la lista de descargas completadas se muestra una tarjeta premium que calcula de forma automática y en tiempo real el **Total Histórico** de tus archivos descargados.
+3. **Gestión Completa**: Puedes buscar, ordenar por fecha, nombre o tamaño, compartir múltiples archivos a la vez o eliminarlos de manera segura tanto de la base de datos local como del almacenamiento.
 
 ---
 
