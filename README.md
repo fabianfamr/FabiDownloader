@@ -51,9 +51,9 @@ The app supports a vast range of websites, including but not limited to:
   
 | Fabi Downloader | Estado & Métricas |
 | :--- | :--- |
-| **Descargas Totales (GitHub)** | [![Descargas](https://img.shields.io/github/downloads/fabianajjdvd/downloader/total?style=for-the-badge&color=FF5722&logo=github&logoColor=white)](https://github.com/fabianajjdvd/downloader/releases) |
-| **Última Versión Estable** | [![Versión](https://img.shields.io/github/v/release/fabianajjdvd/downloader?style=for-the-badge&color=4CAF50&logo=android&logoColor=white)](https://github.com/fabianajjdvd/downloader/releases) |
-| **Tamaño del Repositorio** | [![Tamaño](https://img.shields.io/github/repo-size/fabianajjdvd/downloader?style=for-the-badge&color=2196F3&logo=git&logoColor=white)](https://github.com/fabianajjdvd/downloader) |
+| **Descargas Totales (GitHub)** | [![Descargas](https://img.shields.io/github/downloads/fabianfamr/FabiDownloader/total?style=for-the-badge&color=FF5722&logo=github&logoColor=white)](https://github.com/fabianfamr/FabiDownloader/releases) |
+| **Última Versión Estable** | [![Versión](https://img.shields.io/github/v/release/fabianfamr/FabiDownloader?style=for-the-badge&color=4CAF50&logo=android&logoColor=white)](https://github.com/fabianfamr/FabiDownloader/releases) |
+| **Tamaño del Repositorio** | [![Tamaño](https://img.shields.io/github/repo-size/fabianfamr/FabiDownloader?style=for-the-badge&color=2196F3&logo=git&logoColor=white)](https://github.com/fabianfamr/FabiDownloader) |
 | **Estado del Servicio** | ![Status](https://img.shields.io/badge/Status-Activo-brightgreen?style=for-the-badge) |
 
 </div>
