@@ -1,6 +1,9 @@
 package com.fabian.downloader.ui
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -35,6 +38,20 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(modifier: Modifier = Modifier) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
+    // Necesitamos el navController para navegar a la otra pantalla
+    // Pero SettingsScreen no lo recibe. Podríamos añadirlo o usar una callback.
+    // Como no quiero cambiar demasiadas firmas, añadiré un botón que emule navegación si es posible,
+    // o simplemente añadiré los ajustes aquí también.
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            val takeFlags: Int = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                    android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            ctx.contentResolver.takePersistableUriPermission(uri, takeFlags)
+            AppSettings.downloadLocation = uri.toString()
+        }
+    }
 
     val C_bg = Color(0xFF0A0A0C)
     val C_card = Color(0xFF161619)
@@ -63,9 +80,20 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     
     var cacheCleared by remember { mutableStateOf(false) }
 
+    var showSpeedDialog by remember { mutableStateOf(false) }
+    var showThemeDialog by remember { mutableStateOf(false) }
+
+    var showProxyDialog by remember { mutableStateOf(false) }
+    var showCustomArgsDialog by remember { mutableStateOf(false) }
+
+    var showClipboardDialog by remember { mutableStateOf(false) }
+
+    var notificationsEnabled by remember { mutableStateOf(AppSettings.notificationsEnabled) }
+
     LaunchedEffect(maxConcurrent) { AppSettings.maxConcurrentDownloads = maxConcurrent }
     LaunchedEffect(autoDownload) { AppSettings.clipboardAction = if (autoDownload) "auto" else "disabled" }
     LaunchedEffect(wifiOnly) { AppSettings.dataSaverEnabled = wifiOnly }
+    LaunchedEffect(notificationsEnabled) { AppSettings.notificationsEnabled = notificationsEnabled }
     LaunchedEffect(embedSubtitles) { AppSettings.embedSubtitles = embedSubtitles }
     LaunchedEffect(embedThumbnail) { AppSettings.embedThumbnail = embedThumbnail }
     LaunchedEffect(embedMetadata) { AppSettings.embedMetadata = embedMetadata }
@@ -77,6 +105,109 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     LaunchedEffect(Unit) {
         delay(100)
         contentVisible = true
+    }
+
+    var showVideoFormatDialog by remember { mutableStateOf(false) }
+    var showQualityDialog by remember { mutableStateOf(false) }
+
+    var showThreadsDialog by remember { mutableStateOf(false) }
+
+    if (showQualityDialog) {
+        SelectionDialog(
+            title = "Calidad de video",
+            options = AppSettings.qualityOptions,
+            selectedOption = AppSettings.selectedQuality,
+            onSelection = {
+                AppSettings.selectedQuality = it
+                showQualityDialog = false
+            },
+            onDismiss = { showQualityDialog = false }
+        )
+    }
+
+    if (showVideoFormatDialog) {
+        SelectionDialog(
+            title = "Formato de video",
+            options = AppSettings.videoFormats,
+            selectedOption = AppSettings.selectedVideoFormat,
+            onSelection = {
+                AppSettings.selectedVideoFormat = it
+                showVideoFormatDialog = false
+            },
+            onDismiss = { showVideoFormatDialog = false }
+        )
+    }
+
+    if (showThreadsDialog) {
+        SelectionDialog(
+            title = "Hilos de descarga paralelos",
+            options = listOf("1", "3", "5", "8", "12", "16"),
+            selectedOption = AppSettings.concurrentFragments,
+            onSelection = {
+                AppSettings.concurrentFragments = it
+                showThreadsDialog = false
+            },
+            onDismiss = { showThreadsDialog = false }
+        )
+    }
+
+    if (showSpeedDialog) {
+        SelectionDialog(
+            title = "Límite de velocidad",
+            options = AppSettings.speedOptions,
+            selectedOption = AppSettings.maxSpeed,
+            onSelection = {
+                AppSettings.maxSpeed = it
+                showSpeedDialog = false
+            },
+            onDismiss = { showSpeedDialog = false }
+        )
+    }
+
+    if (showThemeDialog) {
+        SelectionDialog(
+            title = "Seleccionar Tema",
+            options = AppSettings.themeOptions,
+            selectedOption = AppSettings.themePreference,
+            onSelection = {
+                AppSettings.themePreference = it
+                showThemeDialog = false
+            },
+            onDismiss = { showThemeDialog = false }
+        )
+    }
+
+    if (showProxyDialog) {
+        InputDialog(
+            title = "Configurar Proxy",
+            placeholder = "http://127.0.0.1:8080",
+            initialValue = AppSettings.proxyUrl,
+            onConfirm = { AppSettings.proxyUrl = it },
+            onDismiss = { showProxyDialog = false }
+        )
+    }
+
+    if (showCustomArgsDialog) {
+        InputDialog(
+            title = "Argumentos yt-dlp",
+            placeholder = "--restrict-filenames",
+            initialValue = AppSettings.customArguments,
+            onConfirm = { AppSettings.customArguments = it },
+            onDismiss = { showCustomArgsDialog = false }
+        )
+    }
+
+    if (showClipboardDialog) {
+        SelectionDialog(
+            title = "Acción al copiar enlace",
+            options = listOf("banner", "auto", "disabled"),
+            selectedOption = AppSettings.clipboardAction,
+            onSelection = {
+                AppSettings.clipboardAction = it
+                showClipboardDialog = false
+            },
+            onDismiss = { showClipboardDialog = false }
+        )
     }
 
     Box(
@@ -113,43 +244,11 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                 ) {
                     Column {
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(14.dp, 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Default.DarkMode, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
-                                }
-                                Text("Tema visual", color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                            }
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(C_card2, RoundedCornerShape(8.dp))
-                                    .padding(4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                val themes = listOf("Claro", "Oscuro", "Sistema")
-                                themes.forEach { t ->
-                                    val isSelected = AppSettings.themePreference == t
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .background(if (isSelected) C_accent else Color.Transparent)
-                                            .clickable { AppSettings.themePreference = t }
-                                            .padding(vertical = 8.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(text = t, color = if (isSelected) C_bg else C_gray1, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                    }
-                                }
-                            }
+                        SettingsRow(Icons.Default.DarkMode, "Tema visual", AppSettings.themePreference, C_accent, C_white, C_gray1, C_card2) {
+                            showThemeDialog = true
                         }
+                        HorizontalDivider(color = C_border, thickness = 1.dp)
+                        SettingsToggleRow(Icons.Default.Notifications, "Notificaciones", "Alertas de finalización", notificationsEnabled, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { notificationsEnabled = it }
                     }
                 }
 
@@ -165,6 +264,23 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         SettingsToggleRow(Icons.Default.Link, "Descarga automática", "Al copiar un enlace compatible", autoDownload, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoDownload = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
                         
+                        SettingsRow(Icons.Default.Speed, "Límite de velocidad", AppSettings.maxSpeed, C_accent, C_white, C_gray1, C_card2) {
+                            showSpeedDialog = true
+                        }
+                        HorizontalDivider(color = C_border, thickness = 1.dp)
+                        SettingsRow(Icons.Default.Hd, "Calidad predeterminada", AppSettings.selectedQuality, C_accent, C_white, C_gray1, C_card2) {
+                            showQualityDialog = true
+                        }
+                        HorizontalDivider(color = C_border, thickness = 1.dp)
+                        SettingsRow(Icons.Default.VideoFile, "Formato de video", AppSettings.selectedVideoFormat, C_accent, C_white, C_gray1, C_card2) {
+                            showVideoFormatDialog = true
+                        }
+                        HorizontalDivider(color = C_border, thickness = 1.dp)
+                        SettingsRow(Icons.Default.Download, "Hilos de descarga", AppSettings.concurrentFragments, C_accent, C_white, C_gray1, C_card2) {
+                            showThreadsDialog = true
+                        }
+                        HorizontalDivider(color = C_border, thickness = 1.dp)
+
                         // Concurrent Downloads Stepper
                         Column(modifier = Modifier.padding(14.dp, 16.dp)) {
                             Row(
@@ -225,6 +341,12 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         SettingsToggleRow(Icons.Default.Block, "Bloqueo de sponsors", "Omitir partes patrocinadas", sponsorBlock, C_amber, C_white, C_gray1, C_card2, C_border, C_bg) { sponsorBlock = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
                         SettingsToggleRow(Icons.Default.Public, "Saltar bloqueos geográficos", "Usar nodos alternativos", bypassGeo, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { bypassGeo = it }
+                        HorizontalDivider(color = C_border, thickness = 1.dp)
+                        SettingsRow(Icons.Default.Dns, "Configurar Proxy", AppSettings.proxyUrl.ifEmpty { "Desactivado" }, C_accent, C_white, C_gray1, C_card2) { showProxyDialog = true }
+                        HorizontalDivider(color = C_border, thickness = 1.dp)
+                        SettingsRow(Icons.Default.Code, "Argumentos yt-dlp", AppSettings.customArguments.ifEmpty { "Por defecto" }, C_accent, C_white, C_gray1, C_card2) { showCustomArgsDialog = true }
+                        HorizontalDivider(color = C_border, thickness = 1.dp)
+                        SettingsRow(Icons.Default.ContentPaste, "Acción de portapapeles", AppSettings.clipboardAction, C_accent, C_white, C_gray1, C_card2) { showClipboardDialog = true }
                     }
                 }
 
@@ -234,19 +356,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(14.dp, 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(modifier = Modifier.size(36.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Folder, contentDescription = null, tint = C_accent, modifier = Modifier.size(18.dp))
+                    Column {
+                        SettingsRow(Icons.Default.Folder, "Directorio de descarga", AppSettings.downloadLocation.substringAfterLast("/"), C_accent, C_white, C_gray1, C_card2) {
+                            launcher.launch(null)
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Directorio base", color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                            Text(text = "/storage/emulated/0/Downloader/", color = C_gray1, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = C_accent, modifier = Modifier.size(20.dp))
                     }
                 }
 
@@ -362,5 +475,46 @@ fun SettingsToggleRow(
             ),
             modifier = Modifier.scale(0.85f)
         )
+    }
+}
+
+@Composable
+fun SettingsRow(
+    icon: ImageVector,
+    title: String,
+    trailing: String,
+    colorAccent: Color,
+    textColor: Color,
+    grayColor: Color,
+    card2Color: Color,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(14.dp, 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically, 
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(card2Color, RoundedCornerShape(10.dp)), 
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = colorAccent, modifier = Modifier.size(16.dp))
+            }
+            Text(title, color = textColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(trailing, color = grayColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Icon(Icons.Default.ChevronRight, null, tint = grayColor, modifier = Modifier.size(16.dp))
+        }
     }
 }

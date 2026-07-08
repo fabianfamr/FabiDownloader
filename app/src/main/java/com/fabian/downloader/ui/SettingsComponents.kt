@@ -47,27 +47,40 @@ fun DownloadSettingsContent(
     var showCustomArgsDialog by remember { mutableStateOf(false) }
     var showProxyDialog by remember { mutableStateOf(false) }
     var showUserAgentDialog by remember { mutableStateOf(false) }
+    var showClipboardDialog by remember { mutableStateOf(false) }
+    var showThemeDialog by remember { mutableStateOf(false) }
 
     val threadOptions = listOf("1", "3", "5", "8", "12", "16")
     val simultaneousOptions = listOf("1", "2", "3", "4", "5")
+    val clipboardOptions = listOf("banner", "auto", "disabled")
 
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        SettingSectionHeader("Calidad")
+        SettingSectionHeader("Personalización")
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
-            SettingItem(Icons.Default.Hd, "Calidad de video", trailing = selectedQuality) {
-                showQualityDialog = true
+            Column {
+                SettingItem(Icons.Default.Palette, "Tema de la aplicación", trailing = AppSettings.themePreference) {
+                    showThemeDialog = true
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                ToggleSetting(Icons.Default.Notifications, "Notificaciones de descarga", AppSettings.notificationsEnabled) {
+                    AppSettings.notificationsEnabled = it
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                ToggleSetting(Icons.Default.DeleteSweep, "Confirmar al eliminar", AppSettings.confirmOnDelete) {
+                    AppSettings.confirmOnDelete = it
+                }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        SettingSectionHeader("Formato")
+        SettingSectionHeader("Calidad y Formato")
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
@@ -154,6 +167,10 @@ fun DownloadSettingsContent(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
                 SettingItem(Icons.Default.Person, "User-Agent Personalizado", trailing = AppSettings.customUserAgent.ifEmpty { "Por defecto" }) {
                     showUserAgentDialog = true
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                SettingItem(Icons.Default.ContentPaste, "Acción al copiar enlace", trailing = AppSettings.clipboardAction) {
+                    showClipboardDialog = true
                 }
             }
         }
@@ -324,6 +341,24 @@ fun DownloadSettingsContent(
                 onDismiss = { showUserAgentDialog = false }
             )
         }
+        if (showClipboardDialog) {
+            SelectionDialog("Acción al copiar enlace", clipboardOptions, AppSettings.clipboardAction,
+                onSelection = {
+                    AppSettings.clipboardAction = it
+                    showClipboardDialog = false
+                },
+                onDismiss = { showClipboardDialog = false }
+            )
+        }
+        if (showThemeDialog) {
+            SelectionDialog("Selecciona Tema", AppSettings.themeOptions, AppSettings.themePreference,
+                onSelection = {
+                    AppSettings.themePreference = it
+                    showThemeDialog = false
+                },
+                onDismiss = { showThemeDialog = false }
+            )
+        }
     }
 }
 
@@ -333,7 +368,8 @@ fun InputDialog(
     placeholder: String,
     initialValue: String,
     onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    singleLine: Boolean = true
 ) {
     var text by remember { mutableStateOf(initialValue) }
     AlertDialog(
@@ -345,9 +381,12 @@ fun InputDialog(
                 value = text,
                 onValueChange = { text = it },
                 placeholder = { Text(placeholder) },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).let { 
+                    if (!singleLine) it.heightIn(min = 150.dp, max = 300.dp) else it 
+                },
                 shape = RoundedCornerShape(12.dp),
-                singleLine = true,
+                singleLine = singleLine,
+                maxLines = if (singleLine) 1 else 10,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant

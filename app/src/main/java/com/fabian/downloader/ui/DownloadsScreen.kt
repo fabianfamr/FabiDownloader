@@ -700,7 +700,9 @@ fun DownloadsScreen(
                                     onPause = { viewModel.pauseDownload(record.id) },
                                     onResume = { viewModel.resumeDownload(record.id) },
                                     onDelete = { menuRecord = record },
-                                    onShowErrorDetails = { errorToShow = it }
+                                    onShowErrorDetails = { errorToShow = it },
+                                    isSelected = selectedIds.contains(record.id),
+                                    onLongPress = { toggleSelection(record.id) }
                                 )
                             }
                         }
@@ -759,7 +761,9 @@ fun MobileDownloadingItem(
     onPause: () -> Unit,
     onResume: () -> Unit,
     onDelete: () -> Unit,
-    onShowErrorDetails: (String) -> Unit
+    onShowErrorDetails: (String) -> Unit,
+    isSelected: Boolean = false,
+    onLongPress: () -> Unit = {}
 ) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
 
@@ -799,10 +803,20 @@ fun MobileDownloadingItem(
     }
 
     Surface(
-        color = C_card,
+        color = if (isSelected) C_accentDim else C_card,
         shape = RoundedCornerShape(24.dp),
-        border = BorderStroke(1.dp, if (isFailed) C_red.copy(alpha = 0.35f) else C_border),
-        modifier = Modifier.fillMaxWidth()
+        border = BorderStroke(if (isSelected) 2.dp else 1.dp, if (isSelected) C_accent else (if (isFailed) C_red.copy(alpha = 0.35f) else C_border)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .combinedClickable(
+                onClick = { 
+                    if (isFailed) onResume() 
+                    else if (record.isPaused) onResume() 
+                    else onPause() 
+                },
+                onLongClick = { onLongPress() }
+            )
     ) {
         Column(
             modifier = Modifier
@@ -909,9 +923,9 @@ fun MobileDownloadingItem(
                         }
                     }
                 }
+                var showMenu by remember { mutableStateOf(false) }
+                
                 if (!isFailed) {
-                    var showMenu by remember { mutableStateOf(false) }
-                    
                     IconButton(
                         onClick = { if (record.isPaused) onResume() else onPause() },
                         modifier = Modifier
@@ -926,26 +940,38 @@ fun MobileDownloadingItem(
                         )
                     }
                     Spacer(modifier = Modifier.width(6.dp))
-                    Box {
-                        IconButton(
-                            onClick = { showMenu = true }, 
-                            modifier = Modifier
-                                .size(38.dp)
-                                .background(C_border, CircleShape)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert, 
-                                contentDescription = "Opciones", 
-                                modifier = Modifier.size(18.dp), 
-                                tint = C_white
+                }
+                
+                Box {
+                    IconButton(
+                        onClick = { showMenu = true }, 
+                        modifier = Modifier
+                            .size(38.dp)
+                            .background(C_border, CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert, 
+                            contentDescription = "Opciones", 
+                            modifier = Modifier.size(18.dp), 
+                            tint = C_white
+                        )
+                    }
+                    
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                        modifier = Modifier.background(Color(0xFF1E1E22), RoundedCornerShape(12.dp))
+                    ) {
+                        if (isFailed) {
+                            DropdownMenuItem(
+                                text = { Text("Reintentar", color = C_white) },
+                                leadingIcon = { Icon(Icons.Default.Refresh, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
+                                onClick = { 
+                                    showMenu = false
+                                    onResume()
+                                }
                             )
-                        }
-                        
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false },
-                            modifier = Modifier.background(Color(0xFF1E1E22), RoundedCornerShape(12.dp))
-                        ) {
+                        } else {
                             DropdownMenuItem(
                                 text = { Text(if (record.isPaused) "Reanudar" else "Pausar", color = C_white) },
                                 leadingIcon = { 
@@ -961,26 +987,34 @@ fun MobileDownloadingItem(
                                     if (record.isPaused) onResume() else onPause()
                                 }
                             )
-                            DropdownMenuItem(
-                                text = { Text("Copiar Enlace", color = C_white) },
-                                leadingIcon = { Icon(Icons.Default.ContentCopy, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
-                                onClick = { 
-                                    showMenu = false
-                                    val clipboard = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("URL", record.url))
-                                    Toast.makeText(ctx, "Enlace copiado", Toast.LENGTH_SHORT).show()
-                                }
-                            )
-                            HorizontalDivider(color = C_border, thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
-                            DropdownMenuItem(
-                                text = { Text("Cancelar", color = C_red) },
-                                leadingIcon = { Icon(Icons.Default.Close, null, tint = C_red, modifier = Modifier.size(18.dp)) },
-                                onClick = { 
-                                    showMenu = false
-                                    onDelete()
-                                }
-                            )
                         }
+                        
+                        DropdownMenuItem(
+                            text = { Text("Copiar Enlace", color = C_white) },
+                            leadingIcon = { Icon(Icons.Default.ContentCopy, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
+                            onClick = { 
+                                showMenu = false
+                                val clipboard = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("URL", record.url))
+                                Toast.makeText(ctx, "Enlace copiado", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                        HorizontalDivider(color = C_border, thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+                        DropdownMenuItem(
+                            text = { Text(if (isFailed) "Eliminar" else "Cancelar", color = C_red) },
+                            leadingIcon = { 
+                                Icon(
+                                    if (isFailed) Icons.Default.Delete else Icons.Default.Close, 
+                                    null, 
+                                    tint = C_red, 
+                                    modifier = Modifier.size(18.dp)
+                                ) 
+                            },
+                            onClick = { 
+                                showMenu = false
+                                onDelete()
+                            }
+                        )
                     }
                 }
             }

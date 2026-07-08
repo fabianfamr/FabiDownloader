@@ -143,15 +143,6 @@ object AppSettings {
             saveString("lastDownloadedOptionId", value)
         }
 
-    private val _cookiesText = mutableStateOf("")
-    var cookiesText: String
-        get() = _cookiesText.value
-        set(value) {
-            _cookiesText.value = value
-            saveString("cookiesText", value)
-            writeCookiesFile(value)
-        }
-
     private val _customArguments = mutableStateOf("")
     var customArguments: String
         get() = _customArguments.value
@@ -208,25 +199,6 @@ object AppSettings {
             saveBoolean("bypassGeo", value)
         }
 
-    private fun writeCookiesFile(text: String) {
-        // Run I/O in a background thread to avoid ANR
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-            try {
-                val context = com.fabian.downloader.MyApplication.getInstance()
-                val file = java.io.File(context.filesDir, "cookies.txt")
-                if (text.isBlank()) {
-                    if (file.exists()) {
-                        file.delete()
-                    }
-                } else {
-                    file.writeText(text)
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("AppSettings", "Error writing cookies file", e)
-            }
-        }
-    }
-
     fun init(context: Context) {
         prefs = context.getSharedPreferences("fabi_downloader_prefs", Context.MODE_PRIVATE)
         
@@ -246,9 +218,6 @@ object AppSettings {
         _clipboardAction.value = prefs.getString("clipboardAction", "banner") ?: "banner"
         _lastDownloadedOptionId.value = prefs.getString("lastDownloadedOptionId", "") ?: ""
         
-        _cookiesText.value = prefs.getString("cookiesText", "") ?: ""
-        writeCookiesFile(_cookiesText.value)
-
         _customArguments.value = prefs.getString("customArguments", "") ?: ""
         _proxyUrl.value = prefs.getString("proxyUrl", "") ?: ""
         _customUserAgent.value = prefs.getString("customUserAgent", "") ?: ""
