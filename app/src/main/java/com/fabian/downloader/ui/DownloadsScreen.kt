@@ -100,6 +100,25 @@ fun DownloadsScreen(
         selectedIds = if (selectedIds.contains(id)) selectedIds - id else selectedIds + id
     }
 
+    val onShareFile: (DownloadRecord) -> Unit = { record ->
+        try {
+            val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(ctx, record.title, record.id, record.format)
+            if (file.exists()) {
+                val uri = FileProvider.getUriForFile(ctx, "com.fabian.downloader.fileprovider", file)
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    type = if (record.format == "MP4") "video/*" else "audio/*"
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                ctx.startActivity(Intent.createChooser(intent, ctx.getString(R.string.downloads_share_title)))
+            } else {
+                Toast.makeText(ctx, ctx.getString(R.string.main_error_file_not_found), Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(ctx, "Error al compartir: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     val openFile: (DownloadRecord) -> Unit = { record ->
         try {
             val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(ctx, record.title, record.id, record.format)
@@ -633,6 +652,7 @@ fun DownloadsScreen(
                                         if (isSelectionMode) toggleSelection(record.id) else openFile(record) 
                                     }, 
                                     onDelete = { menuRecord = record },
+                                    onShare = { onShareFile(record) },
                                     isSelected = selectedIds.contains(record.id),
                                     onLongPress = { toggleSelection(record.id) }
                                 )
@@ -826,7 +846,7 @@ fun MobileDownloadingItem(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp)
+                .padding(12.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -834,8 +854,8 @@ fun MobileDownloadingItem(
                 val (platformIcon, platformColor) = getPlatformIconAndColor(record.url, record.format)
                 Box(
                     modifier = Modifier
-                        .size(62.dp)
-                        .clip(RoundedCornerShape(16.dp))
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(10.dp))
                         .background(
                             color = if (isFailed) {
                                 if (isNetworkError) C_amber.copy(alpha = 0.15f) else C_redDim
@@ -860,7 +880,7 @@ fun MobileDownloadingItem(
                                 platformIcon
                             },
                             contentDescription = null, 
-                            modifier = Modifier.size(28.dp),
+                            modifier = Modifier.size(24.dp),
                             tint = if (isFailed) {
                                 if (isNetworkError) C_amber else C_red
                             } else {
@@ -868,8 +888,24 @@ fun MobileDownloadingItem(
                             }
                         )
                     }
+                    
+                    // State overlay icon (Example style)
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(Color.Black.copy(alpha = 0.55f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = if (isFailed) Icons.Default.Refresh else if (record.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                            contentDescription = null,
+                            tint = if (isFailed) C_red else if (record.isPaused) C_amber else C_accent,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = cleanTitle, 
@@ -930,29 +966,11 @@ fun MobileDownloadingItem(
                 }
                 var showMenu by remember { mutableStateOf(false) }
                 
-                if (!isFailed) {
-                    IconButton(
-                        onClick = { if (record.isPaused) onResume() else onPause() },
-                        modifier = Modifier
-                            .size(38.dp)
-                            .background(C_accentDim, CircleShape)
-                    ) {
-                        Icon(
-                            imageVector = if (record.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = C_accent
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(6.dp))
-                }
-                
                 Box {
                     IconButton(
                         onClick = { showMenu = true }, 
                         modifier = Modifier
-                            .size(38.dp)
-                            .background(C_border, CircleShape)
+                            .size(32.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.MoreVert, 
@@ -1178,7 +1196,7 @@ fun MobileDownloadingItem(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: () -> Unit, isSelected: Boolean, onLongPress: () -> Unit) {
+fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: () -> Unit, onShare: () -> Unit, isSelected: Boolean, onLongPress: () -> Unit) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val fColors = MaterialTheme.fabiColors
     val C_bg = fColors.background
@@ -1218,13 +1236,13 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(62.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(10.dp))
                     .background(platformColor.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -1239,12 +1257,12 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                     Icon(
                         imageVector = platformIcon,
                         contentDescription = null, 
-                        modifier = Modifier.size(28.dp),
+                        modifier = Modifier.size(24.dp),
                         tint = platformColor
                     )
                 }
             }
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = cleanTitle, 
@@ -1286,9 +1304,7 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
             Box {
                 IconButton(
                     onClick = { showMenu = true },
-                    modifier = Modifier
-                        .size(38.dp)
-                        .background(C_border, CircleShape)
+                    modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.MoreVert, 
@@ -1316,7 +1332,7 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                         leadingIcon = { Icon(Icons.Default.Share, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
                         onClick = { 
                             showMenu = false
-                            // Acción de compartir
+                            onShare()
                         }
                     )
                     DropdownMenuItem(
