@@ -973,6 +973,81 @@ fun MobileDownloadingItem(
                         }
                     }
                 }
+                
+                var showMenu by remember { mutableStateOf(false) }
+                Box {
+                    IconButton(
+                        onClick = { showMenu = true }, 
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert, 
+                            contentDescription = "Opciones", 
+                            modifier = Modifier.size(18.dp), 
+                            tint = C_white
+                        )
+                    }
+                    
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                        modifier = Modifier.background(C_card2, RoundedCornerShape(12.dp))
+                    ) {
+                        if (isFailed) {
+                            DropdownMenuItem(
+                                text = { Text("Reintentar", color = C_white) },
+                                leadingIcon = { Icon(Icons.Default.Refresh, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
+                                onClick = { 
+                                    showMenu = false
+                                    onResume()
+                                }
+                            )
+                        } else {
+                            DropdownMenuItem(
+                                text = { Text(if (record.isPaused) "Reanudar" else "Pausar", color = C_white) },
+                                leadingIcon = { 
+                                    Icon(
+                                        if (record.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause, 
+                                        null, 
+                                        tint = C_accent, 
+                                        modifier = Modifier.size(18.dp)
+                                    ) 
+                                },
+                                onClick = { 
+                                    showMenu = false
+                                    if (record.isPaused) onResume() else onPause()
+                                }
+                            )
+                        }
+                        
+                        DropdownMenuItem(
+                            text = { Text("Copiar Enlace", color = C_white) },
+                            leadingIcon = { Icon(Icons.Default.ContentCopy, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
+                            onClick = { 
+                                showMenu = false
+                                val clipboard = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("URL", record.url))
+                                Toast.makeText(ctx, "Enlace copiado", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                        HorizontalDivider(color = C_border, thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
+                        DropdownMenuItem(
+                            text = { Text(if (isFailed) "Eliminar" else "Cancelar", color = C_red) },
+                            leadingIcon = { 
+                                Icon(
+                                    if (isFailed) Icons.Default.Delete else Icons.Default.Close, 
+                                    null, 
+                                    tint = C_red, 
+                                    modifier = Modifier.size(18.dp)
+                                ) 
+                            },
+                            onClick = { 
+                                showMenu = false
+                                onDelete()
+                            }
+                        )
+                    }
+                }
             }
 
             if (!isFailed) {
