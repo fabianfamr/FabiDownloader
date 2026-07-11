@@ -41,4 +41,19 @@
     <string name="downloads_copy_error_icon">Copy error</string>
     <string name="downloads_retry_button">Retry</string>
     <string name="downloads_connecting">Connecting...</string>
+    <string name="downloads_link_copied">Link copied</string>
+    <string name="downloads_copy_link">Copy link</string>
+    <string name="downloads_clear_history_item">Clear from history</string>
+    <string name="downloads_clear_history_desc">File remains on device memory</string>
+    <string name="downloads_delete_permanent">Delete download</string>
+    <string name="downloads_delete_permanent_desc">Clear from history and delete file permanently</string>
+    <string name="downloads_resume">Resume download</string>
+    <string name="downloads_resume_desc">Continue downloading</string>
+    <string name="downloads_pause">Pause download</string>
+    <string name="downloads_pause_desc">Temporarily stop progress</string>
+    <string name="downloads_cancel_delete">Cancel and delete</string>
+    <string name="downloads_cancel_delete_desc">Stop download and clear current progress</string>
+    <string name="downloads_filter_all">All</string>
+    <string name="downloads_filter_music">Music</string>
+    <string name="downloads_filter_video">Video</string>
 </resources>

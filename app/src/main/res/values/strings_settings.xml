@@ -2,7 +2,6 @@
 <resources>
     <string name="settings_title">Configuración</string>
     <string name="settings_subtitle">Ajusta las preferencias de la aplicación</string>
-    <string name="settings_section_general">Preferencias Generales</string>
     <string name="settings_theme">Tema</string>
     <string name="settings_clipboard">Detección de portapapeles</string>
     <string name="settings_clipboard_banner">Mostrar banner</string>
@@ -12,7 +11,6 @@
     <string name="settings_data_saver">Ahorro de datos (red móvil)</string>
     <string name="settings_section_downloads">Configuración de Descargas</string>
     <string name="settings_advanced_downloads">Ajustes avanzados de descarga</string>
-    <string name="settings_confirm_delete">Confirmar al eliminar</string>
     <string name="settings_section_engine">Conectividad y Motores</string>
     <string name="settings_update_engine">Actualizar motor yt-dlp</string>
     <string name="settings_updating">Actualizando...</string>
@@ -34,11 +32,89 @@
     <string name="settings_cookies_description">Pega el contenido de un archivo cookies.txt en formato Netscape para descargas con restricción de edad, contenido privado o límites (ej. Instagram privado o YouTube).</string>
     <string name="settings_cookies_placeholder"># Netscape HTTP Cookie File...</string>
     <string name="settings_cookies_saved">Cookies guardadas con éxito</string>
+    <string name="settings_check_updates">Buscar actualizaciones</string>
+    <string name="settings_update_available_title">Actualización disponible</string>
+    <string name="settings_update_available_msg">Hay una nueva versión de Fabi Downloader disponible (%1$s). ¿Deseas ver los cambios?</string>
+    <string name="settings_update_not_available">No hay actualizaciones disponibles</string>
     <string name="settings_save_button">Guardar</string>
     <string name="settings_cancel_button">Cancelar</string>
-    <string name="settings_check_updates">Verificar actualizaciones</string>
-    <string name="settings_update_available_title">Actualización disponible</string>
-    <string name="settings_update_available_msg">Hay una nueva versión (%1$s) disponible. ¿Deseas descargarla?</string>
-    <string name="settings_update_not_available">Ya tienes la última versión</string>
-    <string name="settings_update_checking">Buscando actualizaciones...</string>
+    <string name="settings_section_appearance">Apariencia y Estética</string>
+    <string name="settings_section_notifications">Notificaciones y Alertas</string>
+    <string name="settings_section_behavior">Comportamiento y Reproducción</string>
+    <string name="settings_section_network">Red y Descargas</string>
+    <string name="settings_section_library">Biblioteca y Metadatos</string>
+    <string name="settings_section_advanced">Avanzado y Privacidad</string>
+    <string name="settings_section_storage">Almacenamiento</string>
+    <string name="settings_section_general_header">General</string>
+
+    <string name="settings_theme_visual">Tema visual</string>
+    <string name="settings_dynamic_color">Color dinámico</string>
+    <string name="settings_dynamic_color_desc">Usar colores del sistema (Android 12+)</string>
+    <string name="settings_accent_color">Color de acento</string>
+
+    <string name="settings_notif_global">Notificaciones globales</string>
+    <string name="settings_notif_global_desc">Activar/Desactivar avisos</string>
+    <string name="settings_notif_speed">Mostrar velocidad</string>
+    <string name="settings_notif_speed_desc">En la barra de notificaciones</string>
+
+    <string name="settings_history">Mantener historial</string>
+    <string name="settings_history_desc">Guardar lista de descargas</string>
+    <string name="settings_retry">Reintento automático</string>
+    <string name="settings_retry_desc">Reintentar si falla la red</string>
+
+    <string name="settings_wifi_only">Solo descargar con Wi-Fi</string>
+    <string name="settings_wifi_only_desc">Ahorra datos móviles</string>
+    <string name="settings_auto_download">Descarga automática</string>
+    <string name="settings_auto_download_desc">Al copiar un enlace compatible</string>
+    <string name="settings_speed_limit">Límite de velocidad</string>
+    <string name="settings_quality_default">Calidad predeterminada</string>
+    <string name="settings_format_video">Formato de video</string>
+    <string name="settings_threads">Hilos de descarga</string>
+    <string name="settings_simultaneous">Descargas simultáneas</string>
+    <string name="settings_simultaneous_desc">Máximo de transferencias activas</string>
+
+    <string name="settings_thumbnail">Incrustar miniaturas</string>
+    <string name="settings_thumbnail_desc">Agrega portadas a los archivos</string>
+    <string name="settings_metadata">Incrustar metadatos</string>
+    <string name="settings_metadata_desc">Título, artista, álbum</string>
+    <string name="settings_subtitles">Descargar subtítulos</string>
+    <string name="settings_subtitles_desc">Incrustar subtítulos si existen</string>
+    <string name="settings_confirm_delete">Confirmar eliminación</string>
+    <string name="settings_confirm_delete_desc">Preguntar antes de borrar</string>
+
+    <string name="settings_sponsorblock">Bloqueo de sponsors</string>
+    <string name="settings_sponsorblock_desc">Omitir partes patrocinadas</string>
+    <string name="settings_geo_bypass">Saltar bloqueos geográficos</string>
+    <string name="settings_geo_bypass_desc">Usar nodos alternativos</string>
+    <string name="settings_proxy">Configurar Proxy</string>
+    <string name="settings_proxy_disabled">Desactivado</string>
+    <string name="settings_yt_args">Argumentos yt-dlp</string>
+    <string name="settings_yt_args_default">Por defecto</string>
+    <string name="settings_clipboard_action">Acción de portapapeles</string>
+
+    <string name="settings_download_dir">Directorio de descarga</string>
+    <string name="settings_clear_cache">Limpiar caché</string>
+    <string name="settings_clear_cache_desc">Libera espacio de archivos temporales</string>
+    <string name="settings_clearing">Limpiando...</string>
+    <string name="settings_cache_cleared">Caché eliminado</string>
+
+    <string name="settings_version_title">Versión de la app</string>
+    <string name="settings_github_repo">Repositorio GitHub</string>
+    <string name="settings_view_code">Ver código</string>
+
+    <string name="settings_update_now">Actualizar ahora</string>
+    <string name="settings_update_later">Más tarde</string>
+    <string name="settings_update_changes">Cambios en esta versión:</string>
+    <string name="settings_update_searching">Buscando...</string>
+    <string name="settings_update_now_btn">Ver ahora</string>
+
+    <string name="settings_quality_video">Calidad de video</string>
+    <string name="settings_format_video_title">Formato de video</string>
+    <string name="settings_threads_parallel">Hilos de descarga paralelos</string>
+    <string name="settings_theme_select">Seleccionar Tema</string>
+    <string name="settings_accent_select">Color de Acento</string>
+    <string name="settings_proxy_config">Configurar Proxy</string>
+    <string name="settings_yt_args_config">Argumentos yt-dlp</string>
+    <string name="settings_clipboard_action_title">Acción al copiar enlace</string>
+    <string name="settings_cookies_title">Configurar Cookies (cookies.txt)</string>
 </resources>

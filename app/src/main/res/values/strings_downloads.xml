@@ -41,4 +41,19 @@
     <string name="downloads_copy_error_icon">Copiar error</string>
     <string name="downloads_retry_button">Reintentar</string>
     <string name="downloads_connecting">Conectando...</string>
+    <string name="downloads_link_copied">Enlace copiado</string>
+    <string name="downloads_copy_link">Copiar enlace</string>
+    <string name="downloads_clear_history_item">Borrar del historial</string>
+    <string name="downloads_clear_history_desc">El archivo se conserva en la memoria del dispositivo</string>
+    <string name="downloads_delete_permanent">Eliminar descarga</string>
+    <string name="downloads_delete_permanent_desc">Borrar del historial y eliminar archivo permanentemente</string>
+    <string name="downloads_resume">Reanudar descarga</string>
+    <string name="downloads_resume_desc">Continuar con la descarga</string>
+    <string name="downloads_pause">Pausar descarga</string>
+    <string name="downloads_pause_desc">Detener temporalmente el progreso</string>
+    <string name="downloads_cancel_delete">Cancelar y eliminar</string>
+    <string name="downloads_cancel_delete_desc">Detener la descarga y borrar el progreso actual</string>
+    <string name="downloads_filter_all">Todo</string>
+    <string name="downloads_filter_music">Música</string>
+    <string name="downloads_filter_video">Video</string>
 </resources>

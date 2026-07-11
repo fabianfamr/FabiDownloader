@@ -159,6 +159,14 @@ object AppSettings {
             saveString("proxyUrl", value)
         }
 
+    private val _cookies = mutableStateOf("")
+    var cookies: String
+        get() = _cookies.value
+        set(value) {
+            _cookies.value = value
+            saveString("cookies", value)
+        }
+
     private val _customUserAgent = mutableStateOf("")
     var customUserAgent: String
         get() = _customUserAgent.value
@@ -197,30 +205,6 @@ object AppSettings {
         set(value) {
             _bypassGeo.value = value
             saveBoolean("bypassGeo", value)
-        }
-
-    private val _useExternalPlayer = mutableStateOf(false)
-    var useExternalPlayer: Boolean
-        get() = _useExternalPlayer.value
-        set(value) {
-            _useExternalPlayer.value = value
-            saveBoolean("useExternalPlayer", value)
-        }
-
-    private val _vibrateOnComplete = mutableStateOf(true)
-    var vibrateOnComplete: Boolean
-        get() = _vibrateOnComplete.value
-        set(value) {
-            _vibrateOnComplete.value = value
-            saveBoolean("vibrateOnComplete", value)
-        }
-
-    private val _soundOnComplete = mutableStateOf(true)
-    var soundOnComplete: Boolean
-        get() = _soundOnComplete.value
-        set(value) {
-            _soundOnComplete.value = value
-            saveBoolean("soundOnComplete", value)
         }
 
     private val _showDownloadSpeedInNotification = mutableStateOf(true)
@@ -287,15 +271,13 @@ object AppSettings {
         
         _customArguments.value = prefs.getString("customArguments", "") ?: ""
         _proxyUrl.value = prefs.getString("proxyUrl", "") ?: ""
+        _cookies.value = prefs.getString("cookies", "") ?: ""
         _customUserAgent.value = prefs.getString("customUserAgent", "") ?: ""
         _sponsorBlockEnabled.value = prefs.getBoolean("sponsorBlockEnabled", false)
         _embedThumbnail.value = prefs.getBoolean("embedThumbnail", true)
         _embedMetadata.value = prefs.getBoolean("embedMetadata", true)
         _bypassGeo.value = prefs.getBoolean("bypassGeo", true)
 
-        _useExternalPlayer.value = prefs.getBoolean("useExternalPlayer", false)
-        _vibrateOnComplete.value = prefs.getBoolean("vibrateOnComplete", true)
-        _soundOnComplete.value = prefs.getBoolean("soundOnComplete", true)
         _showDownloadSpeedInNotification.value = prefs.getBoolean("showDownloadSpeedInNotification", true)
         _keepHistory.value = prefs.getBoolean("keepHistory", true)
         _autoRetry.value = prefs.getBoolean("autoRetry", false)

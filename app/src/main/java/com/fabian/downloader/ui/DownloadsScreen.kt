@@ -205,7 +205,7 @@ fun DownloadsScreen(
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable {
                             clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(menuRecord!!.url))
-                            Toast.makeText(ctx, "Enlace copiado", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(ctx, ctx.getString(R.string.downloads_link_copied), Toast.LENGTH_SHORT).show()
                             menuRecord = null
                         }.padding(20.dp, 16.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -215,7 +215,7 @@ fun DownloadsScreen(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
-                            Text("Copiar enlace", color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.downloads_copy_link), color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Text("URL: ${menuRecord!!.url.take(30)}...", color = C_gray1, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
@@ -232,8 +232,8 @@ fun DownloadsScreen(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
-                            Text("Borrar del historial", color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("El archivo se conserva en la memoria del dispositivo", color = C_gray1, fontSize = 12.sp)
+                            Text(stringResource(R.string.downloads_clear_history_item), color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.downloads_clear_history_desc), color = C_gray1, fontSize = 12.sp)
                         }
                     }
                     HorizontalDivider(color = C_border)
@@ -249,8 +249,8 @@ fun DownloadsScreen(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
-                            Text("Eliminar descarga", color = C_red, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("Borrar del historial y eliminar archivo permanentemente", color = C_gray1, fontSize = 12.sp)
+                            Text(stringResource(R.string.downloads_delete_permanent), color = C_red, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.downloads_delete_permanent_desc), color = C_gray1, fontSize = 12.sp)
                         }
                     }
                 } else {
@@ -258,7 +258,7 @@ fun DownloadsScreen(
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable {
                             clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(menuRecord!!.url))
-                            Toast.makeText(ctx, "Enlace copiado", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(ctx, ctx.getString(R.string.downloads_link_copied), Toast.LENGTH_SHORT).show()
                             menuRecord = null
                         }.padding(20.dp, 16.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -268,7 +268,7 @@ fun DownloadsScreen(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
-                            Text("Copiar enlace", color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.downloads_copy_link), color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             Text("URL: ${menuRecord!!.url.take(30)}...", color = C_gray1, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
@@ -287,8 +287,8 @@ fun DownloadsScreen(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
-                            Text(if (isPaused) "Reanudar descarga" else "Pausar descarga", color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text(if (isPaused) "Continuar con la descarga" else "Detener temporalmente el progreso", color = C_gray1, fontSize = 12.sp)
+                            Text(if (isPaused) stringResource(R.string.downloads_resume) else stringResource(R.string.downloads_pause), color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(if (isPaused) stringResource(R.string.downloads_resume_desc) else stringResource(R.string.downloads_pause_desc), color = C_gray1, fontSize = 12.sp)
                         }
                     }
                     HorizontalDivider(color = C_border)
@@ -304,8 +304,8 @@ fun DownloadsScreen(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
-                            Text("Cancelar y eliminar", color = C_red, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("Detener la descarga y borrar el progreso actual", color = C_gray1, fontSize = 12.sp)
+                            Text(stringResource(R.string.downloads_cancel_delete), color = C_red, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.downloads_cancel_delete_desc), color = C_gray1, fontSize = 12.sp)
                         }
                     }
                 }
@@ -576,14 +576,18 @@ fun DownloadsScreen(
             }
         }
 
-        var filterType by remember { mutableStateOf("Todo") }
+        var filterType by remember { mutableStateOf(ctx.getString(R.string.downloads_filter_all)) }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            listOf("Todo", "Música", "Video").forEach { type ->
+            listOf(
+                stringResource(R.string.downloads_filter_all),
+                stringResource(R.string.downloads_filter_music),
+                stringResource(R.string.downloads_filter_video)
+            ).forEach { type ->
                 val isSelected = filterType == type
                 Surface(
                     onClick = { filterType = type },
@@ -613,15 +617,15 @@ fun DownloadsScreen(
         ) { page ->
             val filteredCompleted = remember(completed, filterType) {
                 when (filterType) {
-                    "Música" -> completed.filter { it.format == "MP3" || it.format == "M4A" }
-                    "Video" -> completed.filter { it.format == "MP4" }
+                    ctx.getString(R.string.downloads_filter_music) -> completed.filter { it.format == "MP3" || it.format == "M4A" }
+                    ctx.getString(R.string.downloads_filter_video) -> completed.filter { it.format == "MP4" }
                     else -> completed
                 }
             }
             val filteredDownloading = remember(downloading, filterType) {
                 when (filterType) {
-                    "Música" -> downloading.filter { it.format == "MP3" || it.format == "M4A" }
-                    "Video" -> downloading.filter { it.format == "MP4" }
+                    ctx.getString(R.string.downloads_filter_music) -> downloading.filter { it.format == "MP3" || it.format == "M4A" }
+                    ctx.getString(R.string.downloads_filter_video) -> downloading.filter { it.format == "MP4" }
                     else -> downloading
                 }
             }

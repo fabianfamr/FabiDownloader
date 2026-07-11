@@ -96,10 +96,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     var notificationsEnabled by remember { mutableStateOf(AppSettings.notificationsEnabled) }
     var showSpeedInNotif by remember { mutableStateOf(AppSettings.showDownloadSpeedInNotification) }
-    var vibrateOnComplete by remember { mutableStateOf(AppSettings.vibrateOnComplete) }
-    var soundOnComplete by remember { mutableStateOf(AppSettings.soundOnComplete) }
 
-    var useExternalPlayer by remember { mutableStateOf(AppSettings.useExternalPlayer) }
     var keepHistory by remember { mutableStateOf(AppSettings.keepHistory) }
     var autoRetry by remember { mutableStateOf(AppSettings.autoRetry) }
 
@@ -111,9 +108,6 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     LaunchedEffect(wifiOnly) { AppSettings.dataSaverEnabled = wifiOnly }
     LaunchedEffect(notificationsEnabled) { AppSettings.notificationsEnabled = notificationsEnabled }
     LaunchedEffect(showSpeedInNotif) { AppSettings.showDownloadSpeedInNotification = showSpeedInNotif }
-    LaunchedEffect(vibrateOnComplete) { AppSettings.vibrateOnComplete = vibrateOnComplete }
-    LaunchedEffect(soundOnComplete) { AppSettings.soundOnComplete = soundOnComplete }
-    LaunchedEffect(useExternalPlayer) { AppSettings.useExternalPlayer = useExternalPlayer }
     LaunchedEffect(keepHistory) { AppSettings.keepHistory = keepHistory }
     LaunchedEffect(autoRetry) { AppSettings.autoRetry = autoRetry }
     LaunchedEffect(dynamicColor) { AppSettings.dynamicColor = dynamicColor }
@@ -157,7 +151,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     if (updateFound!!.releaseNotes.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Cambios en esta versión:",
+                            text = stringResource(R.string.settings_update_changes),
                             style = MaterialTheme.typography.labelMedium,
                             color = C_accent
                         )
@@ -188,12 +182,12 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = C_accent, contentColor = Color.Black)
                 ) {
-                    Text("Actualizar ahora")
+                    Text(stringResource(R.string.settings_update_now))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { updateFound = null }) {
-                    Text("Más tarde", color = C_gray1)
+                    Text(stringResource(R.string.settings_update_later), color = C_gray1)
                 }
             },
             shape = RoundedCornerShape(24.dp)
@@ -202,7 +196,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showQualityDialog) {
         SelectionDialog(
-            title = "Calidad de video",
+            title = stringResource(R.string.settings_quality_default),
             options = AppSettings.qualityOptions,
             selectedOption = AppSettings.selectedQuality,
             onSelection = {
@@ -215,7 +209,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showVideoFormatDialog) {
         SelectionDialog(
-            title = "Formato de video",
+            title = stringResource(R.string.settings_format_video),
             options = AppSettings.videoFormats,
             selectedOption = AppSettings.selectedVideoFormat,
             onSelection = {
@@ -228,7 +222,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showThreadsDialog) {
         SelectionDialog(
-            title = "Hilos de descarga paralelos",
+            title = stringResource(R.string.settings_threads),
             options = listOf("1", "3", "5", "8", "12", "16"),
             selectedOption = AppSettings.concurrentFragments,
             onSelection = {
@@ -241,7 +235,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showSpeedDialog) {
         SelectionDialog(
-            title = "Límite de velocidad",
+            title = stringResource(R.string.settings_speed_limit),
             options = AppSettings.speedOptions,
             selectedOption = AppSettings.maxSpeed,
             onSelection = {
@@ -254,7 +248,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showThemeDialog) {
         SelectionDialog(
-            title = "Seleccionar Tema",
+            title = stringResource(R.string.settings_theme_visual),
             options = AppSettings.themeOptions,
             selectedOption = AppSettings.themePreference,
             onSelection = {
@@ -267,7 +261,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showAccentDialog) {
         SelectionDialog(
-            title = "Color de Acento",
+            title = stringResource(R.string.settings_accent_color),
             options = AppSettings.accentColorOptions,
             selectedOption = AppSettings.accentColorName,
             onSelection = {
@@ -280,7 +274,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showProxyDialog) {
         InputDialog(
-            title = "Configurar Proxy",
+            title = stringResource(R.string.settings_proxy),
             placeholder = "http://127.0.0.1:8080",
             initialValue = AppSettings.proxyUrl,
             onConfirm = { AppSettings.proxyUrl = it },
@@ -290,7 +284,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showCustomArgsDialog) {
         InputDialog(
-            title = "Argumentos yt-dlp",
+            title = stringResource(R.string.settings_yt_args),
             placeholder = "--restrict-filenames",
             initialValue = AppSettings.customArguments,
             onConfirm = { AppSettings.customArguments = it },
@@ -300,7 +294,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showClipboardDialog) {
         SelectionDialog(
-            title = "Acción al copiar enlace",
+            title = stringResource(R.string.settings_clipboard_action),
             options = listOf("banner", "auto", "disabled"),
             selectedOption = AppSettings.clipboardAction,
             onSelection = {
@@ -339,20 +333,20 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 )
 
                 // 1. Apariencia y Estética
-                SettingsHeader("Apariencia y Estética", C_gray2)
+                SettingsHeader(stringResource(R.string.settings_section_appearance), C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                 ) {
                     Column {
-                        SettingsRow(Icons.Default.DarkMode, "Tema visual", AppSettings.themePreference, C_accent, C_white, C_gray1, C_card2) {
+                        SettingsRow(Icons.Default.DarkMode, stringResource(R.string.settings_theme_visual), AppSettings.themePreference, C_accent, C_white, C_gray1, C_card2) {
                             showThemeDialog = true
                         }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.Palette, "Color dinámico", "Usar colores del sistema (Android 12+)", dynamicColor, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { dynamicColor = it }
+                        SettingsToggleRow(Icons.Default.Palette, stringResource(R.string.settings_dynamic_color), stringResource(R.string.settings_dynamic_color_desc), dynamicColor, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { dynamicColor = it }
                         if (!dynamicColor) {
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.ColorLens, "Color de acento", AppSettings.accentColorName, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.ColorLens, stringResource(R.string.settings_accent_color), AppSettings.accentColorName, C_accent, C_white, C_gray1, C_card2) {
                                 showAccentDialog = true
                             }
                         }
@@ -360,64 +354,58 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 }
 
                 // 2. Notificaciones y Alertas
-                SettingsHeader("Notificaciones y Alertas", C_gray2)
+                SettingsHeader(stringResource(R.string.settings_section_notifications), C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                 ) {
                     Column {
-                        SettingsToggleRow(Icons.Default.Notifications, "Notificaciones globales", "Activar/Desactivar avisos", notificationsEnabled, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { notificationsEnabled = it }
+                        SettingsToggleRow(Icons.Default.Notifications, stringResource(R.string.settings_notif_global), stringResource(R.string.settings_notif_global_desc), notificationsEnabled, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { notificationsEnabled = it }
                         if (notificationsEnabled) {
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.Speed, "Mostrar velocidad", "En la barra de notificaciones", showSpeedInNotif, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showSpeedInNotif = it }
-                            HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.Vibration, "Vibrar al finalizar", "Feedback háptico", vibrateOnComplete, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { vibrateOnComplete = it }
-                            HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.VolumeUp, "Sonido al finalizar", "Alerta sonora", soundOnComplete, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { soundOnComplete = it }
+                            SettingsToggleRow(Icons.Default.Speed, stringResource(R.string.settings_notif_speed), stringResource(R.string.settings_notif_speed_desc), showSpeedInNotif, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showSpeedInNotif = it }
                         }
                     }
                 }
 
                 // 3. Comportamiento y Reproducción
-                SettingsHeader("Comportamiento y Reproducción", C_gray2)
+                SettingsHeader(stringResource(R.string.settings_section_behavior), C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                 ) {
                     Column {
-                        SettingsToggleRow(Icons.Default.OpenInNew, "Reproductor externo", "Abrir videos con app externa", useExternalPlayer, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { useExternalPlayer = it }
+                        SettingsToggleRow(Icons.Default.History, stringResource(R.string.settings_history), stringResource(R.string.settings_history_desc), keepHistory, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { keepHistory = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.History, "Mantener historial", "Guardar lista de descargas", keepHistory, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { keepHistory = it }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.Replay, "Reintento automático", "Reintentar si falla la red", autoRetry, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoRetry = it }
+                        SettingsToggleRow(Icons.Default.Replay, stringResource(R.string.settings_retry), stringResource(R.string.settings_retry_desc), autoRetry, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoRetry = it }
                     }
                 }
 
                 // 4. Red y Descargas
-                SettingsHeader("Red y Descargas", C_gray2)
+                SettingsHeader(stringResource(R.string.settings_section_network), C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                 ) {
                     Column {
-                        SettingsToggleRow(Icons.Default.Wifi, "Solo descargar con Wi-Fi", "Ahorra datos móviles", wifiOnly, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { wifiOnly = it }
+                        SettingsToggleRow(Icons.Default.Wifi, stringResource(R.string.settings_wifi_only), stringResource(R.string.settings_wifi_only_desc), wifiOnly, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { wifiOnly = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.Link, "Descarga automática", "Al copiar un enlace compatible", autoDownload, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoDownload = it }
+                        SettingsToggleRow(Icons.Default.Link, stringResource(R.string.settings_auto_download), stringResource(R.string.settings_auto_download_desc), autoDownload, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoDownload = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
                         
-                        SettingsRow(Icons.Default.Speed, "Límite de velocidad", AppSettings.maxSpeed, C_accent, C_white, C_gray1, C_card2) {
+                        SettingsRow(Icons.Default.Speed, stringResource(R.string.settings_speed_limit), AppSettings.maxSpeed, C_accent, C_white, C_gray1, C_card2) {
                             showSpeedDialog = true
                         }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.Hd, "Calidad predeterminada", AppSettings.selectedQuality, C_accent, C_white, C_gray1, C_card2) {
+                        SettingsRow(Icons.Default.Hd, stringResource(R.string.settings_quality_default), AppSettings.selectedQuality, C_accent, C_white, C_gray1, C_card2) {
                             showQualityDialog = true
                         }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.VideoFile, "Formato de video", AppSettings.selectedVideoFormat, C_accent, C_white, C_gray1, C_card2) {
+                        SettingsRow(Icons.Default.VideoFile, stringResource(R.string.settings_format_video), AppSettings.selectedVideoFormat, C_accent, C_white, C_gray1, C_card2) {
                             showVideoFormatDialog = true
                         }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.Download, "Hilos de descarga", AppSettings.concurrentFragments, C_accent, C_white, C_gray1, C_card2) {
+                        SettingsRow(Icons.Default.Download, stringResource(R.string.settings_threads), AppSettings.concurrentFragments, C_accent, C_white, C_gray1, C_card2) {
                             showThreadsDialog = true
                         }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
@@ -430,8 +418,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                                    Text("Descargas simultáneas", color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                                    Text("Máximo de transferencias activas", color = C_gray1, fontSize = 11.sp)
+                                    Text(stringResource(R.string.settings_simultaneous), color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                    Text(stringResource(R.string.settings_simultaneous_desc), color = C_gray1, fontSize = 11.sp)
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Box(
@@ -456,49 +444,53 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 }
 
                 // 5. Biblioteca y Metadatos
-                SettingsHeader("Biblioteca y Metadatos", C_gray2)
+                SettingsHeader(stringResource(R.string.settings_section_library), C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                 ) {
                     Column {
-                        SettingsToggleRow(Icons.Default.Image, "Incrustar miniaturas", "Agrega portadas a los archivos", embedThumbnail, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedThumbnail = it }
+                        SettingsToggleRow(Icons.Default.Image, stringResource(R.string.settings_thumbnail), stringResource(R.string.settings_thumbnail_desc), embedThumbnail, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedThumbnail = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.AutoMirrored.Filled.Label, "Incrustar metadatos", "Título, artista, álbum", embedMetadata, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedMetadata = it }
+                        SettingsToggleRow(Icons.AutoMirrored.Filled.Label, stringResource(R.string.settings_metadata), stringResource(R.string.settings_metadata_desc), embedMetadata, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedMetadata = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.Subtitles, "Descargar subtítulos", "Incrustar subtítulos si existen", embedSubtitles, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedSubtitles = it }
+                        SettingsToggleRow(Icons.Default.Subtitles, stringResource(R.string.settings_subtitles), stringResource(R.string.settings_subtitles_desc), embedSubtitles, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedSubtitles = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.DeleteForever, "Confirmar eliminación", "Preguntar antes de borrar", confirmOnDelete, C_red, C_white, C_gray1, C_card2, C_border, C_bg) { confirmOnDelete = it }
+                        SettingsToggleRow(Icons.Default.DeleteForever, stringResource(R.string.settings_confirm_delete), stringResource(R.string.settings_confirm_delete_desc), confirmOnDelete, C_red, C_white, C_gray1, C_card2, C_border, C_bg) { confirmOnDelete = it }
                     }
                 }
 
                 // 6. Avanzado y Privacidad
-                SettingsHeader("Avanzado y Privacidad", C_gray2)
+                SettingsHeader(stringResource(R.string.settings_section_advanced), C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                 ) {
                     Column {
-                        SettingsToggleRow(Icons.Default.Block, "Bloqueo de sponsors", "Omitir partes patrocinadas", sponsorBlock, C_amber, C_white, C_gray1, C_card2, C_border, C_bg) { sponsorBlock = it }
+                        SettingsToggleRow(Icons.Default.Block, stringResource(R.string.settings_sponsorblock), stringResource(R.string.settings_sponsorblock_desc), sponsorBlock, C_amber, C_white, C_gray1, C_card2, C_border, C_bg) { sponsorBlock = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.Public, "Saltar bloqueos geográficos", "Usar nodos alternativos", bypassGeo, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { bypassGeo = it }
+                        SettingsToggleRow(Icons.Default.Public, stringResource(R.string.settings_geo_bypass), stringResource(R.string.settings_geo_bypass_desc), bypassGeo, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { bypassGeo = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.Dns, "Configurar Proxy", AppSettings.proxyUrl.ifEmpty { "Desactivado" }, C_accent, C_white, C_gray1, C_card2) { showProxyDialog = true }
+                        SettingsRow(Icons.Default.Dns, stringResource(R.string.settings_proxy), AppSettings.proxyUrl.ifEmpty { stringResource(R.string.settings_proxy_disabled) }, C_accent, C_white, C_gray1, C_card2) { showProxyDialog = true }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.Code, "Argumentos yt-dlp", AppSettings.customArguments.ifEmpty { "Por defecto" }, C_accent, C_white, C_gray1, C_card2) { showCustomArgsDialog = true }
+                        SettingsRow(Icons.Default.Code, stringResource(R.string.settings_yt_args), AppSettings.customArguments.ifEmpty { stringResource(R.string.settings_yt_args_default) }, C_accent, C_white, C_gray1, C_card2) { showCustomArgsDialog = true }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.ContentPaste, "Acción de portapapeles", AppSettings.clipboardAction, C_accent, C_white, C_gray1, C_card2) { showClipboardDialog = true }
+                        SettingsRow(Icons.Default.ContentPaste, stringResource(R.string.settings_clipboard_action), AppSettings.clipboardAction, C_accent, C_white, C_gray1, C_card2) { showClipboardDialog = true }
+                        HorizontalDivider(color = C_border, thickness = 1.dp)
+                        SettingsRow(Icons.Default.Cookie, stringResource(R.string.settings_cookies), if (AppSettings.cookies.isEmpty()) stringResource(R.string.settings_not_configured) else stringResource(R.string.settings_configured), C_accent, C_white, C_gray1, C_card2) {
+                            // Este no lo extraje aún, pero lo haré si es necesario. Ya tiene IDs.
+                        }
                     }
                 }
 
                 // 7. Almacenamiento
-                SettingsHeader("Almacenamiento", C_gray2)
+                SettingsHeader(stringResource(R.string.settings_section_storage), C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
                 ) {
                     Column {
-                        SettingsRow(Icons.Default.Folder, "Directorio de descarga", AppSettings.downloadLocation.substringAfterLast("/"), C_accent, C_white, C_gray1, C_card2) {
+                        SettingsRow(Icons.Default.Folder, stringResource(R.string.settings_download_dir), AppSettings.downloadLocation.substringAfterLast("/"), C_accent, C_white, C_gray1, C_card2) {
                             launcher.launch(null)
                         }
                     }
@@ -555,21 +547,21 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         Column {
                             Text(
                                 text = when(cacheState) {
-                                    1 -> "Limpiando..."
-                                    2 -> "Caché eliminado"
-                                    else -> "Limpiar caché"
+                                    1 -> stringResource(R.string.settings_clearing)
+                                    2 -> stringResource(R.string.settings_cache_cleared)
+                                    else -> stringResource(R.string.settings_clear_cache)
                                 }, 
                                 color = cacheAccent, 
                                 fontSize = 13.sp, 
                                 fontWeight = FontWeight.SemiBold
                             )
-                            Text("Libera espacio de archivos temporales", color = C_gray1, fontSize = 11.sp)
+                            Text(stringResource(R.string.settings_clear_cache_desc), color = C_gray1, fontSize = 11.sp)
                         }
                     }
                 }
                 
                 // 8. General
-                SettingsHeader("General", C_gray2)
+                SettingsHeader(stringResource(R.string.settings_section_general_header), C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
@@ -584,14 +576,14 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
                                     Icon(Icons.Default.Info, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
                                 }
-                                Text("Versión de la app", color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                Text(stringResource(R.string.settings_version_title), color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                             }
                             Box(modifier = Modifier.background(C_card2, RoundedCornerShape(20.dp)).border(1.dp, C_border, RoundedCornerShape(20.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
                                 Text("v${BuildConfig.VERSION_NAME}", color = C_gray1, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.Update, "Verificar actualizaciones", if (isCheckingUpdates) "Buscando..." else "Ver ahora", C_accent, C_white, C_gray1, C_card2) {
+                        SettingsRow(Icons.Default.Update, stringResource(R.string.settings_check_updates), if (isCheckingUpdates) stringResource(R.string.settings_update_searching) else stringResource(R.string.settings_update_now_btn), C_accent, C_white, C_gray1, C_card2) {
                             if (!isCheckingUpdates) {
                                 scope.launch {
                                     isCheckingUpdates = true
@@ -610,7 +602,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             }
                         }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.Code, "Repositorio GitHub", "Ver código", C_accent, C_white, C_gray1, C_card2) {
+                        SettingsRow(Icons.Default.Code, stringResource(R.string.settings_github_repo), stringResource(R.string.settings_view_code), C_accent, C_white, C_gray1, C_card2) {
                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/fabianfamr/FabiDownloader"))
                             ctx.startActivity(intent)
                         }
