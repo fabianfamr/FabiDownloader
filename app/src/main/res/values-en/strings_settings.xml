@@ -117,4 +117,7 @@
     <string name="settings_yt_args_config">yt-dlp Arguments</string>
     <string name="settings_clipboard_action_title">Clipboard action</string>
     <string name="settings_cookies_title">Configure Cookies (cookies.txt)</string>
+    <string name="settings_proxy_placeholder">http://127.0.0.1:8080</string>
+    <string name="settings_yt_args_placeholder">--restrict-filenames</string>
+    <string name="settings_error_prefix">Error: %1$s</string>
 </resources>

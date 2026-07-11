@@ -129,9 +129,9 @@ fun SharePopupScreen(
     val sizeText = remember(formatSizes) {
         if (formatSizes != null && formatSizes!!.isNotEmpty()) {
             val maxMb = formatSizes!!.values.maxOrNull() ?: 0.0
-            if (maxMb > 0.0) String.format(java.util.Locale.US, "%.1f MB", maxMb) else "Auto"
+            if (maxMb > 0.0) ctx.getString(R.string.share_size_mb, maxMb) else ctx.getString(R.string.share_size_auto)
         } else {
-            "Auto"
+            ctx.getString(R.string.share_size_auto)
         }
     }
     
@@ -158,7 +158,7 @@ fun SharePopupScreen(
             DownloadOption("music_128", "128 kbps", "MP3", "128", "Music"),
             DownloadOption("music_64", "64 kbps", "M4A", "64", "Music")
         ).map { option ->
-            option.copy(sizeStr = getOptionSize(option, formatSizes))
+            option.copy(sizeStr = getOptionSize(ctx, option, formatSizes))
         }
     }
     
@@ -169,7 +169,7 @@ fun SharePopupScreen(
             DownloadOption("video_480", "480p", "MP4", "480p", "Video"),
             DownloadOption("video_360", "360p", "MP4", "360p", "Video")
         ).map { option ->
-            option.copy(sizeStr = getOptionSize(option, formatSizes))
+            option.copy(sizeStr = getOptionSize(ctx, option, formatSizes))
         }
     }
     
@@ -789,7 +789,7 @@ fun FormatRow(
                     if (option.sizeStr == "X") {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_close),
-                            contentDescription = "No disponible",
+                            contentDescription = stringResource(R.string.share_not_available),
                             tint = Color(0xFFEF5350),
                             modifier = Modifier.size(11.dp)
                         )
@@ -834,14 +834,13 @@ fun FormatRow(
     }
 }
 
-fun getOptionSize(option: DownloadOption, formatSizes: Map<String, Double>?): String {
-    if (formatSizes == null) return "..."
-    if (formatSizes.isEmpty()) return "Auto"
+fun getOptionSize(ctx: android.content.Context, option: DownloadOption, formatSizes: Map<String, Double>?): String {
+    if (formatSizes == null) return ctx.getString(R.string.share_size_loading)
+    if (formatSizes.isEmpty()) return ctx.getString(R.string.share_size_auto)
     
-    val qKey = option.quality.lowercase() // ej: "1080p", "320"
-    val fKey = option.format.lowercase()  // ej: "mp4", "mp3"
+    val qKey = option.quality.lowercase() 
+    val fKey = option.format.lowercase() 
     
-    // El parseador usa claves como "video_1080p" o "audio_mp3"
     val sizeInMb = formatSizes[option.id] 
         ?: formatSizes[qKey]
         ?: formatSizes["video_$qKey"]
@@ -850,7 +849,7 @@ fun getOptionSize(option: DownloadOption, formatSizes: Map<String, Double>?): St
         ?: formatSizes.entries.find { it.key.contains(fKey, ignoreCase = true) }?.value
     
     if (sizeInMb != null && sizeInMb > 0.0) {
-        return String.format(java.util.Locale.US, "%.1f MB", sizeInMb)
+        return ctx.getString(R.string.share_size_mb, sizeInMb)
     }
     
     // Estimación si no se encuentra
@@ -865,7 +864,7 @@ fun getOptionSize(option: DownloadOption, formatSizes: Map<String, Double>?): St
         "video_360" -> 7.5
         else -> 15.0
     }
-    return String.format(java.util.Locale.US, "%.1f MB", estimate)
+    return ctx.getString(R.string.share_size_mb, estimate)
 }
 
 @Composable

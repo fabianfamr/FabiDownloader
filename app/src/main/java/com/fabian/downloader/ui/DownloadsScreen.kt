@@ -115,7 +115,7 @@ fun DownloadsScreen(
                 Toast.makeText(ctx, ctx.getString(R.string.main_error_file_not_found), Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Toast.makeText(ctx, "Error al compartir: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(ctx, ctx.getString(R.string.downloads_share_error_prefix, e.localizedMessage ?: ""), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -216,7 +216,7 @@ fun DownloadsScreen(
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(stringResource(R.string.downloads_copy_link), color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("URL: ${menuRecord!!.url.take(30)}...", color = C_gray1, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(stringResource(R.string.downloads_url_prefix, menuRecord!!.url.take(30)), color = C_gray1, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                     HorizontalDivider(color = C_border)
@@ -269,7 +269,7 @@ fun DownloadsScreen(
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(stringResource(R.string.downloads_copy_link), color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("URL: ${menuRecord!!.url.take(30)}...", color = C_gray1, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(stringResource(R.string.downloads_url_prefix, menuRecord!!.url.take(30)), color = C_gray1, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                     HorizontalDivider(color = C_border)
@@ -808,11 +808,12 @@ fun MobileDownloadingItem(
     val C_green = fColors.success
     val C_amber = fColors.amber
 
-    val isFailed = record.title.startsWith("Fallo: ")
+    val failedPrefix = stringResource(R.string.downloads_failed_prefix)
+    val isFailed = record.title.startsWith(failedPrefix)
     val cleanTitle = remember(record.title) {
         var t = record.title
-        while (t.startsWith("Fallo: ")) {
-            t = t.substringAfter("Fallo: ")
+        while (t.startsWith(failedPrefix)) {
+            t = t.substringAfter(failedPrefix)
         }
         t
     }

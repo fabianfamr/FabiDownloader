@@ -56,4 +56,7 @@
     <string name="downloads_filter_all">All</string>
     <string name="downloads_filter_music">Music</string>
     <string name="downloads_filter_video">Video</string>
+    <string name="downloads_share_error_prefix">Error sharing: %s</string>
+    <string name="downloads_url_prefix">URL: %s</string>
+    <string name="downloads_failed_prefix">Failed: </string>
 </resources>

@@ -275,7 +275,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     if (showProxyDialog) {
         InputDialog(
             title = stringResource(R.string.settings_proxy),
-            placeholder = "http://127.0.0.1:8080",
+            placeholder = stringResource(R.string.settings_proxy_placeholder),
             initialValue = AppSettings.proxyUrl,
             onConfirm = { AppSettings.proxyUrl = it },
             onDismiss = { showProxyDialog = false }
@@ -285,7 +285,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     if (showCustomArgsDialog) {
         InputDialog(
             title = stringResource(R.string.settings_yt_args),
-            placeholder = "--restrict-filenames",
+            placeholder = stringResource(R.string.settings_yt_args_placeholder),
             initialValue = AppSettings.customArguments,
             onConfirm = { AppSettings.customArguments = it },
             onDismiss = { showCustomArgsDialog = false }
@@ -476,10 +476,6 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         SettingsRow(Icons.Default.Code, stringResource(R.string.settings_yt_args), AppSettings.customArguments.ifEmpty { stringResource(R.string.settings_yt_args_default) }, C_accent, C_white, C_gray1, C_card2) { showCustomArgsDialog = true }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
                         SettingsRow(Icons.Default.ContentPaste, stringResource(R.string.settings_clipboard_action), AppSettings.clipboardAction, C_accent, C_white, C_gray1, C_card2) { showClipboardDialog = true }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.Cookie, stringResource(R.string.settings_cookies), if (AppSettings.cookies.isEmpty()) stringResource(R.string.settings_not_configured) else stringResource(R.string.settings_configured), C_accent, C_white, C_gray1, C_card2) {
-                            // Este no lo extraje aún, pero lo haré si es necesario. Ya tiene IDs.
-                        }
                     }
                 }
 
@@ -596,7 +592,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                             Toast.makeText(ctx, ctx.getString(R.string.settings_update_not_available), Toast.LENGTH_SHORT).show()
                                         }
                                     }.onFailure { e ->
-                                        Toast.makeText(ctx, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(ctx, ctx.getString(R.string.settings_error_prefix, e.message ?: ""), Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             }

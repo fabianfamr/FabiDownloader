@@ -413,7 +413,7 @@ fun MainScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Detectamos ",
+                            text = stringResource(R.string.main_detecting_prefix),
                             color = C_gray1,
                             fontSize = 14.sp
                         )
@@ -434,7 +434,7 @@ fun MainScreen(
                             }
                         }
                         Text(
-                            text = " automáticamente",
+                            text = stringResource(R.string.main_detecting_suffix),
                             color = C_gray1,
                             fontSize = 14.sp
                         )
@@ -638,7 +638,7 @@ fun MainScreen(
                                     strokeWidth = 2.dp
                                 )
                                 Text(
-                                    text = "Analizando...",
+                                    text = stringResource(R.string.main_analyzing_state),
                                     color = Color(0xFF0A0A0C),
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.ExtraBold
@@ -656,7 +656,7 @@ fun MainScreen(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
-                                    text = "¡Enlace Detectado!",
+                                    text = stringResource(R.string.main_link_detected_state),
                                     color = Color(0xFF0A0A0C),
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.ExtraBold
