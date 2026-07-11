@@ -15,7 +15,7 @@ data class UpdateInfo(
 
 object UpdateManager {
     private val client = OkHttpClient()
-    private const val GITHUB_API_URL = "https://api.github.com/repos/fabianfamr/FabiDownloader/releases/latest"
+    private val GITHUB_API_URL = Config.GITHUB_API_LATEST_RELEASE
 
     suspend fun checkForUpdates(): Result<UpdateInfo?> = withContext(Dispatchers.IO) {
         try {

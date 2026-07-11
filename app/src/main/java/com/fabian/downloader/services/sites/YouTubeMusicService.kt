@@ -12,7 +12,7 @@ class YouTubeMusicService : BaseSiteService() {
     override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         super.customizeExtractorRequest(request, url)
         request.addOption("--extractor-args", "youtube:player-client=android,web")
-        request.addOption("--user-agent", "com.google.android.youtube/19.29.37 (Linux; U; Android 14; en_US) gzip")
+        request.addOption("--user-agent", com.fabian.downloader.utils.Config.UA_YOUTUBE_MUSIC)
         request.addOption("--add-header", "X-Youtube-Client-Name: 3")
         request.addOption("--add-header", "X-Youtube-Client-Version: 19.29.37")
         request.addOption("--no-check-formats")
@@ -22,7 +22,7 @@ class YouTubeMusicService : BaseSiteService() {
     override fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
         super.customizeDownloaderRequest(request, url)
         request.addOption("--extractor-args", "youtube:player-client=android,web")
-        request.addOption("--user-agent", "com.google.android.youtube/19.29.37 (Linux; U; Android 14; en_US) gzip")
+        request.addOption("--user-agent", com.fabian.downloader.utils.Config.UA_YOUTUBE_MUSIC)
         request.addOption("--add-header", "X-Youtube-Client-Name: 3")
         request.addOption("--add-header", "X-Youtube-Client-Version: 19.29.37")
     }

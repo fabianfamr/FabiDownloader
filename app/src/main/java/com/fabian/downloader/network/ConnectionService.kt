@@ -10,7 +10,7 @@ class ConnectionService {
     suspend fun checkConnection(): Boolean = withContext(Dispatchers.IO) {
         try {
             val timeoutMs = 2500
-            val connection = URL("https://www.google.com").openConnection() as HttpURLConnection
+            val connection = URL(com.fabian.downloader.utils.Config.PING_URL).openConnection() as HttpURLConnection
             connection.connectTimeout = timeoutMs
             connection.readTimeout = timeoutMs
             connection.requestMethod = "HEAD"

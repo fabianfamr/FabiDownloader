@@ -1,5 +1,6 @@
 package com.fabian.downloader.services
 
+import com.fabian.downloader.utils.Config
 import android.os.Environment
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
@@ -61,7 +62,7 @@ class YtdlpDownloader {
             
             addOption("-o", "${destFolder.absolutePath}/$fileNameWithoutExt.%(ext)s")
             
-            val cookiesFile = java.io.File(com.fabian.downloader.MyApplication.getInstance().filesDir, "cookies.txt")
+            val cookiesFile = java.io.File(com.fabian.downloader.MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
             if (cookiesFile.exists() && cookiesFile.length() > 0) {
                 addOption("--cookies", cookiesFile.absolutePath)
             }
@@ -113,7 +114,7 @@ class YtdlpDownloader {
                 }
             }
             
-            addOption("--referer", "https://www.google.com/")
+            addOption("--referer", Config.REFERER_DEFAULT)
             addOption("--force-ipv4")
             addOption("--no-warnings")
 

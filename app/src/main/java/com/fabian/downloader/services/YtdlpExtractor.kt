@@ -1,5 +1,6 @@
 package com.fabian.downloader.services
 
+import com.fabian.downloader.utils.Config
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
 import android.util.Log
@@ -28,7 +29,7 @@ class YtdlpExtractor {
         val request = YoutubeDLRequest(videoUrl).apply {
             addOption("--dump-json")
             
-            val cookiesFile = java.io.File(com.fabian.downloader.MyApplication.getInstance().filesDir, "cookies.txt")
+            val cookiesFile = java.io.File(com.fabian.downloader.MyApplication.getInstance().filesDir, com.fabian.downloader.utils.Config.COOKIES_FILE_NAME)
             if (cookiesFile.exists() && cookiesFile.length() > 0) {
                 addOption("--cookies", cookiesFile.absolutePath)
             }
@@ -44,12 +45,12 @@ class YtdlpExtractor {
             if (isYoutube) {
                 // Configuración específica para YouTube para evadir bot detection y el límite de 70kb/s
                 addOption("--extractor-args", "youtube:player-client=android,web")
-                addOption("--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+                addOption("--user-agent", com.fabian.downloader.utils.Config.UA_DESKTOP)
                 addOption("--youtube-skip-dash-manifest")
             }
             
             addOption("--no-check-formats")
-            addOption("--referer", "https://www.google.com/")
+            addOption("--referer", com.fabian.downloader.utils.Config.REFERER_DEFAULT)
             addOption("--force-ipv4")
             addOption("--no-check-certificate")
             addOption("--geo-bypass")

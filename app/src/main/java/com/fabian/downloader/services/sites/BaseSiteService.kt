@@ -1,6 +1,7 @@
 package com.fabian.downloader.services.sites
 
 import android.util.Log
+import com.fabian.downloader.utils.Config
 import com.fabian.downloader.services.InfoMedia
 import com.fabian.downloader.services.YtdlpDownloader
 import com.fabian.downloader.services.YtdlpExtractor
@@ -17,7 +18,7 @@ abstract class BaseSiteService : SiteService {
 
     open fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         // Default request configurations
-        request.addOption("--referer", "https://www.google.com/")
+        request.addOption("--referer", Config.REFERER_DEFAULT)
         request.addOption("--force-ipv4")
         request.addOption("--geo-bypass")
         request.addOption("--quiet")
@@ -33,7 +34,7 @@ abstract class BaseSiteService : SiteService {
         request.addOption("--retries", "10")
         request.addOption("--fragment-retries", "10")
         request.addOption("--no-cache-dir")
-        request.addOption("--referer", "https://www.google.com/")
+        request.addOption("--referer", Config.REFERER_DEFAULT)
         request.addOption("--force-ipv4")
         request.addOption("--no-warnings")
     }
@@ -42,7 +43,7 @@ abstract class BaseSiteService : SiteService {
         val request = YoutubeDLRequest(url).apply {
             addOption("--dump-json")
             
-            val cookiesFile = File(com.fabian.downloader.MyApplication.getInstance().filesDir, "cookies.txt")
+            val cookiesFile = File(com.fabian.downloader.MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
             if (cookiesFile.exists() && cookiesFile.length() > 0) {
                 addOption("--cookies", cookiesFile.absolutePath)
             }

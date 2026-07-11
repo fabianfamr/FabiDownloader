@@ -8,7 +8,7 @@ import java.io.File
 object PathUtils {
     fun getDownloadFolder(context: Context, format: String): File {
         val isVideo = format.equals("MP4", ignoreCase = true) || format.equals("WEBM", ignoreCase = true)
-        val relativeSubfolder = if (isVideo) "FabiDownloader/video" else "FabiDownloader/audio"
+        val relativeSubfolder = if (isVideo) "${Config.APP_NAME}/video" else "${Config.APP_NAME}/audio"
         
         // 1. Try standard public Download/FabiDownloader/... (This is what the user expects!)
         val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
@@ -98,9 +98,9 @@ object PathUtils {
         
         // We support both FabiDownloader and Fabidownloader
         val subFolders = if (isVideo) {
-            listOf("FabiDownloader/video", "Fabidownloader/video")
+            listOf("${Config.APP_NAME}/video", "${Config.APP_NAME_LOWER.capitalize()}/video")
         } else {
-            listOf("FabiDownloader/audio", "Fabidownloader/audio")
+            listOf("${Config.APP_NAME}/audio", "${Config.APP_NAME_LOWER.capitalize()}/audio")
         }
         
         val folderList = mutableListOf<File>()

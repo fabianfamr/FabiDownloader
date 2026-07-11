@@ -17,7 +17,7 @@ class YouTubeService : BaseSiteService() {
         if (customUa.isNotEmpty()) {
             request.addOption("--user-agent", customUa)
         } else {
-            request.addOption("--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+            request.addOption("--user-agent", com.fabian.downloader.utils.Config.UA_DEFAULT_CHROME_WINDOWS)
         }
         
         request.addOption("--no-check-certificate")
@@ -33,7 +33,7 @@ class YouTubeService : BaseSiteService() {
         if (customUa.isNotEmpty()) {
             request.addOption("--user-agent", customUa)
         } else {
-            request.addOption("--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+            request.addOption("--user-agent", com.fabian.downloader.utils.Config.UA_DEFAULT_CHROME_WINDOWS)
         }
         
         request.addOption("--no-check-certificate")

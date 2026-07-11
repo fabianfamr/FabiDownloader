@@ -1,5 +1,6 @@
 package com.fabian.downloader.services
 
+import com.fabian.downloader.utils.Config
 import android.util.Log
 import com.fabian.downloader.services.sites.SiteServiceProvider
 import kotlinx.coroutines.Dispatchers
@@ -36,15 +37,15 @@ class ExtractionService {
             val encodedUrl = java.net.URLEncoder.encode(videoUrl, "UTF-8")
             val oEmbedUrl = when {
                 videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be") -> 
-                    "https://www.youtube.com/oembed?url=$encodedUrl&format=json"
+                    Config.YT_OEMBED_URL.format(encodedUrl)
                 videoUrl.contains("tiktok.com") -> 
-                    "https://www.tiktok.com/oembed?url=$encodedUrl"
+                    Config.TIKTOK_OEMBED_URL.format(encodedUrl)
                 else -> null
             } ?: return null
 
             val request = Request.Builder()
                 .url(oEmbedUrl)
-                .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+                .addHeader("User-Agent", Config.UA_DESKTOP)
                 .build()
             
             val call = client.newCall(request)
@@ -79,9 +80,9 @@ class ExtractionService {
 
     private fun scrapeHtmlMetadata(videoUrl: String, downloadId: Long? = null): Pair<String, String?>? {
         val userAgents = listOf(
-            "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
-            "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            Config.UA_FACEBOOK,
+            Config.UA_GOOGLEBOT,
+            Config.UA_DESKTOP
         )
 
         for (userAgent in userAgents) {
@@ -286,7 +287,7 @@ class ExtractionService {
         }
 
         val ytId = extractYoutubeVideoId(cleanUrl)
-        val fallbackThumbnail = if (ytId != null) "https://img.youtube.com/vi/$ytId/hqdefault.jpg" else null
+        val fallbackThumbnail = if (ytId != null) Config.YT_THUMBNAIL_URL.format(ytId) else null
 
         // 3. Try super fast oEmbed
         val oEmbed = getOEmbedInfo(cleanUrl, downloadId)
