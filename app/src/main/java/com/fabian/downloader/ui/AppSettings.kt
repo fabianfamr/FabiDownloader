@@ -13,7 +13,7 @@ import androidx.compose.runtime.setValue
 object AppSettings {
     private lateinit var prefs: SharedPreferences
 
-    val qualityOptions = listOf("360p", "480p", "720p", "1080p")
+    val qualityOptions = listOf("Mejor disponible", "4K (2160p)", "1080p Full HD", "720p HD", "480p SD", "360p", "Solo audio (MP3)")
     val videoFormats = listOf("MP4", "WEBM")
     val audioFormats = listOf("MP3", "M4A", "OGG")
     val themeOptions = listOf("Sistema", "Claro", "Oscuro")

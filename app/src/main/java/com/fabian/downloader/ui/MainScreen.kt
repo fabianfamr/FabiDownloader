@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import com.fabian.downloader.R
+import com.fabian.downloader.BuildConfig
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -274,7 +275,21 @@ fun MainScreen(
                         }
                     }
 
-
+                    // Version Pill (matching Ejemplo App.tsx)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(C_accentDim)
+                            .border(1.dp, C_accentGlow, RoundedCornerShape(20.dp))
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = "v${BuildConfig.VERSION_NAME}",
+                            color = C_accent,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 
@@ -301,8 +316,51 @@ fun MainScreen(
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 4.dp, bottom = 28.dp)
+                        modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
                     )
+
+                    // Platform badges (exactly as React Ejemplo App.tsx)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 28.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        platforms.forEach { p ->
+                            val active = detectedPlatform?.id == p.id
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(if (active) p.color.copy(alpha = 0.1f) else C_card)
+                                    .border(
+                                        width = 1.5.dp,
+                                        color = if (active) p.color.copy(alpha = 0.53f) else C_border,
+                                        shape = RoundedCornerShape(20.dp)
+                                    )
+                                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = p.icon,
+                                        contentDescription = null,
+                                        tint = if (active) p.color else C_gray1,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = p.label,
+                                        color = if (active) C_white else C_gray1,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
