@@ -827,10 +827,19 @@ fun MobileDownloadingItem(
         s.contains("internet")
     }
 
+    val statusColor by animateColorAsState(
+        targetValue = when {
+            isFailed -> C_red
+            record.isPaused -> C_amber
+            else -> C_accent
+        },
+        label = "statusColor"
+    )
+
     Surface(
         color = if (isSelected) C_accentDim else C_card,
         shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(if (isSelected) 2.dp else 1.dp, if (isSelected) C_accent else (if (isFailed) C_red.copy(alpha = 0.35f) else C_border)),
+        border = BorderStroke(if (isSelected) 2.dp else 1.5.dp, if (isSelected) C_accent else (if (isFailed) statusColor.copy(alpha = 0.35f) else C_border)),
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
@@ -900,7 +909,7 @@ fun MobileDownloadingItem(
                         Icon(
                             imageVector = if (isFailed) Icons.Default.Refresh else if (record.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
                             contentDescription = null,
-                            tint = if (isFailed) C_red else if (record.isPaused) C_amber else C_accent,
+                            tint = statusColor,
                             modifier = Modifier.size(14.dp)
                         )
                     }
@@ -941,7 +950,7 @@ fun MobileDownloadingItem(
                                 shape = RoundedCornerShape(6.dp)
                             ) {
                                 Text(
-                                    text = if (isNetworkError) stringResource(R.string.downloads_error_network) else stringResource(R.string.downloads_error_failed), 
+                                    text = if (isNetworkError) "Error de red — toca para reintentar" else "Error — toca para reintentar", 
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isNetworkError) C_amber else C_red,
@@ -964,174 +973,9 @@ fun MobileDownloadingItem(
                         }
                     }
                 }
-                var showMenu by remember { mutableStateOf(false) }
-                
-                Box {
-                    IconButton(
-                        onClick = { showMenu = true }, 
-                        modifier = Modifier
-                            .size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert, 
-                            contentDescription = "Opciones", 
-                            modifier = Modifier.size(18.dp), 
-                            tint = C_white
-                        )
-                    }
-                    
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false },
-                        modifier = Modifier.background(C_card2, RoundedCornerShape(12.dp))
-                    ) {
-                        if (isFailed) {
-                            DropdownMenuItem(
-                                text = { Text("Reintentar", color = C_white) },
-                                leadingIcon = { Icon(Icons.Default.Refresh, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
-                                onClick = { 
-                                    showMenu = false
-                                    onResume()
-                                }
-                            )
-                        } else {
-                            DropdownMenuItem(
-                                text = { Text(if (record.isPaused) "Reanudar" else "Pausar", color = C_white) },
-                                leadingIcon = { 
-                                    Icon(
-                                        if (record.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause, 
-                                        null, 
-                                        tint = C_accent, 
-                                        modifier = Modifier.size(18.dp)
-                                    ) 
-                                },
-                                onClick = { 
-                                    showMenu = false
-                                    if (record.isPaused) onResume() else onPause()
-                                }
-                            )
-                        }
-                        
-                        DropdownMenuItem(
-                            text = { Text("Copiar Enlace", color = C_white) },
-                            leadingIcon = { Icon(Icons.Default.ContentCopy, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
-                            onClick = { 
-                                showMenu = false
-                                val clipboard = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("URL", record.url))
-                                Toast.makeText(ctx, "Enlace copiado", Toast.LENGTH_SHORT).show()
-                            }
-                        )
-                        HorizontalDivider(color = C_border, thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
-                        DropdownMenuItem(
-                            text = { Text(if (isFailed) "Eliminar" else "Cancelar", color = C_red) },
-                            leadingIcon = { 
-                                Icon(
-                                    if (isFailed) Icons.Default.Delete else Icons.Default.Close, 
-                                    null, 
-                                    tint = C_red, 
-                                    modifier = Modifier.size(18.dp)
-                                ) 
-                            },
-                            onClick = { 
-                                showMenu = false
-                                onDelete()
-                            }
-                        )
-                    }
-                }
             }
-            
-            if (isFailed) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Surface(
-                    color = C_redDim,
-                    shape = RoundedCornerShape(14.dp),
-                    border = BorderStroke(1.dp, C_red.copy(alpha = 0.2f)),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onShowErrorDetails(record.size) }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            tint = C_red,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        val cleanErrorMsg = remember(record.size) {
-                            val msg = record.size
-                                .replace("Fallo: ", "")
-                                .replace("Fallo en yt-dlp: ", "")
-                                .replace("yt-dlp: ", "")
-                                .trim()
-                            
-                            when {
-                                msg.contains("Traceback", ignoreCase = true) -> ctx.getString(R.string.downloads_error_extractor)
-                                msg.contains("HTTP Error 403", ignoreCase = true) -> ctx.getString(R.string.downloads_error_denied)
-                                msg.contains("Video unavailable", ignoreCase = true) -> ctx.getString(R.string.downloads_error_unavailable)
-                                msg.contains("Incomplete read", ignoreCase = true) -> ctx.getString(R.string.downloads_error_incomplete)
-                                msg.contains("timeout", ignoreCase = true) -> ctx.getString(R.string.downloads_error_timeout)
-                                msg.contains("Downloading embed", ignoreCase = true) -> ctx.getString(R.string.downloads_error_embed)
-                                else -> msg.ifEmpty { ctx.getString(R.string.downloads_error_unknown) }
-                            }
-                        }
-                        Text(
-                            text = cleanErrorMsg,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = C_white,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
-                        @Suppress("DEPRECATION")
-                        val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
-                        IconButton(
-                            onClick = {
-                                clipboardManager.setText(AnnotatedString(record.size))
-                                Toast.makeText(ctx, ctx.getString(R.string.downloads_error_copied), Toast.LENGTH_SHORT).show()
-                            },
-                            modifier = Modifier.size(24.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ContentCopy,
-                                contentDescription = stringResource(R.string.downloads_copy_error_icon),
-                                tint = C_red,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    FilledTonalButton(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.filledTonalButtonColors(containerColor = C_redDim, contentColor = C_red),
-                        shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(stringResource(R.string.downloads_delete_button), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    }
-                    
-                    Button(
-                        onClick = onResume,
-                        colors = ButtonDefaults.buttonColors(containerColor = C_accent, contentColor = Color(0xFF0A0A0C)),
-                        shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier.weight(1.4f)
-                    ) {
-                        Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(stringResource(R.string.downloads_retry_button), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    }
-                }
-            } else {
+
+            if (!isFailed) {
                 Spacer(modifier = Modifier.height(14.dp))
                 
                 Row(
@@ -1143,7 +987,7 @@ fun MobileDownloadingItem(
                         text = if (record.progress < 0) stringResource(R.string.downloads_connecting) else "${record.progress}%", 
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
-                        color = C_accent,
+                        color = statusColor,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -1173,7 +1017,7 @@ fun MobileDownloadingItem(
                             .fillMaxWidth()
                             .height(3.dp)
                             .clip(CircleShape),
-                        color = C_accent,
+                        color = statusColor,
                         trackColor = C_border,
                         strokeCap = StrokeCap.Round
                     )
@@ -1184,7 +1028,7 @@ fun MobileDownloadingItem(
                             .fillMaxWidth()
                             .height(3.dp)
                             .clip(CircleShape),
-                        color = C_accent,
+                        color = statusColor,
                         trackColor = C_border,
                         strokeCap = StrokeCap.Round
                     )
