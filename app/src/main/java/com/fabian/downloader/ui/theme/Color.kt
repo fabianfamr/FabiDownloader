@@ -18,3 +18,11 @@ val RedDim = Color(0x1FEF5350) // rgba(239,83,80,0.12)
 val Green = Color(0xFF2ECC71)
 val Amber = Color(0xFFF59E0B)
 val Sheet = Color(0xFF111114)
+
+// Accent Palette
+val AccentBlue = Color(0xFF00E5FF)
+val AccentGreen = Color(0xFF00E676)
+val AccentPurple = Color(0xFFD500F9)
+val AccentOrange = Color(0xFFFF6D00)
+val AccentPink = Color(0xFFFF4081)
+val AccentSteel = Color(0xFF607D8B)

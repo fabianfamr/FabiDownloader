@@ -91,11 +91,28 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var showClipboardDialog by remember { mutableStateOf(false) }
 
     var notificationsEnabled by remember { mutableStateOf(AppSettings.notificationsEnabled) }
+    var showSpeedInNotif by remember { mutableStateOf(AppSettings.showDownloadSpeedInNotification) }
+    var vibrateOnComplete by remember { mutableStateOf(AppSettings.vibrateOnComplete) }
+    var soundOnComplete by remember { mutableStateOf(AppSettings.soundOnComplete) }
+
+    var useExternalPlayer by remember { mutableStateOf(AppSettings.useExternalPlayer) }
+    var keepHistory by remember { mutableStateOf(AppSettings.keepHistory) }
+    var autoRetry by remember { mutableStateOf(AppSettings.autoRetry) }
+
+    var dynamicColor by remember { mutableStateOf(AppSettings.dynamicColor) }
+    var showAccentDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(maxConcurrent) { AppSettings.maxConcurrentDownloads = maxConcurrent }
     LaunchedEffect(autoDownload) { AppSettings.clipboardAction = if (autoDownload) "auto" else "disabled" }
     LaunchedEffect(wifiOnly) { AppSettings.dataSaverEnabled = wifiOnly }
     LaunchedEffect(notificationsEnabled) { AppSettings.notificationsEnabled = notificationsEnabled }
+    LaunchedEffect(showSpeedInNotif) { AppSettings.showDownloadSpeedInNotification = showSpeedInNotif }
+    LaunchedEffect(vibrateOnComplete) { AppSettings.vibrateOnComplete = vibrateOnComplete }
+    LaunchedEffect(soundOnComplete) { AppSettings.soundOnComplete = soundOnComplete }
+    LaunchedEffect(useExternalPlayer) { AppSettings.useExternalPlayer = useExternalPlayer }
+    LaunchedEffect(keepHistory) { AppSettings.keepHistory = keepHistory }
+    LaunchedEffect(autoRetry) { AppSettings.autoRetry = autoRetry }
+    LaunchedEffect(dynamicColor) { AppSettings.dynamicColor = dynamicColor }
     LaunchedEffect(embedSubtitles) { AppSettings.embedSubtitles = embedSubtitles }
     LaunchedEffect(embedThumbnail) { AppSettings.embedThumbnail = embedThumbnail }
     LaunchedEffect(embedMetadata) { AppSettings.embedMetadata = embedMetadata }
@@ -179,6 +196,19 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         )
     }
 
+    if (showAccentDialog) {
+        SelectionDialog(
+            title = "Color de Acento",
+            options = AppSettings.accentColorOptions,
+            selectedOption = AppSettings.accentColorName,
+            onSelection = {
+                AppSettings.accentColorName = it
+                showAccentDialog = false
+            },
+            onDismiss = { showAccentDialog = false }
+        )
+    }
+
     if (showProxyDialog) {
         InputDialog(
             title = "Configurar Proxy",
@@ -239,8 +269,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                // 1. Personalización
-                SettingsHeader("Personalización", C_gray2)
+                // 1. Apariencia y Estética
+                SettingsHeader("Apariencia y Estética", C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -250,11 +280,51 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             showThemeDialog = true
                         }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.Notifications, "Notificaciones", "Alertas de finalización", notificationsEnabled, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { notificationsEnabled = it }
+                        SettingsToggleRow(Icons.Default.Palette, "Color dinámico", "Usar colores del sistema (Android 12+)", dynamicColor, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { dynamicColor = it }
+                        if (!dynamicColor) {
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.ColorLens, "Color de acento", AppSettings.accentColorName, C_accent, C_white, C_gray1, C_card2) {
+                                showAccentDialog = true
+                            }
+                        }
                     }
                 }
 
-                // 2. Red y Descargas
+                // 2. Notificaciones y Alertas
+                SettingsHeader("Notificaciones y Alertas", C_gray2)
+                Surface(
+                    color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                ) {
+                    Column {
+                        SettingsToggleRow(Icons.Default.Notifications, "Notificaciones globales", "Activar/Desactivar avisos", notificationsEnabled, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { notificationsEnabled = it }
+                        if (notificationsEnabled) {
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.Speed, "Mostrar velocidad", "En la barra de notificaciones", showSpeedInNotif, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showSpeedInNotif = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.Vibration, "Vibrar al finalizar", "Feedback háptico", vibrateOnComplete, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { vibrateOnComplete = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.VolumeUp, "Sonido al finalizar", "Alerta sonora", soundOnComplete, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { soundOnComplete = it }
+                        }
+                    }
+                }
+
+                // 3. Comportamiento y Reproducción
+                SettingsHeader("Comportamiento y Reproducción", C_gray2)
+                Surface(
+                    color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                ) {
+                    Column {
+                        SettingsToggleRow(Icons.Default.OpenInNew, "Reproductor externo", "Abrir videos con app externa", useExternalPlayer, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { useExternalPlayer = it }
+                        HorizontalDivider(color = C_border, thickness = 1.dp)
+                        SettingsToggleRow(Icons.Default.History, "Mantener historial", "Guardar lista de descargas", keepHistory, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { keepHistory = it }
+                        HorizontalDivider(color = C_border, thickness = 1.dp)
+                        SettingsToggleRow(Icons.Default.Replay, "Reintento automático", "Reintentar si falla la red", autoRetry, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoRetry = it }
+                    }
+                }
+
+                // 4. Red y Descargas
                 SettingsHeader("Red y Descargas", C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
@@ -316,7 +386,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
                 }
 
-                // 3. Biblioteca y Metadatos
+                // 5. Biblioteca y Metadatos
                 SettingsHeader("Biblioteca y Metadatos", C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
@@ -333,7 +403,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
                 }
 
-                // 4. Avanzado y Privacidad
+                // 6. Avanzado y Privacidad
                 SettingsHeader("Avanzado y Privacidad", C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
@@ -352,7 +422,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
                 }
 
-                // 5. Almacenamiento
+                // 7. Almacenamiento
                 SettingsHeader("Almacenamiento", C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
@@ -429,7 +499,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
                 }
                 
-                // 6. General
+                // 8. General
                 SettingsHeader("General", C_gray2)
                 Surface(
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),

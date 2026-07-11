@@ -199,6 +199,73 @@ object AppSettings {
             saveBoolean("bypassGeo", value)
         }
 
+    private val _useExternalPlayer = mutableStateOf(false)
+    var useExternalPlayer: Boolean
+        get() = _useExternalPlayer.value
+        set(value) {
+            _useExternalPlayer.value = value
+            saveBoolean("useExternalPlayer", value)
+        }
+
+    private val _vibrateOnComplete = mutableStateOf(true)
+    var vibrateOnComplete: Boolean
+        get() = _vibrateOnComplete.value
+        set(value) {
+            _vibrateOnComplete.value = value
+            saveBoolean("vibrateOnComplete", value)
+        }
+
+    private val _soundOnComplete = mutableStateOf(true)
+    var soundOnComplete: Boolean
+        get() = _soundOnComplete.value
+        set(value) {
+            _soundOnComplete.value = value
+            saveBoolean("soundOnComplete", value)
+        }
+
+    private val _showDownloadSpeedInNotification = mutableStateOf(true)
+    var showDownloadSpeedInNotification: Boolean
+        get() = _showDownloadSpeedInNotification.value
+        set(value) {
+            _showDownloadSpeedInNotification.value = value
+            saveBoolean("showDownloadSpeedInNotification", value)
+        }
+
+    private val _keepHistory = mutableStateOf(true)
+    var keepHistory: Boolean
+        get() = _keepHistory.value
+        set(value) {
+            _keepHistory.value = value
+            saveBoolean("keepHistory", value)
+        }
+
+    private val _autoRetry = mutableStateOf(false)
+    var autoRetry: Boolean
+        get() = _autoRetry.value
+        set(value) {
+            _autoRetry.value = value
+            saveBoolean("autoRetry", value)
+        }
+
+    private val _dynamicColor = mutableStateOf(true)
+    val dynamicColorState: androidx.compose.runtime.State<Boolean> get() = _dynamicColor
+    var dynamicColor: Boolean
+        get() = _dynamicColor.value
+        set(value) {
+            _dynamicColor.value = value
+            saveBoolean("dynamicColor", value)
+        }
+
+    private val _accentColorName = mutableStateOf("Azul Eléctrico")
+    val accentColorNameState: androidx.compose.runtime.State<String> get() = _accentColorName
+    val accentColorOptions = listOf("Azul Eléctrico", "Verde Esmeralda", "Púrpura Real", "Naranja Sunset", "Rosa Hot", "Gris Acero")
+    var accentColorName: String
+        get() = _accentColorName.value
+        set(value) {
+            _accentColorName.value = value
+            saveString("accentColorName", value)
+        }
+
     fun init(context: Context) {
         prefs = context.getSharedPreferences("fabi_downloader_prefs", Context.MODE_PRIVATE)
         
@@ -225,6 +292,15 @@ object AppSettings {
         _embedThumbnail.value = prefs.getBoolean("embedThumbnail", true)
         _embedMetadata.value = prefs.getBoolean("embedMetadata", true)
         _bypassGeo.value = prefs.getBoolean("bypassGeo", true)
+
+        _useExternalPlayer.value = prefs.getBoolean("useExternalPlayer", false)
+        _vibrateOnComplete.value = prefs.getBoolean("vibrateOnComplete", true)
+        _soundOnComplete.value = prefs.getBoolean("soundOnComplete", true)
+        _showDownloadSpeedInNotification.value = prefs.getBoolean("showDownloadSpeedInNotification", true)
+        _keepHistory.value = prefs.getBoolean("keepHistory", true)
+        _autoRetry.value = prefs.getBoolean("autoRetry", false)
+        _dynamicColor.value = prefs.getBoolean("dynamicColor", true)
+        _accentColorName.value = prefs.getString("accentColorName", "Azul Eléctrico") ?: "Azul Eléctrico"
     }
 
     private fun saveString(key: String, value: String) {

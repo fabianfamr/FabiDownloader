@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.compose.ui.platform.LocalContext
 
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
@@ -110,17 +111,66 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun MyApplicationTheme(
     themePreference: String = "Sistema",
-    dynamicColor: Boolean = false,
+    dynamicColor: Boolean = true,
+    accentColorName: String = "Azul Eléctrico",
     content: @Composable () -> Unit,
 ) {
+    val context = LocalContext.current
     val darkTheme = when (themePreference) {
         "Claro" -> false
         "Oscuro" -> true
         else -> isSystemInDarkTheme()
     }
     
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-    val fabiColors = if (darkTheme) DarkFabiColors else LightFabiColors
+    // Choose accent base
+    val selectedAccent = if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        null // Will use dynamic
+    } else {
+        when (accentColorName) {
+            "Verde Esmeralda" -> AccentGreen
+            "Púrpura Real" -> AccentPurple
+            "Naranja Sunset" -> AccentOrange
+            "Rosa Hot" -> AccentPink
+            "Gris Acero" -> AccentSteel
+            else -> AccentBlue
+        }
+    }
+
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> {
+            if (selectedAccent != null) {
+                DarkColorScheme.copy(
+                    primary = selectedAccent,
+                    secondary = selectedAccent,
+                    primaryContainer = selectedAccent.copy(alpha = 0.15f)
+                )
+            } else DarkColorScheme
+        }
+        else -> {
+             if (selectedAccent != null) {
+                LightColorScheme.copy(
+                    primary = selectedAccent,
+                    secondary = selectedAccent
+                )
+            } else LightColorScheme
+        }
+    }
+
+    val fabiColors = if (darkTheme) {
+        if (selectedAccent != null) {
+            DarkFabiColors.copy(
+                accent = selectedAccent,
+                accentDim = selectedAccent.copy(alpha = 0.10f),
+                accentGlow = selectedAccent.copy(alpha = 0.22f)
+            )
+        } else DarkFabiColors
+    } else {
+        // Fallback or Light colors if we defined them properly
+        DarkFabiColors
+    }
 
     val view = LocalView.current
     if (!view.isInEditMode) {

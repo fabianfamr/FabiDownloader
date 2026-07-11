@@ -40,7 +40,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val themePreference by com.fabian.downloader.ui.AppSettings.themePreferenceState
-            MyApplicationTheme(themePreference = themePreference) {
+            val dynamicColor by com.fabian.downloader.ui.AppSettings.dynamicColorState
+            val accentColorName by com.fabian.downloader.ui.AppSettings.accentColorNameState
+            
+            MyApplicationTheme(
+                themePreference = themePreference,
+                dynamicColor = dynamicColor,
+                accentColorName = accentColorName
+            ) {
                 FabiDownloaderApp(
                     database = database,
                     startOnDownloads = startOnDownloadsState.value,
