@@ -57,6 +57,8 @@ import com.fabian.downloader.database.DownloadRecord
 import kotlinx.coroutines.launch
 import java.io.File
 
+enum class AnalyzeState { Idle, Loading, Success }
+
 @Composable
 fun MainScreen(
     database: AppDatabase, 
@@ -205,7 +207,7 @@ fun MainScreen(
         }
     }
 
-    var isAnalyzingState by remember { mutableStateOf(false) }
+    var analyzeState by remember { mutableStateOf(AnalyzeState.Idle) }
 
     val infiniteTransition = rememberInfiniteTransition(label = "orbit")
     val orbitAngle by infiniteTransition.animateFloat(
@@ -456,7 +458,7 @@ fun MainScreen(
                         value = query,
                         onValueChange = { 
                             query = it 
-                            isAnalyzingState = false
+                            analyzeState = AnalyzeState.Idle
                         },
                         textStyle = androidx.compose.ui.text.TextStyle(
                             color = C_white,
@@ -578,7 +580,6 @@ fun MainScreen(
                     }
                 }
             }
-
             // Big CTA Button (stringResource(R.string.main_analyze_button) - exactly as React App.tsx)
             AnimatedVisibility(
                 visible = searchBarVisible,
@@ -587,29 +588,35 @@ fun MainScreen(
                 val isQueryValid = query.isNotEmpty() && (query.startsWith("http") || query.contains("."))
                 Button(
                     onClick = {
-                        if (isQueryValid && !isAnalyzingState) {
+                        if (isQueryValid && analyzeState == AnalyzeState.Idle) {
                             scope.launch {
-                                isAnalyzingState = true
-                                // Simulate elegant analysis delay to mirror the Figma prototype transition
-                                kotlinx.coroutines.delay(800)
-                                isAnalyzingState = false
+                                analyzeState = AnalyzeState.Loading
+                                // Simulate elegant analysis delay
+                                delay(2000)
+                                analyzeState = AnalyzeState.Success
+                                delay(1200)
                                 viewModel.saveSearch(query)
                                 urlToDownloadInDialog = query
                                 query = ""
+                                analyzeState = AnalyzeState.Idle
                             }
-                        } else if (query.isNotEmpty()) {
+                        } else if (query.isNotEmpty() && analyzeState == AnalyzeState.Idle) {
                             android.widget.Toast.makeText(ctx, ctx.getString(R.string.main_invalid_link), android.widget.Toast.LENGTH_SHORT).show()
                         }
                     },
-                    enabled = query.isNotEmpty(),
+                    enabled = query.isNotEmpty() && analyzeState != AnalyzeState.Loading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp)
                         .testTag("submit_link_button"),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isAnalyzingState) C_green else if (isQueryValid) C_accent else C_card2,
-                        contentColor = if (isQueryValid) Color(0xFF0A0A0C) else C_gray2,
+                        containerColor = when(analyzeState) {
+                            AnalyzeState.Success -> C_green
+                            AnalyzeState.Loading -> C_accent.copy(alpha = 0.5f)
+                            else -> if (isQueryValid) C_accent else C_card2
+                        },
+                        contentColor = if (isQueryValid || analyzeState != AnalyzeState.Idle) Color(0xFF0A0A0C) else C_gray2,
                         disabledContainerColor = C_card2,
                         disabledContentColor = C_gray2
                     ),
@@ -620,7 +627,7 @@ fun MainScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (isAnalyzingState) {
+                        if (analyzeState == AnalyzeState.Loading) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -631,7 +638,25 @@ fun MainScreen(
                                     strokeWidth = 2.dp
                                 )
                                 Text(
-                                    text = stringResource(R.string.main_analyzing),
+                                    text = "Analizando...",
+                                    color = Color(0xFF0A0A0C),
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                            }
+                        } else if (analyzeState == AnalyzeState.Success) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = Color(0xFF0A0A0C),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = "¡Enlace Detectado!",
                                     color = Color(0xFF0A0A0C),
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.ExtraBold
@@ -643,10 +668,10 @@ fun MainScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Search,
+                                    imageVector = Icons.Default.AutoAwesome,
                                     contentDescription = null,
                                     tint = if (isQueryValid) Color(0xFF0A0A0C) else C_gray2,
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                                 Text(
                                     text = stringResource(R.string.main_analyze_button),
@@ -659,6 +684,7 @@ fun MainScreen(
                     }
                 }
             }
+
 
             Spacer(modifier = Modifier.height(36.dp))
 

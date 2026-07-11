@@ -69,6 +69,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     val C_amber = fColors.amber
     val C_red = fColors.error
 
+    var cacheState by remember { mutableStateOf(0) } // 0: Idle, 1: Clearing, 2: Done
+
     // State bindings to AppSettings
     var maxConcurrent by remember { mutableStateOf(AppSettings.maxConcurrentDownloads) }
     var autoDownload by remember { mutableStateOf(AppSettings.clipboardAction == "auto") }
@@ -80,8 +82,6 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var sponsorBlock by remember { mutableStateOf(AppSettings.sponsorBlockEnabled) }
     var bypassGeo by remember { mutableStateOf(AppSettings.bypassGeo) }
     
-    var cacheCleared by remember { mutableStateOf(false) }
-
     var showSpeedDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
 
@@ -366,19 +366,37 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 }
 
                 // Clear Cache
-                val cacheBg = if (cacheCleared) Color(0xFF0E1F0E) else Color(0xFF18110A)
-                val cacheBorder = if (cacheCleared) C_green.copy(alpha = 0.33f) else C_amber.copy(alpha = 0.26f)
-                val cacheIconBg = if (cacheCleared) C_green.copy(alpha = 0.13f) else C_amber.copy(alpha = 0.13f)
-                val cacheAccent = if (cacheCleared) C_green else C_amber
+                val cacheBg = when(cacheState) {
+                    2 -> Color(0xFF0E1F0E)
+                    1 -> Color(0xFF1A1A1E)
+                    else -> Color(0xFF18110A)
+                }
+                val cacheBorder = when(cacheState) {
+                    2 -> C_green.copy(alpha = 0.33f)
+                    1 -> C_accent.copy(alpha = 0.2f)
+                    else -> C_amber.copy(alpha = 0.26f)
+                }
+                val cacheIconBg = when(cacheState) {
+                    2 -> C_green.copy(alpha = 0.13f)
+                    1 -> C_accent.copy(alpha = 0.13f)
+                    else -> C_amber.copy(alpha = 0.13f)
+                }
+                val cacheAccent = when(cacheState) {
+                    2 -> C_green
+                    1 -> C_accent
+                    else -> C_amber
+                }
 
                 Surface(
                     color = cacheBg, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, cacheBorder),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp).clickable {
-                        if (!cacheCleared) {
-                            cacheCleared = true
+                        if (cacheState == 0) {
                             scope.launch {
+                                cacheState = 1
                                 delay(2200)
-                                cacheCleared = false
+                                cacheState = 2
+                                delay(2000)
+                                cacheState = 0
                             }
                         }
                     }
@@ -388,11 +406,24 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(modifier = Modifier.size(32.dp).background(cacheIconBg, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                            Icon(imageVector = if (cacheCleared) Icons.Default.Check else Icons.Default.Delete, contentDescription = null, tint = cacheAccent, modifier = Modifier.size(16.dp))
+                            if (cacheState == 1) {
+                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = C_accent)
+                            } else {
+                                Icon(imageVector = if (cacheState == 2) Icons.Default.Check else Icons.Default.Delete, contentDescription = null, tint = cacheAccent, modifier = Modifier.size(16.dp))
+                            }
                         }
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
-                            Text(if (cacheCleared) "Caché eliminado" else "Limpiar caché", color = cacheAccent, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                text = when(cacheState) {
+                                    1 -> "Limpiando..."
+                                    2 -> "Caché eliminado"
+                                    else -> "Limpiar caché"
+                                }, 
+                                color = cacheAccent, 
+                                fontSize = 13.sp, 
+                                fontWeight = FontWeight.SemiBold
+                            )
                             Text("Libera espacio de archivos temporales", color = C_gray1, fontSize = 11.sp)
                         }
                     }

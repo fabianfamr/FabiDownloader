@@ -1153,8 +1153,8 @@ fun MobileDownloadingItem(
                     LinearProgressIndicator(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
+                            .height(3.dp)
+                            .clip(CircleShape),
                         color = C_accent,
                         trackColor = C_border,
                         strokeCap = StrokeCap.Round
@@ -1164,8 +1164,8 @@ fun MobileDownloadingItem(
                         progress = { animatedProgress },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
+                            .height(3.dp)
+                            .clip(CircleShape),
                         color = C_accent,
                         trackColor = C_border,
                         strokeCap = StrokeCap.Round
