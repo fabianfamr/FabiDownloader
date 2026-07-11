@@ -36,4 +36,9 @@
     <string name="settings_cookies_saved">Cookies saved successfully</string>
     <string name="settings_save_button">Save</string>
     <string name="settings_cancel_button">Cancel</string>
+    <string name="settings_check_updates">Check for updates</string>
+    <string name="settings_update_available_title">Update available</string>
+    <string name="settings_update_available_msg">A new version (%1$s) is available. Would you like to download it?</string>
+    <string name="settings_update_not_available">You already have the latest version</string>
+    <string name="settings_update_checking">Checking for updates...</string>
 </resources>

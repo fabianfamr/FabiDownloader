@@ -32,6 +32,10 @@ import androidx.compose.ui.unit.sp
 import com.fabian.downloader.BuildConfig
 import com.fabian.downloader.R
 import com.fabian.downloader.ui.theme.*
+import com.fabian.downloader.utils.UpdateManager
+import com.fabian.downloader.utils.UpdateInfo
+import android.content.Intent
+import androidx.compose.material.icons.automirrored.filled.Label
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -130,6 +134,71 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var showQualityDialog by remember { mutableStateOf(false) }
 
     var showThreadsDialog by remember { mutableStateOf(false) }
+    
+    var isCheckingUpdates by remember { mutableStateOf(false) }
+    var updateFound by remember { mutableStateOf<UpdateInfo?>(null) }
+
+    if (updateFound != null) {
+        AlertDialog(
+            onDismissRequest = { updateFound = null },
+            containerColor = Color(0xFF161619),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(Icons.Default.NewReleases, contentDescription = null, tint = C_accent)
+                    Text(stringResource(R.string.settings_update_available_title), color = C_white)
+                }
+            },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.settings_update_available_msg, updateFound!!.latestVersion),
+                        color = C_white
+                    )
+                    if (updateFound!!.releaseNotes.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Cambios en esta versión:",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = C_accent
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 200.dp)
+                                .verticalScroll(rememberScrollState())
+                                .background(C_card2, RoundedCornerShape(8.dp))
+                                .padding(8.dp)
+                        ) {
+                            Text(
+                                text = updateFound!!.releaseNotes,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = C_gray1
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateFound!!.downloadUrl))
+                        ctx.startActivity(intent)
+                        updateFound = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = C_accent, contentColor = Color.Black)
+                ) {
+                    Text("Actualizar ahora")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { updateFound = null }) {
+                    Text("Más tarde", color = C_gray1)
+                }
+            },
+            shape = RoundedCornerShape(24.dp)
+        )
+    }
 
     if (showQualityDialog) {
         SelectionDialog(
@@ -395,7 +464,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     Column {
                         SettingsToggleRow(Icons.Default.Image, "Incrustar miniaturas", "Agrega portadas a los archivos", embedThumbnail, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedThumbnail = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.Label, "Incrustar metadatos", "Título, artista, álbum", embedMetadata, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedMetadata = it }
+                        SettingsToggleRow(Icons.AutoMirrored.Filled.Label, "Incrustar metadatos", "Título, artista, álbum", embedMetadata, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedMetadata = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
                         SettingsToggleRow(Icons.Default.Subtitles, "Descargar subtítulos", "Incrustar subtítulos si existen", embedSubtitles, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedSubtitles = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
@@ -505,19 +574,45 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                     modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(14.dp, 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.Info, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                    Column {
+                        Row(
+                            modifier = Modifier.padding(14.dp, 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Default.Info, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                                }
+                                Text("Versión de la app", color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                             }
-                            Text("Versión de la app", color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                            Box(modifier = Modifier.background(C_card2, RoundedCornerShape(20.dp)).border(1.dp, C_border, RoundedCornerShape(20.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
+                                Text("v${BuildConfig.VERSION_NAME}", color = C_gray1, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
-                        Box(modifier = Modifier.background(C_card2, RoundedCornerShape(20.dp)).border(1.dp, C_border, RoundedCornerShape(20.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
-                            Text("v${BuildConfig.VERSION_NAME}", color = C_gray1, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        HorizontalDivider(color = C_border, thickness = 1.dp)
+                        SettingsRow(Icons.Default.Update, "Verificar actualizaciones", if (isCheckingUpdates) "Buscando..." else "Ver ahora", C_accent, C_white, C_gray1, C_card2) {
+                            if (!isCheckingUpdates) {
+                                scope.launch {
+                                    isCheckingUpdates = true
+                                    val result = UpdateManager.checkForUpdates()
+                                    isCheckingUpdates = false
+                                    result.onSuccess { info ->
+                                        if (info != null && UpdateManager.isNewerVersion(info.latestVersion, BuildConfig.VERSION_NAME)) {
+                                            updateFound = info
+                                        } else {
+                                            Toast.makeText(ctx, ctx.getString(R.string.settings_update_not_available), Toast.LENGTH_SHORT).show()
+                                        }
+                                    }.onFailure { e ->
+                                        Toast.makeText(ctx, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+                        }
+                        HorizontalDivider(color = C_border, thickness = 1.dp)
+                        SettingsRow(Icons.Default.Code, "Repositorio GitHub", "Ver código", C_accent, C_white, C_gray1, C_card2) {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/fabianfamr/FabiDownloader"))
+                            ctx.startActivity(intent)
                         }
                     }
                 }

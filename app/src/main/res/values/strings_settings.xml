@@ -28,4 +28,17 @@
     <string name="settings_open">Abrir</string>
     <string name="settings_license">Licencia</string>
     <string name="settings_license_value">Licencia MIT - Código Abierto</string>
+    <string name="settings_cookies">Configurar Cookies (cookies.txt)</string>
+    <string name="settings_configured">Configurado</string>
+    <string name="settings_not_configured">No configurado</string>
+    <string name="settings_cookies_description">Pega el contenido de un archivo cookies.txt en formato Netscape para descargas con restricción de edad, contenido privado o límites (ej. Instagram privado o YouTube).</string>
+    <string name="settings_cookies_placeholder"># Netscape HTTP Cookie File...</string>
+    <string name="settings_cookies_saved">Cookies guardadas con éxito</string>
+    <string name="settings_save_button">Guardar</string>
+    <string name="settings_cancel_button">Cancelar</string>
+    <string name="settings_check_updates">Verificar actualizaciones</string>
+    <string name="settings_update_available_title">Actualización disponible</string>
+    <string name="settings_update_available_msg">Hay una nueva versión (%1$s) disponible. ¿Deseas descargarla?</string>
+    <string name="settings_update_not_available">Ya tienes la última versión</string>
+    <string name="settings_update_checking">Buscando actualizaciones...</string>
 </resources>
