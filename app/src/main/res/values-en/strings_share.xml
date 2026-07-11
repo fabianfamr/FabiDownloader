@@ -22,7 +22,7 @@
     <string name="share_not_now">Not now</string>
     <string name="share_view">View</string>
     <string name="share_size_mb">%1$.1f MB</string>
-    <string name="share_size_auto">Auto</string>
+    <string name="share_size_auto">...</string>
     <string name="share_size_loading">...</string>
     <string name="share_not_available">Not available</string>
 </resources>
