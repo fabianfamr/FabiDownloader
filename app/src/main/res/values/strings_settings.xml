@@ -86,8 +86,6 @@
     <string name="settings_sponsorblock_desc">Omitir partes patrocinadas</string>
     <string name="settings_geo_bypass">Saltar bloqueos geográficos</string>
     <string name="settings_geo_bypass_desc">Usar nodos alternativos</string>
-    <string name="settings_proxy">Configurar Proxy</string>
-    <string name="settings_proxy_disabled">Desactivado</string>
     <string name="settings_yt_args">Argumentos yt-dlp</string>
     <string name="settings_yt_args_default">Por defecto</string>
     <string name="settings_clipboard_action">Acción de portapapeles</string>
@@ -113,11 +111,9 @@
     <string name="settings_threads_parallel">Hilos de descarga paralelos</string>
     <string name="settings_theme_select">Seleccionar Tema</string>
     <string name="settings_accent_select">Color de Acento</string>
-    <string name="settings_proxy_config">Configurar Proxy</string>
     <string name="settings_yt_args_config">Argumentos yt-dlp</string>
     <string name="settings_clipboard_action_title">Acción al copiar enlace</string>
     <string name="settings_cookies_title">Configurar Cookies (cookies.txt)</string>
-    <string name="settings_proxy_placeholder">http://127.0.0.1:8080</string>
     <string name="settings_yt_args_placeholder">--restrict-filenames</string>
     <string name="settings_error_prefix">Error: %1$s</string>
 </resources>

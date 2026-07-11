@@ -151,14 +151,6 @@ object AppSettings {
             saveString("customArguments", value)
         }
 
-    private val _proxyUrl = mutableStateOf("")
-    var proxyUrl: String
-        get() = _proxyUrl.value
-        set(value) {
-            _proxyUrl.value = value
-            saveString("proxyUrl", value)
-        }
-
     private val _cookies = mutableStateOf("")
     var cookies: String
         get() = _cookies.value
@@ -270,7 +262,6 @@ object AppSettings {
         _lastDownloadedOptionId.value = prefs.getString("lastDownloadedOptionId", "") ?: ""
         
         _customArguments.value = prefs.getString("customArguments", "") ?: ""
-        _proxyUrl.value = prefs.getString("proxyUrl", "") ?: ""
         _cookies.value = prefs.getString("cookies", "") ?: ""
         _customUserAgent.value = prefs.getString("customUserAgent", "") ?: ""
         _sponsorBlockEnabled.value = prefs.getBoolean("sponsorBlockEnabled", false)

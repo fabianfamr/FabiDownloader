@@ -89,7 +89,6 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var showSpeedDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
 
-    var showProxyDialog by remember { mutableStateOf(false) }
     var showCustomArgsDialog by remember { mutableStateOf(false) }
 
     var showClipboardDialog by remember { mutableStateOf(false) }
@@ -269,16 +268,6 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 showAccentDialog = false
             },
             onDismiss = { showAccentDialog = false }
-        )
-    }
-
-    if (showProxyDialog) {
-        InputDialog(
-            title = stringResource(R.string.settings_proxy),
-            placeholder = stringResource(R.string.settings_proxy_placeholder),
-            initialValue = AppSettings.proxyUrl,
-            onConfirm = { AppSettings.proxyUrl = it },
-            onDismiss = { showProxyDialog = false }
         )
     }
 
@@ -470,8 +459,6 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         SettingsToggleRow(Icons.Default.Block, stringResource(R.string.settings_sponsorblock), stringResource(R.string.settings_sponsorblock_desc), sponsorBlock, C_amber, C_white, C_gray1, C_card2, C_border, C_bg) { sponsorBlock = it }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
                         SettingsToggleRow(Icons.Default.Public, stringResource(R.string.settings_geo_bypass), stringResource(R.string.settings_geo_bypass_desc), bypassGeo, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { bypassGeo = it }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.Dns, stringResource(R.string.settings_proxy), AppSettings.proxyUrl.ifEmpty { stringResource(R.string.settings_proxy_disabled) }, C_accent, C_white, C_gray1, C_card2) { showProxyDialog = true }
                         HorizontalDivider(color = C_border, thickness = 1.dp)
                         SettingsRow(Icons.Default.Code, stringResource(R.string.settings_yt_args), AppSettings.customArguments.ifEmpty { stringResource(R.string.settings_yt_args_default) }, C_accent, C_white, C_gray1, C_card2) { showCustomArgsDialog = true }
                         HorizontalDivider(color = C_border, thickness = 1.dp)

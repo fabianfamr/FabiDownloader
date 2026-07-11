@@ -86,8 +86,6 @@
     <string name="settings_sponsorblock_desc">Skip sponsored parts</string>
     <string name="settings_geo_bypass">Bypass Geo-blocks</string>
     <string name="settings_geo_bypass_desc">Use alternative nodes</string>
-    <string name="settings_proxy">Configure Proxy</string>
-    <string name="settings_proxy_disabled">Disabled</string>
     <string name="settings_yt_args">yt-dlp Arguments</string>
     <string name="settings_yt_args_default">Default</string>
     <string name="settings_clipboard_action">Clipboard Action</string>
@@ -113,11 +111,9 @@
     <string name="settings_threads_parallel">Parallel Download Threads</string>
     <string name="settings_theme_select">Select Theme</string>
     <string name="settings_accent_select">Accent Color</string>
-    <string name="settings_proxy_config">Configure Proxy</string>
     <string name="settings_yt_args_config">yt-dlp Arguments</string>
     <string name="settings_clipboard_action_title">Clipboard action</string>
     <string name="settings_cookies_title">Configure Cookies (cookies.txt)</string>
-    <string name="settings_proxy_placeholder">http://127.0.0.1:8080</string>
     <string name="settings_yt_args_placeholder">--restrict-filenames</string>
     <string name="settings_error_prefix">Error: %1$s</string>
 </resources>

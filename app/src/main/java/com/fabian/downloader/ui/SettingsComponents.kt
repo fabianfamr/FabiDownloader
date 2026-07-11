@@ -45,7 +45,6 @@ fun DownloadSettingsContent(
     var showThreadsDialog by remember { mutableStateOf(false) }
     var showSimultaneousDialog by remember { mutableStateOf(false) }
     var showCustomArgsDialog by remember { mutableStateOf(false) }
-    var showProxyDialog by remember { mutableStateOf(false) }
     var showUserAgentDialog by remember { mutableStateOf(false) }
     var showClipboardDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
@@ -159,10 +158,6 @@ fun DownloadSettingsContent(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
                 ToggleSetting(Icons.Default.Shield, "Evitar bloqueos regionales (Bypass Geo)", AppSettings.bypassGeo) {
                     AppSettings.bypassGeo = it
-                }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.Dns, "Configurar Proxy", trailing = AppSettings.proxyUrl.ifEmpty { "No configurado" }) {
-                    showProxyDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
                 SettingItem(Icons.Default.Person, "User-Agent Personalizado", trailing = AppSettings.customUserAgent.ifEmpty { "Por defecto" }) {
@@ -321,15 +316,6 @@ fun DownloadSettingsContent(
                 initialValue = AppSettings.customArguments,
                 onConfirm = { AppSettings.customArguments = it },
                 onDismiss = { showCustomArgsDialog = false }
-            )
-        }
-        if (showProxyDialog) {
-            InputDialog(
-                title = "Configurar Proxy",
-                placeholder = "Ej: http://127.0.0.1:8080 o socks5://user:pass@host:port",
-                initialValue = AppSettings.proxyUrl,
-                onConfirm = { AppSettings.proxyUrl = it },
-                onDismiss = { showProxyDialog = false }
             )
         }
         if (showUserAgentDialog) {

@@ -130,12 +130,6 @@ class YtdlpDownloader {
                 addOption("--sponsorblock-remove", "sponsor,intro,outro,selfpromo,interaction")
             }
 
-            // Proxy
-            val proxy = com.fabian.downloader.ui.AppSettings.proxyUrl
-            if (proxy.isNotEmpty()) {
-                addOption("--proxy", proxy)
-            }
-
             // Argumentos Personalizados Libres (Estilo Seal/YTDLnis)
             val customArgs = com.fabian.downloader.ui.AppSettings.customArguments
             if (customArgs.isNotEmpty()) {
