@@ -30,6 +30,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import com.fabian.downloader.R
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.TextStyle
+import kotlin.math.cos
+import kotlin.math.sin
+import com.fabian.downloader.ui.theme.*
+import kotlinx.coroutines.delay
 import com.fabian.downloader.BuildConfig
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -163,21 +169,22 @@ fun MainScreen(
     }
 
     // --- START FIGMA EXEMPLAR DESIGN SYSTEM ---
-    val C_bg = Color(0xFF0A0A0C)
-    val C_card = Color(0xFF161619)
-    val C_card2 = Color(0xFF1E1E22)
-    val C_border = Color(0xFF242428)
-    val C_accent = Color(0xFF00E5FF)
-    val C_accentDim = Color(0x1A00E5FF)
-    val C_accentGlow = Color(0x3800E5FF)
-    val C_white = Color(0xFFFFFFFF)
-    val C_gray1 = Color(0xFF8A8A96)
-    val C_gray2 = Color(0xFF4A4A56)
-    val C_gray3 = Color(0xFF32323A)
-    val C_red = Color(0xFFEF5350)
-    val C_redDim = Color(0x1FEF5350)
-    val C_green = Color(0xFF2ECC71)
-    val C_amber = Color(0xFFF59E0B)
+    val colors = MaterialTheme.fabiColors
+    val C_bg = colors.background
+    val C_card = colors.card
+    val C_card2 = colors.cardSecondary
+    val C_border = colors.border
+    val C_accent = colors.accent
+    val C_accentDim = colors.accentDim
+    val C_accentGlow = colors.accentGlow
+    val C_white = colors.textPrimary
+    val C_gray1 = colors.textSecondary
+    val C_gray2 = colors.textMuted
+    val C_gray3 = colors.textDisabled
+    val C_red = colors.error
+    val C_redDim = colors.errorDim
+    val C_green = colors.success
+    val C_amber = colors.amber
 
     // Platform definition matching React App.tsx
     val platforms = remember {
@@ -199,6 +206,26 @@ fun MainScreen(
     }
 
     var isAnalyzingState by remember { mutableStateOf(false) }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "orbit")
+    val orbitAngle by infiniteTransition.animateFloat(
+        initialValue   = 0f,
+        targetValue    = 360f,
+        animationSpec  = infiniteRepeatable(tween(12_000, easing = LinearEasing)),
+        label          = "orbitAngle",
+    )
+    val pulse by infiniteTransition.animateFloat(
+        initialValue  = 0.92f,
+        targetValue   = 1.08f,
+        animationSpec = infiniteRepeatable(tween(1_200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label         = "pulse",
+    )
+    val floatY by infiniteTransition.animateFloat(
+        initialValue  = -6f,
+        targetValue   = 6f,
+        animationSpec = infiniteRepeatable(tween(2_000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label         = "floatY",
+    )
 
     Box(
         modifier = modifier
@@ -302,10 +329,66 @@ fun MainScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
+                    // Orbiting Icons Canvas
+                    Box(
+                        modifier = Modifier
+                            .size(200.dp)
+                            .graphicsLayer { translationY = floatY },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val orbitRadius = 75.dp
+                        platforms.forEachIndexed { index, platform ->
+                            val baseAngle = index * 90f
+                            val angle = Math.toRadians((baseAngle + orbitAngle).toDouble())
+                            val x = (cos(angle) * orbitRadius.value).dp
+                            val y = (sin(angle) * orbitRadius.value).dp
+                            Box(
+                                modifier = Modifier
+                                    .offset(x = x, y = y)
+                                    .size(38.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(platform.color.copy(alpha = 0.25f))
+                                    .border(1.dp, platform.color.copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = platform.icon,
+                                    contentDescription = null,
+                                    tint = C_white,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+
+                        // Center pulsing download icon
+                        Box(
+                            modifier = Modifier
+                                .size(54.dp)
+                                .graphicsLayer { 
+                                    scaleX = pulse
+                                    scaleY = pulse 
+                                }
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.radialGradient(
+                                        colors = listOf(C_accent.copy(alpha = 0.35f), Color.Transparent),
+                                    )
+                                )
+                                .border(2.dp, C_accent.copy(alpha = 0.8f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Download, contentDescription = null, tint = C_accent, modifier = Modifier.size(24.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     Text(
                         text = stringResource(R.string.main_paste_link_title),
-                        color = C_white,
-                        fontSize = 22.sp,
+                        style = TextStyle(
+                            brush = Brush.horizontalGradient(listOf(C_accent, Color(0xFF7B61FF)))
+                        ),
+                        fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
                         textAlign = TextAlign.Center,
                         lineHeight = 1.3.sp
@@ -319,47 +402,40 @@ fun MainScreen(
                         modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
                     )
 
-                    // Platform badges (exactly as React Ejemplo App.tsx)
+                    // Platform badges (mini inline indicators)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 28.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Text(
+                            text = "Detectamos ",
+                            color = C_gray1,
+                            fontSize = 14.sp
+                        )
                         platforms.forEach { p ->
-                            val active = detectedPlatform?.id == p.id
                             Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .background(if (active) p.color.copy(alpha = 0.1f) else C_card)
-                                    .border(
-                                        width = 1.5.dp,
-                                        color = if (active) p.color.copy(alpha = 0.53f) else C_border,
-                                        shape = RoundedCornerShape(20.dp)
-                                    )
-                                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                                    .size(18.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(p.color.copy(alpha = 0.3f)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = p.icon,
-                                        contentDescription = null,
-                                        tint = if (active) p.color else C_gray1,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                    Text(
-                                        text = p.label,
-                                        color = if (active) C_white else C_gray1,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                }
+                                Icon(
+                                    imageVector = p.icon,
+                                    contentDescription = null,
+                                    tint = C_white,
+                                    modifier = Modifier.size(10.dp)
+                                )
                             }
                         }
+                        Text(
+                            text = " automáticamente",
+                            color = C_gray1,
+                            fontSize = 14.sp
+                        )
                     }
                 }
             }

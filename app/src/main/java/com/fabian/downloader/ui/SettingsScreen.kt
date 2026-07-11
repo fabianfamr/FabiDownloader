@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fabian.downloader.BuildConfig
 import com.fabian.downloader.R
+import com.fabian.downloader.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -53,19 +54,20 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         }
     }
 
-    val C_bg = Color(0xFF0A0A0C)
-    val C_card = Color(0xFF161619)
-    val C_card2 = Color(0xFF1E1E22)
-    val C_border = Color(0xFF242428)
-    val C_accent = Color(0xFF00E5FF)
-    val C_accentDim = Color(0x1A00E5FF)
-    val C_accentGlow = Color(0x3800E5FF)
-    val C_white = Color(0xFFFFFFFF)
-    val C_gray1 = Color(0xFF8A8A96)
-    val C_gray2 = Color(0xFF4A4A56)
-    val C_green = Color(0xFF2ECC71)
-    val C_amber = Color(0xFFF59E0B)
-    val C_red = Color(0xFFEF5350)
+    val fColors = MaterialTheme.fabiColors
+    val C_bg = fColors.background
+    val C_card = fColors.card
+    val C_card2 = fColors.cardSecondary
+    val C_border = fColors.border
+    val C_accent = fColors.accent
+    val C_accentDim = fColors.accentDim
+    val C_accentGlow = fColors.accentGlow
+    val C_white = fColors.textPrimary
+    val C_gray1 = fColors.textSecondary
+    val C_gray2 = fColors.textMuted
+    val C_green = fColors.success
+    val C_amber = fColors.amber
+    val C_red = fColors.error
 
     // State bindings to AppSettings
     var maxConcurrent by remember { mutableStateOf(AppSettings.maxConcurrentDownloads) }

@@ -43,6 +43,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.ui.input.pointer.pointerInput
 import com.fabian.downloader.R
+import com.fabian.downloader.ui.theme.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
@@ -156,21 +157,22 @@ fun DownloadsScreen(
         }
     }
     
-    val C_bg = Color(0xFF0A0A0C)
-    val C_card = Color(0xFF161619)
-    val C_card2 = Color(0xFF1E1E22)
-    val C_border = Color(0xFF242428)
-    val C_accent = Color(0xFF00E5FF)
-    val C_accentDim = Color(0x1A00E5FF)
-    val C_accentGlow = Color(0x3800E5FF)
-    val C_white = Color(0xFFFFFFFF)
-    val C_gray1 = Color(0xFF8A8A96)
-    val C_gray2 = Color(0xFF4A4A56)
-    val C_gray3 = Color(0xFF32323A)
-    val C_red = Color(0xFFEF5350)
-    val C_redDim = Color(0x1FEF5350)
-    val C_green = Color(0xFF2ECC71)
-    val C_amber = Color(0xFFF59E0B)
+    val fColors = MaterialTheme.fabiColors
+    val C_bg = fColors.background
+    val C_card = fColors.card
+    val C_card2 = fColors.cardSecondary
+    val C_border = fColors.border
+    val C_accent = fColors.accent
+    val C_accentDim = fColors.accentDim
+    val C_accentGlow = fColors.accentGlow
+    val C_white = fColors.textPrimary
+    val C_gray1 = fColors.textSecondary
+    val C_gray2 = fColors.textMuted
+    val C_gray3 = fColors.textDisabled
+    val C_red = fColors.error
+    val C_redDim = fColors.errorDim
+    val C_green = fColors.success
+    val C_amber = fColors.amber
 
     if (menuRecord != null) {
         ModalBottomSheet(
@@ -767,17 +769,20 @@ fun MobileDownloadingItem(
 ) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
 
-    val C_card = Color(0xFF161619)
-    val C_border = Color(0xFF242428)
-    val C_accent = Color(0xFF00E5FF)
-    val C_accentDim = Color(0x1A00E5FF)
-    val C_accentGlow = Color(0x3800E5FF)
-    val C_white = Color(0xFFFFFFFF)
-    val C_gray1 = Color(0xFF8A8A96)
-    val C_red = Color(0xFFEF5350)
-    val C_redDim = Color(0x1FEF5350)
-    val C_green = Color(0xFF2ECC71)
-    val C_amber = Color(0xFFF59E0B)
+    val fColors = MaterialTheme.fabiColors
+    val C_bg = fColors.background
+    val C_card = fColors.card
+    val C_card2 = fColors.cardSecondary
+    val C_border = fColors.border
+    val C_accent = fColors.accent
+    val C_accentDim = fColors.accentDim
+    val C_accentGlow = fColors.accentGlow
+    val C_white = fColors.textPrimary
+    val C_gray1 = fColors.textSecondary
+    val C_red = fColors.error
+    val C_redDim = fColors.errorDim
+    val C_green = fColors.success
+    val C_amber = fColors.amber
 
     val isFailed = record.title.startsWith("Fallo: ")
     val cleanTitle = remember(record.title) {
@@ -804,11 +809,11 @@ fun MobileDownloadingItem(
 
     Surface(
         color = if (isSelected) C_accentDim else C_card,
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(14.dp),
         border = BorderStroke(if (isSelected) 2.dp else 1.dp, if (isSelected) C_accent else (if (isFailed) C_red.copy(alpha = 0.35f) else C_border)),
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(14.dp))
             .combinedClickable(
                 onClick = { 
                     if (isFailed) onResume() 
@@ -960,7 +965,7 @@ fun MobileDownloadingItem(
                     DropdownMenu(
                         expanded = showMenu,
                         onDismissRequest = { showMenu = false },
-                        modifier = Modifier.background(Color(0xFF1E1E22), RoundedCornerShape(12.dp))
+                        modifier = Modifier.background(C_card2, RoundedCornerShape(12.dp))
                     ) {
                         if (isFailed) {
                             DropdownMenuItem(
@@ -1175,15 +1180,18 @@ fun MobileDownloadingItem(
 @Composable
 fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: () -> Unit, isSelected: Boolean, onLongPress: () -> Unit) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
-    val C_card = Color(0xFF161619)
-    val C_border = Color(0xFF242428)
-    val C_accent = Color(0xFF00E5FF)
-    val C_accentDim = Color(0x1A00E5FF)
-    val C_accentGlow = Color(0x3800E5FF)
-    val C_white = Color(0xFFFFFFFF)
-    val C_gray1 = Color(0xFF8A8A96)
-    val C_red = Color(0xFFEF5350)
-    val C_green = Color(0xFF2ECC71)
+    val fColors = MaterialTheme.fabiColors
+    val C_bg = fColors.background
+    val C_card = fColors.card
+    val C_card2 = fColors.cardSecondary
+    val C_border = fColors.border
+    val C_accent = fColors.accent
+    val C_accentDim = fColors.accentDim
+    val C_accentGlow = fColors.accentGlow
+    val C_white = fColors.textPrimary
+    val C_gray1 = fColors.textSecondary
+    val C_red = fColors.error
+    val C_green = fColors.success
 
     val cleanTitle = remember(record.title) {
         var t = record.title
@@ -1196,12 +1204,12 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
     var showMenu by remember { mutableStateOf(false) }
 
     Surface(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(14.dp),
         color = if (isSelected) C_accentDim else C_card,
         border = if (isSelected) BorderStroke(2.dp, C_accent) else BorderStroke(1.dp, C_border),
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(14.dp))
             .combinedClickable(
                 onClick = { onPlay() },
                 onLongClick = { onLongPress() }
@@ -1293,7 +1301,7 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                 DropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
-                    modifier = Modifier.background(Color(0xFF1E1E22), RoundedCornerShape(12.dp))
+                    modifier = Modifier.background(C_card2, RoundedCornerShape(12.dp))
                 ) {
                     DropdownMenuItem(
                         text = { Text("Reproducir", color = C_white) },

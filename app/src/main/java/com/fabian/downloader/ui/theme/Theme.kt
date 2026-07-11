@@ -15,6 +15,63 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
+
+// ---------------------------------------------------------------------------
+// FabiColors System
+// ---------------------------------------------------------------------------
+
+data class FabiColors(
+    val background: Color,
+    val card: Color,
+    val cardSecondary: Color,
+    val border: Color,
+    val accent: Color,
+    val accentDim: Color,
+    val accentGlow: Color,
+    val textPrimary: Color,
+    val textSecondary: Color,
+    val textMuted: Color,
+    val textDisabled: Color,
+    val error: Color,
+    val errorDim: Color,
+    val success: Color,
+    val amber: Color,
+    val sheet: Color,
+)
+
+private val DarkFabiColors = FabiColors(
+    background = Bg,
+    card = Card,
+    cardSecondary = Card2,
+    border = Border,
+    accent = Accent,
+    accentDim = AccentDim,
+    accentGlow = AccentGlow,
+    textPrimary = White,
+    textSecondary = Gray1,
+    textMuted = Gray2,
+    textDisabled = Gray3,
+    error = Red,
+    errorDim = RedDim,
+    success = Green,
+    amber = Amber,
+    sheet = Sheet,
+)
+
+// We don't have a light palette defined in the example, so we fallback to dark for now
+// or define a basic light one if needed. The app seems to be dark-only in spirit.
+private val LightFabiColors = DarkFabiColors 
+
+val LocalFabiColors = staticCompositionLocalOf { DarkFabiColors }
+
+val MaterialTheme.fabiColors: FabiColors
+    @Composable
+    @ReadOnlyComposable
+    get() = LocalFabiColors.current
+
 private val DarkColorScheme = darkColorScheme(
     primary = Accent,
     onPrimary = Bg,
@@ -63,6 +120,8 @@ fun MyApplicationTheme(
     }
     
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val fabiColors = if (darkTheme) DarkFabiColors else LightFabiColors
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -74,5 +133,7 @@ fun MyApplicationTheme(
         }
     }
 
-    MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+    CompositionLocalProvider(LocalFabiColors provides fabiColors) {
+        MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+    }
 }
