@@ -116,4 +116,45 @@
     <string name="settings_cookies_title">Configure Cookies (cookies.txt)</string>
     <string name="settings_yt_args_placeholder">--restrict-filenames</string>
     <string name="settings_error_prefix">Error: %1$s</string>
+
+    <!-- DownloadSettingsScreen sections and labels -->
+    <string name="settings_section_customization">Customization</string>
+    <string name="settings_app_theme">App theme</string>
+    <string name="settings_download_notifications">Download notifications</string>
+    <string name="settings_confirm_on_delete">Confirm on delete</string>
+    <string name="settings_section_quality_format">Quality and Format</string>
+    <string name="settings_video_format">Video format</string>
+    <string name="settings_audio_format">Audio format</string>
+    <string name="settings_section_storage_speed">Storage and Speed</string>
+    <string name="settings_location">Location</string>
+    <string name="settings_max_speed">Max speed</string>
+    <string name="settings_section_postprocessing">Post-Processing and Metadata</string>
+    <string name="settings_embed_subtitles">Embed subtitles</string>
+    <string name="settings_embed_thumbnail">Embed cover/thumbnail</string>
+    <string name="settings_embed_metadata">Embed metadata and tags</string>
+    <string name="settings_allow_playlists">Allow playlists</string>
+    <string name="settings_section_integration_network">Integration and Network</string>
+    <string name="settings_sponsorblock_geo">SponsorBlock (skip sponsors)</string>
+    <string name="settings_bypass_geo">Bypass regional blocks</string>
+    <string name="settings_custom_user_agent">Custom User-Agent</string>
+    <string name="settings_value_default">Default</string>
+    <string name="settings_value_none">None</string>
+    <string name="settings_section_ytdlp_engine">yt-dlp Console Engine</string>
+    <string name="settings_parallel_threads">Parallel download threads</string>
+    <string name="settings_simultaneous_downloads">Simultaneous downloads</string>
+    <string name="settings_max_transfers">Maximum active transfers</string>
+    <string name="settings_custom_args">Custom yt-dlp arguments</string>
+
+    <!-- Dialogs -->
+    <string name="settings_select_quality">Select Quality</string>
+    <string name="settings_select_video_format">Select Video Format</string>
+    <string name="settings_select_audio_format">Select Audio Format</string>
+    <string name="settings_parallel_threads_short">Parallel threads</string>
+    <string name="settings_max_simultaneous_short">Max simultaneous downloads</string>
+    <string name="settings_args_dialog_title">yt-dlp Arguments</string>
+    <string name="settings_args_placeholder_example">e.g.: --restrict-filenames --no-mtime</string>
+    <string name="settings_user_agent_placeholder">Type your User-Agent header</string>
+    <string name="settings_select_theme">Select Theme</string>
+    <string name="settings_btn_accept">ACCEPT</string>
+    <string name="settings_btn_cancel">CANCEL</string>
 </resources>

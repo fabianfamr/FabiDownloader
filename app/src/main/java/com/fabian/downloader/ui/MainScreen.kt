@@ -141,7 +141,7 @@ fun MainScreen(
                     file
                 )
                 val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, if (record.format == "MP4") "video/*" else "audio/*")
+                    setDataAndType(uri, if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) com.fabian.downloader.utils.Config.MIME_VIDEO else com.fabian.downloader.utils.Config.MIME_AUDIO)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 ctx.startActivity(intent)
@@ -733,7 +733,7 @@ fun MainScreen(
                             shape = RoundedCornerShape(18.dp),
                             border = BorderStroke(
                                 width = 1.dp,
-                                color = if (record.format == "MP4") C_green.copy(alpha = 0.22f) else C_accentGlow
+                                color = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) C_green.copy(alpha = 0.22f) else C_accentGlow
                             )
                         ) {
                             Row(
@@ -744,15 +744,15 @@ fun MainScreen(
                                     modifier = Modifier
                                         .size(46.dp)
                                         .background(
-                                            color = if (record.format == "MP4") Color(0x1A2ECC71) else C_accentDim,
+                                            color = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) Color(0x1A2ECC71) else C_accentDim,
                                             shape = RoundedCornerShape(12.dp)
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
-                                        imageVector = if (record.format == "MP4") Icons.Default.PlayArrow else Icons.Default.MusicNote,
+                                        imageVector = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) Icons.Default.PlayArrow else Icons.Default.MusicNote,
                                         contentDescription = null,
-                                        tint = if (record.format == "MP4") C_green else C_accent,
+                                        tint = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) C_green else C_accent,
                                         modifier = Modifier.size(24.dp)
                                     )
                                 }
@@ -772,14 +772,14 @@ fun MainScreen(
                                         modifier = Modifier.padding(top = 2.dp)
                                     ) {
                                         Surface(
-                                            color = if (record.format == "MP4") Color(0x112ECC71) else C_accentDim,
+                                            color = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) Color(0x112ECC71) else C_accentDim,
                                             shape = RoundedCornerShape(6.dp)
                                         ) {
                                             Text(
                                                 text = record.format,
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.Bold,
-                                                color = if (record.format == "MP4") C_green else C_accent,
+                                                color = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) C_green else C_accent,
                                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                             )
                                         }

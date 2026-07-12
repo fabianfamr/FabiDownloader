@@ -17,8 +17,7 @@ abstract class BaseSiteService : SiteService {
     private val downloader = YtdlpDownloader()
 
     open fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
-        // Default request configurations
-        request.addOption("--referer", Config.REFERER_DEFAULT)
+        // Shared options between extractor and downloader
         request.addOption("--force-ipv4")
         request.addOption("--geo-bypass")
         request.addOption("--quiet")
@@ -26,16 +25,16 @@ abstract class BaseSiteService : SiteService {
     }
 
     open fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
-        // Default downloader options
+        // Downloader-only options (not needed for extraction)
         request.addOption("--no-overwrites")
         request.addOption("--no-mtime")
-        request.addOption("--geo-bypass")
         request.addOption("--socket-timeout", "30")
         request.addOption("--retries", "10")
         request.addOption("--fragment-retries", "10")
         request.addOption("--no-cache-dir")
         request.addOption("--referer", Config.REFERER_DEFAULT)
         request.addOption("--force-ipv4")
+        request.addOption("--geo-bypass")
         request.addOption("--no-warnings")
     }
 
@@ -61,9 +60,9 @@ abstract class BaseSiteService : SiteService {
             val jsonRaw = response.out ?: return@withContext null
             val json = JSONObject(jsonRaw)
 
-            return@withContext com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, "Desconocido", "Video de $displayName")
+            return@withContext com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, Config.STATUS_UNKNOWN, "Video de $displayName")
         } catch (e: Exception) {
-            Log.e("BaseSiteService", "Error extracting info for $url in service $siteId: ${e.message}", e)
+            Log.e(Config.TAG_BASE_SITE_SERVICE, "Error extracting info for $url in service $siteId: ${e.message}", e)
             return@withContext null
         }
     }

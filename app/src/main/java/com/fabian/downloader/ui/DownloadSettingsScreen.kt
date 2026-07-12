@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 
@@ -38,7 +39,7 @@ fun DownloadSettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Ajustes de Descarga",
+                        stringResource(com.fabian.downloader.R.string.main_download_settings_title),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         color = MaterialTheme.colorScheme.onSurface
@@ -48,7 +49,7 @@ fun DownloadSettingsScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver atrás",
+                            contentDescription = stringResource(com.fabian.downloader.R.string.main_back),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }

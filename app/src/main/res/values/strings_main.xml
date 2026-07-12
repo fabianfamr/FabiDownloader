@@ -32,4 +32,14 @@
     <string name="main_detecting_suffix"> automáticamente</string>
     <string name="main_analyzing_state">Analizando...</string>
     <string name="main_link_detected_state">¡Enlace Detectado!</string>
+
+    <!-- Navigation tabs -->
+    <string name="main_tab_home">Inicio</string>
+    <string name="main_tab_library">Biblioteca</string>
+    <string name="main_tab_settings">Ajustes</string>
+    <string name="main_tab_download_settings">Ajustes de descarga</string>
+
+    <!-- Screen titles -->
+    <string name="main_download_settings_title">Ajustes de Descarga</string>
+    <string name="main_back">Volver atrás</string>
 </resources>

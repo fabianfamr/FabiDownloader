@@ -116,4 +116,45 @@
     <string name="settings_cookies_title">Configurar Cookies (cookies.txt)</string>
     <string name="settings_yt_args_placeholder">--restrict-filenames</string>
     <string name="settings_error_prefix">Error: %1$s</string>
+
+    <!-- DownloadSettingsScreen sections and labels -->
+    <string name="settings_section_customization">Personalización</string>
+    <string name="settings_app_theme">Tema de la aplicación</string>
+    <string name="settings_download_notifications">Notificaciones de descarga</string>
+    <string name="settings_confirm_on_delete">Confirmar al eliminar</string>
+    <string name="settings_section_quality_format">Calidad y Formato</string>
+    <string name="settings_video_format">Formato de video</string>
+    <string name="settings_audio_format">Formato de audio</string>
+    <string name="settings_section_storage_speed">Almacenamiento y Velocidad</string>
+    <string name="settings_location">Ubicación</string>
+    <string name="settings_max_speed">Velocidad máxima</string>
+    <string name="settings_section_postprocessing">Post-Procesamiento y Metadatos</string>
+    <string name="settings_embed_subtitles">Incrustar subtítulos</string>
+    <string name="settings_embed_thumbnail">Incrustar carátula/miniatura</string>
+    <string name="settings_embed_metadata">Incrustar metadatos y etiquetas</string>
+    <string name="settings_allow_playlists">Permitir listas de reproducción</string>
+    <string name="settings_section_integration_network">Integración y Red</string>
+    <string name="settings_sponsorblock_geo">SponsorBlock (omitir patrocinios)</string>
+    <string name="settings_bypass_geo">Evitar bloqueos regionales (Bypass Geo)</string>
+    <string name="settings_custom_user_agent">User-Agent Personalizado</string>
+    <string name="settings_value_default">Por defecto</string>
+    <string name="settings_value_none">Ninguno</string>
+    <string name="settings_section_ytdlp_engine">Motor de Consola yt-dlp</string>
+    <string name="settings_parallel_threads">Hilos de descarga paralelos</string>
+    <string name="settings_simultaneous_downloads">Descargas simultáneas</string>
+    <string name="settings_max_transfers">Máximo de transferencias activas</string>
+    <string name="settings_custom_args">Argumentos personalizados yt-dlp</string>
+
+    <!-- Dialogs -->
+    <string name="settings_select_quality">Selecciona Calidad</string>
+    <string name="settings_select_video_format">Selecciona Formato Video</string>
+    <string name="settings_select_audio_format">Selecciona Formato Audio</string>
+    <string name="settings_parallel_threads_short">Hilos paralelos</string>
+    <string name="settings_max_simultaneous_short">Descargas simultáneas máximas</string>
+    <string name="settings_args_dialog_title">Argumentos yt-dlp</string>
+    <string name="settings_args_placeholder_example">Ej: --restrict-filenames --no-mtime</string>
+    <string name="settings_user_agent_placeholder">Escribe tu cabecera User-Agent</string>
+    <string name="settings_select_theme">Selecciona Tema</string>
+    <string name="settings_btn_accept">ACEPTAR</string>
+    <string name="settings_btn_cancel">CANCELAR</string>
 </resources>

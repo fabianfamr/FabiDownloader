@@ -33,8 +33,8 @@ class MainActivity : ComponentActivity() {
         com.fabian.downloader.ui.AppSettings.init(this)
         database = AppDatabase.getInstance(this)
         
-        startOnDownloadsState.value = intent.getBooleanExtra("navigate_to_downloads", false)
-        initialPageState.value = intent.getIntExtra("initialPage", 0)
+        startOnDownloadsState.value = intent.getBooleanExtra(com.fabian.downloader.utils.Config.EXTRA_NAVIGATE_TO_DOWNLOADS, false)
+        initialPageState.value = intent.getIntExtra(com.fabian.downloader.utils.Config.EXTRA_INITIAL_PAGE, 0)
         
         checkAndRequestNotifications()
         enableEdgeToEdge()
@@ -64,9 +64,9 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        if (intent.getBooleanExtra("navigate_to_downloads", false)) {
+        if (intent.getBooleanExtra(com.fabian.downloader.utils.Config.EXTRA_NAVIGATE_TO_DOWNLOADS, false)) {
             startOnDownloadsState.value = true
-            initialPageState.value = intent.getIntExtra("initialPage", 0)
+            initialPageState.value = intent.getIntExtra(com.fabian.downloader.utils.Config.EXTRA_INITIAL_PAGE, 0)
         }
     }
 

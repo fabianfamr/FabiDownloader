@@ -9,15 +9,16 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.fabian.downloader.utils.Config
 
 object AppSettings {
     private lateinit var prefs: SharedPreferences
 
     val qualityOptions = listOf("Mejor disponible", "4K (2160p)", "1080p Full HD", "720p HD", "480p SD", "360p", "Solo audio (MP3)")
-    val videoFormats = listOf("MP4", "WEBM")
-    val audioFormats = listOf("MP3", "M4A", "OGG")
+    val videoFormats = listOf(Config.FORMAT_MP4, Config.FORMAT_WEBM)
+    val audioFormats = listOf(Config.FORMAT_MP3, Config.FORMAT_M4A, Config.FORMAT_OGG)
     val themeOptions = listOf("Sistema", "Claro", "Oscuro")
-    val speedOptions = listOf("500 KB/s", "1 MB/s", "5 MB/s", "10 MB/s", "Ilimitada")
+    val speedOptions = listOf(Config.SPEED_500K, Config.SPEED_1M, Config.SPEED_5M, Config.SPEED_10M, Config.SPEED_UNLIMITED)
 
     private val _selectedQuality = mutableStateOf("720p")
     var selectedQuality: String
@@ -27,7 +28,7 @@ object AppSettings {
             saveString("selectedQuality", value)
         }
 
-    private val _selectedVideoFormat = mutableStateOf("MP4")
+    private val _selectedVideoFormat = mutableStateOf(Config.FORMAT_MP4)
     var selectedVideoFormat: String
         get() = _selectedVideoFormat.value
         set(value) {
@@ -35,7 +36,7 @@ object AppSettings {
             saveString("selectedVideoFormat", value)
         }
 
-    private val _selectedAudioFormat = mutableStateOf("MP3")
+    private val _selectedAudioFormat = mutableStateOf(Config.FORMAT_MP3)
     var selectedAudioFormat: String
         get() = _selectedAudioFormat.value
         set(value) {
@@ -59,7 +60,7 @@ object AppSettings {
             saveBoolean("dataSaverEnabled", value)
         }
 
-    private val _downloadLocation = mutableStateOf("Downloads/FabiDownloader")
+    private val _downloadLocation = mutableStateOf(Config.PATH_DOWNLOAD_LOCATION_DEFAULT)
     var downloadLocation: String
         get() = _downloadLocation.value
         set(value) {
@@ -67,7 +68,7 @@ object AppSettings {
             saveString("downloadLocation", value)
         }
 
-    private val _maxSpeed = mutableStateOf("Ilimitada")
+    private val _maxSpeed = mutableStateOf(Config.SPEED_UNLIMITED)
     var maxSpeed: String
         get() = _maxSpeed.value
         set(value) {
@@ -246,12 +247,12 @@ object AppSettings {
         prefs = context.getSharedPreferences("fabi_downloader_prefs", Context.MODE_PRIVATE)
         
         _selectedQuality.value = prefs.getString("selectedQuality", "720p") ?: "720p"
-        _selectedVideoFormat.value = prefs.getString("selectedVideoFormat", "MP4") ?: "MP4"
-        _selectedAudioFormat.value = prefs.getString("selectedAudioFormat", "MP3") ?: "MP3"
+        _selectedVideoFormat.value = prefs.getString("selectedVideoFormat", Config.FORMAT_MP4) ?: Config.FORMAT_MP4
+        _selectedAudioFormat.value = prefs.getString("selectedAudioFormat", Config.FORMAT_MP3) ?: Config.FORMAT_MP3
         _notificationsEnabled.value = prefs.getBoolean("notificationsEnabled", true)
         _dataSaverEnabled.value = prefs.getBoolean("dataSaverEnabled", false)
-        _downloadLocation.value = prefs.getString("downloadLocation", "Downloads/FabiDownloader") ?: "Downloads/FabiDownloader"
-        _maxSpeed.value = prefs.getString("maxSpeed", "Ilimitada") ?: "Ilimitada"
+        _downloadLocation.value = prefs.getString("downloadLocation", Config.PATH_DOWNLOAD_LOCATION_DEFAULT) ?: Config.PATH_DOWNLOAD_LOCATION_DEFAULT
+        _maxSpeed.value = prefs.getString("maxSpeed", Config.SPEED_UNLIMITED) ?: Config.SPEED_UNLIMITED
         _themePreference.value = prefs.getString("themePreference", "Sistema") ?: "Sistema"
         _confirmOnDelete.value = prefs.getBoolean("confirmOnDelete", true)
         _concurrentFragments.value = prefs.getString("concurrentFragments", "5") ?: "5"

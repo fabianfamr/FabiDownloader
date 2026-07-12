@@ -59,4 +59,50 @@
     <string name="downloads_share_error_prefix">Error al compartir: %s</string>
     <string name="downloads_url_prefix">URL: %s</string>
     <string name="downloads_failed_prefix">Fallo: </string>
+
+    <!-- Toast messages -->
+    <string name="downloads_toast_no_connection">Sin conexión a internet</string>
+    <string name="downloads_toast_already_in_progress">Esta descarga ya está en progreso o en cola</string>
+    <string name="downloads_toast_already_downloaded">Este archivo ya ha sido descargado</string>
+    <string name="downloads_toast_paused">Descarga pausada</string>
+    <string name="downloads_toast_link_copied">Enlace copiado</string>
+    <string name="downloads_toast_no_app_to_open">No se encontró una aplicación para abrir el archivo</string>
+    <string name="downloads_toast_file_not_found">El archivo no existe o fue movido</string>
+    <string name="downloads_toast_file_not_found_short">El archivo no existe</string>
+    <string name="downloads_toast_share_error">Error al compartir archivo</string>
+    <string name="downloads_toast_no_valid_link">No se encontró un enlace válido</string>
+
+    <!-- Error messages -->
+    <string name="downloads_error_generic">Error de descarga</string>
+    <string name="downloads_error_requires_login">Requiere inicio de sesión. Configura las Cookies en Ajustes.</string>
+    <string name="downloads_error_network_retry">Error de red — toca para reintentar</string>
+    <string name="downloads_error_retry">Error — toca para reintentar</string>
+
+    <!-- Action labels -->
+    <string name="downloads_action_open">Abrir</string>
+    <string name="downloads_action_share">Compartir</string>
+    <string name="downloads_action_retry">Reintentar</string>
+    <string name="downloads_action_play">Reproducir</string>
+    <string name="downloads_action_pause">Pausar</string>
+    <string name="downloads_action_resume">Reanudar</string>
+    <string name="downloads_action_cancel">Cancelar</string>
+    <string name="downloads_action_delete">Eliminar</string>
+    <string name="downloads_action_copy_link">Copiar Enlace</string>
+    <string name="downloads_action_options">Opciones</string>
+    <string name="downloads_action_share_with">Compartir con</string>
+
+    <!-- Notification channels and titles -->
+    <string name="notif_channel_progress">Descargas en Progreso</string>
+    <string name="notif_channel_progress_desc">Muestra el progreso en tiempo real de las descargas activas</string>
+    <string name="notif_channel_status">Estado de Descargas</string>
+    <string name="notif_channel_status_desc">Notificaciones de descargas completadas con éxito o fallidas</string>
+    <string name="notif_title_completed">Descarga completada</string>
+    <string name="notif_title_failed">Descarga fallida</string>
+    <string name="notif_action_open">Abrir</string>
+    <string name="notif_action_share">Compartir</string>
+    <string name="notif_action_retry">Reintentar</string>
+
+    <!-- Fallback titles -->
+    <string name="downloads_default_title">Descarga</string>
+    <string name="downloads_default_domain">Internet</string>
 </resources>

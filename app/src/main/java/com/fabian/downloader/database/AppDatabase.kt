@@ -75,7 +75,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "downloader-database"
+                    com.fabian.downloader.utils.Config.DB_NAME
                 )
                 .addMigrations(MIGRATION_1_7, MIGRATION_2_7, MIGRATION_3_7, MIGRATION_4_7, MIGRATION_5_7, MIGRATION_6_7, MIGRATION_7_8)
                 .build()

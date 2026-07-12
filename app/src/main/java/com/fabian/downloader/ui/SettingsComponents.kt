@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.fabian.downloader.R
 
 @Composable
 fun DownloadSettingsContent(
@@ -56,7 +58,7 @@ fun DownloadSettingsContent(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        SettingSectionHeader("Personalización")
+        SettingSectionHeader(stringResource(R.string.settings_section_customization))
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
@@ -64,22 +66,22 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                SettingItem(Icons.Default.Palette, "Tema de la aplicación", trailing = AppSettings.themePreference) {
+                SettingItem(Icons.Default.Palette, stringResource(R.string.settings_app_theme), trailing = AppSettings.themePreference) {
                     showThemeDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                ToggleSetting(Icons.Default.Notifications, "Notificaciones de descarga", AppSettings.notificationsEnabled) {
+                ToggleSetting(Icons.Default.Notifications, stringResource(R.string.settings_download_notifications), AppSettings.notificationsEnabled) {
                     AppSettings.notificationsEnabled = it
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                ToggleSetting(Icons.Default.DeleteSweep, "Confirmar al eliminar", AppSettings.confirmOnDelete) {
+                ToggleSetting(Icons.Default.DeleteSweep, stringResource(R.string.settings_confirm_on_delete), AppSettings.confirmOnDelete) {
                     AppSettings.confirmOnDelete = it
                 }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        SettingSectionHeader("Calidad y Formato")
+        SettingSectionHeader(stringResource(R.string.settings_section_quality_format))
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
@@ -87,18 +89,18 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                SettingItem(Icons.Default.VideoFile, "Formato de video", trailing = selectedVideoFormat) {
+                SettingItem(Icons.Default.VideoFile, stringResource(R.string.settings_video_format), trailing = selectedVideoFormat) {
                     showVideoFormatDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.AudioFile, "Formato de audio", trailing = selectedAudioFormat) {
+                SettingItem(Icons.Default.AudioFile, stringResource(R.string.settings_audio_format), trailing = selectedAudioFormat) {
                     showAudioFormatDialog = true
                 }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        SettingSectionHeader("Almacenamiento y Velocidad")
+        SettingSectionHeader(stringResource(R.string.settings_section_storage_speed))
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
@@ -106,18 +108,18 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                SettingItem(Icons.Default.FolderOpen, "Ubicación", trailing = downloadLocation) {
+                SettingItem(Icons.Default.FolderOpen, stringResource(R.string.settings_location), trailing = downloadLocation) {
                     onPickLocation()
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.Speed, "Velocidad máxima", trailing = maxSpeed) {
+                SettingItem(Icons.Default.Speed, stringResource(R.string.settings_max_speed), trailing = maxSpeed) {
                     showSpeedDialog = true
                 }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        SettingSectionHeader("Post-Procesamiento y Metadatos")
+        SettingSectionHeader(stringResource(R.string.settings_section_postprocessing))
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
@@ -125,26 +127,26 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                ToggleSetting(Icons.Default.Subtitles, "Incrustar subtítulos", AppSettings.embedSubtitles) {
+                ToggleSetting(Icons.Default.Subtitles, stringResource(R.string.settings_embed_subtitles), AppSettings.embedSubtitles) {
                     AppSettings.embedSubtitles = it
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                ToggleSetting(Icons.Default.Image, "Incrustar carátula/miniatura", AppSettings.embedThumbnail) {
+                ToggleSetting(Icons.Default.Image, stringResource(R.string.settings_embed_thumbnail), AppSettings.embedThumbnail) {
                     AppSettings.embedThumbnail = it
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                ToggleSetting(Icons.Default.Info, "Incrustar metadatos y etiquetas", AppSettings.embedMetadata) {
+                ToggleSetting(Icons.Default.Info, stringResource(R.string.settings_embed_metadata), AppSettings.embedMetadata) {
                     AppSettings.embedMetadata = it
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                ToggleSetting(Icons.AutoMirrored.Filled.PlaylistPlay, "Permitir listas de reproducción", AppSettings.playlistEnabled) {
+                ToggleSetting(Icons.AutoMirrored.Filled.PlaylistPlay, stringResource(R.string.settings_allow_playlists), AppSettings.playlistEnabled) {
                     AppSettings.playlistEnabled = it
                 }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        SettingSectionHeader("Integración y Red")
+        SettingSectionHeader(stringResource(R.string.settings_section_integration_network))
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
@@ -152,26 +154,26 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                ToggleSetting(Icons.Default.Block, "SponsorBlock (omitir patrocinios)", AppSettings.sponsorBlockEnabled) {
+                ToggleSetting(Icons.Default.Block, stringResource(R.string.settings_sponsorblock_geo), AppSettings.sponsorBlockEnabled) {
                     AppSettings.sponsorBlockEnabled = it
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                ToggleSetting(Icons.Default.Shield, "Evitar bloqueos regionales (Bypass Geo)", AppSettings.bypassGeo) {
+                ToggleSetting(Icons.Default.Shield, stringResource(R.string.settings_bypass_geo), AppSettings.bypassGeo) {
                     AppSettings.bypassGeo = it
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.Person, "User-Agent Personalizado", trailing = AppSettings.customUserAgent.ifEmpty { "Por defecto" }) {
+                SettingItem(Icons.Default.Person, stringResource(R.string.settings_custom_user_agent), trailing = AppSettings.customUserAgent.ifEmpty { stringResource(R.string.settings_value_default) }) {
                     showUserAgentDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.ContentPaste, "Acción al copiar enlace", trailing = AppSettings.clipboardAction) {
+                SettingItem(Icons.Default.ContentPaste, stringResource(R.string.settings_clipboard_action_title), trailing = AppSettings.clipboardAction) {
                     showClipboardDialog = true
                 }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        SettingSectionHeader("Motor de Consola yt-dlp")
+        SettingSectionHeader(stringResource(R.string.settings_section_ytdlp_engine))
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
@@ -179,7 +181,7 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                SettingItem(Icons.Default.Download, "Hilos de descarga paralelos", trailing = AppSettings.concurrentFragments) {
+                SettingItem(Icons.Default.Download, stringResource(R.string.settings_parallel_threads), trailing = AppSettings.concurrentFragments) {
                     showThreadsDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
@@ -202,13 +204,13 @@ fun DownloadSettingsContent(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Descargas simultáneas",
+                            text = stringResource(R.string.settings_simultaneous_downloads),
                             color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Máximo de transferencias activas",
+                            text = stringResource(R.string.settings_max_transfers),
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             fontSize = 11.sp
                         )
@@ -247,7 +249,7 @@ fun DownloadSettingsContent(
                 }
                 
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.Code, "Argumentos personalizados yt-dlp", trailing = AppSettings.customArguments.ifEmpty { "Ninguno" }) {
+                SettingItem(Icons.Default.Code, stringResource(R.string.settings_custom_args), trailing = AppSettings.customArguments.ifEmpty { stringResource(R.string.settings_value_none) }) {
                     showCustomArgsDialog = true
                 }
             }
@@ -256,7 +258,7 @@ fun DownloadSettingsContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         if (showQualityDialog) {
-            SelectionDialog("Selecciona Calidad", qualityOptions, selectedQuality,
+            SelectionDialog(stringResource(R.string.settings_select_quality), qualityOptions, selectedQuality,
                 onSelection = {
                     onQualityChange(it)
                     showQualityDialog = false
@@ -265,7 +267,7 @@ fun DownloadSettingsContent(
             )
         }
         if (showVideoFormatDialog) {
-            SelectionDialog("Selecciona Formato Video", videoFormats, selectedVideoFormat,
+            SelectionDialog(stringResource(R.string.settings_select_video_format), videoFormats, selectedVideoFormat,
                 onSelection = {
                     onVideoFormatChange(it)
                     showVideoFormatDialog = false
@@ -274,7 +276,7 @@ fun DownloadSettingsContent(
             )
         }
         if (showAudioFormatDialog) {
-            SelectionDialog("Selecciona Formato Audio", audioFormats, selectedAudioFormat,
+            SelectionDialog(stringResource(R.string.settings_select_audio_format), audioFormats, selectedAudioFormat,
                 onSelection = {
                     onAudioFormatChange(it)
                     showAudioFormatDialog = false
@@ -283,7 +285,7 @@ fun DownloadSettingsContent(
             )
         }
         if (showSpeedDialog) {
-            SelectionDialog("Velocidad máxima", speedOptions, maxSpeed,
+            SelectionDialog(stringResource(R.string.settings_max_speed), speedOptions, maxSpeed,
                 onSelection = {
                     onSpeedChange(it)
                     showSpeedDialog = false
@@ -292,7 +294,7 @@ fun DownloadSettingsContent(
             )
         }
         if (showThreadsDialog) {
-            SelectionDialog("Hilos paralelos", threadOptions, AppSettings.concurrentFragments,
+            SelectionDialog(stringResource(R.string.settings_parallel_threads_short), threadOptions, AppSettings.concurrentFragments,
                 onSelection = {
                     AppSettings.concurrentFragments = it
                     showThreadsDialog = false
@@ -301,7 +303,7 @@ fun DownloadSettingsContent(
             )
         }
         if (showSimultaneousDialog) {
-            SelectionDialog("Descargas simultáneas máximas", simultaneousOptions, AppSettings.maxConcurrentDownloads.toString(),
+            SelectionDialog(stringResource(R.string.settings_max_simultaneous_short), simultaneousOptions, AppSettings.maxConcurrentDownloads.toString(),
                 onSelection = {
                     AppSettings.maxConcurrentDownloads = it.toIntOrNull() ?: 2
                     showSimultaneousDialog = false
@@ -311,8 +313,8 @@ fun DownloadSettingsContent(
         }
         if (showCustomArgsDialog) {
             InputDialog(
-                title = "Argumentos yt-dlp",
-                placeholder = "Ej: --restrict-filenames --no-mtime",
+                title = stringResource(R.string.settings_args_dialog_title),
+                placeholder = stringResource(R.string.settings_args_placeholder_example),
                 initialValue = AppSettings.customArguments,
                 onConfirm = { AppSettings.customArguments = it },
                 onDismiss = { showCustomArgsDialog = false }
@@ -320,15 +322,15 @@ fun DownloadSettingsContent(
         }
         if (showUserAgentDialog) {
             InputDialog(
-                title = "User-Agent Personalizado",
-                placeholder = "Escribe tu cabecera User-Agent",
+                title = stringResource(R.string.settings_custom_user_agent),
+                placeholder = stringResource(R.string.settings_user_agent_placeholder),
                 initialValue = AppSettings.customUserAgent,
                 onConfirm = { AppSettings.customUserAgent = it },
                 onDismiss = { showUserAgentDialog = false }
             )
         }
         if (showClipboardDialog) {
-            SelectionDialog("Acción al copiar enlace", clipboardOptions, AppSettings.clipboardAction,
+            SelectionDialog(stringResource(R.string.settings_clipboard_action_title), clipboardOptions, AppSettings.clipboardAction,
                 onSelection = {
                     AppSettings.clipboardAction = it
                     showClipboardDialog = false
@@ -337,7 +339,7 @@ fun DownloadSettingsContent(
             )
         }
         if (showThemeDialog) {
-            SelectionDialog("Selecciona Tema", AppSettings.themeOptions, AppSettings.themePreference,
+            SelectionDialog(stringResource(R.string.settings_select_theme), AppSettings.themeOptions, AppSettings.themePreference,
                 onSelection = {
                     AppSettings.themePreference = it
                     showThemeDialog = false
@@ -381,12 +383,12 @@ fun InputDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(text); onDismiss() }) {
-                Text("ACEPTAR", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.settings_btn_accept), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("CANCELAR", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.settings_btn_cancel), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }
         }
     )
@@ -437,7 +439,7 @@ fun SelectionDialog(title: String, options: List<String>, selectedOption: String
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("CANCELAR", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.settings_btn_cancel), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }
         }
     )

@@ -107,7 +107,7 @@ fun DownloadsScreen(
                 val uri = FileProvider.getUriForFile(ctx, "com.fabian.downloader.fileprovider", file)
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     putExtra(Intent.EXTRA_STREAM, uri)
-                    type = if (record.format == "MP4") "video/*" else "audio/*"
+                    type = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) com.fabian.downloader.utils.Config.MIME_VIDEO else com.fabian.downloader.utils.Config.MIME_AUDIO
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 ctx.startActivity(Intent.createChooser(intent, ctx.getString(R.string.downloads_share_title)))
@@ -130,7 +130,7 @@ fun DownloadsScreen(
                     file
                 )
                 val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, if (record.format == "MP4") "video/*" else "audio/*")
+                    setDataAndType(uri, if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) com.fabian.downloader.utils.Config.MIME_VIDEO else com.fabian.downloader.utils.Config.MIME_AUDIO)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 ctx.startActivity(intent)
@@ -617,15 +617,15 @@ fun DownloadsScreen(
         ) { page ->
             val filteredCompleted = remember(completed, filterType) {
                 when (filterType) {
-                    ctx.getString(R.string.downloads_filter_music) -> completed.filter { it.format == "MP3" || it.format == "M4A" }
-                    ctx.getString(R.string.downloads_filter_video) -> completed.filter { it.format == "MP4" }
+                    ctx.getString(R.string.downloads_filter_music) -> completed.filter { it.format == com.fabian.downloader.utils.Config.FORMAT_MP3 || it.format == com.fabian.downloader.utils.Config.FORMAT_M4A }
+                    ctx.getString(R.string.downloads_filter_video) -> completed.filter { it.format == com.fabian.downloader.utils.Config.FORMAT_MP4 }
                     else -> completed
                 }
             }
             val filteredDownloading = remember(downloading, filterType) {
                 when (filterType) {
-                    ctx.getString(R.string.downloads_filter_music) -> downloading.filter { it.format == "MP3" || it.format == "M4A" }
-                    ctx.getString(R.string.downloads_filter_video) -> downloading.filter { it.format == "MP4" }
+                    ctx.getString(R.string.downloads_filter_music) -> downloading.filter { it.format == com.fabian.downloader.utils.Config.FORMAT_MP3 || it.format == com.fabian.downloader.utils.Config.FORMAT_M4A }
+                    ctx.getString(R.string.downloads_filter_video) -> downloading.filter { it.format == com.fabian.downloader.utils.Config.FORMAT_MP4 }
                     else -> downloading
                 }
             }
@@ -955,7 +955,7 @@ fun MobileDownloadingItem(
                                 shape = RoundedCornerShape(6.dp)
                             ) {
                                 Text(
-                                    text = if (isNetworkError) "Error de red — toca para reintentar" else "Error — toca para reintentar", 
+                                    text = if (isNetworkError) stringResource(R.string.downloads_error_network_retry) else stringResource(R.string.downloads_error_retry), 
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isNetworkError) C_amber else C_red,
@@ -987,7 +987,7 @@ fun MobileDownloadingItem(
                     ) {
                         Icon(
                             imageVector = Icons.Default.MoreVert, 
-                            contentDescription = "Opciones", 
+                            contentDescription = stringResource(R.string.downloads_action_options), 
                             modifier = Modifier.size(18.dp), 
                             tint = C_white
                         )
@@ -1000,7 +1000,7 @@ fun MobileDownloadingItem(
                     ) {
                         if (isFailed) {
                             DropdownMenuItem(
-                                text = { Text("Reintentar", color = C_white) },
+                                text = { Text(stringResource(R.string.downloads_action_retry), color = C_white) },
                                 leadingIcon = { Icon(Icons.Default.Refresh, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
                                 onClick = { 
                                     showMenu = false
@@ -1009,7 +1009,7 @@ fun MobileDownloadingItem(
                             )
                         } else {
                             DropdownMenuItem(
-                                text = { Text(if (record.isPaused) "Reanudar" else "Pausar", color = C_white) },
+                                text = { Text(if (record.isPaused) stringResource(R.string.downloads_action_resume) else stringResource(R.string.downloads_action_pause), color = C_white) },
                                 leadingIcon = { 
                                     Icon(
                                         if (record.isPaused) Icons.Default.PlayArrow else Icons.Default.Pause, 
@@ -1026,18 +1026,18 @@ fun MobileDownloadingItem(
                         }
                         
                         DropdownMenuItem(
-                            text = { Text("Copiar Enlace", color = C_white) },
+                            text = { Text(stringResource(R.string.downloads_action_copy_link), color = C_white) },
                             leadingIcon = { Icon(Icons.Default.ContentCopy, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
                             onClick = { 
                                 showMenu = false
                                 val clipboard = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                                 clipboard.setPrimaryClip(android.content.ClipData.newPlainText("URL", record.url))
-                                Toast.makeText(ctx, "Enlace copiado", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(ctx, ctx.getString(R.string.downloads_toast_link_copied), Toast.LENGTH_SHORT).show()
                             }
                         )
                         HorizontalDivider(color = C_border, thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
                         DropdownMenuItem(
-                            text = { Text(if (isFailed) "Eliminar" else "Cancelar", color = C_red) },
+                            text = { Text(if (isFailed) stringResource(R.string.downloads_action_delete) else stringResource(R.string.downloads_action_cancel), color = C_red) },
                             leadingIcon = { 
                                 Icon(
                                     if (isFailed) Icons.Default.Delete else Icons.Default.Close, 
@@ -1137,8 +1137,8 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
 
     val cleanTitle = remember(record.title) {
         var t = record.title
-        while (t.startsWith("Fallo: ")) {
-            t = t.substringAfter("Fallo: ")
+        while (t.startsWith(com.fabian.downloader.utils.Config.STATUS_FAILED_PREFIX)) {
+            t = t.substringAfter(com.fabian.downloader.utils.Config.STATUS_FAILED_PREFIX)
         }
         t
     }
@@ -1232,7 +1232,7 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                 ) {
                     Icon(
                         imageVector = Icons.Default.MoreVert, 
-                        contentDescription = "Opciones", 
+                        contentDescription = stringResource(R.string.downloads_action_options), 
                         tint = C_white,
                         modifier = Modifier.size(18.dp)
                     )
@@ -1244,7 +1244,7 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                     modifier = Modifier.background(C_card2, RoundedCornerShape(12.dp))
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Reproducir", color = C_white) },
+                        text = { Text(stringResource(R.string.downloads_action_play), color = C_white) },
                         leadingIcon = { Icon(Icons.Default.PlayArrow, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
                         onClick = { 
                             showMenu = false
@@ -1252,7 +1252,7 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Compartir", color = C_white) },
+                        text = { Text(stringResource(R.string.downloads_action_share), color = C_white) },
                         leadingIcon = { Icon(Icons.Default.Share, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
                         onClick = { 
                             showMenu = false
@@ -1260,18 +1260,18 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Copiar Enlace", color = C_white) },
+                        text = { Text(stringResource(R.string.downloads_action_copy_link), color = C_white) },
                         leadingIcon = { Icon(Icons.Default.ContentCopy, null, tint = C_accent, modifier = Modifier.size(18.dp)) },
                         onClick = { 
                             showMenu = false
                             val clipboard = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                             clipboard.setPrimaryClip(android.content.ClipData.newPlainText("URL", record.url))
-                            Toast.makeText(ctx, "Enlace copiado", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(ctx, ctx.getString(R.string.downloads_toast_link_copied), Toast.LENGTH_SHORT).show()
                         }
                     )
                     HorizontalDivider(color = C_border, thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
                     DropdownMenuItem(
-                        text = { Text("Eliminar", color = C_red) },
+                        text = { Text(stringResource(R.string.downloads_action_delete), color = C_red) },
                         leadingIcon = { Icon(Icons.Default.Delete, null, tint = C_red, modifier = Modifier.size(18.dp)) },
                         onClick = { 
                             showMenu = false

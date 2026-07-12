@@ -5,7 +5,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "search_history",
+    tableName = com.fabian.downloader.utils.Config.DB_TABLE_SEARCH_HISTORY,
     indices = [
         Index(value = ["query"], unique = true),
         Index(value = ["timestamp"])

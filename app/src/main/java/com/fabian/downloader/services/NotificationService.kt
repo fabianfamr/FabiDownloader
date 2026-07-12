@@ -11,15 +11,16 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.fabian.downloader.services.DownloadActionReceiver
 import com.fabian.downloader.R
+import com.fabian.downloader.utils.Config
 import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class NotificationService(private val context: Context) {
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    private val channelProgressId = "downloads_channel_progress"
-    private val channelStatusId = "downloads_channel_status"
-    private val groupId = "downloads_group"
+    private val channelProgressId = Config.NOTIF_CHANNEL_PROGRESS
+    private val channelStatusId = Config.NOTIF_CHANNEL_STATUS
+    private val groupId = Config.NOTIF_GROUP
     
     init {
         createNotificationChannels()
@@ -30,10 +31,10 @@ class NotificationService(private val context: Context) {
             // Canal para descargas en curso (Silencioso para que no vibre con cada porcentaje)
             val progressChannel = NotificationChannel(
                 channelProgressId,
-                "Descargas en Progreso",
+                context.getString(R.string.notif_channel_progress),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Muestra el progreso en tiempo real de las descargas activas"
+                description = context.getString(R.string.notif_channel_progress_desc)
                 setShowBadge(false)
             }
             notificationManager.createNotificationChannel(progressChannel)
@@ -41,10 +42,10 @@ class NotificationService(private val context: Context) {
             // Canal para descargas finalizadas/fallidas (Con sonido y vibración)
             val statusChannel = NotificationChannel(
                 channelStatusId,
-                "Estado de Descargas",
+                context.getString(R.string.notif_channel_status),
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Notificaciones de descargas completadas con éxito o fallidas"
+                description = context.getString(R.string.notif_channel_status_desc)
                 setShowBadge(true)
             }
             notificationManager.createNotificationChannel(statusChannel)
@@ -54,10 +55,21 @@ class NotificationService(private val context: Context) {
     private val thumbnailCache = mutableMapOf<String, Bitmap>()
     private val shownSuccessIds = java.util.Collections.synchronizedSet(mutableSetOf<Int>())
 
+    /**
+     * Shows download progress in the notification bar.
+     *
+     * NOTE: By design, real-time progress notifications are DISABLED to avoid vibration/spam
+     * on every percentage update. Only the final state (100%) triggers a notification via
+     * [showDownloadSuccess]. This is intentional — the progress bar is shown only inside
+     * the app UI, not in the system notification.
+     *
+     * If you need to re-enable progress notifications, replace the early `return` below
+     * with a NotificationCompat.Builder progress bar update.
+     */
     suspend fun showDownloadProgress(
-        id: Int, 
-        title: String, 
-        progress: Int, 
+        id: Int,
+        title: String,
+        progress: Int,
         thumbnailUrl: String? = null,
         speed: String? = null,
         size: String? = null
@@ -67,7 +79,7 @@ class NotificationService(private val context: Context) {
             return
         }
 
-        // Quitar la notificación de descargas activas (no mostrar progreso menor a 100%)
+        // Progress notifications are intentionally disabled (see kdoc above)
         return
     }
 
@@ -96,8 +108,8 @@ class NotificationService(private val context: Context) {
 
         // Crear Acción Abrir
         val openIntent = Intent(context, DownloadActionReceiver::class.java).apply {
-            action = "com.fabian.downloader.ACTION_OPEN"
-            putExtra("EXTRA_DOWNLOAD_ID", id.toLong())
+            action = Config.ACTION_OPEN
+            putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
         }
         val openPendingIntent = PendingIntent.getBroadcast(
             context,
@@ -108,8 +120,8 @@ class NotificationService(private val context: Context) {
 
         // Crear Acción Compartir
         val shareIntent = Intent(context, DownloadActionReceiver::class.java).apply {
-            action = "com.fabian.downloader.ACTION_SHARE"
-            putExtra("EXTRA_DOWNLOAD_ID", id.toLong())
+            action = Config.ACTION_SHARE
+            putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
         }
         val sharePendingIntent = PendingIntent.getBroadcast(
             context,
@@ -119,14 +131,14 @@ class NotificationService(private val context: Context) {
         )
 
         val notification = NotificationCompat.Builder(context, channelStatusId)
-            .setContentTitle("Descarga completada")
+            .setContentTitle(context.getString(R.string.notif_title_completed))
             .setContentText(title)
             .setSmallIcon(R.drawable.ic_cloud_download)
             .setLargeIcon(largeIcon)
             .setAutoCancel(true)
             .setOngoing(false)
-            .addAction(android.R.drawable.ic_media_play, "Abrir", openPendingIntent)
-            .addAction(android.R.drawable.ic_menu_share, "Compartir", sharePendingIntent)
+            .addAction(android.R.drawable.ic_media_play, context.getString(R.string.notif_action_open), openPendingIntent)
+            .addAction(android.R.drawable.ic_menu_share, context.getString(R.string.notif_action_share), sharePendingIntent)
             .build()
 
         notificationManager.notify(id + 300000, notification) // ID diferente para no solapar con el progreso ya cancelado
@@ -154,8 +166,8 @@ class NotificationService(private val context: Context) {
 
         // Crear Acción Reintentar
         val retryIntent = Intent(context, DownloadActionReceiver::class.java).apply {
-            action = "com.fabian.downloader.ACTION_RETRY"
-            putExtra("EXTRA_DOWNLOAD_ID", id.toLong())
+            action = Config.ACTION_RETRY
+            putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
         }
         val retryPendingIntent = PendingIntent.getBroadcast(
             context,
@@ -164,16 +176,16 @@ class NotificationService(private val context: Context) {
             flags
         )
 
-        val cleanTitle = title.replace("Fallo: ", "")
+        val cleanTitle = title.removePrefix(Config.STATUS_FAILED_PREFIX)
 
         val notification = NotificationCompat.Builder(context, channelStatusId)
-            .setContentTitle("Descarga fallida")
+            .setContentTitle(context.getString(R.string.notif_title_failed))
             .setContentText("$cleanTitle\n$errorMsg")
             .setSmallIcon(R.drawable.ic_cloud_download)
             .setLargeIcon(largeIcon)
             .setAutoCancel(true)
             .setOngoing(false)
-            .addAction(R.drawable.ic_cloud_download, "Reintentar", retryPendingIntent)
+            .addAction(R.drawable.ic_cloud_download, context.getString(R.string.notif_action_retry), retryPendingIntent)
             .build()
 
         notificationManager.notify(id + 500000, notification)

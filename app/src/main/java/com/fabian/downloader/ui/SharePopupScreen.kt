@@ -36,6 +36,7 @@ import coil.compose.AsyncImage
 import com.fabian.downloader.R
 import androidx.compose.ui.res.painterResource
 import com.fabian.downloader.services.ExtractionService
+import com.fabian.downloader.utils.Config
 import kotlinx.coroutines.launch
 
 data class DownloadOption(
@@ -95,7 +96,7 @@ fun SharePopupScreen(
                 title = extractedTitle
                 thumbnailUrl = extractedThumb
             } catch (e: Exception) {
-                Log.e("SharePopupScreen", "Error extracting title/icon", e)
+                Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error extracting title/icon", e)
             }
         }
         
@@ -106,7 +107,7 @@ fun SharePopupScreen(
                 }
                 formatSizes = extractedSizes ?: emptyMap()
             } catch (e: Exception) {
-                Log.e("SharePopupScreen", "Error extracting sizes", e)
+                Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error extracting sizes", e)
                 formatSizes = emptyMap()
             }
         }
@@ -119,7 +120,7 @@ fun SharePopupScreen(
             }
             isLoading = false
         } catch (e: Exception) {
-            Log.e("SharePopupScreen", "Error in extraction coroutines", e)
+            Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error in extraction coroutines", e)
             errorMsg = ctx.getString(R.string.share_error_analyze)
             isLoading = false
         }
@@ -140,7 +141,7 @@ fun SharePopupScreen(
         if (title != null) {
             com.fabian.downloader.services.ExtractionService.ExtractedVideo(
                 title = title ?: "",
-                availableFormats = listOf("MP4", "MP3", "M4A"),
+                availableFormats = listOf(Config.FORMAT_MP4, Config.FORMAT_MP3, Config.FORMAT_M4A),
                 size = sizeText,
                 thumbnailUrl = thumbnailUrl,
                 formatSizes = formatSizes ?: emptyMap(),
@@ -153,10 +154,10 @@ fun SharePopupScreen(
     
     val musicOptions = remember(formatSizes) {
         listOf(
-            DownloadOption("music_320", "320 kbps", "MP3", "320", "Music"),
-            DownloadOption("music_192", "192 kbps", "MP3", "192", "Music"),
-            DownloadOption("music_128", "128 kbps", "MP3", "128", "Music"),
-            DownloadOption("music_64", "64 kbps", "M4A", "64", "Music")
+            DownloadOption("music_320", ctx.getString(R.string.share_quality_320kbps), Config.FORMAT_MP3, "320", ctx.getString(R.string.share_category_music)),
+            DownloadOption("music_192", ctx.getString(R.string.share_quality_192kbps), Config.FORMAT_MP3, "192", ctx.getString(R.string.share_category_music)),
+            DownloadOption("music_128", ctx.getString(R.string.share_quality_128kbps), Config.FORMAT_MP3, "128", ctx.getString(R.string.share_category_music)),
+            DownloadOption("music_64", ctx.getString(R.string.share_quality_64kbps), Config.FORMAT_M4A, "64", ctx.getString(R.string.share_category_music))
         ).map { option ->
             option.copy(sizeStr = getOptionSize(ctx, option, formatSizes))
         }
@@ -164,10 +165,10 @@ fun SharePopupScreen(
     
     val videoOptions = remember(formatSizes) {
         listOf(
-            DownloadOption("video_1080", "1080p FHD", "MP4", "1080p", "Video"),
-            DownloadOption("video_720", "720p HD", "MP4", "720p", "Video"),
-            DownloadOption("video_480", "480p", "MP4", "480p", "Video"),
-            DownloadOption("video_360", "360p", "MP4", "360p", "Video")
+            DownloadOption("video_1080", ctx.getString(R.string.share_quality_1080p), Config.FORMAT_MP4, "1080p", ctx.getString(R.string.share_category_video)),
+            DownloadOption("video_720", ctx.getString(R.string.share_quality_720p), Config.FORMAT_MP4, "720p", ctx.getString(R.string.share_category_video)),
+            DownloadOption("video_480", ctx.getString(R.string.share_quality_480p), Config.FORMAT_MP4, "480p", ctx.getString(R.string.share_category_video)),
+            DownloadOption("video_360", ctx.getString(R.string.share_quality_360p), Config.FORMAT_MP4, "360p", ctx.getString(R.string.share_category_video))
         ).map { option ->
             option.copy(sizeStr = getOptionSize(ctx, option, formatSizes))
         }
@@ -178,7 +179,7 @@ fun SharePopupScreen(
     
     // Platform-specific brand color and icon
     val platformInfo = remember(cleanUrl) {
-        getPlatformIconAndColor(cleanUrl, "MP4")
+        getPlatformIconAndColor(cleanUrl, Config.FORMAT_MP4)
     }
     val platformColor = platformInfo.second
     val platformIcon = platformInfo.first
@@ -272,8 +273,8 @@ fun SharePopupScreen(
                                         if (selectedOptionId == "video_hq") "720p" else "360p"
                                     },
                                     format = if (selectedOptionId.startsWith("music")) {
-                                        if (selectedOptionId == "music_classic") "MP3" else "M4A"
-                                    } else "MP4",
+                                        if (selectedOptionId == "music_classic") Config.FORMAT_MP3 else Config.FORMAT_M4A
+                                    } else Config.FORMAT_MP4,
                                     title = ctx.getString(R.string.share_download_prefix, (System.currentTimeMillis() % 100000).toString()),
                                     thumbnailUrl = null
                                 )

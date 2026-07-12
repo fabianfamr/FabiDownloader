@@ -3,6 +3,7 @@ package com.fabian.downloader
 import android.app.Application
 import android.util.Log
 import androidx.core.content.edit
+import com.fabian.downloader.utils.Config
 import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
 import kotlinx.coroutines.CoroutineScope
@@ -38,12 +39,12 @@ class MyApplication : Application() {
                             val ytdlDir = java.io.File(noBackupDir, "youtubedl-android")
                             if (ytdlDir.exists()) {
                                 ytdlDir.deleteRecursively()
-                                Log.d("yt-dlp", "Directorio de yt-dlp eliminado para forzar re-extracción limpia compatible")
+                                Log.d(Config.TAG_YT_DLP, "Directorio de yt-dlp eliminado para forzar re-extracción limpia compatible")
                             }
                         }
                         prefs.edit { putBoolean("reset_ytdlp_python310_v10", true) }
                     } catch (e: Exception) {
-                        Log.e("yt-dlp", "Error al intentar resetear directorio de yt-dlp", e)
+                        Log.e(Config.TAG_YT_DLP, "Error al intentar resetear directorio de yt-dlp", e)
                     }
                 }
 
@@ -52,7 +53,7 @@ class MyApplication : Application() {
                 
                 isInitialized = true
                 initLatch.countDown()
-                Log.d("yt-dlp", "Inicialización exitosa de componentes nativos")
+                Log.d(Config.TAG_YT_DLP, "Inicialización exitosa de componentes nativos")
                 
                 try {
                     val connectivityManager = getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
@@ -65,17 +66,17 @@ class MyApplication : Application() {
                     )
                     
                     if (isConnected) {
-                        Log.d("yt-dlp", "Iniciando actualización de yt-dlp al arranque...")
+                        Log.d(Config.TAG_YT_DLP, "Iniciando actualización de yt-dlp al arranque...")
                         YoutubeDL.getInstance().updateYoutubeDL(this@MyApplication)
-                        Log.d("yt-dlp", "Actualización de yt-dlp exitosa")
+                        Log.d(Config.TAG_YT_DLP, "Actualización de yt-dlp exitosa")
                     } else {
-                        Log.d("yt-dlp", "Sin conexión de red, se omite la actualización de yt-dlp al inicio")
+                        Log.d(Config.TAG_YT_DLP, "Sin conexión de red, se omite la actualización de yt-dlp al inicio")
                     }
                 } catch (e: Exception) {
-                    Log.e("yt-dlp", "Fallo al actualizar yt-dlp (normal si no hay red o ya está actualizado)", e)
+                    Log.e(Config.TAG_YT_DLP, "Fallo al actualizar yt-dlp (normal si no hay red o ya está actualizado)", e)
                 }
             } catch (e: Exception) {
-                Log.e("yt-dlp", "Error crítico al inicializar binarios nativos", e)
+                Log.e(Config.TAG_YT_DLP, "Error crítico al inicializar binarios nativos", e)
                 isInitialized = true
                 initLatch.countDown() // Release even on error
             }

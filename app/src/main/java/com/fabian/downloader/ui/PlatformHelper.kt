@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 fun getPlatformIconAndColor(url: String, format: String): Pair<ImageVector, Color> {
     val lowerUrl = url.lowercase()
     val upperFormat = format.uppercase()
-    val isAudio = upperFormat.contains("MP3") || upperFormat.contains("M4A") || upperFormat.contains("OGG") || upperFormat.contains("WAV")
+    val isAudio = upperFormat.contains(com.fabian.downloader.utils.Config.FORMAT_MP3) || upperFormat.contains(com.fabian.downloader.utils.Config.FORMAT_M4A) || upperFormat.contains(com.fabian.downloader.utils.Config.FORMAT_OGG) || upperFormat.contains(com.fabian.downloader.utils.Config.FORMAT_WAV)
     
     return when {
         lowerUrl.contains("youtube.com") || lowerUrl.contains("youtu.be") || lowerUrl.contains("shorts") -> 

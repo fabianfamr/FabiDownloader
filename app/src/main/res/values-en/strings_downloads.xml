@@ -59,4 +59,50 @@
     <string name="downloads_share_error_prefix">Error sharing: %s</string>
     <string name="downloads_url_prefix">URL: %s</string>
     <string name="downloads_failed_prefix">Failed: </string>
+
+    <!-- Toast messages -->
+    <string name="downloads_toast_no_connection">No internet connection</string>
+    <string name="downloads_toast_already_in_progress">This download is already in progress or queued</string>
+    <string name="downloads_toast_already_downloaded">This file has already been downloaded</string>
+    <string name="downloads_toast_paused">Download paused</string>
+    <string name="downloads_toast_link_copied">Link copied</string>
+    <string name="downloads_toast_no_app_to_open">No app found to open the file</string>
+    <string name="downloads_toast_file_not_found">The file does not exist or was moved</string>
+    <string name="downloads_toast_file_not_found_short">The file does not exist</string>
+    <string name="downloads_toast_share_error">Error sharing file</string>
+    <string name="downloads_toast_no_valid_link">No valid link found</string>
+
+    <!-- Error messages -->
+    <string name="downloads_error_generic">Download error</string>
+    <string name="downloads_error_requires_login">Sign-in required. Configure Cookies in Settings.</string>
+    <string name="downloads_error_network_retry">Network error — tap to retry</string>
+    <string name="downloads_error_retry">Error — tap to retry</string>
+
+    <!-- Action labels -->
+    <string name="downloads_action_open">Open</string>
+    <string name="downloads_action_share">Share</string>
+    <string name="downloads_action_retry">Retry</string>
+    <string name="downloads_action_play">Play</string>
+    <string name="downloads_action_pause">Pause</string>
+    <string name="downloads_action_resume">Resume</string>
+    <string name="downloads_action_cancel">Cancel</string>
+    <string name="downloads_action_delete">Delete</string>
+    <string name="downloads_action_copy_link">Copy Link</string>
+    <string name="downloads_action_options">Options</string>
+    <string name="downloads_action_share_with">Share with</string>
+
+    <!-- Notification channels and titles -->
+    <string name="notif_channel_progress">Downloads in Progress</string>
+    <string name="notif_channel_progress_desc">Shows real-time progress of active downloads</string>
+    <string name="notif_channel_status">Download Status</string>
+    <string name="notif_channel_status_desc">Notifications for successfully completed or failed downloads</string>
+    <string name="notif_title_completed">Download completed</string>
+    <string name="notif_title_failed">Download failed</string>
+    <string name="notif_action_open">Open</string>
+    <string name="notif_action_share">Share</string>
+    <string name="notif_action_retry">Retry</string>
+
+    <!-- Fallback titles -->
+    <string name="downloads_default_title">Download</string>
+    <string name="downloads_default_domain">Internet</string>
 </resources>

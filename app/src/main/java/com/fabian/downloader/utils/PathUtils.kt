@@ -7,7 +7,7 @@ import java.io.File
 @Suppress("DEPRECATION")
 object PathUtils {
     fun getDownloadFolder(context: Context, format: String): File {
-        val isVideo = format.equals("MP4", ignoreCase = true) || format.equals("WEBM", ignoreCase = true)
+        val isVideo = format.equals(Config.FORMAT_MP4, ignoreCase = true) || format.equals(Config.FORMAT_WEBM, ignoreCase = true)
         val relativeSubfolder = if (isVideo) "${Config.APP_NAME}/video" else "${Config.APP_NAME}/audio"
         
         // 1. Try standard public Download/FabiDownloader/... (This is what the user expects!)
@@ -23,11 +23,11 @@ object PathUtils {
                 val testFile = File(downloadFabiFolder, ".test_write_${System.currentTimeMillis()}")
                 if (testFile.createNewFile()) {
                     testFile.delete()
-                    android.util.Log.d("PathUtils", "Successfully verified public Download folder: ${downloadFabiFolder.absolutePath}")
+                    android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified public Download folder: ${downloadFabiFolder.absolutePath}")
                     return downloadFabiFolder
                 }
             } catch (e: Exception) {
-                android.util.Log.e("PathUtils", "Public Download folder is NOT writable: ${e.message}")
+                android.util.Log.e(Config.TAG_PATH_UTILS, "Public Download folder is NOT writable: ${e.message}")
             }
         }
 
@@ -44,7 +44,7 @@ object PathUtils {
                 val testFile = File(targetFolder, ".test_write_${System.currentTimeMillis()}")
                 if (testFile.createNewFile()) {
                     testFile.delete()
-                    android.util.Log.d("PathUtils", "Using externalMediaDirs folder: ${targetFolder.absolutePath}")
+                    android.util.Log.d(Config.TAG_PATH_UTILS, "Using externalMediaDirs folder: ${targetFolder.absolutePath}")
                     return targetFolder
                 }
             } catch (e: Exception) {
@@ -63,7 +63,7 @@ object PathUtils {
                 val testFile = File(targetFolder, ".test_write_${System.currentTimeMillis()}")
                 if (testFile.createNewFile()) {
                     testFile.delete()
-                    android.util.Log.d("PathUtils", "Using appExternalDownloadDir folder: ${targetFolder.absolutePath}")
+                    android.util.Log.d(Config.TAG_PATH_UTILS, "Using appExternalDownloadDir folder: ${targetFolder.absolutePath}")
                     return targetFolder
                 }
             } catch (e: Exception) {
@@ -76,7 +76,7 @@ object PathUtils {
         if (!fallbackFolder.exists()) {
             fallbackFolder.mkdirs()
         }
-        android.util.Log.w("PathUtils", "FALLBACK to private storage! This is what the user wants to avoid: ${fallbackFolder.absolutePath}")
+        android.util.Log.w(Config.TAG_PATH_UTILS, "FALLBACK to private storage! This is what the user wants to avoid: ${fallbackFolder.absolutePath}")
         return fallbackFolder
     }
 
@@ -94,7 +94,7 @@ object PathUtils {
         
         // 3. Fallback search in all possible historical locations (including legacy names)
         val storageRoot = Environment.getExternalStorageDirectory()
-        val isVideo = format.equals("MP4", ignoreCase = true) || format.equals("WEBM", ignoreCase = true)
+        val isVideo = format.equals(Config.FORMAT_MP4, ignoreCase = true) || format.equals(Config.FORMAT_WEBM, ignoreCase = true)
         
         // We support both FabiDownloader and Fabidownloader
         val subFolders = if (isVideo) {

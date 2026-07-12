@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "download_records",
+    tableName = com.fabian.downloader.utils.Config.DB_TABLE_DOWNLOADS,
     indices = [
         androidx.room.Index(value = ["url"]),
         androidx.room.Index(value = ["isCompleted"]),
@@ -19,8 +19,8 @@ data class DownloadRecord(
     val isCompleted: Boolean,
     val progress: Int,
     val quality: String = "720p",
-    val format: String = "MP4",
-    val size: String = "0 MB",
+    val format: String = com.fabian.downloader.utils.Config.FORMAT_MP4,
+    val size: String = com.fabian.downloader.utils.Config.STATUS_ZERO_MB,
     val timestamp: Long = System.currentTimeMillis(),
     val isPaused: Boolean = false,
     val thumbnailUrl: String? = null,

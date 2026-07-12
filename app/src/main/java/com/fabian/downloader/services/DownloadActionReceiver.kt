@@ -11,34 +11,36 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.fabian.downloader.R
+import com.fabian.downloader.utils.Config
 
 class DownloadActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null || intent == null) return
         
         val action = intent.action
-        val downloadId = intent.getLongExtra("EXTRA_DOWNLOAD_ID", -1L)
+        val downloadId = intent.getLongExtra(Config.EXTRA_DOWNLOAD_ID, -1L)
         if (downloadId == -1L) {
-            Log.e("DownloadActionReceiver", "Received action $action without valid downloadId")
+            Log.e(Config.TAG_DOWNLOAD_ACTION_RECEIVER, "Received action $action without valid downloadId")
             return
         }
         
-        Log.d("DownloadActionReceiver", "Action received: $action for ID $downloadId")
+        Log.d(Config.TAG_DOWNLOAD_ACTION_RECEIVER, "Action received: $action for ID $downloadId")
         val pendingResult = goAsync()
         
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 when (action) {
-                    "com.fabian.downloader.ACTION_PAUSE" -> {
+                    Config.ACTION_PAUSE -> {
                         DownloadManagerService.getInstance(context).pauseDownload(downloadId)
                     }
-                    "com.fabian.downloader.ACTION_OPEN" -> {
+                    Config.ACTION_OPEN -> {
                         openFile(context, downloadId)
                     }
-                    "com.fabian.downloader.ACTION_SHARE" -> {
+                    Config.ACTION_SHARE -> {
                         shareFile(context, downloadId)
                     }
-                    "com.fabian.downloader.ACTION_RETRY" -> {
+                    Config.ACTION_RETRY -> {
                         retryDownload(context, downloadId)
                     }
                 }
@@ -57,7 +59,7 @@ class DownloadActionReceiver : BroadcastReceiver() {
                 rawUrl = record.url,
                 quality = record.quality,
                 format = record.format,
-                passedTitle = record.title.replace("Fallo: ", ""),
+                passedTitle = record.title.removePrefix(Config.STATUS_FAILED_PREFIX),
                 passedThumbnailUrl = record.thumbnailUrl,
                 existingId = record.id
             )
@@ -77,10 +79,10 @@ class DownloadActionReceiver : BroadcastReceiver() {
                         "${context.packageName}.fileprovider",
                         file
                     )
-                    val mimeType = if (record.format.uppercase() == "MP3" || record.format.uppercase() == "M4A") {
-                        "audio/*"
+                    val mimeType = if (record.format.uppercase() == Config.FORMAT_MP3 || record.format.uppercase() == Config.FORMAT_M4A) {
+                        Config.MIME_AUDIO
                     } else {
-                        "video/*"
+                        Config.MIME_VIDEO
                     }
                     
                     val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -90,11 +92,11 @@ class DownloadActionReceiver : BroadcastReceiver() {
                     }
                     context.startActivity(intent)
                 } catch (e: Exception) {
-                    Log.e("DownloadActionReceiver", "Failed to open file", e)
-                    Toast.makeText(context, "No se encontró una aplicación para abrir el archivo", Toast.LENGTH_SHORT).show()
+                    Log.e(Config.TAG_DOWNLOAD_ACTION_RECEIVER, "Failed to open file", e)
+                    Toast.makeText(context, context.getString(R.string.downloads_toast_no_app_to_open), Toast.LENGTH_SHORT).show()
                 }
             } else {
-                Toast.makeText(context, "El archivo no existe o fue movido", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.downloads_toast_file_not_found), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -114,22 +116,22 @@ class DownloadActionReceiver : BroadcastReceiver() {
                     )
                     
                     val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = if (record.format.uppercase() == "MP3" || record.format.uppercase() == "M4A") "audio/*" else "video/*"
+                        type = if (record.format.uppercase() == Config.FORMAT_MP3 || record.format.uppercase() == Config.FORMAT_M4A) Config.MIME_AUDIO else Config.MIME_VIDEO
                         putExtra(Intent.EXTRA_STREAM, uri)
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     
-                    val chooser = Intent.createChooser(intent, "Compartir con").apply {
+                    val chooser = Intent.createChooser(intent, context.getString(R.string.downloads_action_share_with)).apply {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     context.startActivity(chooser)
                 } catch (e: Exception) {
-                    Log.e("DownloadActionReceiver", "Failed to share file", e)
-                    Toast.makeText(context, "Error al compartir archivo", Toast.LENGTH_SHORT).show()
+                    Log.e(Config.TAG_DOWNLOAD_ACTION_RECEIVER, "Failed to share file", e)
+                    Toast.makeText(context, context.getString(R.string.downloads_toast_share_error), Toast.LENGTH_SHORT).show()
                 }
             } else {
-                Toast.makeText(context, "El archivo no existe", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.downloads_toast_file_not_found_short), Toast.LENGTH_SHORT).show()
             }
         }
     }

@@ -51,7 +51,7 @@ class MainViewModel(application: Application, private val database: AppDatabase)
         }
     }
 
-    fun downloadVideo(url: String, quality: String = "720p", format: String = "MP4", title: String? = null, thumbnailUrl: String? = null) {
+    fun downloadVideo(url: String, quality: String = "720p", format: String = com.fabian.downloader.utils.Config.FORMAT_MP4, title: String? = null, thumbnailUrl: String? = null) {
         downloadManager.startDownload(url, quality, format, title, thumbnailUrl)
     }
 }

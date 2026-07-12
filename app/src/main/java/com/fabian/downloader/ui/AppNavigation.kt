@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import com.fabian.downloader.database.AppDatabase
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -143,7 +144,7 @@ fun FabiDownloaderApp(
                                 ) {
                                     Icon(
                                         imageVector = screen.icon,
-                                        contentDescription = screen.title,
+                                        contentDescription = stringResource(screen.titleRes),
                                         modifier = Modifier.size(24.dp),
                                         tint = if (isSelected) C_accent else C_gray1
                                     )
@@ -152,7 +153,7 @@ fun FabiDownloaderApp(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 
                                 Text(
-                                    text = screen.title,
+                                    text = stringResource(screen.titleRes),
                                     color = if (isSelected) C_accent else C_gray1,
                                     fontSize = 10.sp,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal

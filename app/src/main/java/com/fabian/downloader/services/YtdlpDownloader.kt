@@ -26,7 +26,7 @@ class YtdlpDownloader {
     ): YoutubeDLRequest {
         val isYoutube = videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be") || videoUrl.contains("shorts") || videoUrl.contains("music.youtube.com")
         return YoutubeDLRequest(videoUrl).apply {
-            if (format == "MP3") {
+            if (format == Config.FORMAT_MP3) {
                 if (fallbackLevel == 0) {
                     addOption("-f", "bestaudio/best")
                 } else {
@@ -35,7 +35,7 @@ class YtdlpDownloader {
                 addOption("--extract-audio")
                 addOption("--audio-format", "mp3")
                 addOption("--audio-quality", quality.filter { it.isDigit() }.ifEmpty { "128" })
-            } else if (format == "M4A") {
+            } else if (format == Config.FORMAT_M4A) {
                 if (fallbackLevel == 0) {
                     addOption("-f", "bestaudio/best")
                 } else {
@@ -71,12 +71,12 @@ class YtdlpDownloader {
             addOption("--concurrent-fragments", fragments)
             
             val maxSpeed = com.fabian.downloader.ui.AppSettings.maxSpeed
-            if (maxSpeed != "Ilimitada") {
+            if (maxSpeed != Config.SPEED_UNLIMITED) {
                 val limit = when (maxSpeed) {
-                    "500 KB/s" -> "500K"
-                    "1 MB/s" -> "1M"
-                    "5 MB/s" -> "5M"
-                    "10 MB/s" -> "10M"
+                    Config.SPEED_500K -> Config.RATE_LIMIT_500K
+                    Config.SPEED_1M -> Config.RATE_LIMIT_1M
+                    Config.SPEED_5M -> Config.RATE_LIMIT_5M
+                    Config.SPEED_10M -> Config.RATE_LIMIT_10M
                     else -> null
                 }
                 if (limit != null) {
@@ -155,7 +155,7 @@ class YtdlpDownloader {
                                     i += 1
                                 }
                             } else {
-                                Log.w("YtdlpDownloader", "Blocked unauthorized argument: $token")
+                                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Blocked unauthorized argument: $token")
                                 i += 1
                                 if (i < tokens.size && !tokens[i].startsWith("-")) {
                                     i += 1
@@ -166,7 +166,7 @@ class YtdlpDownloader {
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("YtdlpDownloader", "Error parsing custom arguments", e)
+                    Log.e(Config.TAG_YTDLP_DOWNLOADER, "Error parsing custom arguments", e)
                 }
             }
 
@@ -189,13 +189,31 @@ class YtdlpDownloader {
         var lastLine = ""
         var executionError: Exception? = null
 
+        // Helper: destroy any previous yt-dlp process and clean partial files before retrying
+        suspend fun cleanupBeforeRetry() {
+            try {
+                YoutubeDL.getInstance().destroyProcessById(processId)
+            } catch (e: Exception) {
+                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Could not destroy previous process before retry", e)
+            }
+            // Remove partial files left by previous attempt so --no-overwrites doesn't skip
+            try {
+                destFolder.listFiles { _, name ->
+                    name.startsWith("${fileNameWithoutExt}.") &&
+                    (name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp"))
+                }?.forEach { it.delete() }
+            } catch (e: Exception) {
+                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Could not clean partial files before retry", e)
+            }
+        }
+
         // Nivel 0: Intentar con la calidad / formato solicitados (y fallback interno de calidad)
         try {
             val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, 0, customizeRequest)
             YoutubeDL.getInstance().execute(request, processId) { progreso, _, line ->
                 lastLine = line
-                var speedText = "Calculando..."
-                var sizeText = "Descargando..."
+                var speedText = Config.STATUS_CALCULATING
+                var sizeText = Config.STATUS_DOWNLOADING
                 
                 val match = SPEED_REGEX.find(line)
                 if (match != null) {
@@ -207,16 +225,17 @@ class YtdlpDownloader {
                     sizeText = sizeMatch.groupValues[1].replace("~", "")
                 }
                 
-                if (progreso == 100f && speedText == "Calculando...") {
-                    speedText = "Finalizando..."
+                if (progreso == 100f && speedText == Config.STATUS_CALCULATING) {
+                    speedText = Config.STATUS_FINALIZING
                 }
                 
                 alProgresar(progreso, sizeText, speedText)
             }
             return@withContext true
         } catch (e: Exception) {
-            Log.w("YtdlpDownloader", "Primer intento fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1 (bestvideo+bestaudio/best)...")
+            Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer intento fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1 (bestvideo+bestaudio/best)...")
             executionError = e
+            cleanupBeforeRetry()
         }
 
         // Nivel 1: Intentar con mejor formato disponible sin limitación estricta de altura
@@ -224,8 +243,8 @@ class YtdlpDownloader {
             val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, 1, customizeRequest)
             YoutubeDL.getInstance().execute(request, processId) { progreso, _, line ->
                 lastLine = line
-                var speedText = "Calculando..."
-                var sizeText = "Descargando..."
+                var speedText = Config.STATUS_CALCULATING
+                var sizeText = Config.STATUS_DOWNLOADING
                 
                 val match = SPEED_REGEX.find(line)
                 if (match != null) {
@@ -237,16 +256,17 @@ class YtdlpDownloader {
                     sizeText = sizeMatch.groupValues[1].replace("~", "")
                 }
                 
-                if (progreso == 100f && speedText == "Calculando...") {
-                    speedText = "Finalizando..."
+                if (progreso == 100f && speedText == Config.STATUS_CALCULATING) {
+                    speedText = Config.STATUS_FINALIZING
                 }
                 
                 alProgresar(progreso, sizeText, speedText)
             }
             return@withContext true
         } catch (e: Exception) {
-            Log.w("YtdlpDownloader", "Segundo intento fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 2 (best)...")
+            Log.w(Config.TAG_YTDLP_DOWNLOADER, "Segundo intento fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 2 (best)...")
             executionError = e
+            cleanupBeforeRetry()
         }
 
         // Nivel 2: Descargar formato absoluto básico 'best' (el formato más compatible soportado por cualquier extractor)
@@ -254,8 +274,8 @@ class YtdlpDownloader {
             val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, 2, customizeRequest)
             YoutubeDL.getInstance().execute(request, processId) { progreso, _, line ->
                 lastLine = line
-                var speedText = "Calculando..."
-                var sizeText = "Descargando..."
+                var speedText = Config.STATUS_CALCULATING
+                var sizeText = Config.STATUS_DOWNLOADING
                 
                 val match = SPEED_REGEX.find(line)
                 if (match != null) {
@@ -267,17 +287,17 @@ class YtdlpDownloader {
                     sizeText = sizeMatch.groupValues[1].replace("~", "")
                 }
                 
-                if (progreso == 100f && speedText == "Calculando...") {
-                    speedText = "Finalizando..."
+                if (progreso == 100f && speedText == Config.STATUS_CALCULATING) {
+                    speedText = Config.STATUS_FINALIZING
                 }
                 
                 alProgresar(progreso, sizeText, speedText)
             }
             return@withContext true
         } catch (e: Exception) {
-            Log.e("YtdlpDownloader", "Todos los intentos de descarga fallaron para $videoUrl. Última línea: $lastLine", e)
-            val errorMessage = lastLine.ifEmpty { e.message ?: executionError?.message ?: "Error desconocido" }
-            throw Exception("Fallo: $errorMessage")
+            Log.e(Config.TAG_YTDLP_DOWNLOADER, "Todos los intentos de descarga fallaron para $videoUrl. Última línea: $lastLine", e)
+            val errorMessage = lastLine.ifEmpty { e.message ?: executionError?.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
+            throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
         }
     }
 }

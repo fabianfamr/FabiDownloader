@@ -73,7 +73,7 @@ class ExtractionService {
                 }
             }
         } catch (e: Exception) {
-            Log.e("ExtractionService", "oEmbed failed for $videoUrl", e)
+            Log.e(Config.TAG_EXTRACTION_SERVICE, "oEmbed failed for $videoUrl", e)
         }
         return null
     }
@@ -166,7 +166,7 @@ class ExtractionService {
                     }
                 }
             } catch (e: Exception) {
-                Log.e("ExtractionService", "HTML scraping with $userAgent failed for $videoUrl", e)
+                Log.e(Config.TAG_EXTRACTION_SERVICE, "HTML scraping with $userAgent failed for $videoUrl", e)
             }
         }
         return null
@@ -194,7 +194,7 @@ class ExtractionService {
                 }
             }
         } catch (e: Exception) {
-            Log.e("ExtractionService", "Error extracting meta tag $identifier", e)
+            Log.e(Config.TAG_EXTRACTION_SERVICE, "Error extracting meta tag $identifier", e)
         }
         return null
     }
@@ -223,7 +223,7 @@ class ExtractionService {
             return@withContext it
         }
         metadataCache[cleanUrl]?.titulo?.let {
-            if (it != "Desconocido" && it.isNotEmpty()) {
+            if (it != Config.STATUS_UNKNOWN && it.isNotEmpty()) {
                 titleCache[cleanUrl] = it
                 return@withContext it
             }
@@ -251,13 +251,13 @@ class ExtractionService {
             val info = service.extractMetadata(cleanUrl)
             if (info != null) {
                 metadataCache[cleanUrl] = info
-                if (info.titulo != "Desconocido" && info.titulo.isNotEmpty()) {
+                if (info.titulo != Config.STATUS_UNKNOWN && info.titulo.isNotEmpty()) {
                     titleCache[cleanUrl] = info.titulo
                     return@withContext info.titulo
                 }
             }
         } catch (e: Exception) {
-            Log.e("ExtractionService", "Failed to extract title with yt-dlp for $cleanUrl", e)
+            Log.e(Config.TAG_EXTRACTION_SERVICE, "Failed to extract title with yt-dlp for $cleanUrl", e)
         }
 
         // 6. Generic Fallback
@@ -319,7 +319,7 @@ class ExtractionService {
                 }
             }
         } catch (e: Exception) {
-            Log.e("ExtractionService", "Failed to extract thumbnail with yt-dlp for $cleanUrl", e)
+            Log.e(Config.TAG_EXTRACTION_SERVICE, "Failed to extract thumbnail with yt-dlp for $cleanUrl", e)
         }
 
         thumbnailCache[cleanUrl] = fallbackThumbnail
@@ -357,7 +357,7 @@ class ExtractionService {
                 return@withContext sizes
             }
         } catch (e: Exception) {
-            Log.e("ExtractionService", "Failed to extract format sizes with yt-dlp for $cleanUrl", e)
+            Log.e(Config.TAG_EXTRACTION_SERVICE, "Failed to extract format sizes with yt-dlp for $cleanUrl", e)
         }
 
         return@withContext emptyMap()
@@ -380,7 +380,7 @@ class ExtractionService {
 
         val res = ExtractedVideo(
             title = title,
-            availableFormats = listOf("MP4", "MP3", "M4A"),
+            availableFormats = listOf(Config.FORMAT_MP4, Config.FORMAT_MP3, Config.FORMAT_M4A),
             size = sizeStr,
             thumbnailUrl = thumbnailUrl,
             formatSizes = formatSizes,

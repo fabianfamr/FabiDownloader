@@ -25,4 +25,18 @@
     <string name="share_size_auto">...</string>
     <string name="share_size_loading">...</string>
     <string name="share_not_available">No disponible</string>
+
+    <!-- Quality labels (SharePopupScreen) -->
+    <string name="share_quality_320kbps">320 kbps</string>
+    <string name="share_quality_192kbps">192 kbps</string>
+    <string name="share_quality_128kbps">128 kbps</string>
+    <string name="share_quality_64kbps">64 kbps</string>
+    <string name="share_quality_1080p">1080p FHD</string>
+    <string name="share_quality_720p">720p HD</string>
+    <string name="share_quality_480p">480p</string>
+    <string name="share_quality_360p">360p</string>
+
+    <!-- Category labels (internal, but kept for consistency) -->
+    <string name="share_category_music">Music</string>
+    <string name="share_category_video">Video</string>
 </resources>

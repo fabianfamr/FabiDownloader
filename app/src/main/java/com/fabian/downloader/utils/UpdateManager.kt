@@ -1,6 +1,7 @@
 package com.fabian.downloader.utils
 
 import android.util.Log
+import com.fabian.downloader.utils.Config
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -37,7 +38,7 @@ object UpdateManager {
                 Result.success(UpdateInfo(tagName, htmlUrl, bodyText))
             }
         } catch (e: Exception) {
-            Log.e("UpdateManager", "Error checking for updates", e)
+            Log.e(Config.TAG_UPDATE_MANAGER, "Error checking for updates", e)
             Result.failure(e)
         }
     }

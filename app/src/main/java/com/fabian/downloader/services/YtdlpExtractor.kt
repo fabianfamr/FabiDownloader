@@ -65,10 +65,10 @@ class YtdlpExtractor {
             val jsonRaw = response.out ?: return@withContext null
             val json = JSONObject(jsonRaw)
 
-            val defaultAuthor = if (isInstagram) "Instagram User" else "Desconocido"
+            val defaultAuthor = if (isInstagram) Config.DEFAULT_AUTHOR_INSTAGRAM else Config.STATUS_UNKNOWN
             return@withContext com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, defaultAuthor)
         } catch (e: Exception) {
-            Log.e("YtdlpExtractor", "Error extracting video info: ${e.message}", e)
+            Log.e(Config.TAG_YTDLP_EXTRACTOR, "Error extracting video info: ${e.message}", e)
             return@withContext null
         }
     }
