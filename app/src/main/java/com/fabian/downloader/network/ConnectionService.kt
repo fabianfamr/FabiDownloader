@@ -9,7 +9,7 @@ class ConnectionService {
     
     suspend fun checkConnection(): Boolean = withContext(Dispatchers.IO) {
         try {
-            val timeoutMs = 2500
+            val timeoutMs = 1500  // Reduced from 2500ms for faster fail
             val connection = URL(com.fabian.downloader.utils.Config.PING_URL).openConnection() as HttpURLConnection
             connection.connectTimeout = timeoutMs
             connection.readTimeout = timeoutMs

@@ -1,7 +1,6 @@
 package com.fabian.downloader.services
 
 import com.fabian.downloader.utils.Config
-import android.os.Environment
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
 import android.util.Log
@@ -25,6 +24,8 @@ class YtdlpDownloader {
         customizeRequest: ((YoutubeDLRequest) -> Unit)? = null
     ): YoutubeDLRequest {
         val isYoutube = videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be") || videoUrl.contains("shorts") || videoUrl.contains("music.youtube.com")
+        val settings = com.fabian.downloader.ui.AppSettings
+
         return YoutubeDLRequest(videoUrl).apply {
             if (format == Config.FORMAT_MP3) {
                 if (fallbackLevel == 0) {
@@ -59,20 +60,48 @@ class YtdlpDownloader {
                 }
                 addOption("--merge-output-format", "mp4")
             }
-            
+
             addOption("-o", "${destFolder.absolutePath}/$fileNameWithoutExt.%(ext)s")
-            
+
             val cookiesFile = java.io.File(com.fabian.downloader.MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
             if (cookiesFile.exists() && cookiesFile.length() > 0) {
                 addOption("--cookies", cookiesFile.absolutePath)
             }
-            
-            val fragments = com.fabian.downloader.ui.AppSettings.concurrentFragments
+
+            // ============================================================
+            // PARALELISMO Y VELOCIDAD (respetar ajustes del usuario)
+            // ============================================================
+            // Concurrent fragments: user setting (default 10 for max speed)
+            val fragments = settings.concurrentFragments
             addOption("--concurrent-fragments", fragments)
-            
-            val maxSpeed = com.fabian.downloader.ui.AppSettings.maxSpeed
-            if (maxSpeed != Config.SPEED_UNLIMITED) {
-                val limit = when (maxSpeed) {
+
+            // Larger buffer = better throughput on fast connections
+            addOption("--buffer-size", "16K")
+
+            // HTTP chunk size: improves speed on large downloads (10MB chunks)
+            addOption("--http-chunk-size", "10M")
+
+            // Detect YouTube throttling (~70KB/s) and abort+retry immediately
+            addOption("--throttled-rate", "100K")
+
+            // Abort immediately if a fragment is unavailable (don't waste time waiting)
+            addOption("--abort-on-unavailable-fragment")
+
+            // ============================================================
+            // LIMITACIÓN DE VELOCIDAD (respetar maxSpeed + dataSaver)
+            // ============================================================
+            val maxSpeed = settings.maxSpeed
+            val dataSaver = settings.dataSaverEnabled
+
+            // Effective speed limit: if dataSaver is on and user hasn't set a limit, force 1MB/s
+            val effectiveSpeed = when {
+                dataSaver && maxSpeed == Config.SPEED_UNLIMITED -> Config.SPEED_1M
+                dataSaver -> maxSpeed // If user set a lower limit, respect it
+                else -> maxSpeed
+            }
+
+            if (effectiveSpeed != Config.SPEED_UNLIMITED) {
+                val limit = when (effectiveSpeed) {
                     Config.SPEED_500K -> Config.RATE_LIMIT_500K
                     Config.SPEED_1M -> Config.RATE_LIMIT_1M
                     Config.SPEED_5M -> Config.RATE_LIMIT_5M
@@ -84,62 +113,77 @@ class YtdlpDownloader {
                 }
             }
 
-            if (com.fabian.downloader.ui.AppSettings.embedSubtitles) {
+            if (settings.embedSubtitles) {
                 addOption("--embed-subs")
                 addOption("--write-subs")
                 addOption("--sub-langs", "all")
             }
 
-            if (!com.fabian.downloader.ui.AppSettings.playlistEnabled) {
+            if (!settings.playlistEnabled) {
                 addOption("--no-playlist")
             }
 
             addOption("--no-overwrites")
             addOption("--no-mtime")
-            // addOption("--no-check-certificate") // Removed for security as per user request
-            if (com.fabian.downloader.ui.AppSettings.bypassGeo) {
+            addOption("--continue")  // Resume partial downloads
+            if (settings.bypassGeo) {
                 addOption("--geo-bypass")
             }
-            addOption("--socket-timeout", "30")
-            addOption("--retries", "10")
-            addOption("--fragment-retries", "10")
+
+            // ============================================================
+            // TIMEOUTS Y RETRIES OPTIMIZADOS PARA VELOCIDAD
+            // ============================================================
+            // Shorter socket timeout = fail fast and retry (was 30s)
+            addOption("--socket-timeout", "15")
+            // More retries for resilience (was 10)
+            addOption("--retries", "15")
+            addOption("--fragment-retries", "15")
             addOption("--no-cache-dir")
-            
+
+            // ============================================================
+            // YOUTUBE-SPECIFIC OPTIMIZATIONS
+            // ============================================================
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player-client=android,web")
-                
-                val customUa = com.fabian.downloader.ui.AppSettings.customUserAgent
+                // Use multiple player clients to avoid throttling (ios is faster, android avoids bot detection)
+                addOption("--extractor-args", "youtube:player-client=ios,android,web")
+
+                val customUa = settings.customUserAgent
                 if (customUa.isNotEmpty()) {
                     addOption("--user-agent", customUa)
                 }
+
+                // Skip DASH manifest (faster extraction)
+                addOption("--youtube-skip-dash-manifest")
             }
-            
+
             addOption("--referer", Config.REFERER_DEFAULT)
-            addOption("--force-ipv4")
+            // Note: removed --force-ipv4 by default (was slowing down on IPv6-capable networks)
             addOption("--no-warnings")
 
             // Miniaturas y Metadatos globales
-            if (com.fabian.downloader.ui.AppSettings.embedMetadata) {
+            if (settings.embedMetadata) {
                 addOption("--embed-metadata")
             }
-            if (com.fabian.downloader.ui.AppSettings.embedThumbnail) {
+            if (settings.embedThumbnail) {
                 addOption("--embed-thumbnail")
             }
 
             // SponsorBlock
-            if (com.fabian.downloader.ui.AppSettings.sponsorBlockEnabled) {
+            if (settings.sponsorBlockEnabled) {
                 addOption("--sponsorblock-remove", "sponsor,intro,outro,selfpromo,interaction")
             }
 
             // Argumentos Personalizados Libres (Estilo Seal/YTDLnis)
-            val customArgs = com.fabian.downloader.ui.AppSettings.customArguments
+            val customArgs = settings.customArguments
             if (customArgs.isNotEmpty()) {
                 try {
                     val allowedArgs = setOf(
-                        "--sleep-requests", "--sleep-interval", "--max-sleep-interval", 
-                        "--limit-rate", "--socket-timeout", "--abort-on-error", 
-                        "--user-agent", "--referer", "--proxy", "--geo-verification-proxy", 
-                        "--yes-playlist", "--no-playlist", "--flat-playlist"
+                        "--sleep-requests", "--sleep-interval", "--max-sleep-interval",
+                        "--limit-rate", "--socket-timeout", "--abort-on-error",
+                        "--user-agent", "--referer", "--proxy", "--geo-verification-proxy",
+                        "--yes-playlist", "--no-playlist", "--flat-playlist",
+                        "--buffer-size", "--http-chunk-size", "--concurrent-fragments",
+                        "--throttled-rate", "--retries", "--fragment-retries"
                     )
                     val tokens = customArgs.trim().split(Regex("\\s+"))
                     var i = 0
@@ -207,6 +251,9 @@ class YtdlpDownloader {
             }
         }
 
+        // Respect autoRetry setting: if disabled, only attempt level 0 (no fallbacks)
+        val autoRetry = com.fabian.downloader.ui.AppSettings.autoRetry
+
         // Nivel 0: Intentar con la calidad / formato solicitados (y fallback interno de calidad)
         try {
             val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, 0, customizeRequest)
@@ -214,25 +261,31 @@ class YtdlpDownloader {
                 lastLine = line
                 var speedText = Config.STATUS_CALCULATING
                 var sizeText = Config.STATUS_DOWNLOADING
-                
+
                 val match = SPEED_REGEX.find(line)
                 if (match != null) {
                     speedText = match.groupValues[1]
                 }
-                
+
                 val sizeMatch = SIZE_REGEX.find(line)
                 if (sizeMatch != null) {
                     sizeText = sizeMatch.groupValues[1].replace("~", "")
                 }
-                
+
                 if (progreso == 100f && speedText == Config.STATUS_CALCULATING) {
                     speedText = Config.STATUS_FINALIZING
                 }
-                
+
                 alProgresar(progreso, sizeText, speedText)
             }
             return@withContext true
         } catch (e: Exception) {
+            if (!autoRetry) {
+                // If autoRetry is disabled, fail immediately without fallbacks
+                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Descarga fallida (autoRetry desactivado): $videoUrl - ${e.message}")
+                val errorMessage = lastLine.ifEmpty { e.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
+                throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
+            }
             Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer intento fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1 (bestvideo+bestaudio/best)...")
             executionError = e
             cleanupBeforeRetry()
@@ -245,21 +298,21 @@ class YtdlpDownloader {
                 lastLine = line
                 var speedText = Config.STATUS_CALCULATING
                 var sizeText = Config.STATUS_DOWNLOADING
-                
+
                 val match = SPEED_REGEX.find(line)
                 if (match != null) {
                     speedText = match.groupValues[1]
                 }
-                
+
                 val sizeMatch = SIZE_REGEX.find(line)
                 if (sizeMatch != null) {
                     sizeText = sizeMatch.groupValues[1].replace("~", "")
                 }
-                
+
                 if (progreso == 100f && speedText == Config.STATUS_CALCULATING) {
                     speedText = Config.STATUS_FINALIZING
                 }
-                
+
                 alProgresar(progreso, sizeText, speedText)
             }
             return@withContext true
@@ -276,21 +329,21 @@ class YtdlpDownloader {
                 lastLine = line
                 var speedText = Config.STATUS_CALCULATING
                 var sizeText = Config.STATUS_DOWNLOADING
-                
+
                 val match = SPEED_REGEX.find(line)
                 if (match != null) {
                     speedText = match.groupValues[1]
                 }
-                
+
                 val sizeMatch = SIZE_REGEX.find(line)
                 if (sizeMatch != null) {
                     sizeText = sizeMatch.groupValues[1].replace("~", "")
                 }
-                
+
                 if (progreso == 100f && speedText == Config.STATUS_CALCULATING) {
                     speedText = Config.STATUS_FINALIZING
                 }
-                
+
                 alProgresar(progreso, sizeText, speedText)
             }
             return@withContext true

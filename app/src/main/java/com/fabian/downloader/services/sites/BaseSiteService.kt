@@ -18,24 +18,20 @@ abstract class BaseSiteService : SiteService {
 
     open fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         // Shared options between extractor and downloader
-        request.addOption("--force-ipv4")
         request.addOption("--geo-bypass")
         request.addOption("--quiet")
         request.addOption("--no-warnings")
+        request.addOption("--socket-timeout", "15")
+        request.addOption("--retries", "5")
     }
 
     open fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
         // Downloader-only options (not needed for extraction)
+        // Note: socket-timeout, retries, fragment-retries are already set by YtdlpDownloader.createRequest()
+        // We only add site-specific overrides here to avoid duplicate options
         request.addOption("--no-overwrites")
         request.addOption("--no-mtime")
-        request.addOption("--socket-timeout", "30")
-        request.addOption("--retries", "10")
-        request.addOption("--fragment-retries", "10")
-        request.addOption("--no-cache-dir")
         request.addOption("--referer", Config.REFERER_DEFAULT)
-        request.addOption("--force-ipv4")
-        request.addOption("--geo-bypass")
-        request.addOption("--no-warnings")
     }
 
     override suspend fun extractMetadata(url: String): InfoMedia? = withContext(Dispatchers.IO) {

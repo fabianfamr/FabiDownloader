@@ -94,7 +94,7 @@ object AppSettings {
             saveBoolean("confirmOnDelete", value)
         }
 
-    private val _concurrentFragments = mutableStateOf("5")
+    private val _concurrentFragments = mutableStateOf("10")
     var concurrentFragments: String
         get() = _concurrentFragments.value
         set(value) {
@@ -255,7 +255,7 @@ object AppSettings {
         _maxSpeed.value = prefs.getString("maxSpeed", Config.SPEED_UNLIMITED) ?: Config.SPEED_UNLIMITED
         _themePreference.value = prefs.getString("themePreference", "Sistema") ?: "Sistema"
         _confirmOnDelete.value = prefs.getBoolean("confirmOnDelete", true)
-        _concurrentFragments.value = prefs.getString("concurrentFragments", "5") ?: "5"
+        _concurrentFragments.value = prefs.getString("concurrentFragments", "10") ?: "10"
         _embedSubtitles.value = prefs.getBoolean("embedSubtitles", false)
         _playlistEnabled.value = prefs.getBoolean("playlistEnabled", false)
         _maxConcurrentDownloads.value = prefs.getInt("maxConcurrentDownloads", 2)

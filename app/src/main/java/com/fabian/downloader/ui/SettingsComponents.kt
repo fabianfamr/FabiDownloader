@@ -51,7 +51,7 @@ fun DownloadSettingsContent(
     var showClipboardDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
 
-    val threadOptions = listOf("1", "3", "5", "8", "12", "16")
+    val threadOptions = listOf("1", "3", "5", "8", "10", "12", "16", "20")
     val simultaneousOptions = listOf("1", "2", "3", "4", "5")
     val clipboardOptions = listOf("banner", "auto", "disabled")
 

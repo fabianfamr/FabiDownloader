@@ -7,9 +7,9 @@ import java.util.concurrent.TimeUnit
 object NetworkClient {
     val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .writeTimeout(15, TimeUnit.SECONDS)
+            .connectTimeout(30, TimeUnit.SECONDS)   // Increased from 15s for oEmbed/scraping reliability
+            .readTimeout(30, TimeUnit.SECONDS)      // Increased from 15s for slow servers
+            .writeTimeout(30, TimeUnit.SECONDS)
             .addInterceptor(okhttp3.logging.HttpLoggingInterceptor().apply {
                 level = okhttp3.logging.HttpLoggingInterceptor.Level.BASIC
             })

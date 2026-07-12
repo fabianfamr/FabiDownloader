@@ -85,7 +85,10 @@ class MyApplication : Application() {
 
     fun waitForInitialization() {
         if (!isInitialized) {
-            initLatch.await(30, java.util.concurrent.TimeUnit.SECONDS)
+            val started = initLatch.await(10, java.util.concurrent.TimeUnit.SECONDS)
+            if (!started) {
+                android.util.Log.w(Config.TAG_YT_DLP, "waitForInitialization timed out after 10s - proceeding anyway")
+            }
         }
     }
 }

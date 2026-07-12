@@ -174,43 +174,42 @@ class DownloadManagerService private constructor(
                     var resolvedTitle = passedTitle
                     var resolvedThumbnail = passedThumbnailUrl
 
-                    if (resolvedTitle == null || resolvedTitle == Config.TITLE_PROCESSING_LINK || resolvedTitle == Config.TITLE_ANALYZING_SHARED) {
-                        try {
-                            withTimeoutOrNull(10000) {
-                                resolvedTitle = extractionService.extractTitle(url)
-                                resolvedThumbnail = extractionService.extractThumbnail(url)
-                            }
-                        } catch (e: Exception) {
-                            Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error in fast pre-extraction", e)
-                        }
-                        
-                        if (resolvedTitle.isNullOrEmpty() || resolvedTitle == Config.TITLE_PROCESSING_LINK || resolvedTitle == Config.TITLE_ANALYZING_SHARED) {
-                            val lastSegment = url.substringAfterLast("/").substringBefore("?").trim()
-                            resolvedTitle = if (lastSegment.isNotEmpty() && lastSegment.contains(".")) {
-                                lastSegment.substringBeforeLast(".")
-                            } else {
-                                val domainName = url.substringAfter("://").substringBefore("/").removePrefix("www.").substringBefore(".")
-                                if (domainName.isNotEmpty()) {
-                                    domainName.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
-                                } else {
-                                    application.getString(R.string.downloads_default_title)
-                                }
-                            }
-                        }
-                    }
+                    // FAST PATH: Insert the download IMMEDIATELY with a provisional title
+                    // so the user sees it in the queue right away. Title/thumbnail are
+                    // resolved in the BACKGROUND while the download may already start.
+                    val provisionalTitle = passedTitle?.takeIf { it.isNotEmpty() && it != Config.TITLE_PROCESSING_LINK && it != Config.TITLE_ANALYZING_SHARED }
+                        ?: generateProvisionalTitle(url)
 
                     val record = DownloadRecord(
-                        title = resolvedTitle!!,
+                        title = provisionalTitle,
                         url = url,
                         isCompleted = false,
                         format = format,
                         quality = quality,
                         progress = 0,
                         size = Config.STATUS_QUEUED,
-                        thumbnailUrl = resolvedThumbnail,
+                        thumbnailUrl = passedThumbnailUrl,
                         speed = Config.STATUS_WAITING
                     )
                     newId = storageService.insertDownload(record)
+
+                    // Trigger queue IMMEDIATELY so download can start while we resolve title
+                    triggerQueue()
+
+                    // Background title/thumbnail resolution (non-blocking, short timeout)
+                    if (passedTitle == null || passedTitle == Config.TITLE_PROCESSING_LINK || passedTitle == Config.TITLE_ANALYZING_SHARED) {
+                        serviceScope.launch {
+                            try {
+                                val resolvedTitleBg = withTimeoutOrNull(4000) { extractionService.extractTitle(url) }
+                                val resolvedThumbnailBg = withTimeoutOrNull(4000) { extractionService.extractThumbnail(url) }
+                                if (!resolvedTitleBg.isNullOrEmpty() && resolvedTitleBg != Config.TITLE_PROCESSING_LINK && resolvedTitleBg != Config.TITLE_ANALYZING_SHARED) {
+                                    storageService.updateDownloadInfoWithThumbnail(newId, resolvedTitleBg, Config.STATUS_QUEUED, resolvedThumbnailBg ?: passedThumbnailUrl)
+                                }
+                            } catch (e: Exception) {
+                                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Background title resolution failed for $url: ${e.message}")
+                            }
+                        }
+                    }
                 } else {
                     storageService.updatePausedState(existingId, false)
                     val existingRecord = storageService.getDownloadById(existingId)
@@ -222,11 +221,28 @@ class DownloadManagerService private constructor(
                         storageService.updateDownloadInfoWithThumbnail(existingId, cleanTitle, Config.STATUS_QUEUED, existingRecord.thumbnailUrl)
                         storageService.updateDownloadProgressAndSizeAndSpeed(existingId, 0, Config.STATUS_QUEUED, Config.STATUS_WAITING)
                     }
+                    triggerQueue()
                 }
-                triggerQueue()
             } catch (e: Exception) {
                 Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error in startDownload", e)
             }
+        }
+    }
+
+    /**
+     * Generates a quick provisional title from the URL without any network call.
+     * Used to insert the download record immediately so the user sees it in the queue.
+     */
+    private fun generateProvisionalTitle(url: String): String {
+        val lastSegment = url.substringAfterLast("/").substringBefore("?").trim()
+        if (lastSegment.isNotEmpty() && lastSegment.contains(".")) {
+            return lastSegment.substringBeforeLast(".").take(60)
+        }
+        val domainName = url.substringAfter("://").substringBefore("/").removePrefix("www.").substringBefore(".")
+        return if (domainName.isNotEmpty()) {
+            domainName.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
+        } else {
+            application.getString(R.string.downloads_default_title)
         }
     }
 
@@ -245,10 +261,9 @@ class DownloadManagerService private constructor(
                 val quality = record.quality
                 val format = record.format
                 passedThumbnailUrl = record.thumbnailUrl
-                if (!connectionService.checkConnection()) {
-                    storageService.updateDownloadInfo(id, Config.STATUS_FAILED_PREFIX + videoTitle.substringAfter(Config.STATUS_FAILED_PREFIX), application.getString(R.string.downloads_toast_no_connection))
-                    return@launch
-                }
+                // Note: connection check already done in startDownload() - no duplicate check here
+                // This avoids an extra 1.5s delay before the download actually starts.
+                // If the network drops while queued, yt-dlp's own --socket-timeout will handle it.
 
                 storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, Config.STATUS_CONNECTING, Config.STATUS_CONNECTING)
 
