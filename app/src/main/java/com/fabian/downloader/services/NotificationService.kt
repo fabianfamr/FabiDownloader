@@ -130,7 +130,13 @@ class NotificationService(private val context: Context) {
             flags
         )
 
-        val notification = NotificationCompat.Builder(context, channelStatusId)
+        val channelIdToUse = if (com.fabian.downloader.MyApplication.getInstance().isAppInForeground) {
+            channelProgressId // Silent channel when in foreground
+        } else {
+            channelStatusId // Default channel (with sound) when in background
+        }
+
+        val notification = NotificationCompat.Builder(context, channelIdToUse)
             .setContentTitle(context.getString(R.string.notif_title_completed))
             .setContentText(title)
             .setSmallIcon(R.drawable.ic_cloud_download)
@@ -178,7 +184,13 @@ class NotificationService(private val context: Context) {
 
         val cleanTitle = title.removePrefix(Config.STATUS_FAILED_PREFIX)
 
-        val notification = NotificationCompat.Builder(context, channelStatusId)
+        val channelIdToUse = if (com.fabian.downloader.MyApplication.getInstance().isAppInForeground) {
+            channelProgressId // Silent channel when in foreground
+        } else {
+            channelStatusId // Default channel (with sound) when in background
+        }
+
+        val notification = NotificationCompat.Builder(context, channelIdToUse)
             .setContentTitle(context.getString(R.string.notif_title_failed))
             .setContentText("$cleanTitle\n$errorMsg")
             .setSmallIcon(R.drawable.ic_cloud_download)

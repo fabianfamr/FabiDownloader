@@ -860,6 +860,21 @@ fun MobileDownloadingItem(
                             modifier = Modifier.fillMaxSize(),
                             contentScale = androidx.compose.ui.layout.ContentScale.Crop
                         )
+                    } else if (record.isCompleted && record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) {
+                        val localFile = remember(record.id) {
+                            com.fabian.downloader.utils.PathUtils.getDownloadFile(
+                                ctx,
+                                record.title,
+                                record.id,
+                                record.format
+                            )
+                        }
+                        coil.compose.AsyncImage(
+                            model = localFile,
+                            contentDescription = stringResource(R.string.downloads_thumbnail),
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
                     } else {
                         Icon(
                             imageVector = if (isFailed) {
@@ -1067,6 +1082,21 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                 if (!record.thumbnailUrl.isNullOrEmpty()) {
                     coil.compose.AsyncImage(
                         model = record.thumbnailUrl,
+                        contentDescription = stringResource(R.string.downloads_thumbnail),
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                    )
+                } else if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) {
+                    val localFile = remember(record.id) {
+                        com.fabian.downloader.utils.PathUtils.getDownloadFile(
+                            ctx,
+                            record.title,
+                            record.id,
+                            record.format
+                        )
+                    }
+                    coil.compose.AsyncImage(
+                        model = localFile,
                         contentDescription = stringResource(R.string.downloads_thumbnail),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop

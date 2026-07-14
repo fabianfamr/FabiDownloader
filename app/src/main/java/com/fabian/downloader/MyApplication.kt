@@ -11,7 +11,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class MyApplication : Application() {
+import coil.ImageLoader
+import coil.ImageLoaderFactory
+import coil.decode.VideoFrameDecoder
+
+class MyApplication : Application(), ImageLoaderFactory {
+    override fun newImageLoader(): ImageLoader {
+        return ImageLoader.Builder(this)
+            .components {
+                add(VideoFrameDecoder.Factory())
+            }
+            .build()
+    }
     companion object {
         private var instance: MyApplication? = null
         fun getInstance(): MyApplication {
@@ -22,6 +33,12 @@ class MyApplication : Application() {
     private val applicationScope = CoroutineScope(Dispatchers.IO)
     private var isInitialized = false
     private val initLatch = java.util.concurrent.CountDownLatch(1)
+
+    var isAppInForeground = false
+        private set
+
+    private var activityReferences = 0
+    private var isActivityChangingConfigurations = false
 
     override fun attachBaseContext(newBase: android.content.Context) {
         val prefs = newBase.getSharedPreferences("fabi_downloader_prefs", android.content.Context.MODE_PRIVATE)
@@ -40,6 +57,25 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        
+        registerActivityLifecycleCallbacks(object : android.app.Application.ActivityLifecycleCallbacks {
+            override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {}
+            override fun onActivityStarted(activity: android.app.Activity) {
+                if (++activityReferences == 1 && !isActivityChangingConfigurations) {
+                    isAppInForeground = true
+                }
+            }
+            override fun onActivityResumed(activity: android.app.Activity) {}
+            override fun onActivityPaused(activity: android.app.Activity) {}
+            override fun onActivityStopped(activity: android.app.Activity) {
+                isActivityChangingConfigurations = activity.isChangingConfigurations
+                if (--activityReferences == 0 && !isActivityChangingConfigurations) {
+                    isAppInForeground = false
+                }
+            }
+            override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: android.os.Bundle) {}
+            override fun onActivityDestroyed(activity: android.app.Activity) {}
+        })
         
         applicationScope.launch {
             try {

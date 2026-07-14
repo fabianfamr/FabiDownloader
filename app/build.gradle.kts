@@ -132,6 +132,7 @@ dependencies {
   implementation(libs.youtubedl.android)
   implementation(libs.youtubedl.ffmpeg)
   implementation(libs.coil.compose)
+  implementation(libs.coil.video)
   implementation(libs.converter.moshi)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)

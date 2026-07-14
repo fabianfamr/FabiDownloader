@@ -756,6 +756,21 @@ fun MainScreen(
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = androidx.compose.ui.layout.ContentScale.Crop
                                         )
+                                    } else if (record.isCompleted && record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) {
+                                        val localFile = remember(record.id) {
+                                            com.fabian.downloader.utils.PathUtils.getDownloadFile(
+                                                ctx,
+                                                record.title,
+                                                record.id,
+                                                record.format
+                                            )
+                                        }
+                                        coil.compose.AsyncImage(
+                                            model = localFile,
+                                            contentDescription = null,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                        )
                                     } else {
                                         Icon(
                                             imageVector = platformIcon,
