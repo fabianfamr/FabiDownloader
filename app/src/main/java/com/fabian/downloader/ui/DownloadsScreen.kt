@@ -637,30 +637,17 @@ fun DownloadsScreen(
                 if (page == 0) {
                     // Descargados (Completados)
                     if (filteredCompleted.isNotEmpty()) {
-                        itemsIndexed(filteredCompleted, key = { _, it -> it.id }) { index, record ->
-                            val itemVisible = remember { mutableStateOf(false) }
-                            LaunchedEffect(record.id) {
-                                kotlinx.coroutines.delay(index.coerceAtMost(8) * 40L)
-                                itemVisible.value = true
-                            }
-                            AnimatedVisibility(
-                                visible = itemVisible.value,
-                                enter = fadeIn(tween(300)) + slideInVertically(
-                                    initialOffsetY = { 30 },
-                                    animationSpec = tween(300, easing = FastOutSlowInEasing)
-                                )
-                            ) {
-                                MobileDownloadedItem(
-                                    record = record, 
-                                    onPlay = { 
-                                        if (isSelectionMode) toggleSelection(record.id) else openFile(record) 
-                                    }, 
-                                    onDelete = { menuRecord = record },
-                                    onShare = { onShareFile(record) },
-                                    isSelected = selectedIds.contains(record.id),
-                                    onLongPress = { toggleSelection(record.id) }
-                                )
-                            }
+                        items(filteredCompleted, key = { it.id }) { record ->
+                            MobileDownloadedItem(
+                                record = record, 
+                                onPlay = { 
+                                    if (isSelectionMode) toggleSelection(record.id) else openFile(record) 
+                                }, 
+                                onDelete = { menuRecord = record },
+                                onShare = { onShareFile(record) },
+                                isSelected = selectedIds.contains(record.id),
+                                onLongPress = { toggleSelection(record.id) }
+                            )
                         }
                     } else {
                         item {
@@ -708,29 +695,16 @@ fun DownloadsScreen(
                 } else {
                     // En progreso
                     if (filteredDownloading.isNotEmpty()) {
-                        itemsIndexed(filteredDownloading, key = { _, it -> it.id }) { index, record ->
-                            val itemVisible = remember { mutableStateOf(false) }
-                            LaunchedEffect(record.id) {
-                                kotlinx.coroutines.delay(index.coerceAtMost(8) * 40L)
-                                itemVisible.value = true
-                            }
-                            AnimatedVisibility(
-                                visible = itemVisible.value,
-                                enter = fadeIn(tween(300)) + slideInVertically(
-                                    initialOffsetY = { 30 },
-                                    animationSpec = tween(300, easing = FastOutSlowInEasing)
-                                )
-                            ) {
-                                MobileDownloadingItem(
-                                    record = record,
-                                    onPause = { viewModel.pauseDownload(record.id) },
-                                    onResume = { viewModel.resumeDownload(record.id) },
-                                    onDelete = { menuRecord = record },
-                                    onShowErrorDetails = { errorToShow = it },
-                                    isSelected = selectedIds.contains(record.id),
-                                    onLongPress = { toggleSelection(record.id) }
-                                )
-                            }
+                        items(filteredDownloading, key = { it.id }) { record ->
+                            MobileDownloadingItem(
+                                record = record,
+                                onPause = { viewModel.pauseDownload(record.id) },
+                                onResume = { viewModel.resumeDownload(record.id) },
+                                onDelete = { menuRecord = record },
+                                onShowErrorDetails = { errorToShow = it },
+                                isSelected = selectedIds.contains(record.id),
+                                onLongPress = { toggleSelection(record.id) }
+                            )
                         }
                     } else {
                         item {
