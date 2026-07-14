@@ -23,6 +23,20 @@ class MyApplication : Application() {
     private var isInitialized = false
     private val initLatch = java.util.concurrent.CountDownLatch(1)
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        val prefs = newBase.getSharedPreferences("fabi_downloader_prefs", android.content.Context.MODE_PRIVATE)
+        val lang = prefs.getString("language", "Sistema") ?: "Sistema"
+        if (lang != "Sistema") {
+            val locale = if (lang == "English") java.util.Locale("en") else java.util.Locale("es")
+            java.util.Locale.setDefault(locale)
+            val config = android.content.res.Configuration(newBase.resources.configuration)
+            config.setLocale(locale)
+            super.attachBaseContext(newBase.createConfigurationContext(config))
+        } else {
+            super.attachBaseContext(newBase)
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         instance = this

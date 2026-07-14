@@ -119,6 +119,8 @@
 
     <!-- DownloadSettingsScreen sections and labels -->
     <string name="settings_section_customization">Customization</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_select_language">Select Language</string>
     <string name="settings_app_theme">App theme</string>
     <string name="settings_download_notifications">Download notifications</string>
     <string name="settings_confirm_on_delete">Confirm on delete</string>

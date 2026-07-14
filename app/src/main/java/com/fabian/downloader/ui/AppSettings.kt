@@ -86,6 +86,15 @@ object AppSettings {
             saveString("themePreference", value)
         }
 
+    private val _language = mutableStateOf("Sistema")
+    val languageState: androidx.compose.runtime.State<String> get() = _language
+    var language: String
+        get() = _language.value
+        set(value) {
+            _language.value = value
+            saveString("language", value)
+        }
+
     private val _confirmOnDelete = mutableStateOf(true)
     var confirmOnDelete: Boolean
         get() = _confirmOnDelete.value
@@ -254,6 +263,7 @@ object AppSettings {
         _downloadLocation.value = prefs.getString("downloadLocation", Config.PATH_DOWNLOAD_LOCATION_DEFAULT) ?: Config.PATH_DOWNLOAD_LOCATION_DEFAULT
         _maxSpeed.value = prefs.getString("maxSpeed", Config.SPEED_UNLIMITED) ?: Config.SPEED_UNLIMITED
         _themePreference.value = prefs.getString("themePreference", "Sistema") ?: "Sistema"
+        _language.value = prefs.getString("language", "Sistema") ?: "Sistema"
         _confirmOnDelete.value = prefs.getBoolean("confirmOnDelete", true)
         _concurrentFragments.value = prefs.getString("concurrentFragments", "10") ?: "10"
         _embedSubtitles.value = prefs.getBoolean("embedSubtitles", false)

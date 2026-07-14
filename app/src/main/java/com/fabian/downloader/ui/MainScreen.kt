@@ -722,6 +722,8 @@ fun MainScreen(
                     }
                     
                     recentDownloads.forEach { record ->
+                        val (platformIcon, platformColor) = getPlatformIconAndColor(record.url, record.format)
+                        
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -733,7 +735,7 @@ fun MainScreen(
                             shape = RoundedCornerShape(18.dp),
                             border = BorderStroke(
                                 width = 1.dp,
-                                color = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) C_green.copy(alpha = 0.22f) else C_accentGlow
+                                color = platformColor.copy(alpha = 0.22f)
                             )
                         ) {
                             Row(
@@ -743,18 +745,25 @@ fun MainScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(46.dp)
-                                        .background(
-                                            color = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) Color(0x1A2ECC71) else C_accentDim,
-                                            shape = RoundedCornerShape(12.dp)
-                                        ),
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(platformColor.copy(alpha = 0.12f)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(
-                                        imageVector = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) Icons.Default.PlayArrow else Icons.Default.MusicNote,
-                                        contentDescription = null,
-                                        tint = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) C_green else C_accent,
-                                        modifier = Modifier.size(24.dp)
-                                    )
+                                    if (!record.thumbnailUrl.isNullOrEmpty()) {
+                                        coil.compose.AsyncImage(
+                                            model = record.thumbnailUrl,
+                                            contentDescription = null,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = platformIcon,
+                                            contentDescription = null,
+                                            tint = platformColor,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
                                 }
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column(modifier = Modifier.weight(1f)) {

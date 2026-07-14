@@ -50,6 +50,7 @@ fun DownloadSettingsContent(
     var showUserAgentDialog by remember { mutableStateOf(false) }
     var showClipboardDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
 
     val threadOptions = listOf("1", "3", "5", "8", "10", "12", "16", "20")
     val simultaneousOptions = listOf("1", "2", "3", "4", "5")
@@ -68,6 +69,10 @@ fun DownloadSettingsContent(
             Column {
                 SettingItem(Icons.Default.Palette, stringResource(R.string.settings_app_theme), trailing = AppSettings.themePreference) {
                     showThemeDialog = true
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                SettingItem(Icons.Default.Language, stringResource(R.string.settings_language), trailing = AppSettings.language) {
+                    showLanguageDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
                 ToggleSetting(Icons.Default.Notifications, stringResource(R.string.settings_download_notifications), AppSettings.notificationsEnabled) {
@@ -345,6 +350,21 @@ fun DownloadSettingsContent(
                     showThemeDialog = false
                 },
                 onDismiss = { showThemeDialog = false }
+            )
+        }
+        val ctx = androidx.compose.ui.platform.LocalContext.current
+        if (showLanguageDialog) {
+            val languageOptions = listOf("Sistema", "Español", "English")
+            SelectionDialog(stringResource(R.string.settings_select_language), languageOptions, AppSettings.language,
+                onSelection = {
+                    AppSettings.language = it
+                    showLanguageDialog = false
+                    // Apply locale
+                    if (ctx is android.app.Activity) {
+                        ctx.recreate()
+                    }
+                },
+                onDismiss = { showLanguageDialog = false }
             )
         }
     }
