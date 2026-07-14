@@ -137,8 +137,8 @@ class YtdlpDownloader {
             // YOUTUBE-SPECIFIC OPTIMIZATIONS
             // ============================================================
             if (isYoutube) {
-                // Use multiple player clients to avoid throttling (ios is faster, android avoids bot detection)
-                addOption("--extractor-args", "youtube:player-client=ios,android,web")
+                // Use ios client for faster connection (bypasses some signature deciphering)
+                addOption("--extractor-args", "youtube:player-client=ios,android")
 
                 val customUa = settings.customUserAgent
                 if (customUa.isNotEmpty()) {
