@@ -2,20 +2,21 @@ package com.fabian.downloader.network
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.net.HttpURLConnection
-import java.net.URL
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import com.fabian.downloader.MyApplication
 
 class ConnectionService {
     
     suspend fun checkConnection(): Boolean = withContext(Dispatchers.IO) {
         try {
-            val timeoutMs = 1500  // Reduced from 2500ms for faster fail
-            val connection = URL(com.fabian.downloader.utils.Config.PING_URL).openConnection() as HttpURLConnection
-            connection.connectTimeout = timeoutMs
-            connection.readTimeout = timeoutMs
-            connection.requestMethod = "HEAD"
-            val responseCode = connection.responseCode
-            responseCode in 200..399
+            val context = MyApplication.getInstance()
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val network = connectivityManager.activeNetwork ?: return@withContext false
+            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return@withContext false
+            
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         } catch (e: Exception) {
             false
         }
