@@ -89,20 +89,12 @@ class YtdlpDownloader {
             addOption("--abort-on-unavailable-fragment")
 
             // ============================================================
-            // LIMITACIÓN DE VELOCIDAD (respetar maxSpeed + dataSaver)
+            // LIMITACIÓN DE VELOCIDAD (respetar maxSpeed)
             // ============================================================
             val maxSpeed = settings.maxSpeed
-            val dataSaver = settings.dataSaverEnabled
 
-            // Effective speed limit: if dataSaver is on and user hasn't set a limit, force 1MB/s
-            val effectiveSpeed = when {
-                dataSaver && maxSpeed == Config.SPEED_UNLIMITED -> Config.SPEED_1M
-                dataSaver -> maxSpeed // If user set a lower limit, respect it
-                else -> maxSpeed
-            }
-
-            if (effectiveSpeed != Config.SPEED_UNLIMITED) {
-                val limit = when (effectiveSpeed) {
+            if (maxSpeed != Config.SPEED_UNLIMITED) {
+                val limit = when (maxSpeed) {
                     Config.SPEED_500K -> Config.RATE_LIMIT_500K
                     Config.SPEED_1M -> Config.RATE_LIMIT_1M
                     Config.SPEED_5M -> Config.RATE_LIMIT_5M

@@ -265,7 +265,7 @@ class DownloadManagerService private constructor(
                 // This avoids an extra 1.5s delay before the download actually starts.
                 // If the network drops while queued, yt-dlp's own --socket-timeout will handle it.
 
-                storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, Config.STATUS_CONNECTING, Config.STATUS_CONNECTING)
+                storageService.updateDownloadProgressAndSizeAndSpeed(id, record.progress, Config.STATUS_CONNECTING, Config.STATUS_CONNECTING)
 
                 val service = com.fabian.downloader.services.sites.SiteServiceProvider.getServiceForUrl(url)
                 var lastProgressUpdate = System.currentTimeMillis()
