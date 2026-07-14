@@ -6,6 +6,7 @@ import com.yausername.youtubedl_android.YoutubeDLRequest
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.isActive
 
 class YtdlpDownloader {
 
@@ -280,6 +281,9 @@ class YtdlpDownloader {
             }
             return@withContext true
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException || !isActive) {
+                throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
+            }
             if (!autoRetry) {
                 // If autoRetry is disabled, fail immediately without fallbacks
                 Log.w(Config.TAG_YTDLP_DOWNLOADER, "Descarga fallida (autoRetry desactivado): $videoUrl - ${e.message}")
@@ -317,6 +321,9 @@ class YtdlpDownloader {
             }
             return@withContext true
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException || !isActive) {
+                throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
+            }
             Log.w(Config.TAG_YTDLP_DOWNLOADER, "Segundo intento fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 2 (best)...")
             executionError = e
             cleanupBeforeRetry()
@@ -348,6 +355,9 @@ class YtdlpDownloader {
             }
             return@withContext true
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException || !isActive) {
+                throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
+            }
             Log.e(Config.TAG_YTDLP_DOWNLOADER, "Todos los intentos de descarga fallaron para $videoUrl. Última línea: $lastLine", e)
             val errorMessage = lastLine.ifEmpty { e.message ?: executionError?.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
             throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)

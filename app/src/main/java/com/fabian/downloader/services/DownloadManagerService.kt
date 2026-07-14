@@ -219,7 +219,7 @@ class DownloadManagerService private constructor(
                             cleanTitle = cleanTitle.substringAfter(Config.STATUS_FAILED_PREFIX)
                         }
                         storageService.updateDownloadInfoWithThumbnail(existingId, cleanTitle, Config.STATUS_QUEUED, existingRecord.thumbnailUrl)
-                        storageService.updateDownloadProgressAndSizeAndSpeed(existingId, 0, Config.STATUS_QUEUED, Config.STATUS_WAITING)
+                        storageService.updateDownloadProgressAndSizeAndSpeed(existingId, existingRecord.progress, Config.STATUS_QUEUED, Config.STATUS_WAITING)
                     }
                     triggerQueue()
                 }
@@ -379,6 +379,7 @@ class DownloadManagerService private constructor(
             storageService.updatePausedState(id, true)
             activeCalls[id]?.cancel()
             val job = activeJobs[id]
+            job?.cancel()
             activeCalls.remove(id)
             activeJobs.remove(id)
             
