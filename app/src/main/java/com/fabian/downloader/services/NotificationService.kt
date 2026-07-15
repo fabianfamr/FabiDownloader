@@ -143,6 +143,7 @@ class NotificationService(private val context: Context) {
             .setLargeIcon(largeIcon)
             .setAutoCancel(true)
             .setOngoing(false)
+            .setContentIntent(openPendingIntent)
             .addAction(android.R.drawable.ic_media_play, context.getString(R.string.notif_action_open), openPendingIntent)
             .addAction(android.R.drawable.ic_menu_share, context.getString(R.string.notif_action_share), sharePendingIntent)
             .build()
