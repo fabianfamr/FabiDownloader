@@ -210,18 +210,6 @@ fun MainScreen(
     var analyzeState by remember { mutableStateOf(AnalyzeState.Idle) }
 
     val infiniteTransition = rememberInfiniteTransition(label = "orbit")
-    val orbitAngle by infiniteTransition.animateFloat(
-        initialValue   = 0f,
-        targetValue    = 360f,
-        animationSpec  = infiniteRepeatable(tween(12_000, easing = LinearEasing)),
-        label          = "orbitAngle",
-    )
-    val pulse by infiniteTransition.animateFloat(
-        initialValue  = 0.92f,
-        targetValue   = 1.08f,
-        animationSpec = infiniteRepeatable(tween(1_200, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label         = "pulse",
-    )
     val floatY by infiniteTransition.animateFloat(
         initialValue  = -6f,
         targetValue   = 6f,
@@ -304,21 +292,6 @@ fun MainScreen(
                         }
                     }
 
-                    // Version Pill (matching Ejemplo App.tsx)
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(C_accentDim)
-                            .border(1.dp, C_accentGlow, RoundedCornerShape(20.dp))
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
-                    ) {
-                        Text(
-                            text = "v${BuildConfig.VERSION_NAME}",
-                            color = C_accent,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
                 }
             }
 
@@ -331,55 +304,38 @@ fun MainScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Orbiting Icons Canvas
-                    Box(
+                    // Static Platform Icons Grid
+                    Row(
                         modifier = Modifier
-                            .size(200.dp)
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp)
                             .graphicsLayer { translationY = floatY },
-                        contentAlignment = Alignment.Center
+                        horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val orbitRadius = 75.dp
-                        platforms.forEachIndexed { index, platform ->
-                            val baseAngle = index * 90f
-                            val angle = Math.toRadians((baseAngle + orbitAngle).toDouble())
-                            val x = (cos(angle) * orbitRadius.value).dp
-                            val y = (sin(angle) * orbitRadius.value).dp
+                        platforms.forEach { platform ->
                             Box(
                                 modifier = Modifier
-                                    .offset(x = x, y = y)
-                                    .size(38.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(platform.color.copy(alpha = 0.25f))
-                                    .border(1.dp, platform.color.copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
+                                    .size(56.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(
+                                        Brush.linearGradient(
+                                            colors = listOf(
+                                                platform.color.copy(alpha = 0.2f),
+                                                platform.color.copy(alpha = 0.05f)
+                                            )
+                                        )
+                                    )
+                                    .border(1.dp, platform.color.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = platform.icon,
-                                    contentDescription = null,
-                                    tint = C_white,
-                                    modifier = Modifier.size(16.dp)
+                                    contentDescription = platform.label,
+                                    tint = platform.color,
+                                    modifier = Modifier.size(28.dp)
                                 )
                             }
-                        }
-
-                        // Center pulsing download icon
-                        Box(
-                            modifier = Modifier
-                                .size(54.dp)
-                                .graphicsLayer { 
-                                    scaleX = pulse
-                                    scaleY = pulse 
-                                }
-                                .clip(CircleShape)
-                                .background(
-                                    Brush.radialGradient(
-                                        colors = listOf(C_accent.copy(alpha = 0.35f), Color.Transparent),
-                                    )
-                                )
-                                .border(2.dp, C_accent.copy(alpha = 0.8f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.Download, contentDescription = null, tint = C_accent, modifier = Modifier.size(24.dp))
                         }
                     }
 
