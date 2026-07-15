@@ -79,8 +79,24 @@ class NotificationService(private val context: Context) {
             return
         }
 
-        // Progress notifications are intentionally disabled (see kdoc above)
-        return
+        val text = buildString {
+            append("$progress%")
+            if (!size.isNullOrEmpty() && size != Config.STATUS_UNKNOWN) append(" • $size")
+            if (!speed.isNullOrEmpty() && speed != Config.STATUS_UNKNOWN && speed != Config.STATUS_CONNECTING && speed != Config.STATUS_DOWNLOADING) append(" • $speed")
+        }
+
+        val notification = NotificationCompat.Builder(context, channelProgressId)
+            .setContentTitle("Descargando: $title")
+            .setContentText(text)
+            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setProgress(100, progress, false)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .build()
+            
+        // Use ID 9999 to replace the generic "Descargando en segundo plano" notification
+        notificationManager.notify(9999, notification)
     }
 
     suspend fun showDownloadSuccess(id: Int, title: String, thumbnailUrl: String? = null) {

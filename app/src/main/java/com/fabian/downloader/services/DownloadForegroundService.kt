@@ -15,7 +15,6 @@ class DownloadForegroundService : Service() {
 
     companion object {
         private const val NOTIFICATION_ID = 9999
-        private const val CHANNEL_ID = "download_background_service_channel"
 
         fun start(context: Context) {
             try {
@@ -61,8 +60,18 @@ class DownloadForegroundService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    override fun onDestroy() {
+        super.onDestroy()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } else {
+            @Suppress("DEPRECATION")
+            stopForeground(true)
+        }
+    }
+
     private fun createNotification(): Notification {
-        val channelIdToUse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) CHANNEL_ID else "default"
+        val channelIdToUse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) com.fabian.downloader.utils.Config.NOTIF_CHANNEL_PROGRESS else "default"
         return NotificationCompat.Builder(this, channelIdToUse)
             .setContentTitle(getString(R.string.app_name))
             .setContentText("Descargando en segundo plano...")
@@ -73,14 +82,16 @@ class DownloadForegroundService : Service() {
     }
 
     private fun createNotificationChannel() {
+        // En Android O y superior, los canales son requeridos. 
+        // NotificationService ya crea este canal, pero por si acaso lo creamos aquí también.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Servicio de Descarga en Segundo Plano",
+                com.fabian.downloader.utils.Config.NOTIF_CHANNEL_PROGRESS,
+                getString(R.string.notif_channel_progress),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Mantiene las descargas activas en segundo plano"
+                description = getString(R.string.notif_channel_progress_desc)
                 setShowBadge(false)
             }
             manager.createNotificationChannel(channel)
