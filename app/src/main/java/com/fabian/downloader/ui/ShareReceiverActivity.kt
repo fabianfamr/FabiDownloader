@@ -37,6 +37,7 @@ class ShareReceiverActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.fabian.downloader.ui.AppSettings.init(this)
         
         val action = intent.action
         val type = intent.type

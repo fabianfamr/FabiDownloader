@@ -176,8 +176,10 @@ fun SharePopupScreen(
     
     var selectedOptionId by remember {
         mutableStateOf(
-            AppSettings.lastDownloadedOptionId.ifEmpty {
-                if (cleanUrl.contains("music.youtube.com") || cleanUrl.contains("spotify") || cleanUrl.contains("soundcloud")) "music_320" else "video_720"
+            if (cleanUrl.contains("music.youtube.com") || cleanUrl.contains("spotify") || cleanUrl.contains("soundcloud")) {
+                if (AppSettings.lastDownloadedOptionId.startsWith("music")) AppSettings.lastDownloadedOptionId else "music_320"
+            } else {
+                AppSettings.lastDownloadedOptionId.ifEmpty { "video_720" }
             }
         )
     }
@@ -273,6 +275,7 @@ fun SharePopupScreen(
                                 // Fallback to immediate download using general placeholders
                                 val allOptions = musicOptions + videoOptions
                                 val selected = allOptions.find { it.id == selectedOptionId } ?: musicOptions.first()
+                                AppSettings.lastDownloadedOptionId = selected.id
                                 viewModel.downloadVideo(
                                     url = cleanUrl,
                                     quality = selected.quality,
