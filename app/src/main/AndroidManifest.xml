@@ -58,7 +58,11 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-
+        <service
+            android:name=".services.DownloadForegroundService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <receiver
             android:name=".services.DownloadActionReceiver"

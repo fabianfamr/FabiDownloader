@@ -112,6 +112,9 @@ class DownloadManagerService private constructor(
                         val maxParallel = AppSettings.maxConcurrentDownloads
                         val slotsAvailable = maxParallel - processingIds.size
                         if (slotsAvailable > 0 && nextToProcess.isNotEmpty()) {
+                            // Iniciar servicio en segundo plano para que no se muera la descarga
+                            DownloadForegroundService.start(application)
+                            
                             nextToProcess.take(slotsAvailable).forEach { record ->
                                 processingIds.add(record.id)
                                 
@@ -120,6 +123,10 @@ class DownloadManagerService private constructor(
                                         runDownloadDirect(record.id)
                                     } finally {
                                         processingIds.remove(record.id)
+                                        if (processingIds.isEmpty()) {
+                                            // Detener servicio en segundo plano cuando no queden descargas activas
+                                            DownloadForegroundService.stop(application)
+                                        }
                                         triggerQueue() // Trigger again to let other queued items start instantly
                                     }
                                 }
@@ -261,9 +268,11 @@ class DownloadManagerService private constructor(
                 val quality = record.quality
                 val format = record.format
                 passedThumbnailUrl = record.thumbnailUrl
-                // Note: connection check already done in startDownload() - no duplicate check here
-                // This avoids an extra 1.5s delay before the download actually starts.
-                // If the network drops while queued, yt-dlp's own --socket-timeout will handle it.
+                
+                // Comprobación de conexión a internet real antes de empezar
+                if (!connectionService.checkConnection()) {
+                    throw Exception(application.getString(R.string.downloads_toast_no_connection))
+                }
 
                 storageService.updateDownloadProgressAndSizeAndSpeed(id, record.progress, Config.STATUS_CONNECTING, Config.STATUS_CONNECTING)
 
@@ -285,15 +294,21 @@ class DownloadManagerService private constructor(
                                 } else {
                                     sizeText
                                 }
-                                storageService.updateDownloadProgressAndSizeAndSpeed(id, progress.toInt(), displaySize, speedText)
+                                
+                                // Limitamos el progreso en notificaciones a 99% durante la descarga activa
+                                // para que la notificación de completada llegue solo cuando termine el postprocesado
+                                val cappedProgress = if (progress >= 100f) 99 else progress.toInt()
+                                val displaySpeed = if (progress >= 100f) Config.STATUS_FINALIZING else speedText
+                                
+                                storageService.updateDownloadProgressAndSizeAndSpeed(id, cappedProgress, displaySize, displaySpeed)
                                 
                                 if (AppSettings.notificationsEnabled) {
                                     notificationService.showDownloadProgress(
                                         id = id.toInt(), 
                                         title = videoTitle, 
-                                        progress = progress.toInt(), 
+                                        progress = cappedProgress, 
                                         thumbnailUrl = currentRecord.thumbnailUrl,
-                                        speed = speedText,
+                                        speed = displaySpeed,
                                         size = displaySize
                                     )
                                 }
@@ -328,11 +343,11 @@ class DownloadManagerService private constructor(
                     }
                 }
                 
+                // Mostrar notificación de éxito REAL solo cuando ya se tiene el archivo y terminó el post-procesado
                 if (AppSettings.notificationsEnabled) {
-                    notificationService.showDownloadProgress(
+                    notificationService.showDownloadSuccess(
                         id = id.toInt(), 
                         title = videoTitle, 
-                        progress = 100, 
                         thumbnailUrl = passedThumbnailUrl
                     )
                 }

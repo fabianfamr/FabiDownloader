@@ -174,7 +174,13 @@ fun SharePopupScreen(
         }
     }
     
-    var selectedOptionId by remember { mutableStateOf(AppSettings.lastDownloadedOptionId) }
+    var selectedOptionId by remember {
+        mutableStateOf(
+            AppSettings.lastDownloadedOptionId.ifEmpty {
+                if (cleanUrl.contains("music.youtube.com") || cleanUrl.contains("spotify") || cleanUrl.contains("soundcloud")) "music_320" else "video_720"
+            }
+        )
+    }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     
     // Platform-specific brand color and icon
@@ -265,16 +271,12 @@ fun SharePopupScreen(
                             },
                             onQuickDownload = {
                                 // Fallback to immediate download using general placeholders
+                                val allOptions = musicOptions + videoOptions
+                                val selected = allOptions.find { it.id == selectedOptionId } ?: musicOptions.first()
                                 viewModel.downloadVideo(
                                     url = cleanUrl,
-                                    quality = if (selectedOptionId.startsWith("music")) {
-                                        if (selectedOptionId == "music_classic") "320" else "128"
-                                    } else {
-                                        if (selectedOptionId == "video_hq") "720p" else "360p"
-                                    },
-                                    format = if (selectedOptionId.startsWith("music")) {
-                                        if (selectedOptionId == "music_classic") Config.FORMAT_MP3 else Config.FORMAT_M4A
-                                    } else Config.FORMAT_MP4,
+                                    quality = selected.quality,
+                                    format = selected.format,
                                     title = ctx.getString(R.string.share_download_prefix, (System.currentTimeMillis() % 100000).toString()),
                                     thumbnailUrl = null
                                 )

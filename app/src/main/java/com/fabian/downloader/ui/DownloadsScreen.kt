@@ -997,7 +997,7 @@ fun MobileDownloadingItem(
 
                 val animatedProgress by animateFloatAsState(
                     targetValue = if (record.progress < 0) 0f else record.progress / 100f,
-                    animationSpec = tween(600, easing = FastOutSlowInEasing),
+                    animationSpec = tween(250, easing = FastOutSlowInEasing),
                     label = "progress"
                 )
 

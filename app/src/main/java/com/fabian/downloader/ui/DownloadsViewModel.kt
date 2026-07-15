@@ -13,32 +13,33 @@ import kotlinx.coroutines.withContext
 
 class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
     val downloads: Flow<List<DownloadRecord>> = database.downloadDao().getAllDownloads()
-        .map { list ->
-            withContext(Dispatchers.IO) {
-                list.filter { record ->
-                    if (!record.isCompleted) {
-                        true
-                    } else {
+
+    init {
+        cleanupOrphanDownloads()
+    }
+
+    private fun cleanupOrphanDownloads() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val list = database.downloadDao().getAllDownloadsDirect()
+                list.forEach { record ->
+                    if (record.isCompleted) {
                         val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(
                             com.fabian.downloader.MyApplication.getInstance(),
                             record.title,
                             record.id,
                             record.format
                         )
-                        val exists = file.exists()
-                        if (!exists) {
-                            // Clean up orphan record from db asynchronously
-                            viewModelScope.launch(Dispatchers.IO) {
-                                database.downloadDao().deleteDownload(record.id)
-                            }
-                            false
-                        } else {
-                            true
+                        if (!file.exists()) {
+                            database.downloadDao().deleteDownload(record.id)
                         }
                     }
                 }
+            } catch (e: Exception) {
+                // Ignore errors during quiet cleanup
             }
         }
+    }
 
     fun pauseDownload(id: Long) {
         DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).pauseDownload(id)
