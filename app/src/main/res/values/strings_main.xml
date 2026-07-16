@@ -9,8 +9,8 @@
     <string name="main_input_placeholder">Pegar enlace de video o audio...</string>
     <string name="main_clear_button">Limpiar</string>
     <string name="main_paste_button">Pegar</string>
-    <string name="main_analyze_button">Analizar Enlace</string>
-    <string name="main_analyzing">Analizando...</string>
+    <string name="main_analyze_button">Descargar</string>
+    <string name="main_analyzing">Procesando...</string>
     <string name="main_invalid_link">Por favor introduce un enlace válido</string>
     <string name="main_quick_download_title">Descarga con un Solo Toque</string>
     <string name="main_processing_link">Procesando enlace...</string>
@@ -27,10 +27,10 @@
     <string name="main_clipboard_detected_title">Enlace detectado en portapapeles</string>
     <string name="main_discard_button">Descartar</string>
     <string name="main_clipboard_audio_only">Solo Audio</string>
-    <string name="main_analyze_short">Analizar</string>
+    <string name="main_analyze_short">Descargar</string>
     <string name="main_detecting_prefix">Detectamos </string>
     <string name="main_detecting_suffix"> automáticamente</string>
-    <string name="main_analyzing_state">Analizando...</string>
+    <string name="main_analyzing_state">Procesando...</string>
     <string name="main_link_detected_state">¡Enlace Detectado!</string>
 
     <!-- Navigation tabs -->

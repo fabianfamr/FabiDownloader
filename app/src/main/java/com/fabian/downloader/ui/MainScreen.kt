@@ -547,10 +547,9 @@ fun MainScreen(
                         if (isQueryValid && analyzeState == AnalyzeState.Idle) {
                             scope.launch {
                                 analyzeState = AnalyzeState.Loading
-                                // Simulate elegant analysis delay
-                                delay(2000)
+                                delay(200)
                                 analyzeState = AnalyzeState.Success
-                                delay(1200)
+                                delay(150)
                                 viewModel.saveSearch(query)
                                 urlToDownloadInDialog = query
                                 query = ""
