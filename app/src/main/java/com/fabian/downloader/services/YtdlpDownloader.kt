@@ -150,6 +150,8 @@ class YtdlpDownloader {
             }
 
             addOption("--referer", Config.REFERER_DEFAULT)
+            addOption("--no-check-certificate")
+            addOption("--no-call-home")
             // Note: removed --force-ipv4 by default (was slowing down on IPv6-capable networks)
             addOption("--no-warnings")
 

@@ -53,6 +53,7 @@ class YtdlpExtractor {
             addOption("--referer", com.fabian.downloader.utils.Config.REFERER_DEFAULT)
             addOption("--force-ipv4")
             addOption("--no-check-certificate")
+            addOption("--no-call-home")
             addOption("--geo-bypass")
             addOption("--quiet")
             addOption("--no-warnings")
