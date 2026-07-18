@@ -21,10 +21,11 @@ abstract class BaseSiteService : SiteService {
         request.addOption("--geo-bypass")
         request.addOption("--quiet")
         request.addOption("--no-warnings")
-        request.addOption("--socket-timeout", "15")
+        request.addOption("--socket-timeout", "10")
         request.addOption("--retries", "5")
         request.addOption("--no-check-certificate")
         request.addOption("--no-call-home")
+        request.addOption("--no-check-formats")
     }
 
     open fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
@@ -36,6 +37,7 @@ abstract class BaseSiteService : SiteService {
         request.addOption("--referer", Config.REFERER_DEFAULT)
         request.addOption("--no-check-certificate")
         request.addOption("--no-call-home")
+        request.addOption("--no-check-formats")
     }
 
     override suspend fun extractMetadata(url: String): InfoMedia? = withContext(Dispatchers.IO) {

@@ -145,13 +145,15 @@ class YtdlpDownloader {
                     addOption("--user-agent", customUa)
                 }
 
-                // Skip DASH manifest (faster extraction)
+                // Skip DASH and HLS manifests (faster connection/extraction)
                 addOption("--youtube-skip-dash-manifest")
+                addOption("--youtube-skip-hls-manifest")
             }
 
             addOption("--referer", Config.REFERER_DEFAULT)
             addOption("--no-check-certificate")
             addOption("--no-call-home")
+            addOption("--no-check-formats")
             // Note: removed --force-ipv4 by default (was slowing down on IPv6-capable networks)
             addOption("--no-warnings")
 

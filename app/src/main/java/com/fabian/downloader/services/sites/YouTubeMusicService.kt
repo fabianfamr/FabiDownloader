@@ -11,19 +11,23 @@ class YouTubeMusicService : BaseSiteService() {
 
     override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         super.customizeExtractorRequest(request, url)
-        request.addOption("--extractor-args", "youtube:player-client=android,web")
+        request.addOption("--extractor-args", "youtube:player-client=ios,android")
         request.addOption("--user-agent", com.fabian.downloader.utils.Config.UA_YOUTUBE_MUSIC)
         request.addOption("--add-header", "X-Youtube-Client-Name: 3")
         request.addOption("--add-header", "X-Youtube-Client-Version: 19.29.37")
         request.addOption("--no-check-formats")
         request.addOption("--youtube-skip-dash-manifest")
+        request.addOption("--youtube-skip-hls-manifest")
     }
 
     override fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
         super.customizeDownloaderRequest(request, url)
-        request.addOption("--extractor-args", "youtube:player-client=android,web")
+        request.addOption("--extractor-args", "youtube:player-client=ios,android")
         request.addOption("--user-agent", com.fabian.downloader.utils.Config.UA_YOUTUBE_MUSIC)
         request.addOption("--add-header", "X-Youtube-Client-Name: 3")
         request.addOption("--add-header", "X-Youtube-Client-Version: 19.29.37")
+        request.addOption("--no-check-formats")
+        request.addOption("--youtube-skip-dash-manifest")
+        request.addOption("--youtube-skip-hls-manifest")
     }
 }

@@ -11,7 +11,7 @@ class YouTubeService : BaseSiteService() {
 
     override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         super.customizeExtractorRequest(request, url)
-        request.addOption("--extractor-args", "youtube:player-client=android,web")
+        request.addOption("--extractor-args", "youtube:player-client=ios,android")
         
         val customUa = com.fabian.downloader.ui.AppSettings.customUserAgent
         if (customUa.isNotEmpty()) {
@@ -23,11 +23,12 @@ class YouTubeService : BaseSiteService() {
         request.addOption("--no-check-certificate")
         request.addOption("--no-check-formats")
         request.addOption("--youtube-skip-dash-manifest")
+        request.addOption("--youtube-skip-hls-manifest")
     }
 
     override fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
         super.customizeDownloaderRequest(request, url)
-        request.addOption("--extractor-args", "youtube:player-client=android,web")
+        request.addOption("--extractor-args", "youtube:player-client=ios,android")
         
         val customUa = com.fabian.downloader.ui.AppSettings.customUserAgent
         if (customUa.isNotEmpty()) {
@@ -37,5 +38,8 @@ class YouTubeService : BaseSiteService() {
         }
         
         request.addOption("--no-check-certificate")
+        request.addOption("--no-check-formats")
+        request.addOption("--youtube-skip-dash-manifest")
+        request.addOption("--youtube-skip-hls-manifest")
     }
 }

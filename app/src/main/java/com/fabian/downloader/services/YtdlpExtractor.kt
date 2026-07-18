@@ -44,9 +44,10 @@ class YtdlpExtractor {
             
             if (isYoutube) {
                 // Configuración específica para YouTube para evadir bot detection y el límite de 70kb/s
-                addOption("--extractor-args", "youtube:player-client=android,web")
+                addOption("--extractor-args", "youtube:player-client=ios,android")
                 addOption("--user-agent", com.fabian.downloader.utils.Config.UA_DESKTOP)
                 addOption("--youtube-skip-dash-manifest")
+                addOption("--youtube-skip-hls-manifest")
             }
             
             addOption("--no-check-formats")
