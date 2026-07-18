@@ -6,10 +6,42 @@ import java.io.File
 
 @Suppress("DEPRECATION")
 object PathUtils {
+    private val cachedFolders = mutableMapOf<String, File>()
+
+    suspend fun saveThumbnail(context: Context, url: String?, id: Long): String? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        if (url.isNullOrEmpty()) return@withContext null
+        if (url.startsWith("file://") || url.startsWith("/")) return@withContext url
+        
+        try {
+            val thumbnailsDir = File(context.filesDir, "thumbnails")
+            if (!thumbnailsDir.exists()) thumbnailsDir.mkdirs()
+            
+            val destFile = File(thumbnailsDir, "thumb_$id.jpg")
+            if (destFile.exists()) return@withContext destFile.absolutePath
+
+            val connection = java.net.URL(url).openConnection()
+            connection.connectTimeout = 5000
+            connection.readTimeout = 5000
+            connection.getInputStream().use { input ->
+                destFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            return@withContext destFile.absolutePath
+        } catch (e: Exception) {
+            android.util.Log.e(Config.TAG_PATH_UTILS, "Error saving thumbnail", e)
+            return@withContext url // fallback to url
+        }
+    }
+
     fun getDownloadFolder(context: Context, format: String): File {
         val isVideo = format.equals(Config.FORMAT_MP4, ignoreCase = true) || format.equals(Config.FORMAT_WEBM, ignoreCase = true)
         val relativeSubfolder = if (isVideo) "${Config.APP_NAME}/video" else "${Config.APP_NAME}/audio"
         
+        cachedFolders[relativeSubfolder]?.let {
+            if (it.exists()) return it
+        }
+
         // 1. Try standard public Download/FabiDownloader/... (This is what the user expects!)
         val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         if (publicDownloads != null) {
@@ -24,6 +56,7 @@ object PathUtils {
                 if (testFile.createNewFile()) {
                     testFile.delete()
                     android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified public Download folder: ${downloadFabiFolder.absolutePath}")
+                    cachedFolders[relativeSubfolder] = downloadFabiFolder
                     return downloadFabiFolder
                 }
             } catch (e: Exception) {
@@ -45,6 +78,7 @@ object PathUtils {
                 if (testFile.createNewFile()) {
                     testFile.delete()
                     android.util.Log.d(Config.TAG_PATH_UTILS, "Using externalMediaDirs folder: ${targetFolder.absolutePath}")
+                    cachedFolders[relativeSubfolder] = targetFolder
                     return targetFolder
                 }
             } catch (e: Exception) {
@@ -64,6 +98,7 @@ object PathUtils {
                 if (testFile.createNewFile()) {
                     testFile.delete()
                     android.util.Log.d(Config.TAG_PATH_UTILS, "Using appExternalDownloadDir folder: ${targetFolder.absolutePath}")
+                    cachedFolders[relativeSubfolder] = targetFolder
                     return targetFolder
                 }
             } catch (e: Exception) {
@@ -77,6 +112,7 @@ object PathUtils {
             fallbackFolder.mkdirs()
         }
         android.util.Log.w(Config.TAG_PATH_UTILS, "FALLBACK to private storage! This is what the user wants to avoid: ${fallbackFolder.absolutePath}")
+        cachedFolders[relativeSubfolder] = fallbackFolder
         return fallbackFolder
     }
 

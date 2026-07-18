@@ -203,18 +203,30 @@ class DownloadManagerService private constructor(
                     // Trigger queue IMMEDIATELY so download can start while we resolve title
                     triggerQueue()
 
-                    // Background title/thumbnail resolution (non-blocking, short timeout)
-                    if (passedTitle == null || passedTitle == Config.TITLE_PROCESSING_LINK || passedTitle == Config.TITLE_ANALYZING_SHARED) {
-                        serviceScope.launch {
+                    // Background title/thumbnail resolution and caching (non-blocking, short timeout)
+                    serviceScope.launch {
+                        var resolvedTitleBg: String? = null
+                        var resolvedThumbnailBg: String? = passedThumbnailUrl
+
+                        if (passedTitle == null || passedTitle == Config.TITLE_PROCESSING_LINK || passedTitle == Config.TITLE_ANALYZING_SHARED) {
                             try {
-                                val resolvedTitleBg = withTimeoutOrNull(4000) { extractionService.extractTitle(url) }
-                                val resolvedThumbnailBg = withTimeoutOrNull(4000) { extractionService.extractThumbnail(url) }
-                                if (!resolvedTitleBg.isNullOrEmpty() && resolvedTitleBg != Config.TITLE_PROCESSING_LINK && resolvedTitleBg != Config.TITLE_ANALYZING_SHARED) {
-                                    storageService.updateDownloadInfoWithThumbnail(newId, resolvedTitleBg, Config.STATUS_QUEUED, resolvedThumbnailBg ?: passedThumbnailUrl)
-                                }
+                                resolvedTitleBg = withTimeoutOrNull(4000) { extractionService.extractTitle(url) }
+                                val extractedThumb = withTimeoutOrNull(4000) { extractionService.extractThumbnail(url) }
+                                if (extractedThumb != null) resolvedThumbnailBg = extractedThumb
                             } catch (e: Exception) {
                                 Log.w(Config.TAG_DOWNLOAD_MANAGER, "Background title resolution failed for $url: ${e.message}")
                             }
+                        }
+
+                        val localThumb = com.fabian.downloader.utils.PathUtils.saveThumbnail(application, resolvedThumbnailBg, newId)
+                        val finalTitle = if (!resolvedTitleBg.isNullOrEmpty() && resolvedTitleBg != Config.TITLE_PROCESSING_LINK && resolvedTitleBg != Config.TITLE_ANALYZING_SHARED) {
+                            resolvedTitleBg
+                        } else {
+                            provisionalTitle
+                        }
+
+                        if (finalTitle != provisionalTitle || localThumb != passedThumbnailUrl) {
+                            storageService.updateDownloadInfoWithThumbnail(newId, finalTitle, Config.STATUS_QUEUED, localThumb)
                         }
                     }
                 } else {
@@ -225,7 +237,11 @@ class DownloadManagerService private constructor(
                         while (cleanTitle.startsWith(Config.STATUS_FAILED_PREFIX)) {
                             cleanTitle = cleanTitle.substringAfter(Config.STATUS_FAILED_PREFIX)
                         }
-                        storageService.updateDownloadInfoWithThumbnail(existingId, cleanTitle, Config.STATUS_QUEUED, existingRecord.thumbnailUrl)
+                        
+                        serviceScope.launch {
+                            val localThumb = com.fabian.downloader.utils.PathUtils.saveThumbnail(application, existingRecord.thumbnailUrl, existingId)
+                            storageService.updateDownloadInfoWithThumbnail(existingId, cleanTitle, Config.STATUS_QUEUED, localThumb ?: existingRecord.thumbnailUrl)
+                        }
                         storageService.updateDownloadProgressAndSizeAndSpeed(existingId, existingRecord.progress, Config.STATUS_QUEUED, Config.STATUS_WAITING)
                     }
                     triggerQueue()
@@ -440,6 +456,10 @@ class DownloadManagerService private constructor(
                 }
             }
             
+            val thumbnailsDir = java.io.File(application.filesDir, "thumbnails")
+            val thumbFile = java.io.File(thumbnailsDir, "thumb_$id.jpg")
+            if (thumbFile.exists()) thumbFile.delete()
+            
             storageService.deleteDownload(id)
             notificationService.cancelNotification(id.toInt())
         }
@@ -458,6 +478,10 @@ class DownloadManagerService private constructor(
                 Log.e(Config.TAG_DOWNLOAD_MANAGER, "Failed to destroy process", e)
             }
             
+            val thumbnailsDir = java.io.File(application.filesDir, "thumbnails")
+            val thumbFile = java.io.File(thumbnailsDir, "thumb_$id.jpg")
+            if (thumbFile.exists()) thumbFile.delete()
+            
             storageService.deleteDownload(id)
             notificationService.cancelNotification(id.toInt())
         }
@@ -466,11 +490,14 @@ class DownloadManagerService private constructor(
     fun clearCompletedDownloads() {
         serviceScope.launch {
             val completed = storageService.getAllDownloadsDirect().filter { it.isCompleted }
+            val thumbnailsDir = java.io.File(application.filesDir, "thumbnails")
             completed.forEach { record ->
                 val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(application, record.title, record.id, record.format)
                 if (file.exists()) {
                     file.delete()
                 }
+                val thumbFile = java.io.File(thumbnailsDir, "thumb_${record.id}.jpg")
+                if (thumbFile.exists()) thumbFile.delete()
             }
             storageService.deleteCompletedDownloads()
         }
