@@ -60,6 +60,7 @@ class YtdlpDownloader {
                     }
                 }
                 addOption("--merge-output-format", "mp4")
+                addOption("--remux-video", "mp4")
             }
 
             addOption("-o", "${destFolder.absolutePath}/$fileNameWithoutExt.%(ext)s")

@@ -6,6 +6,42 @@ import com.fabian.downloader.services.InfoMedia
 
 object YtdlpParser {
 
+    fun cleanTitleOfSuffixes(title: String): String {
+        var clean = title.trim()
+        
+        // Remove " - Topic" (common in YouTube Music auto-generated uploads)
+        if (clean.endsWith(" - Topic", ignoreCase = true)) {
+            clean = clean.substring(0, clean.length - 8).trim()
+        } else if (clean.endsWith("- Topic", ignoreCase = true)) {
+            clean = clean.substring(0, clean.length - 7).trim()
+        }
+        
+        // Remove common video/audio suffixes like " - video", " - audio", " - video - audio", " - audio - video"
+        val suffixesToRemove = listOf(
+            " - video - audio",
+            " - audio - video",
+            " - video",
+            " - audio",
+            " - mp4",
+            " - mp3",
+            " (video)",
+            " (audio)",
+            " [video]",
+            " [audio]",
+            "-video-audio",
+            "-video",
+            "-audio"
+        )
+        
+        for (suffix in suffixesToRemove) {
+            if (clean.endsWith(suffix, ignoreCase = true)) {
+                clean = clean.substring(0, clean.length - suffix.length).trim()
+            }
+        }
+        
+        return clean
+    }
+
     private fun cleanDescriptionForTitle(description: String): String {
         if (description.isEmpty()) return ""
         
@@ -101,9 +137,14 @@ object YtdlpParser {
             }
         }
 
-        val title = rawTitle.ifEmpty { defaultTitle }
+        val title = cleanTitleOfSuffixes(rawTitle.ifEmpty { defaultTitle })
 
-        val author = json.optString("uploader", json.optString("uploader_id", defaultAuthor))
+        var author = json.optString("uploader", json.optString("uploader_id", defaultAuthor)).trim()
+        if (author.endsWith(" - Topic", ignoreCase = true)) {
+            author = author.substring(0, author.length - 8).trim()
+        } else if (author.endsWith("- Topic", ignoreCase = true)) {
+            author = author.substring(0, author.length - 7).trim()
+        }
         val miniatura = json.optString("thumbnail", "")
         val duracion = json.optString("duration_string", "00:00")
         val duracionSegundos = json.optDouble("duration", 0.0)

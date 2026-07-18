@@ -232,17 +232,19 @@ class ExtractionService {
         // 3. Try super fast oEmbed
         val oEmbed = getOEmbedInfo(cleanUrl, downloadId)
         if (oEmbed != null) {
-            titleCache[cleanUrl] = oEmbed.first
+            val cleanedTitle = com.fabian.downloader.utils.YtdlpParser.cleanTitleOfSuffixes(oEmbed.first)
+            titleCache[cleanUrl] = cleanedTitle
             oEmbed.second?.let { thumbnailCache[cleanUrl] = it }
-            return@withContext oEmbed.first
+            return@withContext cleanedTitle
         }
 
         // 4. Try HTML Scraping
         val scraped = scrapeHtmlMetadata(cleanUrl, downloadId)
         if (scraped != null) {
-            titleCache[cleanUrl] = scraped.first
+            val cleanedTitle = com.fabian.downloader.utils.YtdlpParser.cleanTitleOfSuffixes(scraped.first)
+            titleCache[cleanUrl] = cleanedTitle
             scraped.second?.let { thumbnailCache[cleanUrl] = it }
-            return@withContext scraped.first
+            return@withContext cleanedTitle
         }
 
         // 5. Run yt-dlp (metadata extraction) - only as fallback since it's slower

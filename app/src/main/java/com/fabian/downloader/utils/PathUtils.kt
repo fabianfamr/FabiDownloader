@@ -35,8 +35,7 @@ object PathUtils {
     }
 
     fun getDownloadFolder(context: Context, format: String): File {
-        val isVideo = format.equals(Config.FORMAT_MP4, ignoreCase = true) || format.equals(Config.FORMAT_WEBM, ignoreCase = true)
-        val relativeSubfolder = if (isVideo) "${Config.APP_NAME}/video" else "${Config.APP_NAME}/audio"
+        val relativeSubfolder = Config.APP_NAME
         
         cachedFolders[relativeSubfolder]?.let {
             if (it.exists()) return it

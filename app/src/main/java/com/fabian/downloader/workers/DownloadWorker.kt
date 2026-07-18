@@ -26,6 +26,7 @@ class DownloadWorker(
             addOption("-o", "${targetFolder.absolutePath}/%(title)s.%(ext)s")
             addOption("-f", "bestvideo+bestaudio/best")
             addOption("--merge-output-format", "mp4")
+            addOption("--remux-video", "mp4")
             addOption("--no-check-certificate") // Evita problemas de SSL comunes en Android
         }
 
