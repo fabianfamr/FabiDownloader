@@ -106,6 +106,7 @@ class DownloadManagerService private constructor(
                         val activeInDb = storageService.getActiveDownloadsDirect()
                         val nextToProcess = activeInDb.filter {
                             !it.isPaused &&
+                            it.speed != "FAILED" &&
                             !it.title.startsWith(Config.STATUS_FAILED_PREFIX) &&
                             !processingIds.contains(it.id)
                         }
@@ -159,7 +160,7 @@ class DownloadManagerService private constructor(
 
                 if (existingId == null) {
                     val existing = storageService.getDownloadsByUrl(url)
-                    val inProgress = existing.find { !it.isCompleted && !it.isPaused && !it.title.startsWith(Config.STATUS_FAILED_PREFIX) }
+                    val inProgress = existing.find { !it.isCompleted && !it.isPaused && it.speed != "FAILED" && !it.title.startsWith(Config.STATUS_FAILED_PREFIX) }
                     if (inProgress != null) {
                         withContext(Dispatchers.Main) {
                             Toast.makeText(application, application.getString(R.string.downloads_toast_already_in_progress), Toast.LENGTH_SHORT).show()
@@ -386,13 +387,15 @@ class DownloadManagerService private constructor(
                 while (cleanTitle.startsWith(Config.STATUS_FAILED_PREFIX)) {
                     cleanTitle = cleanTitle.substringAfter(Config.STATUS_FAILED_PREFIX)
                 }
-                storageService.updateDownloadInfo(id, Config.STATUS_FAILED_PREFIX + cleanTitle, errorMsg)
+                val cleanErrorMsg = errorMsg.removePrefix(Config.STATUS_FAILED_PREFIX)
+                storageService.updateDownloadInfo(id, cleanTitle, cleanErrorMsg)
+                storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, cleanErrorMsg, "FAILED")
                 
                 if (AppSettings.notificationsEnabled) {
                     notificationService.showDownloadFailed(
                         id = id.toInt(),
-                        title = videoTitle,
-                        errorMsg = errorMsg,
+                        title = cleanTitle,
+                        errorMsg = cleanErrorMsg,
                         thumbnailUrl = passedThumbnailUrl
                     )
                 }

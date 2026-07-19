@@ -783,11 +783,20 @@ fun MobileDownloadingItem(
     val C_amber = fColors.amber
 
     val failedPrefix = stringResource(R.string.downloads_failed_prefix)
-    val isFailed = record.title.startsWith(failedPrefix)
+    val isFailed = record.speed == "FAILED" || 
+            record.title.startsWith("Fallo: ") || 
+            record.title.startsWith("Failed: ") || 
+            record.title.startsWith(failedPrefix)
     val cleanTitle = remember(record.title) {
         var t = record.title
-        while (t.startsWith(failedPrefix)) {
-            t = t.substringAfter(failedPrefix)
+        while (t.startsWith("Fallo: ") || t.startsWith("Failed: ") || t.startsWith(failedPrefix)) {
+            t = if (t.startsWith("Fallo: ")) {
+                t.substringAfter("Fallo: ")
+            } else if (t.startsWith("Failed: ")) {
+                t.substringAfter("Failed: ")
+            } else {
+                t.substringAfter(failedPrefix)
+            }
         }
         t
     }
@@ -1047,8 +1056,14 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
 
     val cleanTitle = remember(record.title) {
         var t = record.title
-        while (t.startsWith(com.fabian.downloader.utils.Config.STATUS_FAILED_PREFIX)) {
-            t = t.substringAfter(com.fabian.downloader.utils.Config.STATUS_FAILED_PREFIX)
+        while (t.startsWith("Fallo: ") || t.startsWith("Failed: ") || t.startsWith(com.fabian.downloader.utils.Config.STATUS_FAILED_PREFIX)) {
+            t = if (t.startsWith("Fallo: ")) {
+                t.substringAfter("Fallo: ")
+            } else if (t.startsWith("Failed: ")) {
+                t.substringAfter("Failed: ")
+            } else {
+                t.substringAfter(com.fabian.downloader.utils.Config.STATUS_FAILED_PREFIX)
+            }
         }
         t
     }
