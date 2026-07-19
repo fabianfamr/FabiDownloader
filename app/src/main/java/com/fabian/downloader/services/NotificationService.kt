@@ -89,10 +89,20 @@ class NotificationService(private val context: Context) {
             }
         }
 
+        val largeIcon = if (!thumbnailUrl.isNullOrEmpty()) {
+            val bitmap = getBitmapFromUrl(thumbnailUrl)
+            if (bitmap != null) {
+                val density = context.resources.displayMetrics.density
+                val sizePx = (64 * density).toInt()
+                Bitmap.createScaledBitmap(bitmap, sizePx, sizePx, true)
+            } else null
+        } else null
+
         val notification = NotificationCompat.Builder(context, channelProgressId)
             .setContentTitle(title)
             .setContentText(text)
             .setSmallIcon(R.drawable.ic_cloud_download)
+            .setLargeIcon(largeIcon)
             .setProgress(100, progress, false)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
@@ -224,13 +234,20 @@ class NotificationService(private val context: Context) {
     }
 
     private suspend fun getBitmapFromUrl(url: String): Bitmap? = withContext(Dispatchers.IO) {
+        val cached = thumbnailCache[url]
+        if (cached != null) return@withContext cached
+
         try {
             val connection = URL(url).openConnection()
             connection.doInput = true
             connection.connect()
-            connection.getInputStream().use { input ->
+            val bitmap = connection.getInputStream().use { input ->
                 BitmapFactory.decodeStream(input)
             }
+            if (bitmap != null) {
+                thumbnailCache[url] = bitmap
+            }
+            bitmap
         } catch (e: Exception) {
             null
         }
