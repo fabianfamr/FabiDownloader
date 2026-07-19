@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -646,6 +647,7 @@ fun DownloadsScreen(
                                 onDelete = { menuRecord = record },
                                 onShare = { onShareFile(record) },
                                 isSelected = selectedIds.contains(record.id),
+                                isSelectionMode = isSelectionMode,
                                 onLongPress = { toggleSelection(record.id) }
                             )
                         }
@@ -703,6 +705,7 @@ fun DownloadsScreen(
                                 onDelete = { menuRecord = record },
                                 onShowErrorDetails = { errorToShow = it },
                                 isSelected = selectedIds.contains(record.id),
+                                isSelectionMode = isSelectionMode,
                                 onLongPress = { toggleSelection(record.id) }
                             )
                         }
@@ -763,6 +766,7 @@ fun MobileDownloadingItem(
     onDelete: () -> Unit,
     onShowErrorDetails: (String) -> Unit,
     isSelected: Boolean = false,
+    isSelectionMode: Boolean = false,
     onLongPress: () -> Unit = {}
 ) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
@@ -833,9 +837,13 @@ fun MobileDownloadingItem(
             .clip(RoundedCornerShape(14.dp))
             .combinedClickable(
                 onClick = { 
-                    if (isFailed) onResume() 
-                    else if (record.isPaused) onResume() 
-                    else onPause() 
+                    if (isSelectionMode) {
+                        onLongPress()
+                    } else {
+                        if (isFailed) onResume() 
+                        else if (record.isPaused) onResume() 
+                        else onPause() 
+                    }
                 },
                 onLongClick = { onLongPress() }
             )
@@ -961,16 +969,36 @@ fun MobileDownloadingItem(
                     }
                 }
                 
-                IconButton(
-                    onClick = { onDelete() }, 
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert, 
-                        contentDescription = stringResource(R.string.downloads_action_options), 
-                        modifier = Modifier.size(18.dp), 
-                        tint = C_white
-                    )
+                if (isSelectionMode) {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(if (isSelected) C_accent else Color.Transparent)
+                            .border(1.5.dp, if (isSelected) C_accent else C_border, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = Color(0xFF0A0A0C),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                } else {
+                    IconButton(
+                        onClick = { onDelete() }, 
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert, 
+                            contentDescription = stringResource(R.string.downloads_action_options), 
+                            modifier = Modifier.size(18.dp), 
+                            tint = C_white
+                        )
+                    }
                 }
             }
 
@@ -1039,7 +1067,15 @@ fun MobileDownloadingItem(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: () -> Unit, onShare: () -> Unit, isSelected: Boolean, onLongPress: () -> Unit) {
+fun MobileDownloadedItem(
+    record: DownloadRecord, 
+    onPlay: () -> Unit, 
+    onDelete: () -> Unit, 
+    onShare: () -> Unit, 
+    isSelected: Boolean, 
+    isSelectionMode: Boolean = false, 
+    onLongPress: () -> Unit
+) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val fColors = MaterialTheme.fabiColors
     val C_bg = fColors.background
@@ -1164,16 +1200,36 @@ fun MobileDownloadedItem(record: DownloadRecord, onPlay: () -> Unit, onDelete: (
                 }
             }
                      
-            IconButton(
-                onClick = { onDelete() }, 
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert, 
-                    contentDescription = stringResource(R.string.downloads_action_options), 
-                    tint = C_white,
-                    modifier = Modifier.size(18.dp)
-                )
+            if (isSelectionMode) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(if (isSelected) C_accent else Color.Transparent)
+                        .border(1.5.dp, if (isSelected) C_accent else C_border, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = Color(0xFF0A0A0C),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            } else {
+                IconButton(
+                    onClick = { onDelete() }, 
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert, 
+                        contentDescription = stringResource(R.string.downloads_action_options), 
+                        tint = C_white,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
         }
     }
