@@ -90,6 +90,7 @@ class DownloadManagerService private constructor(
 
     init {
         startQueueProcessor()
+        registerSettingsListener()
     }
 
     private fun startQueueProcessor() {
@@ -529,5 +530,56 @@ class DownloadManagerService private constructor(
             }
         }
         return sanitized
+    }
+
+    private fun registerSettingsListener() {
+        AppSettings.addListener { key ->
+            Log.i(Config.TAG_DOWNLOAD_MANAGER, "Configuración cambiada detectada: $key")
+            when (key) {
+                "maxConcurrentDownloads" -> {
+                    handleMaxConcurrentDownloadsChanged(AppSettings.maxConcurrentDownloads)
+                }
+                "maxSpeed", "concurrentFragments", "embedSubtitles", "customArguments", "cookies", "customUserAgent", "sponsorBlockEnabled", "embedThumbnail", "embedMetadata", "bypassGeo", "autoRetry" -> {
+                    handleDownloadConfigChanged()
+                }
+            }
+        }
+    }
+
+    private fun handleMaxConcurrentDownloadsChanged(newLimit: Int) {
+        serviceScope.launch {
+            val runningIds = processingIds.filter { activeJobs.containsKey(it) }
+            if (runningIds.size > newLimit) {
+                val excessCount = runningIds.size - newLimit
+                val sortedIds = runningIds.sortedDescending()
+                val toPause = sortedIds.take(excessCount)
+                toPause.forEach { id ->
+                    Log.i(Config.TAG_DOWNLOAD_MANAGER, "Pausando automáticamente descarga $id debido a reducción del límite de descargas concurrentes a $newLimit")
+                    pauseDownload(id)
+                }
+            } else {
+                triggerQueue()
+            }
+        }
+    }
+
+    private fun handleDownloadConfigChanged() {
+        serviceScope.launch {
+            val runningIds = processingIds.filter { activeJobs.containsKey(it) }
+            runningIds.forEach { id ->
+                Log.i(Config.TAG_DOWNLOAD_MANAGER, "Reiniciando descarga $id para aplicar la nueva configuración...")
+                activeCalls[id]?.cancel()
+                activeJobs[id]?.cancel()
+                activeCalls.remove(id)
+                val job = activeJobs.remove(id)
+                try {
+                    com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
+                } catch (e: Exception) {
+                    Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al detener el proceso $id al cambiar la configuración", e)
+                }
+                job?.join()
+            }
+            triggerQueue()
+        }
     }
 }

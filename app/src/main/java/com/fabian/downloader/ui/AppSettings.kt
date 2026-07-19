@@ -14,6 +14,25 @@ import com.fabian.downloader.utils.Config
 object AppSettings {
     private lateinit var prefs: SharedPreferences
 
+    private val listeners = mutableListOf<(String) -> Unit>()
+
+    fun addListener(listener: (String) -> Unit) {
+        synchronized(listeners) {
+            listeners.add(listener)
+        }
+    }
+
+    fun removeListener(listener: (String) -> Unit) {
+        synchronized(listeners) {
+            listeners.remove(listener)
+        }
+    }
+
+    private fun notifyChanged(key: String) {
+        val targets = synchronized(listeners) { listeners.toList() }
+        targets.forEach { it(key) }
+    }
+
     val qualityOptions = listOf("Mejor disponible", "4K (2160p)", "1080p Full HD", "720p HD", "480p SD", "360p", "Solo audio (MP3)")
     val videoFormats = listOf(Config.FORMAT_MP4, Config.FORMAT_WEBM)
     val audioFormats = listOf(Config.FORMAT_MP3, Config.FORMAT_M4A, Config.FORMAT_OGG)
@@ -74,6 +93,7 @@ object AppSettings {
         set(value) {
             _maxSpeed.value = value
             saveString("maxSpeed", value)
+            notifyChanged("maxSpeed")
         }
 
     private val _themePreference = mutableStateOf("Sistema")
@@ -109,6 +129,7 @@ object AppSettings {
         set(value) {
             _concurrentFragments.value = value
             saveString("concurrentFragments", value)
+            notifyChanged("concurrentFragments")
         }
 
     private val _embedSubtitles = mutableStateOf(false)
@@ -117,6 +138,7 @@ object AppSettings {
         set(value) {
             _embedSubtitles.value = value
             saveBoolean("embedSubtitles", value)
+            notifyChanged("embedSubtitles")
         }
 
     private val _playlistEnabled = mutableStateOf(false)
@@ -135,6 +157,7 @@ object AppSettings {
             if (::prefs.isInitialized) {
                 prefs.edit { putInt("maxConcurrentDownloads", value) }
             }
+            notifyChanged("maxConcurrentDownloads")
         }
 
     private val _clipboardAction = mutableStateOf("banner") // "banner", "auto", "disabled"
@@ -159,6 +182,7 @@ object AppSettings {
         set(value) {
             _customArguments.value = value
             saveString("customArguments", value)
+            notifyChanged("customArguments")
         }
 
     private val _cookies = mutableStateOf("")
@@ -167,6 +191,7 @@ object AppSettings {
         set(value) {
             _cookies.value = value
             saveString("cookies", value)
+            notifyChanged("cookies")
         }
 
     private val _customUserAgent = mutableStateOf("")
@@ -175,6 +200,7 @@ object AppSettings {
         set(value) {
             _customUserAgent.value = value
             saveString("customUserAgent", value)
+            notifyChanged("customUserAgent")
         }
 
     private val _sponsorBlockEnabled = mutableStateOf(false)
@@ -183,6 +209,7 @@ object AppSettings {
         set(value) {
             _sponsorBlockEnabled.value = value
             saveBoolean("sponsorBlockEnabled", value)
+            notifyChanged("sponsorBlockEnabled")
         }
 
     private val _embedThumbnail = mutableStateOf(true)
@@ -191,6 +218,7 @@ object AppSettings {
         set(value) {
             _embedThumbnail.value = value
             saveBoolean("embedThumbnail", value)
+            notifyChanged("embedThumbnail")
         }
 
     private val _embedMetadata = mutableStateOf(true)
@@ -199,6 +227,7 @@ object AppSettings {
         set(value) {
             _embedMetadata.value = value
             saveBoolean("embedMetadata", value)
+            notifyChanged("embedMetadata")
         }
 
     private val _bypassGeo = mutableStateOf(true)
@@ -207,6 +236,7 @@ object AppSettings {
         set(value) {
             _bypassGeo.value = value
             saveBoolean("bypassGeo", value)
+            notifyChanged("bypassGeo")
         }
 
     private val _showDownloadSpeedInNotification = mutableStateOf(true)
@@ -231,6 +261,7 @@ object AppSettings {
         set(value) {
             _autoRetry.value = value
             saveBoolean("autoRetry", value)
+            notifyChanged("autoRetry")
         }
 
     private val _dynamicColor = mutableStateOf(true)
