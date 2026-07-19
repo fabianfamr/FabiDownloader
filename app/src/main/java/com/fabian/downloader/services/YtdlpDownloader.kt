@@ -252,112 +252,119 @@ class YtdlpDownloader {
         // Respect autoRetry setting: if disabled, only attempt level 0 (no fallbacks)
         val autoRetry = com.fabian.downloader.ui.AppSettings.autoRetry
 
+        val connService = com.fabian.downloader.network.ConnectionService()
+
+        fun isNetworkOrTemporaryError(e: Exception, line: String): Boolean {
+            val lowerMsg = (e.message ?: "").lowercase()
+            val lowerLine = line.lowercase()
+            val keywords = listOf(
+                "timeout", "time out", "connection", "unable to resolve host", 
+                "network is unreachable", "502", "503", "504", "429", 
+                "read error", "connection reset", "ssl", "socket", "try again"
+            )
+            return keywords.any { lowerMsg.contains(it) || lowerLine.contains(it) }
+        }
+
+        suspend fun executeWithRetry(
+            level: Int,
+            onFailAction: suspend (Exception) -> Unit
+        ): Boolean {
+            var attempt = 0
+            val maxAttempts = 3
+            while (attempt < maxAttempts) {
+                if (!isActive) throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
+                try {
+                    val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, level, customizeRequest)
+                    YoutubeDL.getInstance().execute(request, processId) { progreso, _, line ->
+                        lastLine = line
+                        var speedText = Config.STATUS_CALCULATING
+                        var sizeText = Config.STATUS_DOWNLOADING
+
+                        val match = SPEED_REGEX.find(line)
+                        if (match != null) {
+                            speedText = match.groupValues[1]
+                        }
+
+                        val sizeMatch = SIZE_REGEX.find(line)
+                        if (sizeMatch != null) {
+                            sizeText = sizeMatch.groupValues[1].replace("~", "")
+                        }
+
+                        if (progreso == 100f && speedText == Config.STATUS_CALCULATING) {
+                            speedText = Config.STATUS_FINALIZING
+                        }
+
+                        alProgresar(progreso, sizeText, speedText)
+                    }
+                    return true
+                } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException || !isActive) {
+                        throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
+                    }
+                    
+                    attempt++
+                    val hasInternet = connService.checkConnection()
+                    val isNetworkError = !hasInternet || isNetworkOrTemporaryError(e, lastLine)
+
+                    if (isNetworkError && attempt < maxAttempts) {
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido por inestabilidad de red. Esperando hasta 15 segundos para recuperación...")
+                        var secondsWaited = 0
+                        while (secondsWaited < 15 && !connService.checkConnection()) {
+                            if (!isActive) throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
+                            kotlinx.coroutines.delay(1000)
+                            secondsWaited++
+                        }
+                        
+                        if (connService.checkConnection()) {
+                            Log.i(Config.TAG_YTDLP_DOWNLOADER, "¡Red restablecida tras $secondsWaited segundos! Reintentando el mismo nivel $level (intento ${attempt + 1})...")
+                            cleanupBeforeRetry()
+                            continue
+                        }
+                    }
+
+                    if (attempt >= maxAttempts) {
+                        onFailAction(e)
+                    } else {
+                        // For non-network errors or if network didn't recover, wait 2s and retry or fallback
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido. Reintentando en 2 segundos...")
+                        kotlinx.coroutines.delay(2000)
+                        cleanupBeforeRetry()
+                    }
+                }
+            }
+            return false
+        }
+
         // Nivel 0: Intentar con la calidad / formato solicitados (y fallback interno de calidad)
-        try {
-            val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, 0, customizeRequest)
-            YoutubeDL.getInstance().execute(request, processId) { progreso, _, line ->
-                lastLine = line
-                var speedText = Config.STATUS_CALCULATING
-                var sizeText = Config.STATUS_DOWNLOADING
-
-                val match = SPEED_REGEX.find(line)
-                if (match != null) {
-                    speedText = match.groupValues[1]
-                }
-
-                val sizeMatch = SIZE_REGEX.find(line)
-                if (sizeMatch != null) {
-                    sizeText = sizeMatch.groupValues[1].replace("~", "")
-                }
-
-                if (progreso == 100f && speedText == Config.STATUS_CALCULATING) {
-                    speedText = Config.STATUS_FINALIZING
-                }
-
-                alProgresar(progreso, sizeText, speedText)
-            }
-            return@withContext true
-        } catch (e: Exception) {
-            if (e is kotlinx.coroutines.CancellationException || !isActive) {
-                throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
-            }
+        val success0 = executeWithRetry(0) { e ->
             if (!autoRetry) {
                 // If autoRetry is disabled, fail immediately without fallbacks
                 Log.w(Config.TAG_YTDLP_DOWNLOADER, "Descarga fallida (autoRetry desactivado): $videoUrl - ${e.message}")
                 val errorMessage = lastLine.ifEmpty { e.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
                 throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
             }
-            Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer intento fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1 (bestvideo+bestaudio/best)...")
+            Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1 (bestvideo+bestaudio/best)...")
             executionError = e
             cleanupBeforeRetry()
         }
+        if (success0) return@withContext true
 
         // Nivel 1: Intentar con mejor formato disponible sin limitación estricta de altura
-        try {
-            val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, 1, customizeRequest)
-            YoutubeDL.getInstance().execute(request, processId) { progreso, _, line ->
-                lastLine = line
-                var speedText = Config.STATUS_CALCULATING
-                var sizeText = Config.STATUS_DOWNLOADING
-
-                val match = SPEED_REGEX.find(line)
-                if (match != null) {
-                    speedText = match.groupValues[1]
-                }
-
-                val sizeMatch = SIZE_REGEX.find(line)
-                if (sizeMatch != null) {
-                    sizeText = sizeMatch.groupValues[1].replace("~", "")
-                }
-
-                if (progreso == 100f && speedText == Config.STATUS_CALCULATING) {
-                    speedText = Config.STATUS_FINALIZING
-                }
-
-                alProgresar(progreso, sizeText, speedText)
-            }
-            return@withContext true
-        } catch (e: Exception) {
-            if (e is kotlinx.coroutines.CancellationException || !isActive) {
-                throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
-            }
-            Log.w(Config.TAG_YTDLP_DOWNLOADER, "Segundo intento fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 2 (best)...")
+        val success1 = executeWithRetry(1) { e ->
+            Log.w(Config.TAG_YTDLP_DOWNLOADER, "Segundo nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 2 (best)...")
             executionError = e
             cleanupBeforeRetry()
         }
+        if (success1) return@withContext true
 
-        // Nivel 2: Descargar formato absoluto básico 'best' (el formato más compatible soportado por cualquier extractor)
-        try {
-            val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, 2, customizeRequest)
-            YoutubeDL.getInstance().execute(request, processId) { progreso, _, line ->
-                lastLine = line
-                var speedText = Config.STATUS_CALCULATING
-                var sizeText = Config.STATUS_DOWNLOADING
-
-                val match = SPEED_REGEX.find(line)
-                if (match != null) {
-                    speedText = match.groupValues[1]
-                }
-
-                val sizeMatch = SIZE_REGEX.find(line)
-                if (sizeMatch != null) {
-                    sizeText = sizeMatch.groupValues[1].replace("~", "")
-                }
-
-                if (progreso == 100f && speedText == Config.STATUS_CALCULATING) {
-                    speedText = Config.STATUS_FINALIZING
-                }
-
-                alProgresar(progreso, sizeText, speedText)
-            }
-            return@withContext true
-        } catch (e: Exception) {
-            if (e is kotlinx.coroutines.CancellationException || !isActive) {
-                throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
-            }
-            Log.e(Config.TAG_YTDLP_DOWNLOADER, "Todos los intentos de descarga fallaron para $videoUrl. Última línea: $lastLine", e)
+        // Nivel 2: Descargar formato absoluto básico 'best'
+        val success2 = executeWithRetry(2) { e ->
+            Log.e(Config.TAG_YTDLP_DOWNLOADER, "Todos los niveles e intentos de descarga fallaron para $videoUrl. Última línea: $lastLine", e)
             val errorMessage = lastLine.ifEmpty { e.message ?: executionError?.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
             throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
         }
+        if (success2) return@withContext true
+
+        return@withContext false
     }
 }
