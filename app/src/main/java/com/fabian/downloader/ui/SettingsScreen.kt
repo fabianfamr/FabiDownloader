@@ -126,6 +126,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     var showVideoFormatDialog by remember { mutableStateOf(false) }
     var showQualityDialog by remember { mutableStateOf(false) }
+    var showEarlyStartThresholdDialog by remember { mutableStateOf(false) }
 
     var showThreadsDialog by remember { mutableStateOf(false) }
     
@@ -204,6 +205,33 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 showQualityDialog = false
             },
             onDismiss = { showQualityDialog = false }
+        )
+    }
+
+    if (showEarlyStartThresholdDialog) {
+        val options = listOf("Desactivado", "95%", "96%", "97%", "98%", "99%")
+        val currentLabel = when(val currentVal = AppSettings.earlyStartThreshold) {
+            0 -> "Desactivado"
+            else -> "$currentVal%"
+        }
+        SelectionDialog(
+            title = "Inicio temprano",
+            options = options,
+            selectedOption = currentLabel,
+            onSelection = { label ->
+                val newVal = when(label) {
+                    "Desactivado" -> 0
+                    "95%" -> 95
+                    "96%" -> 96
+                    "97%" -> 97
+                    "98%" -> 98
+                    "99%" -> 99
+                    else -> 0
+                }
+                AppSettings.earlyStartThreshold = newVal
+                showEarlyStartThresholdDialog = false
+            },
+            onDismiss = { showEarlyStartThresholdDialog = false }
         )
     }
 
@@ -409,6 +437,22 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsRow(Icons.Default.Download, stringResource(R.string.settings_threads), AppSettings.concurrentFragments, C_accent, C_white, C_gray1, C_card2) {
                                 showThreadsDialog = true
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            val earlyStartLabel = when (val th = AppSettings.earlyStartThreshold) {
+                                0 -> "Desactivado"
+                                else -> "$th%"
+                            }
+                            SettingsRow(
+                                Icons.Default.FastForward,
+                                "Inicio temprano",
+                                earlyStartLabel,
+                                C_accent,
+                                C_white,
+                                C_gray1,
+                                C_card2
+                            ) {
+                                showEarlyStartThresholdDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
 

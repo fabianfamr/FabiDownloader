@@ -73,6 +73,7 @@ class DownloadManagerService private constructor(
     private val activeJobs = java.util.concurrent.ConcurrentHashMap<Long, kotlinx.coroutines.Job>()
     private val activeCalls = java.util.concurrent.ConcurrentHashMap<Long, okhttp3.Call>()
     private val processingIds = java.util.concurrent.ConcurrentSkipListSet<Long>()
+    private val activeProgresses = java.util.concurrent.ConcurrentHashMap<Long, Int>()
     private var isQueueProcessorRunning = false
     private val queueTrigger = MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
 
@@ -112,7 +113,13 @@ class DownloadManagerService private constructor(
                             !processingIds.contains(it.id)
                         }
                         val maxParallel = AppSettings.maxConcurrentDownloads
-                        val slotsAvailable = maxParallel - processingIds.size
+                        val threshold = AppSettings.earlyStartThreshold
+                        val almostFinishedCount = if (threshold in 90..99) {
+                            processingIds.count { id -> (activeProgresses[id] ?: 0) >= threshold }
+                        } else {
+                            0
+                        }
+                        val slotsAvailable = maxParallel - (processingIds.size - almostFinishedCount)
                         if (slotsAvailable > 0 && nextToProcess.isNotEmpty()) {
                             // Iniciar servicio en segundo plano para que no se muera la descarga
                             DownloadForegroundService.start(application)
@@ -125,6 +132,7 @@ class DownloadManagerService private constructor(
                                         runDownloadDirect(record.id)
                                     } finally {
                                         processingIds.remove(record.id)
+                                        activeProgresses.remove(record.id)
                                         if (processingIds.isEmpty()) {
                                             // Detener servicio en segundo plano cuando no queden descargas activas
                                             DownloadForegroundService.stop(application)
@@ -301,6 +309,14 @@ class DownloadManagerService private constructor(
                 val fileNameWithoutExt = "${sanitizeFileName(videoTitle)}_$id"
 
                 service.download(url, quality, format, destFolder, fileNameWithoutExt, processId = id.toString()) { progress, sizeText, speedText ->
+                    val currentProgressInt = progress.toInt()
+                    val oldProgress = activeProgresses[id] ?: 0
+                    activeProgresses[id] = currentProgressInt
+                    val earlyThreshold = AppSettings.earlyStartThreshold
+                    if (earlyThreshold in 90..99 && oldProgress < earlyThreshold && currentProgressInt >= earlyThreshold) {
+                        Log.i(Config.TAG_DOWNLOAD_MANAGER, "Descarga $id alcanzó el umbral de inicio temprano ($currentProgressInt% >= $earlyThreshold%). Disparando cola.")
+                        triggerQueue()
+                    }
                     val currentTime = System.currentTimeMillis()
                     if (currentTime - lastProgressUpdate > 1000 || progress >= 100f) {
                         lastProgressUpdate = currentTime

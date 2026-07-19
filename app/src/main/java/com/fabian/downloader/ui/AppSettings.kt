@@ -160,6 +160,17 @@ object AppSettings {
             notifyChanged("maxConcurrentDownloads")
         }
 
+    private val _earlyStartThreshold = mutableStateOf(0) // 0 means Desactivado, otherwise 95..99
+    var earlyStartThreshold: Int
+        get() = _earlyStartThreshold.value
+        set(value) {
+            _earlyStartThreshold.value = value
+            if (::prefs.isInitialized) {
+                prefs.edit { putInt("earlyStartThreshold", value) }
+            }
+            notifyChanged("earlyStartThreshold")
+        }
+
     private val _clipboardAction = mutableStateOf("banner") // "banner", "auto", "disabled"
     var clipboardAction: String
         get() = _clipboardAction.value
@@ -300,6 +311,7 @@ object AppSettings {
         _embedSubtitles.value = prefs.getBoolean("embedSubtitles", false)
         _playlistEnabled.value = prefs.getBoolean("playlistEnabled", false)
         _maxConcurrentDownloads.value = prefs.getInt("maxConcurrentDownloads", 2)
+        _earlyStartThreshold.value = prefs.getInt("earlyStartThreshold", 0)
         _clipboardAction.value = prefs.getString("clipboardAction", "banner") ?: "banner"
         _lastDownloadedOptionId.value = prefs.getString("lastDownloadedOptionId", "") ?: ""
         
