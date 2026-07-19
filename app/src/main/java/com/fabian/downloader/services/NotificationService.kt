@@ -81,12 +81,16 @@ class NotificationService(private val context: Context) {
 
         val text = buildString {
             append("$progress%")
-            if (!size.isNullOrEmpty() && size != Config.STATUS_UNKNOWN) append(" • $size")
-            if (!speed.isNullOrEmpty() && speed != Config.STATUS_UNKNOWN && speed != Config.STATUS_CONNECTING && speed != Config.STATUS_DOWNLOADING) append(" • $speed")
+            if (!speed.isNullOrEmpty() && speed != Config.STATUS_UNKNOWN && speed != Config.STATUS_CONNECTING && speed != Config.STATUS_DOWNLOADING) {
+                append(" • $speed")
+            }
+            if (!size.isNullOrEmpty() && size != Config.STATUS_UNKNOWN) {
+                append(" • $size")
+            }
         }
 
         val notification = NotificationCompat.Builder(context, channelProgressId)
-            .setContentTitle("Descargando: $title")
+            .setContentTitle(title)
             .setContentText(text)
             .setSmallIcon(R.drawable.ic_cloud_download)
             .setProgress(100, progress, false)
@@ -95,8 +99,7 @@ class NotificationService(private val context: Context) {
             .setOnlyAlertOnce(true)
             .build()
             
-        // Use ID 9999 to replace the generic "Descargando en segundo plano" notification
-        notificationManager.notify(9999, notification)
+        notificationManager.notify(id, notification)
     }
 
     suspend fun showDownloadSuccess(id: Int, title: String, thumbnailUrl: String? = null) {
