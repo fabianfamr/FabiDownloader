@@ -74,6 +74,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     val C_red = fColors.error
 
     var cacheState by remember { mutableStateOf(0) } // 0: Idle, 1: Clearing, 2: Done
+    var selectedCategory by remember { mutableStateOf("Descargas") }
 
     // State bindings to AppSettings
     var maxConcurrent by remember { mutableStateOf(AppSettings.maxConcurrentDownloads) }
@@ -321,273 +322,330 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     modifier = Modifier.padding(bottom = 24.dp)
                 )
 
-                // 1. Apariencia y Estética
-                SettingsHeader(stringResource(R.string.settings_section_appearance), C_gray2)
-                Surface(
-                    color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                // Categorías de Configuración
+                val categories = listOf("Descargas", "Apariencia", "Avanzado", "Sistema")
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 20.dp)
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column {
-                        SettingsRow(Icons.Default.DarkMode, stringResource(R.string.settings_theme_visual), AppSettings.themePreference, C_accent, C_white, C_gray1, C_card2) {
-                            showThemeDialog = true
-                        }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.Palette, stringResource(R.string.settings_dynamic_color), stringResource(R.string.settings_dynamic_color_desc), dynamicColor, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { dynamicColor = it }
-                        if (!dynamicColor) {
-                            HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.ColorLens, stringResource(R.string.settings_accent_color), AppSettings.accentColorName, C_accent, C_white, C_gray1, C_card2) {
-                                showAccentDialog = true
-                            }
-                        }
-                    }
-                }
-
-                // 2. Notificaciones y Alertas
-                SettingsHeader(stringResource(R.string.settings_section_notifications), C_gray2)
-                Surface(
-                    color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
-                ) {
-                    Column {
-                        SettingsToggleRow(Icons.Default.Notifications, stringResource(R.string.settings_notif_global), stringResource(R.string.settings_notif_global_desc), notificationsEnabled, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { notificationsEnabled = it }
-                        if (notificationsEnabled) {
-                            HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.Speed, stringResource(R.string.settings_notif_speed), stringResource(R.string.settings_notif_speed_desc), showSpeedInNotif, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showSpeedInNotif = it }
-                        }
-                    }
-                }
-
-                // 3. Comportamiento y Reproducción
-                SettingsHeader(stringResource(R.string.settings_section_behavior), C_gray2)
-                Surface(
-                    color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
-                ) {
-                    Column {
-                        SettingsToggleRow(Icons.Default.History, stringResource(R.string.settings_history), stringResource(R.string.settings_history_desc), keepHistory, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { keepHistory = it }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.Replay, stringResource(R.string.settings_retry), stringResource(R.string.settings_retry_desc), autoRetry, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoRetry = it }
-                    }
-                }
-
-                // 4. Red y Descargas
-                SettingsHeader(stringResource(R.string.settings_section_network), C_gray2)
-                Surface(
-                    color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
-                ) {
-                    Column {
-                        SettingsToggleRow(Icons.Default.Wifi, stringResource(R.string.settings_wifi_only), stringResource(R.string.settings_wifi_only_desc), wifiOnly, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { wifiOnly = it }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.Link, stringResource(R.string.settings_auto_download), stringResource(R.string.settings_auto_download_desc), autoDownload, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoDownload = it }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        
-                        SettingsRow(Icons.Default.Speed, stringResource(R.string.settings_speed_limit), AppSettings.maxSpeed, C_accent, C_white, C_gray1, C_card2) {
-                            showSpeedDialog = true
-                        }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.Hd, stringResource(R.string.settings_quality_default), AppSettings.selectedQuality, C_accent, C_white, C_gray1, C_card2) {
-                            showQualityDialog = true
-                        }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.VideoFile, stringResource(R.string.settings_format_video), AppSettings.selectedVideoFormat, C_accent, C_white, C_gray1, C_card2) {
-                            showVideoFormatDialog = true
-                        }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.Download, stringResource(R.string.settings_threads), AppSettings.concurrentFragments, C_accent, C_white, C_gray1, C_card2) {
-                            showThreadsDialog = true
-                        }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-
-                        // Concurrent Downloads Stepper
-                        Column(modifier = Modifier.padding(14.dp, 16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                                    Text(stringResource(R.string.settings_simultaneous), color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                                    Text(stringResource(R.string.settings_simultaneous_desc), color = C_gray1, fontSize = 11.sp)
-                                }
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    Box(
-                                        modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(8.dp)).border(1.dp, C_border, RoundedCornerShape(8.dp)).clickable { maxConcurrent = maxOf(1, maxConcurrent - 1) },
-                                        contentAlignment = Alignment.Center
-                                    ) { Text("-", color = C_white, fontSize = 18.sp, fontWeight = FontWeight.Medium) }
-                                    Text("$maxConcurrent", color = C_accent, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
-                                    Box(
-                                        modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(8.dp)).border(1.dp, C_border, RoundedCornerShape(8.dp)).clickable { maxConcurrent = minOf(5, maxConcurrent + 1) },
-                                        contentAlignment = Alignment.Center
-                                    ) { Text("+", color = C_white, fontSize = 18.sp, fontWeight = FontWeight.Medium) }
-                                }
-                            }
-                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                                (1..5).forEach { n ->
-                                    val isActive = n <= maxConcurrent
-                                    Box(modifier = Modifier.weight(1f).height(4.dp).background(if (isActive) C_accent else C_card2, RoundedCornerShape(4.dp)))
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // 5. Biblioteca y Metadatos
-                SettingsHeader(stringResource(R.string.settings_section_library), C_gray2)
-                Surface(
-                    color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
-                ) {
-                    Column {
-                        SettingsToggleRow(Icons.Default.Image, stringResource(R.string.settings_thumbnail), stringResource(R.string.settings_thumbnail_desc), embedThumbnail, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedThumbnail = it }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.AutoMirrored.Filled.Label, stringResource(R.string.settings_metadata), stringResource(R.string.settings_metadata_desc), embedMetadata, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedMetadata = it }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.Subtitles, stringResource(R.string.settings_subtitles), stringResource(R.string.settings_subtitles_desc), embedSubtitles, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedSubtitles = it }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.DeleteForever, stringResource(R.string.settings_confirm_delete), stringResource(R.string.settings_confirm_delete_desc), confirmOnDelete, C_red, C_white, C_gray1, C_card2, C_border, C_bg) { confirmOnDelete = it }
-                    }
-                }
-
-                // 6. Avanzado y Privacidad
-                SettingsHeader(stringResource(R.string.settings_section_advanced), C_gray2)
-                Surface(
-                    color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
-                ) {
-                    Column {
-                        SettingsToggleRow(Icons.Default.Block, stringResource(R.string.settings_sponsorblock), stringResource(R.string.settings_sponsorblock_desc), sponsorBlock, C_amber, C_white, C_gray1, C_card2, C_border, C_bg) { sponsorBlock = it }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsToggleRow(Icons.Default.Public, stringResource(R.string.settings_geo_bypass), stringResource(R.string.settings_geo_bypass_desc), bypassGeo, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { bypassGeo = it }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.Code, stringResource(R.string.settings_yt_args), AppSettings.customArguments.ifEmpty { stringResource(R.string.settings_yt_args_default) }, C_accent, C_white, C_gray1, C_card2) { showCustomArgsDialog = true }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.ContentPaste, stringResource(R.string.settings_clipboard_action), AppSettings.clipboardAction, C_accent, C_white, C_gray1, C_card2) { showClipboardDialog = true }
-                    }
-                }
-
-                // 7. Almacenamiento
-                SettingsHeader(stringResource(R.string.settings_section_storage), C_gray2)
-                Surface(
-                    color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
-                ) {
-                    Column {
-                        SettingsRow(Icons.Default.Folder, stringResource(R.string.settings_download_dir), AppSettings.downloadLocation.substringAfterLast("/"), C_accent, C_white, C_gray1, C_card2) {
-                            launcher.launch(null)
-                        }
-                    }
-                }
-
-                // Clear Cache
-                val cacheBg = when(cacheState) {
-                    2 -> Color(0xFF0E1F0E)
-                    1 -> Color(0xFF1A1A1E)
-                    else -> Color(0xFF18110A)
-                }
-                val cacheBorder = when(cacheState) {
-                    2 -> C_green.copy(alpha = 0.33f)
-                    1 -> C_accent.copy(alpha = 0.2f)
-                    else -> C_amber.copy(alpha = 0.26f)
-                }
-                val cacheIconBg = when(cacheState) {
-                    2 -> C_green.copy(alpha = 0.13f)
-                    1 -> C_accent.copy(alpha = 0.13f)
-                    else -> C_amber.copy(alpha = 0.13f)
-                }
-                val cacheAccent = when(cacheState) {
-                    2 -> C_green
-                    1 -> C_accent
-                    else -> C_amber
-                }
-
-                Surface(
-                    color = cacheBg, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, cacheBorder),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp).clickable {
-                        if (cacheState == 0) {
-                            scope.launch {
-                                cacheState = 1
-                                delay(2200)
-                                cacheState = 2
-                                delay(2000)
-                                cacheState = 0
-                            }
-                        }
-                    }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(14.dp, 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(modifier = Modifier.size(32.dp).background(cacheIconBg, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                            if (cacheState == 1) {
-                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = C_accent)
-                            } else {
-                                Icon(imageVector = if (cacheState == 2) Icons.Default.Check else Icons.Default.Delete, contentDescription = null, tint = cacheAccent, modifier = Modifier.size(16.dp))
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column {
-                            Text(
-                                text = when(cacheState) {
-                                    1 -> stringResource(R.string.settings_clearing)
-                                    2 -> stringResource(R.string.settings_cache_cleared)
-                                    else -> stringResource(R.string.settings_clear_cache)
-                                }, 
-                                color = cacheAccent, 
-                                fontSize = 13.sp, 
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(stringResource(R.string.settings_clear_cache_desc), color = C_gray1, fontSize = 11.sp)
-                        }
-                    }
-                }
-                
-                // 8. General
-                SettingsHeader(stringResource(R.string.settings_section_general_header), C_gray2)
-                Surface(
-                    color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
-                ) {
-                    Column {
-                        Row(
-                            modifier = Modifier.padding(14.dp, 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                    categories.forEach { category ->
+                        val isSelected = category == selectedCategory
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isSelected) C_accent.copy(alpha = 0.15f) else C_card2)
+                                .border(1.5.dp, if (isSelected) C_accent else C_border, RoundedCornerShape(12.dp))
+                                .clickable { selectedCategory = category }
+                                .padding(horizontal = 16.dp, vertical = 10.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Default.Info, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                val icon = when(category) {
+                                    "Descargas" -> Icons.Default.Download
+                                    "Apariencia" -> Icons.Default.Palette
+                                    "Avanzado" -> Icons.Default.Build
+                                    else -> Icons.Default.Info
                                 }
-                                Text(stringResource(R.string.settings_version_title), color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                            }
-                            Box(modifier = Modifier.background(C_card2, RoundedCornerShape(20.dp)).border(1.dp, C_border, RoundedCornerShape(20.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
-                                Text("v${BuildConfig.VERSION_NAME}", color = C_gray1, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    tint = if (isSelected) C_accent else C_gray1,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = category,
+                                    color = if (isSelected) C_accent else C_white,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.Update, stringResource(R.string.settings_check_updates), if (isCheckingUpdates) stringResource(R.string.settings_update_searching) else stringResource(R.string.settings_update_now_btn), C_accent, C_white, C_gray1, C_card2) {
-                            if (!isCheckingUpdates) {
-                                scope.launch {
-                                    isCheckingUpdates = true
-                                    val result = UpdateManager.checkForUpdates()
-                                    isCheckingUpdates = false
-                                    result.onSuccess { info ->
-                                        if (info != null && UpdateManager.isNewerVersion(info.latestVersion, BuildConfig.VERSION_NAME)) {
-                                            updateFound = info
-                                        } else {
-                                            Toast.makeText(ctx, ctx.getString(R.string.settings_update_not_available), Toast.LENGTH_SHORT).show()
-                                        }
-                                    }.onFailure { e ->
-                                        Toast.makeText(ctx, ctx.getString(R.string.settings_error_prefix, e.message ?: ""), Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                if (selectedCategory == "Descargas") {
+                    // Almacenamiento - Ubicación de Descargas
+                    SettingsHeader(stringResource(R.string.settings_section_storage), C_gray2)
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    ) {
+                        Column {
+                            SettingsRow(Icons.Default.Folder, stringResource(R.string.settings_download_dir), AppSettings.downloadLocation.substringAfterLast("/"), C_accent, C_white, C_gray1, C_card2) {
+                                launcher.launch(null)
+                            }
+                        }
+                    }
+
+                    // Red y Descargas
+                    SettingsHeader(stringResource(R.string.settings_section_network), C_gray2)
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    ) {
+                        Column {
+                            SettingsToggleRow(Icons.Default.Wifi, stringResource(R.string.settings_wifi_only), stringResource(R.string.settings_wifi_only_desc), wifiOnly, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { wifiOnly = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.Link, stringResource(R.string.settings_auto_download), stringResource(R.string.settings_auto_download_desc), autoDownload, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoDownload = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            
+                            SettingsRow(Icons.Default.Speed, stringResource(R.string.settings_speed_limit), AppSettings.maxSpeed, C_accent, C_white, C_gray1, C_card2) {
+                                showSpeedDialog = true
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.Hd, stringResource(R.string.settings_quality_default), AppSettings.selectedQuality, C_accent, C_white, C_gray1, C_card2) {
+                                showQualityDialog = true
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.VideoFile, stringResource(R.string.settings_format_video), AppSettings.selectedVideoFormat, C_accent, C_white, C_gray1, C_card2) {
+                                showVideoFormatDialog = true
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.Download, stringResource(R.string.settings_threads), AppSettings.concurrentFragments, C_accent, C_white, C_gray1, C_card2) {
+                                showThreadsDialog = true
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+
+                            // Concurrent Downloads Stepper
+                            Column(modifier = Modifier.padding(14.dp, 16.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                                        Text(stringResource(R.string.settings_simultaneous), color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                        Text(stringResource(R.string.settings_simultaneous_desc), color = C_gray1, fontSize = 11.sp)
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        Box(
+                                            modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(8.dp)).border(1.dp, C_border, RoundedCornerShape(8.dp)).clickable { maxConcurrent = maxOf(1, maxConcurrent - 1) },
+                                            contentAlignment = Alignment.Center
+                                        ) { Text("-", color = C_white, fontSize = 18.sp, fontWeight = FontWeight.Medium) }
+                                        Text("$maxConcurrent", color = C_accent, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                                        Box(
+                                            modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(8.dp)).border(1.dp, C_border, RoundedCornerShape(8.dp)).clickable { maxConcurrent = minOf(8, maxConcurrent + 1) },
+                                            contentAlignment = Alignment.Center
+                                        ) { Text("+", color = C_white, fontSize = 18.sp, fontWeight = FontWeight.Medium) }
+                                    }
+                                }
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                                    (1..8).forEach { n ->
+                                        val isActive = n <= maxConcurrent
+                                        Box(modifier = Modifier.weight(1f).height(4.dp).background(if (isActive) C_accent else C_card2, RoundedCornerShape(4.dp)))
                                     }
                                 }
                             }
                         }
-                        HorizontalDivider(color = C_border, thickness = 1.dp)
-                        SettingsRow(Icons.Default.Code, stringResource(R.string.settings_github_repo), stringResource(R.string.settings_view_code), C_accent, C_white, C_gray1, C_card2) {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(com.fabian.downloader.utils.Config.GITHUB_URL))
-                            ctx.startActivity(intent)
+                    }
+                }
+
+                if (selectedCategory == "Apariencia") {
+                    // 1. Apariencia y Estética
+                    SettingsHeader(stringResource(R.string.settings_section_appearance), C_gray2)
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    ) {
+                        Column {
+                            SettingsRow(Icons.Default.DarkMode, stringResource(R.string.settings_theme_visual), AppSettings.themePreference, C_accent, C_white, C_gray1, C_card2) {
+                                showThemeDialog = true
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.Palette, stringResource(R.string.settings_dynamic_color), stringResource(R.string.settings_dynamic_color_desc), dynamicColor, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { dynamicColor = it }
+                            if (!dynamicColor) {
+                                HorizontalDivider(color = C_border, thickness = 1.dp)
+                                SettingsRow(Icons.Default.ColorLens, stringResource(R.string.settings_accent_color), AppSettings.accentColorName, C_accent, C_white, C_gray1, C_card2) {
+                                    showAccentDialog = true
+                                }
+                            }
+                        }
+                    }
+
+                    // 2. Notificaciones y Alertas
+                    SettingsHeader(stringResource(R.string.settings_section_notifications), C_gray2)
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    ) {
+                        Column {
+                            SettingsToggleRow(Icons.Default.Notifications, stringResource(R.string.settings_notif_global), stringResource(R.string.settings_notif_global_desc), notificationsEnabled, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { notificationsEnabled = it }
+                            if (notificationsEnabled) {
+                                HorizontalDivider(color = C_border, thickness = 1.dp)
+                                SettingsToggleRow(Icons.Default.Speed, stringResource(R.string.settings_notif_speed), stringResource(R.string.settings_notif_speed_desc), showSpeedInNotif, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showSpeedInNotif = it }
+                            }
+                        }
+                    }
+                }
+
+                if (selectedCategory == "Avanzado") {
+                    // 3. Comportamiento y Reproducción
+                    SettingsHeader(stringResource(R.string.settings_section_behavior), C_gray2)
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    ) {
+                        Column {
+                            SettingsToggleRow(Icons.Default.History, stringResource(R.string.settings_history), stringResource(R.string.settings_history_desc), keepHistory, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { keepHistory = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.Replay, stringResource(R.string.settings_retry), stringResource(R.string.settings_retry_desc), autoRetry, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoRetry = it }
+                        }
+                    }
+
+                    // 5. Biblioteca y Metadatos
+                    SettingsHeader(stringResource(R.string.settings_section_library), C_gray2)
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    ) {
+                        Column {
+                            SettingsToggleRow(Icons.Default.Image, stringResource(R.string.settings_thumbnail), stringResource(R.string.settings_thumbnail_desc), embedThumbnail, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedThumbnail = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.AutoMirrored.Filled.Label, stringResource(R.string.settings_metadata), stringResource(R.string.settings_metadata_desc), embedMetadata, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedMetadata = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.Subtitles, stringResource(R.string.settings_subtitles), stringResource(R.string.settings_subtitles_desc), embedSubtitles, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedSubtitles = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.DeleteForever, stringResource(R.string.settings_confirm_delete), stringResource(R.string.settings_confirm_delete_desc), confirmOnDelete, C_red, C_white, C_gray1, C_card2, C_border, C_bg) { confirmOnDelete = it }
+                        }
+                    }
+
+                    // 6. Avanzado y Privacidad
+                    SettingsHeader(stringResource(R.string.settings_section_advanced), C_gray2)
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    ) {
+                        Column {
+                            SettingsToggleRow(Icons.Default.Block, stringResource(R.string.settings_sponsorblock), stringResource(R.string.settings_sponsorblock_desc), sponsorBlock, C_amber, C_white, C_gray1, C_card2, C_border, C_bg) { sponsorBlock = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.Public, stringResource(R.string.settings_geo_bypass), stringResource(R.string.settings_geo_bypass_desc), bypassGeo, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { bypassGeo = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.Code, stringResource(R.string.settings_yt_args), AppSettings.customArguments.ifEmpty { stringResource(R.string.settings_yt_args_default) }, C_accent, C_white, C_gray1, C_card2) { showCustomArgsDialog = true }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.ContentPaste, stringResource(R.string.settings_clipboard_action), AppSettings.clipboardAction, C_accent, C_white, C_gray1, C_card2) { showClipboardDialog = true }
+                        }
+                    }
+                }
+
+                if (selectedCategory == "Sistema") {
+                    // Almacenamiento (Limpiar Caché)
+                    SettingsHeader(stringResource(R.string.settings_section_storage), C_gray2)
+
+                    val cacheBg = when(cacheState) {
+                        2 -> Color(0xFF0E1F0E)
+                        1 -> Color(0xFF1A1A1E)
+                        else -> Color(0xFF18110A)
+                    }
+                    val cacheBorder = when(cacheState) {
+                        2 -> C_green.copy(alpha = 0.33f)
+                        1 -> C_accent.copy(alpha = 0.2f)
+                        else -> C_amber.copy(alpha = 0.26f)
+                    }
+                    val cacheIconBg = when(cacheState) {
+                        2 -> C_green.copy(alpha = 0.13f)
+                        1 -> C_accent.copy(alpha = 0.13f)
+                        else -> C_amber.copy(alpha = 0.13f)
+                    }
+                    val cacheAccent = when(cacheState) {
+                        2 -> C_green
+                        1 -> C_accent
+                        else -> C_amber
+                    }
+
+                    Surface(
+                        color = cacheBg, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, cacheBorder),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp).clickable {
+                            if (cacheState == 0) {
+                                scope.launch {
+                                    cacheState = 1
+                                    delay(2200)
+                                    cacheState = 2
+                                    delay(2000)
+                                    cacheState = 0
+                                }
+                            }
+                        }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp, 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(modifier = Modifier.size(32.dp).background(cacheIconBg, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                                if (cacheState == 1) {
+                                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = C_accent)
+                                } else {
+                                    Icon(imageVector = if (cacheState == 2) Icons.Default.Check else Icons.Default.Delete, contentDescription = null, tint = cacheAccent, modifier = Modifier.size(16.dp))
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = when(cacheState) {
+                                        1 -> stringResource(R.string.settings_clearing)
+                                        2 -> stringResource(R.string.settings_cache_cleared)
+                                        else -> stringResource(R.string.settings_clear_cache)
+                                    }, 
+                                    color = cacheAccent, 
+                                    fontSize = 13.sp, 
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(stringResource(R.string.settings_clear_cache_desc), color = C_gray1, fontSize = 11.sp)
+                            }
+                        }
+                    }
+
+                    // 8. General
+                    SettingsHeader(stringResource(R.string.settings_section_general_header), C_gray2)
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
+                    ) {
+                        Column {
+                            Row(
+                                modifier = Modifier.padding(14.dp, 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                                        Icon(Icons.Default.Info, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                                    }
+                                    Text(stringResource(R.string.settings_version_title), color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                }
+                                Box(modifier = Modifier.background(C_card2, RoundedCornerShape(20.dp)).border(1.dp, C_border, RoundedCornerShape(20.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
+                                    Text("v${BuildConfig.VERSION_NAME}", color = C_gray1, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.Update, stringResource(R.string.settings_check_updates), if (isCheckingUpdates) stringResource(R.string.settings_update_searching) else stringResource(R.string.settings_update_now_btn), C_accent, C_white, C_gray1, C_card2) {
+                                if (!isCheckingUpdates) {
+                                    scope.launch {
+                                        isCheckingUpdates = true
+                                        val result = UpdateManager.checkForUpdates()
+                                        isCheckingUpdates = false
+                                        result.onSuccess { info ->
+                                            if (info != null && UpdateManager.isNewerVersion(info.latestVersion, BuildConfig.VERSION_NAME)) {
+                                                updateFound = info
+                                            } else {
+                                                Toast.makeText(ctx, ctx.getString(R.string.settings_update_not_available), Toast.LENGTH_SHORT).show()
+                                            }
+                                        }.onFailure { e ->
+                                            Toast.makeText(ctx, ctx.getString(R.string.settings_error_prefix, e.message ?: ""), Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.Code, stringResource(R.string.settings_github_repo), stringResource(R.string.settings_view_code), C_accent, C_white, C_gray1, C_card2) {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(com.fabian.downloader.utils.Config.GITHUB_URL))
+                                ctx.startActivity(intent)
+                            }
                         }
                     }
                 }

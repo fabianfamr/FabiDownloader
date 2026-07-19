@@ -53,7 +53,7 @@ fun DownloadSettingsContent(
     var showLanguageDialog by remember { mutableStateOf(false) }
 
     val threadOptions = listOf("1", "3", "5", "8", "10", "12", "16", "20")
-    val simultaneousOptions = listOf("1", "2", "3", "4", "5")
+    val simultaneousOptions = listOf("1", "2", "3", "4", "5", "6", "7", "8")
     val clipboardOptions = listOf("banner", "auto", "disabled")
 
     Column(
@@ -243,7 +243,7 @@ fun DownloadSettingsContent(
                         )
                         
                         IconButton(
-                            onClick = { if (AppSettings.maxConcurrentDownloads < 5) AppSettings.maxConcurrentDownloads++ },
+                            onClick = { if (AppSettings.maxConcurrentDownloads < 8) AppSettings.maxConcurrentDownloads++ },
                             modifier = Modifier
                                 .size(32.dp)
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
