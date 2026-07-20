@@ -115,7 +115,7 @@ class DownloadManagerService private constructor(
                         val maxParallel = AppSettings.maxConcurrentDownloads
                         val threshold = AppSettings.earlyStartThreshold
                         val almostFinishedCount = if (threshold in 90..99) {
-                            processingIds.count { id -> (activeProgresses[id] ?: 0) >= threshold }
+                            processingIds.count { id -> (activeProgresses[id] ?: 0) in threshold..99 }
                         } else {
                             0
                         }
@@ -285,7 +285,17 @@ class DownloadManagerService private constructor(
         var videoTitle = preRecord?.title ?: application.getString(R.string.downloads_default_title)
         var passedThumbnailUrl: String? = preRecord?.thumbnailUrl
         val job = serviceScope.launch {
+            val oldPriority = try {
+                android.os.Process.getThreadPriority(android.os.Process.myTid())
+            } catch (e: Exception) {
+                0
+            }
             try {
+                try {
+                    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND)
+                } catch (e: Exception) {
+                    Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo establecer la prioridad de fondo para el hilo de descarga", e)
+                }
                 val record = storageService.getDownloadById(id) ?: return@launch
                 if (record.isPaused || record.isCompleted) return@launch
                 
@@ -418,6 +428,11 @@ class DownloadManagerService private constructor(
                 }
             } finally {
                 activeJobs.remove(id)
+                try {
+                    android.os.Process.setThreadPriority(oldPriority)
+                } catch (e: Exception) {
+                    // Ignorar
+                }
             }
         }
         
