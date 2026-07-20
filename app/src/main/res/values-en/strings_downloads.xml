@@ -30,6 +30,7 @@
     <string name="downloads_error_network">Network Error</string>
     <string name="downloads_error_failed">Failed</string>
     <string name="downloads_status_paused">Paused</string>
+    <string name="downloads_status_waiting">Waiting...</string>
     <string name="downloads_thumbnail">Thumbnail</string>
     <string name="downloads_error_extractor">Internal extractor error (click for details)</string>
     <string name="downloads_error_denied">Access denied by the website</string>
@@ -40,7 +41,7 @@
     <string name="downloads_error_unknown">Unknown error</string>
     <string name="downloads_copy_error_icon">Copy error</string>
     <string name="downloads_retry_button">Retry</string>
-    <string name="downloads_connecting">Connecting...</string>
+    <string name="downloads_connecting">Waiting...</string>
     <string name="downloads_link_copied">Link copied</string>
     <string name="downloads_copy_link">Copy link</string>
     <string name="downloads_clear_history_item">Clear from history</string>

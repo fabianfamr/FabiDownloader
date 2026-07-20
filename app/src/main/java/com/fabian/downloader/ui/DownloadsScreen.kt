@@ -851,7 +851,7 @@ fun MobileDownloadingItem(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(8.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -859,8 +859,8 @@ fun MobileDownloadingItem(
                 val (platformIcon, platformColor) = getPlatformIconAndColor(record.url, record.format)
                 Box(
                     modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(10.dp))
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(8.dp))
                         .background(
                             color = if (isFailed) {
                                 if (isNetworkError) C_amber.copy(alpha = 0.15f) else C_redDim
@@ -900,7 +900,7 @@ fun MobileDownloadingItem(
                                 platformIcon
                             },
                             contentDescription = null, 
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(20.dp),
                             tint = if (isFailed) {
                                 if (isNetworkError) C_amber else C_red
                             } else {
@@ -909,7 +909,7 @@ fun MobileDownloadingItem(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = cleanTitle, 
@@ -919,7 +919,7 @@ fun MobileDownloadingItem(
                         maxLines = 1, 
                         overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically, 
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -1003,7 +1003,7 @@ fun MobileDownloadingItem(
             }
 
             if (!isFailed) {
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(), 
@@ -1011,7 +1011,13 @@ fun MobileDownloadingItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (record.progress < 0) stringResource(R.string.downloads_connecting) else "${record.progress}%", 
+                        text = if (record.isPaused) {
+                            "${if (record.progress < 0) 0 else record.progress}%"
+                        } else if (record.progress < 0) {
+                            stringResource(R.string.downloads_status_waiting)
+                        } else {
+                            "${record.progress}%"
+                        }, 
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = statusColor,
@@ -1030,7 +1036,7 @@ fun MobileDownloadingItem(
                         textAlign = TextAlign.End
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 val animatedProgress by animateFloatAsState(
                     targetValue = if (record.progress < 0) 0f else record.progress / 100f,
@@ -1038,7 +1044,7 @@ fun MobileDownloadingItem(
                     label = "progress"
                 )
 
-                if (record.progress < 0) {
+                if (record.progress < 0 && !record.isPaused) {
                     LinearProgressIndicator(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1120,13 +1126,13 @@ fun MobileDownloadedItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(8.dp))
                     .background(platformColor.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -1156,12 +1162,12 @@ fun MobileDownloadedItem(
                     Icon(
                         imageVector = platformIcon,
                         contentDescription = null, 
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(20.dp),
                         tint = platformColor
                     )
                 }
             }
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = cleanTitle, 
@@ -1171,7 +1177,7 @@ fun MobileDownloadedItem(
                     maxLines = 1, 
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically, 
                     horizontalArrangement = Arrangement.spacedBy(8.dp)

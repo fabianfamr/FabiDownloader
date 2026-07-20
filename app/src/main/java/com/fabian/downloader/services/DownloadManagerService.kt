@@ -310,7 +310,7 @@ class DownloadManagerService private constructor(
                     throw Exception(application.getString(R.string.downloads_toast_no_connection))
                 }
 
-                storageService.updateDownloadProgressAndSizeAndSpeed(id, record.progress, Config.STATUS_CONNECTING, Config.STATUS_CONNECTING)
+                storageService.updateDownloadProgressAndSizeAndSpeed(id, record.progress, Config.STATUS_QUEUED, Config.STATUS_WAITING)
 
                 val service = com.fabian.downloader.services.sites.SiteServiceProvider.getServiceForUrl(url)
                 var lastProgressUpdate = System.currentTimeMillis()
@@ -449,6 +449,24 @@ class DownloadManagerService private constructor(
     fun pauseDownload(id: Long) {
         serviceScope.launch {
             storageService.updatePausedState(id, true)
+            
+            // Forzar actualización de progreso y velocidad en la base de datos para evitar estados residuales de carga
+            try {
+                val currentRecord = storageService.getDownloadById(id)
+                if (currentRecord != null) {
+                    val currentProgress = if (currentRecord.progress < 0) 0 else currentRecord.progress
+                    val currentSize = if (currentRecord.size == Config.STATUS_QUEUED || currentRecord.size == Config.STATUS_CONNECTING) Config.STATUS_ZERO_MB else currentRecord.size
+                    storageService.updateDownloadProgressAndSizeAndSpeed(
+                        id,
+                        currentProgress,
+                        currentSize,
+                        Config.STATUS_WAITING
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al actualizar estado durante pausa", e)
+            }
+
             activeCalls[id]?.cancel()
             val job = activeJobs[id]
             job?.cancel()

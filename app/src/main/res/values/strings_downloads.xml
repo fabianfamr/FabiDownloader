@@ -30,6 +30,7 @@
     <string name="downloads_error_network">Error de Red</string>
     <string name="downloads_error_failed">Fallo</string>
     <string name="downloads_status_paused">Pausado</string>
+    <string name="downloads_status_waiting">Esperando...</string>
     <string name="downloads_thumbnail">Miniatura</string>
     <string name="downloads_error_extractor">Error interno del extractor (click para detalles)</string>
     <string name="downloads_error_denied">Acceso denegado por el sitio web</string>
@@ -40,7 +41,7 @@
     <string name="downloads_error_unknown">Error desconocido</string>
     <string name="downloads_copy_error_icon">Copiar error</string>
     <string name="downloads_retry_button">Reintentar</string>
-    <string name="downloads_connecting">Conectando...</string>
+    <string name="downloads_connecting">Esperando...</string>
     <string name="downloads_link_copied">Enlace copiado</string>
     <string name="downloads_copy_link">Copiar enlace</string>
     <string name="downloads_clear_history_item">Borrar del historial</string>
