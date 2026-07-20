@@ -318,7 +318,13 @@ class DownloadManagerService private constructor(
                 val destFolder = com.fabian.downloader.utils.PathUtils.getDownloadFolder(application, format)
                 val fileNameWithoutExt = "${sanitizeFileName(videoTitle)}_$id"
 
+                // Comprobar espacio antes de iniciar la descarga
+                checkStorageSpace(destFolder, id)
+
                 service.download(url, quality, format, destFolder, fileNameWithoutExt, processId = id.toString()) { progress, sizeText, speedText ->
+                    // Comprobar espacio periódicamente durante el progreso
+                    checkStorageSpace(destFolder, id)
+
                     val currentProgressInt = progress.toInt()
                     val oldProgress = activeProgresses[id] ?: 0
                     activeProgresses[id] = currentProgressInt
@@ -574,6 +580,33 @@ class DownloadManagerService private constructor(
                     handleDownloadConfigChanged()
                 }
             }
+        }
+    }
+
+    private fun checkStorageSpace(destFolder: File, id: Long) {
+        try {
+            val stat = android.os.StatFs(destFolder.absolutePath)
+            val availableBytes = stat.availableBytes
+            val minimumRequiredBytes = 200L * 1024L * 1024L // 200 MB de margen de seguridad
+            if (availableBytes < minimumRequiredBytes) {
+                // Destruir proceso activo de descarga para detenerlo inmediatamente de raíz
+                try {
+                    com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
+                } catch (e: Exception) {
+                    Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo destruir el proceso $id durante la parada por espacio", e)
+                }
+                try {
+                    activeCalls[id]?.cancel()
+                } catch (e: Exception) {
+                    Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo cancelar la llamada $id durante la parada por espacio", e)
+                }
+                throw Exception("Almacenamiento casi lleno (menos de 200MB libres). Libera espacio para descargar.")
+            }
+        } catch (e: Exception) {
+            if (e.message?.contains("Almacenamiento casi lleno") == true) {
+                throw e
+            }
+            // Otros errores de StatFs se ignoran para no bloquear
         }
     }
 
