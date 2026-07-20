@@ -130,6 +130,8 @@
     <string name="settings_section_storage_speed">Storage and Speed</string>
     <string name="settings_location">Location</string>
     <string name="settings_max_speed">Max speed</string>
+    <string name="settings_storage_margin">Minimum storage limit</string>
+    <string name="settings_select_storage_margin">Safety storage margin</string>
     <string name="settings_section_postprocessing">Post-Processing and Metadata</string>
     <string name="settings_embed_subtitles">Embed subtitles</string>
     <string name="settings_embed_thumbnail">Embed cover/thumbnail</string>

@@ -584,10 +584,12 @@ class DownloadManagerService private constructor(
     }
 
     private fun checkStorageSpace(destFolder: File, id: Long) {
+        val minimumRequiredBytes = AppSettings.storageMarginBytes
+        if (minimumRequiredBytes <= 0L) return // Comprobación desactivada por el usuario
+
         try {
             val stat = android.os.StatFs(destFolder.absolutePath)
             val availableBytes = stat.availableBytes
-            val minimumRequiredBytes = 200L * 1024L * 1024L // 200 MB de margen de seguridad
             if (availableBytes < minimumRequiredBytes) {
                 // Destruir proceso activo de descarga para detenerlo inmediatamente de raíz
                 try {
@@ -600,7 +602,8 @@ class DownloadManagerService private constructor(
                 } catch (e: Exception) {
                     Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo cancelar la llamada $id durante la parada por espacio", e)
                 }
-                throw Exception("Almacenamiento casi lleno (menos de 200MB libres). Libera espacio para descargar.")
+                val marginText = AppSettings.selectedStorageMargin
+                throw Exception("Almacenamiento casi lleno (menos de $marginText libres). Libera espacio para descargar.")
             }
         } catch (e: Exception) {
             if (e.message?.contains("Almacenamiento casi lleno") == true) {

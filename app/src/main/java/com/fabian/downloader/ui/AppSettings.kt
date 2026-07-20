@@ -294,6 +294,27 @@ object AppSettings {
             saveString("accentColorName", value)
         }
 
+    val storageMarginOptions = listOf("Desactivado", "100 MB", "200 MB", "500 MB", "1 GB", "2 GB")
+    private val _selectedStorageMargin = mutableStateOf("200 MB")
+    val selectedStorageMarginState: androidx.compose.runtime.State<String> get() = _selectedStorageMargin
+    var selectedStorageMargin: String
+        get() = _selectedStorageMargin.value
+        set(value) {
+            _selectedStorageMargin.value = value
+            saveString("selectedStorageMargin", value)
+            notifyChanged("selectedStorageMargin")
+        }
+
+    val storageMarginBytes: Long
+        get() = when (selectedStorageMargin) {
+            "100 MB" -> 100L * 1024L * 1024L
+            "200 MB" -> 200L * 1024L * 1024L
+            "500 MB" -> 500L * 1024L * 1024L
+            "1 GB" -> 1024L * 1024L * 1024L
+            "2 GB" -> 2L * 1024L * 1024L * 1024L
+            else -> 0L // Desactivado
+        }
+
     fun init(context: Context) {
         prefs = context.getSharedPreferences("fabi_downloader_prefs", Context.MODE_PRIVATE)
         
@@ -328,6 +349,7 @@ object AppSettings {
         _autoRetry.value = prefs.getBoolean("autoRetry", false)
         _dynamicColor.value = prefs.getBoolean("dynamicColor", true)
         _accentColorName.value = prefs.getString("accentColorName", "Azul Eléctrico") ?: "Azul Eléctrico"
+        _selectedStorageMargin.value = prefs.getString("selectedStorageMargin", "200 MB") ?: "200 MB"
     }
 
     private fun saveString(key: String, value: String) {

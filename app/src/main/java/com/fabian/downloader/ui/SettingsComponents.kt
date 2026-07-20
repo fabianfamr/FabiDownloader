@@ -51,6 +51,7 @@ fun DownloadSettingsContent(
     var showClipboardDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showStorageMarginDialog by remember { mutableStateOf(false) }
 
     val threadOptions = listOf("1", "3", "5", "8", "10", "12", "16", "20")
     val simultaneousOptions = listOf("1", "2", "3", "4", "5", "6", "7", "8")
@@ -119,6 +120,10 @@ fun DownloadSettingsContent(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
                 SettingItem(Icons.Default.Speed, stringResource(R.string.settings_max_speed), trailing = maxSpeed) {
                     showSpeedDialog = true
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                SettingItem(Icons.Default.Storage, stringResource(R.string.settings_storage_margin), trailing = AppSettings.selectedStorageMargin) {
+                    showStorageMarginDialog = true
                 }
             }
         }
@@ -350,6 +355,15 @@ fun DownloadSettingsContent(
                     showThemeDialog = false
                 },
                 onDismiss = { showThemeDialog = false }
+            )
+        }
+        if (showStorageMarginDialog) {
+            SelectionDialog(stringResource(R.string.settings_select_storage_margin), AppSettings.storageMarginOptions, AppSettings.selectedStorageMargin,
+                onSelection = {
+                    AppSettings.selectedStorageMargin = it
+                    showStorageMarginDialog = false
+                },
+                onDismiss = { showStorageMarginDialog = false }
             )
         }
         val ctx = androidx.compose.ui.platform.LocalContext.current

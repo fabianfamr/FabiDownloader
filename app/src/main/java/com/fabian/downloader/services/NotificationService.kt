@@ -54,6 +54,7 @@ class NotificationService(private val context: Context) {
 
     private val thumbnailCache = mutableMapOf<String, Bitmap>()
     private val shownSuccessIds = java.util.Collections.synchronizedSet(mutableSetOf<Int>())
+    private var foregroundDownloadId: Int? = null
 
     /**
      * Shows download progress in the notification bar.
@@ -98,6 +99,17 @@ class NotificationService(private val context: Context) {
             } else null
         } else null
 
+        // Mapear de forma transparente la primera descarga activa al ID 9999
+        // para reemplazar el texto genérico del Foreground Service.
+        val notificationId = synchronized(this) {
+            if (foregroundDownloadId == null || foregroundDownloadId == id) {
+                foregroundDownloadId = id
+                9999
+            } else {
+                id
+            }
+        }
+
         val notification = NotificationCompat.Builder(context, channelProgressId)
             .setContentTitle(title)
             .setContentText(text)
@@ -109,7 +121,7 @@ class NotificationService(private val context: Context) {
             .setOnlyAlertOnce(true)
             .build()
             
-        notificationManager.notify(id, notification)
+        notificationManager.notify(notificationId, notification)
     }
 
     suspend fun showDownloadSuccess(id: Int, title: String, thumbnailUrl: String? = null) {
@@ -117,8 +129,15 @@ class NotificationService(private val context: Context) {
             return
         }
 
-        // Primero, cancelar la notificación del canal de progreso
-        notificationManager.cancel(id)
+        // Primero, cancelar la notificación del canal de progreso en el ID correcto
+        synchronized(this) {
+            if (foregroundDownloadId == id) {
+                notificationManager.cancel(9999)
+                foregroundDownloadId = null
+            } else {
+                notificationManager.cancel(id)
+            }
+        }
 
         val largeIcon = if (!thumbnailUrl.isNullOrEmpty()) {
             val bitmap = getBitmapFromUrl(thumbnailUrl)
@@ -182,8 +201,15 @@ class NotificationService(private val context: Context) {
 
     suspend fun showDownloadFailed(id: Int, title: String, errorMsg: String, thumbnailUrl: String? = null) {
         shownSuccessIds.remove(id)
-        // Cancelar el progreso primero
-        notificationManager.cancel(id)
+        // Cancelar el progreso primero en el ID correcto
+        synchronized(this) {
+            if (foregroundDownloadId == id) {
+                notificationManager.cancel(9999)
+                foregroundDownloadId = null
+            } else {
+                notificationManager.cancel(id)
+            }
+        }
 
         val largeIcon = if (!thumbnailUrl.isNullOrEmpty()) {
             val bitmap = getBitmapFromUrl(thumbnailUrl)
@@ -238,11 +264,16 @@ class NotificationService(private val context: Context) {
         if (cached != null) return@withContext cached
 
         try {
-            val connection = URL(url).openConnection()
-            connection.doInput = true
-            connection.connect()
-            val bitmap = connection.getInputStream().use { input ->
-                BitmapFactory.decodeStream(input)
+            val bitmap = if (url.startsWith("http://") || url.startsWith("https://")) {
+                val connection = URL(url).openConnection()
+                connection.doInput = true
+                connection.connect()
+                connection.getInputStream().use { input ->
+                    BitmapFactory.decodeStream(input)
+                }
+            } else {
+                // Soporte para cargar miniaturas guardadas localmente en el dispositivo
+                BitmapFactory.decodeFile(url)
             }
             if (bitmap != null) {
                 thumbnailCache[url] = bitmap
@@ -255,7 +286,14 @@ class NotificationService(private val context: Context) {
     
     fun cancelNotification(id: Int) {
         shownSuccessIds.remove(id)
-        notificationManager.cancel(id)
+        synchronized(this) {
+            if (foregroundDownloadId == id) {
+                notificationManager.cancel(9999)
+                foregroundDownloadId = null
+            } else {
+                notificationManager.cancel(id)
+            }
+        }
         notificationManager.cancel(id + 300000)
         notificationManager.cancel(id + 500000)
     }
