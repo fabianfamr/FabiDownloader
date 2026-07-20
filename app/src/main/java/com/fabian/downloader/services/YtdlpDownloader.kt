@@ -275,26 +275,32 @@ class YtdlpDownloader {
                 if (!isActive) throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
                 try {
                     val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, level, customizeRequest)
+                    var lastUiUpdate = 0L
                     YoutubeDL.getInstance().execute(request, processId) { progreso, _, line ->
                         lastLine = line
-                        var speedText = Config.STATUS_CALCULATING
-                        var sizeText = Config.STATUS_DOWNLOADING
+                        val now = System.currentTimeMillis()
+                        // Throttle updates: process regex and notify progress only every 1000ms or on critical milestones (0%, 100%)
+                        if (now - lastUiUpdate >= 1000 || progreso == 0f || progreso >= 100f) {
+                            lastUiUpdate = now
+                            var speedText = Config.STATUS_CALCULATING
+                            var sizeText = Config.STATUS_DOWNLOADING
 
-                        val match = SPEED_REGEX.find(line)
-                        if (match != null) {
-                            speedText = match.groupValues[1]
+                            val match = SPEED_REGEX.find(line)
+                            if (match != null) {
+                                speedText = match.groupValues[1]
+                            }
+
+                            val sizeMatch = SIZE_REGEX.find(line)
+                            if (sizeMatch != null) {
+                                sizeText = sizeMatch.groupValues[1].replace("~", "")
+                            }
+
+                            if (progreso == 100f && speedText == Config.STATUS_CALCULATING) {
+                                speedText = Config.STATUS_FINALIZING
+                            }
+
+                            alProgresar(progreso, sizeText, speedText)
                         }
-
-                        val sizeMatch = SIZE_REGEX.find(line)
-                        if (sizeMatch != null) {
-                            sizeText = sizeMatch.groupValues[1].replace("~", "")
-                        }
-
-                        if (progreso == 100f && speedText == Config.STATUS_CALCULATING) {
-                            speedText = Config.STATUS_FINALIZING
-                        }
-
-                        alProgresar(progreso, sizeText, speedText)
                     }
                     return true
                 } catch (e: Exception) {
