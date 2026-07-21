@@ -91,9 +91,11 @@ object AppSettings {
     var maxSpeed: String
         get() = _maxSpeed.value
         set(value) {
-            _maxSpeed.value = value
-            saveString("maxSpeed", value)
-            notifyChanged("maxSpeed")
+            if (_maxSpeed.value != value) {
+                _maxSpeed.value = value
+                saveString("maxSpeed", value)
+                notifyChanged("maxSpeed")
+            }
         }
 
     private val _themePreference = mutableStateOf("Sistema")
@@ -127,18 +129,22 @@ object AppSettings {
     var concurrentFragments: String
         get() = _concurrentFragments.value
         set(value) {
-            _concurrentFragments.value = value
-            saveString("concurrentFragments", value)
-            notifyChanged("concurrentFragments")
+            if (_concurrentFragments.value != value) {
+                _concurrentFragments.value = value
+                saveString("concurrentFragments", value)
+                notifyChanged("concurrentFragments")
+            }
         }
 
     private val _embedSubtitles = mutableStateOf(false)
     var embedSubtitles: Boolean
         get() = _embedSubtitles.value
         set(value) {
-            _embedSubtitles.value = value
-            saveBoolean("embedSubtitles", value)
-            notifyChanged("embedSubtitles")
+            if (_embedSubtitles.value != value) {
+                _embedSubtitles.value = value
+                saveBoolean("embedSubtitles", value)
+                notifyChanged("embedSubtitles")
+            }
         }
 
     private val _playlistEnabled = mutableStateOf(false)
@@ -153,22 +159,26 @@ object AppSettings {
     var maxConcurrentDownloads: Int
         get() = _maxConcurrentDownloads.value
         set(value) {
-            _maxConcurrentDownloads.value = value
-            if (::prefs.isInitialized) {
-                prefs.edit { putInt("maxConcurrentDownloads", value) }
+            if (_maxConcurrentDownloads.value != value) {
+                _maxConcurrentDownloads.value = value
+                if (::prefs.isInitialized) {
+                    prefs.edit { putInt("maxConcurrentDownloads", value) }
+                }
+                notifyChanged("maxConcurrentDownloads")
             }
-            notifyChanged("maxConcurrentDownloads")
         }
 
     private val _earlyStartThreshold = mutableStateOf(0) // 0 means Desactivado, otherwise 95..99
     var earlyStartThreshold: Int
         get() = _earlyStartThreshold.value
         set(value) {
-            _earlyStartThreshold.value = value
-            if (::prefs.isInitialized) {
-                prefs.edit { putInt("earlyStartThreshold", value) }
+            if (_earlyStartThreshold.value != value) {
+                _earlyStartThreshold.value = value
+                if (::prefs.isInitialized) {
+                    prefs.edit { putInt("earlyStartThreshold", value) }
+                }
+                notifyChanged("earlyStartThreshold")
             }
-            notifyChanged("earlyStartThreshold")
         }
 
     private val _clipboardAction = mutableStateOf("banner") // "banner", "auto", "disabled"
@@ -191,63 +201,77 @@ object AppSettings {
     var customArguments: String
         get() = _customArguments.value
         set(value) {
-            _customArguments.value = value
-            saveString("customArguments", value)
-            notifyChanged("customArguments")
+            if (_customArguments.value != value) {
+                _customArguments.value = value
+                saveString("customArguments", value)
+                notifyChanged("customArguments")
+            }
         }
 
     private val _cookies = mutableStateOf("")
     var cookies: String
         get() = _cookies.value
         set(value) {
-            _cookies.value = value
-            saveString("cookies", value)
-            notifyChanged("cookies")
+            if (_cookies.value != value) {
+                _cookies.value = value
+                saveString("cookies", value)
+                notifyChanged("cookies")
+            }
         }
 
     private val _customUserAgent = mutableStateOf("")
     var customUserAgent: String
         get() = _customUserAgent.value
         set(value) {
-            _customUserAgent.value = value
-            saveString("customUserAgent", value)
-            notifyChanged("customUserAgent")
+            if (_customUserAgent.value != value) {
+                _customUserAgent.value = value
+                saveString("customUserAgent", value)
+                notifyChanged("customUserAgent")
+            }
         }
 
     private val _sponsorBlockEnabled = mutableStateOf(false)
     var sponsorBlockEnabled: Boolean
         get() = _sponsorBlockEnabled.value
         set(value) {
-            _sponsorBlockEnabled.value = value
-            saveBoolean("sponsorBlockEnabled", value)
-            notifyChanged("sponsorBlockEnabled")
+            if (_sponsorBlockEnabled.value != value) {
+                _sponsorBlockEnabled.value = value
+                saveBoolean("sponsorBlockEnabled", value)
+                notifyChanged("sponsorBlockEnabled")
+            }
         }
 
     private val _embedThumbnail = mutableStateOf(true)
     var embedThumbnail: Boolean
         get() = _embedThumbnail.value
         set(value) {
-            _embedThumbnail.value = value
-            saveBoolean("embedThumbnail", value)
-            notifyChanged("embedThumbnail")
+            if (_embedThumbnail.value != value) {
+                _embedThumbnail.value = value
+                saveBoolean("embedThumbnail", value)
+                notifyChanged("embedThumbnail")
+            }
         }
 
     private val _embedMetadata = mutableStateOf(true)
     var embedMetadata: Boolean
         get() = _embedMetadata.value
         set(value) {
-            _embedMetadata.value = value
-            saveBoolean("embedMetadata", value)
-            notifyChanged("embedMetadata")
+            if (_embedMetadata.value != value) {
+                _embedMetadata.value = value
+                saveBoolean("embedMetadata", value)
+                notifyChanged("embedMetadata")
+            }
         }
 
     private val _bypassGeo = mutableStateOf(true)
     var bypassGeo: Boolean
         get() = _bypassGeo.value
         set(value) {
-            _bypassGeo.value = value
-            saveBoolean("bypassGeo", value)
-            notifyChanged("bypassGeo")
+            if (_bypassGeo.value != value) {
+                _bypassGeo.value = value
+                saveBoolean("bypassGeo", value)
+                notifyChanged("bypassGeo")
+            }
         }
 
     private val _showDownloadSpeedInNotification = mutableStateOf(true)
@@ -270,9 +294,11 @@ object AppSettings {
     var autoRetry: Boolean
         get() = _autoRetry.value
         set(value) {
-            _autoRetry.value = value
-            saveBoolean("autoRetry", value)
-            notifyChanged("autoRetry")
+            if (_autoRetry.value != value) {
+                _autoRetry.value = value
+                saveBoolean("autoRetry", value)
+                notifyChanged("autoRetry")
+            }
         }
 
     private val _dynamicColor = mutableStateOf(true)
