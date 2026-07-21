@@ -435,6 +435,14 @@ class DownloadManagerService private constructor(
             } finally {
                 activeJobs.remove(id)
                 try {
+                    val record = storageService.getDownloadById(id)
+                    if (record == null || record.isPaused || !record.isCompleted) {
+                        notificationService.cancelProgressNotification(id.toInt())
+                    }
+                } catch (e: Exception) {
+                    Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al limpiar la notificación de progreso", e)
+                }
+                try {
                     android.os.Process.setThreadPriority(oldPriority)
                 } catch (e: Exception) {
                     // Ignorar
@@ -472,6 +480,9 @@ class DownloadManagerService private constructor(
             job?.cancel()
             activeCalls.remove(id)
             activeJobs.remove(id)
+            
+            // Cancelar inmediatamente la notificación de progreso para evitar que quede flotando
+            notificationService.cancelProgressNotification(id.toInt())
             
             try {
                 com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())

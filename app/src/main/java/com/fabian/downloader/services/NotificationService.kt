@@ -297,4 +297,15 @@ class NotificationService(private val context: Context) {
         notificationManager.cancel(id + 300000)
         notificationManager.cancel(id + 500000)
     }
+
+    fun cancelProgressNotification(id: Int) {
+        synchronized(this) {
+            if (foregroundDownloadId == id) {
+                notificationManager.cancel(9999)
+                foregroundDownloadId = null
+            } else {
+                notificationManager.cancel(id)
+            }
+        }
+    }
 }
