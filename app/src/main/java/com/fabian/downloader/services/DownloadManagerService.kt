@@ -90,6 +90,8 @@ class DownloadManagerService private constructor(
     }
 
     init {
+        // Inicializar el optimizador de batería para que empiece a monitorear desde el inicio del servicio
+        BatteryOptimizerManager.getInstance(application)
         startQueueProcessor()
         registerSettingsListener()
     }
@@ -112,7 +114,17 @@ class DownloadManagerService private constructor(
                             !it.title.startsWith(Config.STATUS_FAILED_PREFIX) &&
                             !processingIds.contains(it.id)
                         }
-                        val maxParallel = AppSettings.maxConcurrentDownloads
+                        
+                        var maxParallel = AppSettings.maxConcurrentDownloads
+                        val batteryManager = BatteryOptimizerManager.getInstance(application)
+                        if (AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
+                            if (AppSettings.batteryLowAction == "Suspender todo") {
+                                maxParallel = 0
+                            } else if (AppSettings.batteryLowAction == "Limitar concurrencia") {
+                                maxParallel = 1
+                            }
+                        }
+                        
                         val threshold = AppSettings.earlyStartThreshold
                         val almostFinishedCount = if (threshold in 90..99) {
                             processingIds.count { id -> (activeProgresses[id] ?: 0) in threshold..99 }
@@ -165,6 +177,18 @@ class DownloadManagerService private constructor(
                         Toast.makeText(application, application.getString(R.string.downloads_toast_no_connection), Toast.LENGTH_SHORT).show()
                     }
                     return@launch
+                }
+
+                val batteryManager = BatteryOptimizerManager.getInstance(application)
+                if (AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
+                    withContext(Dispatchers.Main) {
+                        val message = if (AppSettings.batteryLowAction == "Suspender todo") {
+                            "Descarga en cola (pausada por optimización de batería)"
+                        } else {
+                            "Descarga iniciada con prioridad baja (concurrencia limitada por batería)"
+                        }
+                        Toast.makeText(application, message, Toast.LENGTH_LONG).show()
+                    }
                 }
 
                 if (existingId == null) {
@@ -523,6 +547,27 @@ class DownloadManagerService private constructor(
         }
     }
 
+    fun pauseAllActiveDownloads() {
+        serviceScope.launch {
+            val activeIds = activeJobs.keys.toList()
+            activeIds.forEach { id ->
+                pauseDownload(id)
+            }
+        }
+    }
+
+    fun throttleActiveDownloads() {
+        serviceScope.launch {
+            val activeIds = activeJobs.keys.toList()
+            if (activeIds.size > 1) {
+                activeIds.drop(1).forEach { id ->
+                    pauseDownload(id)
+                }
+            }
+            triggerQueue()
+        }
+    }
+
     fun deleteDownload(id: Long) {
         serviceScope.launch {
             activeCalls[id]?.cancel()
@@ -625,6 +670,9 @@ class DownloadManagerService private constructor(
                 }
                 "maxSpeed", "concurrentFragments", "embedSubtitles", "customArguments", "cookies", "customUserAgent", "sponsorBlockEnabled", "embedThumbnail", "embedMetadata", "bypassGeo", "autoRetry" -> {
                     handleDownloadConfigChanged()
+                }
+                "batteryOptimizationEnabled", "selectedBatteryLowThreshold", "selectedBatteryLowAction" -> {
+                    BatteryOptimizerManager.getInstance(application).evaluateBatteryStatus()
                 }
             }
         }

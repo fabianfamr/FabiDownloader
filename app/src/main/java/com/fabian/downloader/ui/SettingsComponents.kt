@@ -53,6 +53,8 @@ fun DownloadSettingsContent(
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showStorageMarginDialog by remember { mutableStateOf(false) }
     var showPausedTimeoutDialog by remember { mutableStateOf(false) }
+    var showBatteryLowThresholdDialog by remember { mutableStateOf(false) }
+    var showBatteryLowActionDialog by remember { mutableStateOf(false) }
 
     val threadOptions = listOf("1", "3", "5", "8", "10", "12", "16", "20")
     val simultaneousOptions = listOf("1", "2", "3", "4", "5", "6", "7", "8")
@@ -272,6 +274,32 @@ fun DownloadSettingsContent(
             }
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        SettingSectionHeader("Optimización de Batería")
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f)),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+        ) {
+            Column {
+                ToggleSetting(Icons.Default.BatteryChargingFull, "Optimizar descargas por batería", AppSettings.batteryOptimizationEnabled) {
+                    AppSettings.batteryOptimizationEnabled = it
+                }
+                if (AppSettings.batteryOptimizationEnabled) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingItem(Icons.Default.BatteryAlert, "Umbral de batería baja", trailing = AppSettings.selectedBatteryLowThreshold) {
+                        showBatteryLowThresholdDialog = true
+                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingItem(Icons.Default.SettingsApplications, "Acción en batería baja", trailing = AppSettings.selectedBatteryLowAction) {
+                        showBatteryLowActionDialog = true
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         if (showQualityDialog) {
@@ -371,6 +399,24 @@ fun DownloadSettingsContent(
                     showPausedTimeoutDialog = false
                 },
                 onDismiss = { showPausedTimeoutDialog = false }
+            )
+        }
+        if (showBatteryLowThresholdDialog) {
+            SelectionDialog("Umbral de batería baja", AppSettings.batteryLowThresholdOptions, AppSettings.selectedBatteryLowThreshold,
+                onSelection = {
+                    AppSettings.selectedBatteryLowThreshold = it
+                    showBatteryLowThresholdDialog = false
+                },
+                onDismiss = { showBatteryLowThresholdDialog = false }
+            )
+        }
+        if (showBatteryLowActionDialog) {
+            SelectionDialog("Acción en batería baja", AppSettings.batteryLowActionOptions, AppSettings.selectedBatteryLowAction,
+                onSelection = {
+                    AppSettings.selectedBatteryLowAction = it
+                    showBatteryLowActionDialog = false
+                },
+                onDismiss = { showBatteryLowActionDialog = false }
             )
         }
         if (showStorageMarginDialog) {

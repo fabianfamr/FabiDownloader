@@ -101,6 +101,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var keepHistory by remember { mutableStateOf(AppSettings.keepHistory) }
     var autoRetry by remember { mutableStateOf(AppSettings.autoRetry) }
 
+    var batteryOptimizationEnabled by remember { mutableStateOf(AppSettings.batteryOptimizationEnabled) }
+    var showBatteryLowThresholdDialog by remember { mutableStateOf(false) }
+    var showBatteryLowActionDialog by remember { mutableStateOf(false) }
+
     var dynamicColor by remember { mutableStateOf(AppSettings.dynamicColor) }
     var showAccentDialog by remember { mutableStateOf(false) }
 
@@ -111,6 +115,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     LaunchedEffect(showSpeedInNotif) { AppSettings.showDownloadSpeedInNotification = showSpeedInNotif }
     LaunchedEffect(keepHistory) { AppSettings.keepHistory = keepHistory }
     LaunchedEffect(autoRetry) { AppSettings.autoRetry = autoRetry }
+    LaunchedEffect(batteryOptimizationEnabled) { AppSettings.batteryOptimizationEnabled = batteryOptimizationEnabled }
     LaunchedEffect(dynamicColor) { AppSettings.dynamicColor = dynamicColor }
     LaunchedEffect(embedSubtitles) { AppSettings.embedSubtitles = embedSubtitles }
     LaunchedEffect(embedThumbnail) { AppSettings.embedThumbnail = embedThumbnail }
@@ -314,6 +319,32 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         )
     }
 
+    if (showBatteryLowThresholdDialog) {
+        SelectionDialog(
+            title = "Umbral de batería baja",
+            options = AppSettings.batteryLowThresholdOptions,
+            selectedOption = AppSettings.selectedBatteryLowThreshold,
+            onSelection = {
+                AppSettings.selectedBatteryLowThreshold = it
+                showBatteryLowThresholdDialog = false
+            },
+            onDismiss = { showBatteryLowThresholdDialog = false }
+        )
+    }
+
+    if (showBatteryLowActionDialog) {
+        SelectionDialog(
+            title = "Acción en batería baja",
+            options = AppSettings.batteryLowActionOptions,
+            selectedOption = AppSettings.selectedBatteryLowAction,
+            onSelection = {
+                AppSettings.selectedBatteryLowAction = it
+                showBatteryLowActionDialog = false
+            },
+            onDismiss = { showBatteryLowActionDialog = false }
+        )
+    }
+
     if (showCustomArgsDialog) {
         InputDialog(
             title = stringResource(R.string.settings_yt_args),
@@ -498,6 +529,55 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                         val isActive = n <= maxConcurrent
                                         Box(modifier = Modifier.weight(1f).height(4.dp).background(if (isActive) C_accent else C_card2, RoundedCornerShape(4.dp)))
                                     }
+                                }
+                            }
+                        }
+                    }
+
+                    // Optimización de Batería
+                    SettingsHeader("Optimización de Batería", C_gray2)
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    ) {
+                        Column {
+                            SettingsToggleRow(
+                                icon = Icons.Default.BatteryChargingFull,
+                                title = "Optimizar por batería",
+                                subtitle = "Pausa o limita descargas si la batería está baja",
+                                checked = batteryOptimizationEnabled,
+                                colorAccent = C_accent,
+                                textColor = C_white,
+                                grayColor = C_gray1,
+                                card2Color = C_card2,
+                                borderColor = C_border,
+                                bgColor = C_bg
+                            ) { batteryOptimizationEnabled = it }
+
+                            if (batteryOptimizationEnabled) {
+                                HorizontalDivider(color = C_border, thickness = 1.dp)
+                                SettingsRow(
+                                    icon = Icons.Default.BatteryAlert,
+                                    title = "Umbral de batería baja",
+                                    trailing = AppSettings.selectedBatteryLowThreshold,
+                                    colorAccent = C_accent,
+                                    textColor = C_white,
+                                    grayColor = C_gray1,
+                                    card2Color = C_card2
+                                ) {
+                                    showBatteryLowThresholdDialog = true
+                                }
+                                HorizontalDivider(color = C_border, thickness = 1.dp)
+                                SettingsRow(
+                                    icon = Icons.Default.SettingsApplications,
+                                    title = "Acción en batería baja",
+                                    trailing = AppSettings.selectedBatteryLowAction,
+                                    colorAccent = C_accent,
+                                    textColor = C_white,
+                                    grayColor = C_gray1,
+                                    card2Color = C_card2
+                                ) {
+                                    showBatteryLowActionDialog = true
                                 }
                             }
                         }

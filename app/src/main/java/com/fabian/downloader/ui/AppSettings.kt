@@ -302,6 +302,43 @@ object AppSettings {
             else -> 0L // Nunca
         }
 
+    private val _batteryOptimizationEnabled = mutableStateOf(true)
+    var batteryOptimizationEnabled: Boolean
+        get() = _batteryOptimizationEnabled.value
+        set(value) {
+            _batteryOptimizationEnabled.value = value
+            saveBoolean("batteryOptimizationEnabled", value)
+            notifyChanged("batteryOptimizationEnabled")
+        }
+
+    val batteryLowThresholdOptions = listOf("15%", "20%", "25%", "30%")
+    private val _selectedBatteryLowThreshold = mutableStateOf("20%")
+    val selectedBatteryLowThresholdState: androidx.compose.runtime.State<String> get() = _selectedBatteryLowThreshold
+    var selectedBatteryLowThreshold: String
+        get() = _selectedBatteryLowThreshold.value
+        set(value) {
+            _selectedBatteryLowThreshold.value = value
+            saveString("selectedBatteryLowThreshold", value)
+            notifyChanged("selectedBatteryLowThreshold")
+        }
+
+    val batteryLowThresholdInt: Int
+        get() = selectedBatteryLowThreshold.replace("%", "").toIntOrNull() ?: 20
+
+    val batteryLowActionOptions = listOf("Suspender todo", "Limitar concurrencia")
+    private val _selectedBatteryLowAction = mutableStateOf("Suspender todo")
+    val selectedBatteryLowActionState: androidx.compose.runtime.State<String> get() = _selectedBatteryLowAction
+    var selectedBatteryLowAction: String
+        get() = _selectedBatteryLowAction.value
+        set(value) {
+            _selectedBatteryLowAction.value = value
+            saveString("selectedBatteryLowAction", value)
+            notifyChanged("selectedBatteryLowAction")
+        }
+
+    val batteryLowAction: String
+        get() = selectedBatteryLowAction
+
     private val _keepHistory = mutableStateOf(true)
     var keepHistory: Boolean
         get() = _keepHistory.value
@@ -392,6 +429,9 @@ object AppSettings {
 
         _showDownloadSpeedInNotification.value = prefs.getBoolean("showDownloadSpeedInNotification", true)
         _selectedPausedNotificationTimeout.value = prefs.getString("selectedPausedNotificationTimeout", "10 minutos") ?: "10 minutos"
+        _batteryOptimizationEnabled.value = prefs.getBoolean("batteryOptimizationEnabled", true)
+        _selectedBatteryLowThreshold.value = prefs.getString("selectedBatteryLowThreshold", "20%") ?: "20%"
+        _selectedBatteryLowAction.value = prefs.getString("selectedBatteryLowAction", "Suspender todo") ?: "Suspender todo"
         _keepHistory.value = prefs.getBoolean("keepHistory", true)
         _autoRetry.value = prefs.getBoolean("autoRetry", false)
         _dynamicColor.value = prefs.getBoolean("dynamicColor", true)
