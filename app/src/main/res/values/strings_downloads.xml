@@ -102,6 +102,9 @@
     <string name="notif_action_open">Abrir</string>
     <string name="notif_action_share">Compartir</string>
     <string name="notif_action_retry">Reintentar</string>
+    <string name="notif_action_pause">Pausar</string>
+    <string name="notif_action_resume">Reanudar</string>
+    <string name="notif_action_cancel">Cancelar</string>
 
     <!-- Fallback titles -->
     <string name="downloads_default_title">Descarga</string>

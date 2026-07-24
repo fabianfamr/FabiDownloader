@@ -110,6 +110,36 @@ class NotificationService(private val context: Context) {
             }
         }
 
+        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+
+        // Acción de Pausar
+        val pauseIntent = Intent(context, DownloadActionReceiver::class.java).apply {
+            action = Config.ACTION_PAUSE
+            putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
+        }
+        val pausePendingIntent = PendingIntent.getBroadcast(
+            context,
+            id + 600000,
+            pauseIntent,
+            flags
+        )
+
+        // Acción de Cancelar
+        val cancelIntent = Intent(context, DownloadActionReceiver::class.java).apply {
+            action = Config.ACTION_CANCEL
+            putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
+        }
+        val cancelPendingIntent = PendingIntent.getBroadcast(
+            context,
+            id + 700000,
+            cancelIntent,
+            flags
+        )
+
         val notification = NotificationCompat.Builder(context, channelProgressId)
             .setContentTitle(title)
             .setContentText(text)
@@ -119,8 +149,77 @@ class NotificationService(private val context: Context) {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
+            .addAction(android.R.drawable.ic_media_pause, context.getString(R.string.notif_action_pause), pausePendingIntent)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, context.getString(R.string.notif_action_cancel), cancelPendingIntent)
             .build()
             
+        notificationManager.notify(notificationId, notification)
+    }
+
+    suspend fun showDownloadPaused(
+        id: Int,
+        title: String,
+        thumbnailUrl: String? = null
+    ) {
+        val largeIcon = if (!thumbnailUrl.isNullOrEmpty()) {
+            val bitmap = getBitmapFromUrl(thumbnailUrl)
+            if (bitmap != null) {
+                val density = context.resources.displayMetrics.density
+                val sizePx = (64 * density).toInt()
+                Bitmap.createScaledBitmap(bitmap, sizePx, sizePx, true)
+            } else null
+        } else null
+
+        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+
+        // Acción de Reanudar
+        val resumeIntent = Intent(context, DownloadActionReceiver::class.java).apply {
+            action = Config.ACTION_RESUME
+            putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
+        }
+        val resumePendingIntent = PendingIntent.getBroadcast(
+            context,
+            id + 800000,
+            resumeIntent,
+            flags
+        )
+
+        // Acción de Cancelar
+        val cancelIntent = Intent(context, DownloadActionReceiver::class.java).apply {
+            action = Config.ACTION_CANCEL
+            putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
+        }
+        val cancelPendingIntent = PendingIntent.getBroadcast(
+            context,
+            id + 900000,
+            cancelIntent,
+            flags
+        )
+
+        val notificationId = synchronized(this) {
+            if (foregroundDownloadId == id) {
+                9999
+            } else {
+                id
+            }
+        }
+
+        val notification = NotificationCompat.Builder(context, channelProgressId)
+            .setContentTitle(title)
+            .setContentText(context.getString(R.string.downloads_toast_paused))
+            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setLargeIcon(largeIcon)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(false)
+            .setOnlyAlertOnce(true)
+            .addAction(android.R.drawable.ic_media_play, context.getString(R.string.notif_action_resume), resumePendingIntent)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, context.getString(R.string.notif_action_cancel), cancelPendingIntent)
+            .build()
+
         notificationManager.notify(notificationId, notification)
     }
 

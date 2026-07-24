@@ -90,6 +90,8 @@ object Config {
     const val ACTION_SHARE = "com.fabian.downloader.ACTION_SHARE"
     const val ACTION_RETRY = "com.fabian.downloader.ACTION_RETRY"
     const val ACTION_PAUSE = "com.fabian.downloader.ACTION_PAUSE"
+    const val ACTION_RESUME = "com.fabian.downloader.ACTION_RESUME"
+    const val ACTION_CANCEL = "com.fabian.downloader.ACTION_CANCEL"
 
     // =============================================================
     // Notification Channel IDs

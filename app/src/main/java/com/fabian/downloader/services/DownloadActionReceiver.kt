@@ -34,6 +34,12 @@ class DownloadActionReceiver : BroadcastReceiver() {
                     Config.ACTION_PAUSE -> {
                         DownloadManagerService.getInstance(context).pauseDownload(downloadId)
                     }
+                    Config.ACTION_RESUME -> {
+                        resumeDownload(context, downloadId)
+                    }
+                    Config.ACTION_CANCEL -> {
+                        DownloadManagerService.getInstance(context).deleteDownload(downloadId)
+                    }
                     Config.ACTION_OPEN -> {
                         openFile(context, downloadId)
                     }
@@ -60,6 +66,22 @@ class DownloadActionReceiver : BroadcastReceiver() {
                 quality = record.quality,
                 format = record.format,
                 passedTitle = record.title.removePrefix(Config.STATUS_FAILED_PREFIX),
+                passedThumbnailUrl = record.thumbnailUrl,
+                existingId = record.id
+            )
+        }
+    }
+
+    private suspend fun resumeDownload(context: Context, downloadId: Long) {
+        val database = AppDatabase.getInstance(context)
+        val record = database.downloadDao().getDownloadById(downloadId) ?: return
+        
+        withContext(Dispatchers.Main) {
+            DownloadManagerService.getInstance(context).startDownload(
+                rawUrl = record.url,
+                quality = record.quality,
+                format = record.format,
+                passedTitle = record.title,
                 passedThumbnailUrl = record.thumbnailUrl,
                 existingId = record.id
             )

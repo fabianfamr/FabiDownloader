@@ -486,8 +486,21 @@ class DownloadManagerService private constructor(
             activeCalls.remove(id)
             activeJobs.remove(id)
             
-            // Cancelar inmediatamente la notificación de progreso para evitar que quede flotando
-            notificationService.cancelProgressNotification(id.toInt())
+            // Mostrar la notificación de pausa si están activadas las notificaciones
+            if (AppSettings.notificationsEnabled) {
+                val currentRecord = storageService.getDownloadById(id)
+                if (currentRecord != null) {
+                    notificationService.showDownloadPaused(
+                        id = id.toInt(),
+                        title = currentRecord.title,
+                        thumbnailUrl = currentRecord.thumbnailUrl
+                    )
+                } else {
+                    notificationService.cancelProgressNotification(id.toInt())
+                }
+            } else {
+                notificationService.cancelProgressNotification(id.toInt())
+            }
             
             try {
                 com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
