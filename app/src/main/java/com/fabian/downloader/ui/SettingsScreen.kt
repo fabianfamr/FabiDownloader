@@ -370,11 +370,13 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     }
 
     if (showLanguageDialog) {
-        val languageOptions = listOf("Sistema", "Español", "English")
+        val languageOptions = listOf("🌐 Sistema", "🇪🇸 Español", "🇺🇸 English")
+        val currentLang = AppSettings.language
+        val selectedOption = languageOptions.find { it.contains(currentLang) || currentLang.contains(it.substring(2)) } ?: "🌐 Sistema"
         SelectionDialog(
             title = stringResource(R.string.settings_select_language),
             options = languageOptions,
-            selectedOption = AppSettings.language,
+            selectedOption = selectedOption,
             onSelection = {
                 AppSettings.language = it
                 showLanguageDialog = false

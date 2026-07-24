@@ -31,8 +31,8 @@ class MainActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: android.content.Context) {
         val prefs = newBase.getSharedPreferences("fabi_downloader_prefs", android.content.Context.MODE_PRIVATE)
         val lang = prefs.getString("language", "Sistema") ?: "Sistema"
-        if (lang != "Sistema") {
-            val locale = if (lang == "English") java.util.Locale("en") else java.util.Locale("es")
+        if (!lang.contains("Sistema")) {
+            val locale = if (lang.contains("English")) java.util.Locale("en") else java.util.Locale("es")
             java.util.Locale.setDefault(locale)
             val config = android.content.res.Configuration(newBase.resources.configuration)
             config.setLocale(locale)

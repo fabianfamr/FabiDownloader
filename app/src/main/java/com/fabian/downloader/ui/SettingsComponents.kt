@@ -430,8 +430,10 @@ fun DownloadSettingsContent(
         }
         val ctx = androidx.compose.ui.platform.LocalContext.current
         if (showLanguageDialog) {
-            val languageOptions = listOf("Sistema", "Español", "English")
-            SelectionDialog(stringResource(R.string.settings_select_language), languageOptions, AppSettings.language,
+            val languageOptions = listOf("🌐 Sistema", "🇪🇸 Español", "🇺🇸 English")
+            val currentLang = AppSettings.language
+            val selectedOption = languageOptions.find { it.contains(currentLang) || currentLang.contains(it.substring(2)) } ?: "🌐 Sistema"
+            SelectionDialog(stringResource(R.string.settings_select_language), languageOptions, selectedOption,
                 onSelection = {
                     AppSettings.language = it
                     showLanguageDialog = false
