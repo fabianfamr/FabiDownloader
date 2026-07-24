@@ -78,7 +78,7 @@ fun DownloadsScreen(
     val sortNameStr = stringResource(R.string.downloads_sort_name)
     val sortSizeStr = stringResource(R.string.downloads_sort_size)
     var sortOrder by remember { mutableStateOf(sortDateStr) }
-    val downloading = downloads.filter { !it.isCompleted }
+    val downloading = remember(downloads) { downloads.filter { !it.isCompleted } }
     val completed = remember(downloads, sortOrder, sortDateStr, sortNameStr, sortSizeStr) {
         val list = downloads.filter { it.isCompleted }
         when (sortOrder) {
@@ -1039,12 +1039,15 @@ fun MobileDownloadingItem(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 if (record.progress < 0 && !record.isPaused) {
+                    // Optimización de rendimiento: Para elementos en espera, mostramos una barra estática limpia al 0%
+                    // en lugar de una animación infinita indeterminada que satura la CPU y GPU del móvil de forma innecesaria.
                     LinearProgressIndicator(
+                        progress = { 0f },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(3.dp)
                             .clip(CircleShape),
-                        color = statusColor,
+                        color = statusColor.copy(alpha = 0.4f),
                         trackColor = C_border,
                         strokeCap = StrokeCap.Round
                     )
