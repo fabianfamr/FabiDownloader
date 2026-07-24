@@ -1038,12 +1038,6 @@ fun MobileDownloadingItem(
                 }
                 Spacer(modifier = Modifier.height(4.dp))
 
-                val animatedProgress by animateFloatAsState(
-                    targetValue = if (record.progress < 0) 0f else record.progress / 100f,
-                    animationSpec = tween(250, easing = FastOutSlowInEasing),
-                    label = "progress"
-                )
-
                 if (record.progress < 0 && !record.isPaused) {
                     LinearProgressIndicator(
                         modifier = Modifier
@@ -1055,8 +1049,11 @@ fun MobileDownloadingItem(
                         strokeCap = StrokeCap.Round
                     )
                 } else {
+                    // Optimización de rendimiento: Renderizado directo sin animaciones pesadas innecesarias
+                    // que causan constantes llamadas de recomposición y relag en hilos principales.
+                    val rawProgress = if (record.progress < 0) 0f else record.progress / 100f
                     LinearProgressIndicator(
-                        progress = { animatedProgress },
+                        progress = { rawProgress },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(3.dp)

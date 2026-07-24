@@ -321,9 +321,14 @@ class DownloadManagerService private constructor(
                 // Comprobar espacio antes de iniciar la descarga
                 checkStorageSpace(destFolder, id)
 
+                var lastSpaceCheck = 0L
                 service.download(url, quality, format, destFolder, fileNameWithoutExt, processId = id.toString()) { progress, sizeText, speedText ->
-                    // Comprobar espacio periódicamente durante el progreso
-                    checkStorageSpace(destFolder, id)
+                    val currentTime = System.currentTimeMillis()
+                    // Comprobar espacio de forma ultra eficiente cada 5 segundos para priorizar rendimiento y velocidad
+                    if (currentTime - lastSpaceCheck > 5000) {
+                        lastSpaceCheck = currentTime
+                        checkStorageSpace(destFolder, id)
+                    }
 
                     val currentProgressInt = progress.toInt()
                     val oldProgress = activeProgresses[id] ?: 0
@@ -333,8 +338,8 @@ class DownloadManagerService private constructor(
                         Log.i(Config.TAG_DOWNLOAD_MANAGER, "Descarga $id alcanzó el umbral de inicio temprano ($currentProgressInt% >= $earlyThreshold%). Disparando cola.")
                         triggerQueue()
                     }
-                    val currentTime = System.currentTimeMillis()
-                    if (currentTime - lastProgressUpdate > 1000 || progress >= 100f) {
+                    // Throttling de actualizaciones de progreso a 2000ms para evitar lags de pantalla y saturación de base de datos
+                    if (currentTime - lastProgressUpdate > 2000 || progress >= 100f) {
                         lastProgressUpdate = currentTime
                         serviceScope.launch {
                             val currentRecord = storageService.getDownloadById(id)
@@ -660,22 +665,58 @@ class DownloadManagerService private constructor(
     }
 
     private fun handleDownloadConfigChanged() {
-        serviceScope.launch {
-            val runningIds = processingIds.filter { activeJobs.containsKey(it) }
-            runningIds.forEach { id ->
-                Log.i(Config.TAG_DOWNLOAD_MANAGER, "Reiniciando descarga $id para aplicar la nueva configuración...")
-                activeCalls[id]?.cancel()
-                activeJobs[id]?.cancel()
-                activeCalls.remove(id)
-                val job = activeJobs.remove(id)
-                try {
-                    com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
-                } catch (e: Exception) {
-                    Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al detener el proceso $id al cambiar la configuración", e)
-                }
-                job?.join()
+        // Optimización: No reiniciamos las descargas activas al cambiar de pantalla o configuraciones.
+        // Se aplicará la nueva configuración automáticamente a las descargas futuras.
+        Log.i(Config.TAG_DOWNLOAD_MANAGER, "Configuración cambiada. Se aplicará a las nuevas descargas.")
+    }
+
+    fun onAppClosed() {
+        Log.i(Config.TAG_DOWNLOAD_MANAGER, "onAppClosed llamado. Limpiando descargas activas para evitar procesos huérfanos nativos.")
+        
+        // 1. Cancelar todos los trabajos activos
+        activeJobs.forEach { (id, job) ->
+            try {
+                job.cancel()
+            } catch (e: Exception) {
+                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Error al cancelar trabajo $id", e)
             }
-            triggerQueue()
+        }
+        activeJobs.clear()
+
+        // 2. Cancelar todas las llamadas de red activas
+        activeCalls.forEach { (id, call) ->
+            try {
+                call.cancel()
+            } catch (e: Exception) {
+                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Error al cancelar llamada $id", e)
+            }
+        }
+        activeCalls.clear()
+
+        // 3. Destruir todos los procesos nativos de yt-dlp para no laguear el teléfono
+        processingIds.forEach { id ->
+            try {
+                com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
+            } catch (e: Exception) {
+                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Error al destruir el proceso yt-dlp $id", e)
+            }
+        }
+        
+        // 4. Actualizar estados en BD para evitar quedar congelados en 'Descargando' al reiniciar la app
+        val activeIdsList = processingIds.toList()
+        processingIds.clear()
+        activeProgresses.clear()
+        
+        val dbScope = kotlinx.coroutines.CoroutineScope(Dispatchers.IO)
+        dbScope.launch {
+            activeIdsList.forEach { id ->
+                try {
+                    storageService.updatePausedState(id, true)
+                    storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, "Pausado", "PAUSED")
+                } catch (e: Exception) {
+                    Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al restablecer el estado de la descarga $id", e)
+                }
+            }
         }
     }
 }

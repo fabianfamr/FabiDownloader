@@ -97,4 +97,14 @@ class DownloadForegroundService : Service() {
             manager.createNotificationChannel(channel)
         }
     }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        try {
+            DownloadManagerService.getInstance(applicationContext).onAppClosed()
+        } catch (e: Exception) {
+            android.util.Log.e("DownloadService", "Error cleaning up on task removed", e)
+        }
+        stopSelf()
+    }
 }
