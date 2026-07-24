@@ -7,12 +7,15 @@ import com.fabian.downloader.services.YtdlpDownloader
 import com.fabian.downloader.services.YtdlpExtractor
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.File
 
 abstract class BaseSiteService : SiteService {
+
+    companion object {
+        private val activeExtractions = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.Deferred<InfoMedia?>>()
+    }
 
     private val downloader = YtdlpDownloader()
 
@@ -40,32 +43,45 @@ abstract class BaseSiteService : SiteService {
         request.addOption("--no-check-formats")
     }
 
-    override suspend fun extractMetadata(url: String): InfoMedia? = withContext(Dispatchers.IO) {
-        val request = YoutubeDLRequest(url).apply {
-            addOption("--dump-json")
-            
-            val cookiesFile = File(com.fabian.downloader.MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
-            if (cookiesFile.exists() && cookiesFile.length() > 0) {
-                addOption("--cookies", cookiesFile.absolutePath)
+    override suspend fun extractMetadata(url: String): InfoMedia? {
+        val cleanUrl = url.trim()
+        
+        @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
+        val deferred = activeExtractions.computeIfAbsent(cleanUrl) { _ ->
+            kotlinx.coroutines.GlobalScope.async(Dispatchers.IO) {
+                val request = YoutubeDLRequest(cleanUrl).apply {
+                    addOption("--dump-json")
+                    
+                    val cookiesFile = File(com.fabian.downloader.MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
+                    if (cookiesFile.exists() && cookiesFile.length() > 0) {
+                        addOption("--cookies", cookiesFile.absolutePath)
+                    }
+                    
+                    if (!com.fabian.downloader.ui.AppSettings.playlistEnabled) {
+                        addOption("--no-playlist")
+                    }
+                    addOption("--no-cache-dir")
+                    
+                    customizeExtractorRequest(this, cleanUrl)
+                }
+
+                try {
+                    val response = YoutubeDL.getInstance().execute(request)
+                    val jsonRaw = response.out ?: return@async null
+                    val json = JSONObject(jsonRaw)
+
+                    com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, Config.STATUS_UNKNOWN, "Video de $displayName")
+                } catch (e: Exception) {
+                    Log.e(Config.TAG_BASE_SITE_SERVICE, "Error extracting info for $cleanUrl in service $siteId: ${e.message}", e)
+                    null
+                }
             }
-            
-            if (!com.fabian.downloader.ui.AppSettings.playlistEnabled) {
-                addOption("--no-playlist")
-            }
-            addOption("--no-cache-dir")
-            
-            customizeExtractorRequest(this, url)
         }
 
         try {
-            val response = YoutubeDL.getInstance().execute(request)
-            val jsonRaw = response.out ?: return@withContext null
-            val json = JSONObject(jsonRaw)
-
-            return@withContext com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, Config.STATUS_UNKNOWN, "Video de $displayName")
-        } catch (e: Exception) {
-            Log.e(Config.TAG_BASE_SITE_SERVICE, "Error extracting info for $url in service $siteId: ${e.message}", e)
-            return@withContext null
+            return deferred.await()
+        } finally {
+            activeExtractions.remove(cleanUrl, deferred)
         }
     }
 

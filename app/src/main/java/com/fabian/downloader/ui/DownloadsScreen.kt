@@ -274,6 +274,24 @@ fun DownloadsScreen(
                         }
                     }
                     HorizontalDivider(color = C_border)
+                    // Forzar descarga
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            viewModel.forceDownload(menuRecord!!.id)
+                            menuRecord = null
+                        }.padding(20.dp, 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.size(32.dp).background(C_accentDim, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.Bolt, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text("Forzar descarga", color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("Iniciar de inmediato ignorando el límite de concurrencia", color = C_gray1, fontSize = 12.sp)
+                        }
+                    }
+                    HorizontalDivider(color = C_border)
                     // Active Download Controls
                     val isPaused = menuRecord!!.isPaused
                     Row(

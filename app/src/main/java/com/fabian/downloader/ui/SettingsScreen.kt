@@ -93,6 +93,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var showCustomArgsDialog by remember { mutableStateOf(false) }
 
     var showClipboardDialog by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
 
     var notificationsEnabled by remember { mutableStateOf(AppSettings.notificationsEnabled) }
     var showSpeedInNotif by remember { mutableStateOf(AppSettings.showDownloadSpeedInNotification) }
@@ -365,6 +366,29 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 showClipboardDialog = false
             },
             onDismiss = { showClipboardDialog = false }
+        )
+    }
+
+    if (showLanguageDialog) {
+        val languageOptions = listOf("Sistema", "Español", "English")
+        SelectionDialog(
+            title = stringResource(R.string.settings_select_language),
+            options = languageOptions,
+            selectedOption = AppSettings.language,
+            onSelection = {
+                AppSettings.language = it
+                showLanguageDialog = false
+                // Recrear la actividad para aplicar la configuración regional
+                var currentContext = ctx
+                while (currentContext is android.content.ContextWrapper) {
+                    if (currentContext is android.app.Activity) {
+                        currentContext.recreate()
+                        break
+                    }
+                    currentContext = currentContext.baseContext
+                }
+            },
+            onDismiss = { showLanguageDialog = false }
         )
     }
 
@@ -771,6 +795,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 Box(modifier = Modifier.background(C_card2, RoundedCornerShape(20.dp)).border(1.dp, C_border, RoundedCornerShape(20.dp)).padding(horizontal = 10.dp, vertical = 4.dp)) {
                                     Text("v${BuildConfig.VERSION_NAME}", color = C_gray1, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.Language, stringResource(R.string.settings_language), AppSettings.language, C_accent, C_white, C_gray1, C_card2) {
+                                showLanguageDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsRow(Icons.Default.Update, stringResource(R.string.settings_check_updates), if (isCheckingUpdates) stringResource(R.string.settings_update_searching) else stringResource(R.string.settings_update_now_btn), C_accent, C_white, C_gray1, C_card2) {

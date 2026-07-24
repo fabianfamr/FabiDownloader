@@ -73,6 +73,7 @@ class DownloadManagerService private constructor(
     private val activeJobs = java.util.concurrent.ConcurrentHashMap<Long, kotlinx.coroutines.Job>()
     private val activeCalls = java.util.concurrent.ConcurrentHashMap<Long, okhttp3.Call>()
     private val processingIds = java.util.concurrent.ConcurrentSkipListSet<Long>()
+    private val forcedDownloadIds = java.util.concurrent.ConcurrentHashMap.newKeySet<Long>()
     private val activeProgresses = java.util.concurrent.ConcurrentHashMap<Long, Int>()
     private var isQueueProcessorRunning = false
     private val queueTrigger = MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
@@ -115,6 +116,30 @@ class DownloadManagerService private constructor(
                             !processingIds.contains(it.id)
                         }
                         
+                        val forcedToProcess = nextToProcess.filter { it.id in forcedDownloadIds }
+                        val normalToProcess = nextToProcess.filter { it.id !in forcedDownloadIds }
+
+                        // Iniciar de inmediato descargas forzadas ignorando los límites
+                        if (forcedToProcess.isNotEmpty()) {
+                            DownloadForegroundService.start(application)
+                            forcedToProcess.forEach { record ->
+                                processingIds.add(record.id)
+                                serviceScope.launch {
+                                    try {
+                                        runDownloadDirect(record.id)
+                                    } finally {
+                                        processingIds.remove(record.id)
+                                        activeProgresses.remove(record.id)
+                                        forcedDownloadIds.remove(record.id)
+                                        if (processingIds.isEmpty()) {
+                                            DownloadForegroundService.stop(application)
+                                        }
+                                        triggerQueue()
+                                    }
+                                }
+                            }
+                        }
+
                         var maxParallel = AppSettings.maxConcurrentDownloads
                         val batteryManager = BatteryOptimizerManager.getInstance(application)
                         if (AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
@@ -131,12 +156,14 @@ class DownloadManagerService private constructor(
                         } else {
                             0
                         }
-                        val slotsAvailable = maxParallel - (processingIds.size - almostFinishedCount)
-                        if (slotsAvailable > 0 && nextToProcess.isNotEmpty()) {
+                        
+                        val activeNormalCount = processingIds.count { it !in forcedDownloadIds }
+                        val slotsAvailable = maxParallel - (activeNormalCount - almostFinishedCount)
+                        if (slotsAvailable > 0 && normalToProcess.isNotEmpty()) {
                             // Iniciar servicio en segundo plano para que no se muera la descarga
                             DownloadForegroundService.start(application)
                             
-                            nextToProcess.take(slotsAvailable).forEach { record ->
+                            normalToProcess.take(slotsAvailable).forEach { record ->
                                 processingIds.add(record.id)
                                 
                                 serviceScope.launch {
@@ -145,6 +172,7 @@ class DownloadManagerService private constructor(
                                     } finally {
                                         processingIds.remove(record.id)
                                         activeProgresses.remove(record.id)
+                                        forcedDownloadIds.remove(record.id)
                                         if (processingIds.isEmpty()) {
                                             // Detener servicio en segundo plano cuando no queden descargas activas
                                             DownloadForegroundService.stop(application)
@@ -164,7 +192,7 @@ class DownloadManagerService private constructor(
         }
     }
 
-    fun startDownload(rawUrl: String, quality: String, format: String, passedTitle: String? = null, passedThumbnailUrl: String? = null, existingId: Long? = null) {
+    fun startDownload(rawUrl: String, quality: String, format: String, passedTitle: String? = null, passedThumbnailUrl: String? = null, existingId: Long? = null, isForced: Boolean = false) {
         val url = rawUrl.trim().let { text ->
             val regex = Regex("""https?://[^\s]+""")
             regex.find(text)?.value ?: text
@@ -180,7 +208,7 @@ class DownloadManagerService private constructor(
                 }
 
                 val batteryManager = BatteryOptimizerManager.getInstance(application)
-                if (AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
+                if (!isForced && AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
                     withContext(Dispatchers.Main) {
                         val message = if (AppSettings.batteryLowAction == "Suspender todo") {
                             "Descarga en cola (pausada por optimización de batería)"
@@ -233,6 +261,9 @@ class DownloadManagerService private constructor(
                         speed = Config.STATUS_WAITING
                     )
                     newId = storageService.insertDownload(record)
+                    if (isForced) {
+                        forcedDownloadIds.add(newId)
+                    }
 
                     // Trigger queue IMMEDIATELY so download can start while we resolve title
                     triggerQueue()
@@ -264,6 +295,9 @@ class DownloadManagerService private constructor(
                         }
                     }
                 } else {
+                    if (isForced) {
+                        forcedDownloadIds.add(existingId)
+                    }
                     storageService.updatePausedState(existingId, false)
                     val existingRecord = storageService.getDownloadById(existingId)
                     if (existingRecord != null) {
@@ -485,6 +519,7 @@ class DownloadManagerService private constructor(
 
     fun pauseDownload(id: Long) {
         serviceScope.launch {
+            forcedDownloadIds.remove(id)
             storageService.updatePausedState(id, true)
             
             // Forzar actualización de progreso y velocidad en la base de datos para evitar estados residuales de carga

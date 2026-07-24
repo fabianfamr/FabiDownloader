@@ -435,9 +435,14 @@ fun DownloadSettingsContent(
                 onSelection = {
                     AppSettings.language = it
                     showLanguageDialog = false
-                    // Apply locale
-                    if (ctx is android.app.Activity) {
-                        ctx.recreate()
+                    // Apply locale recreando la actividad de forma segura
+                    var currentContext = ctx
+                    while (currentContext is android.content.ContextWrapper) {
+                        if (currentContext is android.app.Activity) {
+                            currentContext.recreate()
+                            break
+                        }
+                        currentContext = currentContext.baseContext
                     }
                 },
                 onDismiss = { showLanguageDialog = false }

@@ -61,6 +61,23 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
         }
     }
 
+    fun forceDownload(id: Long) {
+        viewModelScope.launch {
+            val record = database.downloadDao().getDownloadById(id)
+            if (record != null) {
+                DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).startDownload(
+                    rawUrl = record.url,
+                    quality = record.quality,
+                    format = record.format,
+                    passedTitle = record.title,
+                    passedThumbnailUrl = record.thumbnailUrl,
+                    existingId = record.id,
+                    isForced = true
+                )
+            }
+        }
+    }
+
     fun deleteDownload(id: Long) {
         viewModelScope.launch {
             DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).deleteDownload(id)
