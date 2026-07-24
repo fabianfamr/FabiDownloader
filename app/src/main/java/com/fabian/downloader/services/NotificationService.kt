@@ -22,6 +22,23 @@ class NotificationService(private val context: Context) {
     private val channelStatusId = Config.NOTIF_CHANNEL_STATUS
     private val groupId = Config.NOTIF_GROUP
     
+    private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val pendingDismissRunnables = java.util.Collections.synchronizedMap(mutableMapOf<Int, Runnable>())
+
+    private fun cancelPendingDismiss(id: Int) {
+        val notificationId = synchronized(this) {
+            if (foregroundDownloadId == id) 9999 else id
+        }
+        val runnable = pendingDismissRunnables.remove(notificationId)
+        if (runnable != null) {
+            mainHandler.removeCallbacks(runnable)
+        }
+        val rawRunnable = pendingDismissRunnables.remove(id)
+        if (rawRunnable != null) {
+            mainHandler.removeCallbacks(rawRunnable)
+        }
+    }
+    
     init {
         createNotificationChannels()
     }
@@ -80,11 +97,10 @@ class NotificationService(private val context: Context) {
             return
         }
 
+        cancelPendingDismiss(id)
+
         val text = buildString {
             append("$progress%")
-            if (!speed.isNullOrEmpty() && speed != Config.STATUS_UNKNOWN && speed != Config.STATUS_CONNECTING && speed != Config.STATUS_DOWNLOADING) {
-                append(" • $speed")
-            }
             if (!size.isNullOrEmpty() && size != Config.STATUS_UNKNOWN) {
                 append(" • $size")
             }
@@ -116,27 +132,16 @@ class NotificationService(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT
         }
 
-        // Acción de Pausar
-        val pauseIntent = Intent(context, DownloadActionReceiver::class.java).apply {
-            action = Config.ACTION_PAUSE
-            putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
+        // Al presionar la descarga en curso ir a la pantalla de descargas en proceso (página index 1)
+        val appIntent = Intent(context, com.fabian.downloader.MainActivity::class.java).apply {
+            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
+            putExtra(Config.EXTRA_INITIAL_PAGE, 1)
         }
-        val pausePendingIntent = PendingIntent.getBroadcast(
+        val appPendingIntent = PendingIntent.getActivity(
             context,
-            id + 600000,
-            pauseIntent,
-            flags
-        )
-
-        // Acción de Cancelar
-        val cancelIntent = Intent(context, DownloadActionReceiver::class.java).apply {
-            action = Config.ACTION_CANCEL
-            putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
-        }
-        val cancelPendingIntent = PendingIntent.getBroadcast(
-            context,
-            id + 700000,
-            cancelIntent,
+            id + 500000,
+            appIntent,
             flags
         )
 
@@ -149,8 +154,7 @@ class NotificationService(private val context: Context) {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .addAction(android.R.drawable.ic_media_pause, context.getString(R.string.notif_action_pause), pausePendingIntent)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, context.getString(R.string.notif_action_cancel), cancelPendingIntent)
+            .setContentIntent(appPendingIntent)
             .build()
             
         notificationManager.notify(notificationId, notification)
@@ -161,6 +165,8 @@ class NotificationService(private val context: Context) {
         title: String,
         thumbnailUrl: String? = null
     ) {
+        cancelPendingDismiss(id)
+
         val largeIcon = if (!thumbnailUrl.isNullOrEmpty()) {
             val bitmap = getBitmapFromUrl(thumbnailUrl)
             if (bitmap != null) {
@@ -176,27 +182,16 @@ class NotificationService(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT
         }
 
-        // Acción de Reanudar
-        val resumeIntent = Intent(context, DownloadActionReceiver::class.java).apply {
-            action = Config.ACTION_RESUME
-            putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
+        // Al presionar la notificación ir a la pantalla de descargas en proceso (página index 1)
+        val appIntent = Intent(context, com.fabian.downloader.MainActivity::class.java).apply {
+            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
+            putExtra(Config.EXTRA_INITIAL_PAGE, 1)
         }
-        val resumePendingIntent = PendingIntent.getBroadcast(
+        val appPendingIntent = PendingIntent.getActivity(
             context,
-            id + 800000,
-            resumeIntent,
-            flags
-        )
-
-        // Acción de Cancelar
-        val cancelIntent = Intent(context, DownloadActionReceiver::class.java).apply {
-            action = Config.ACTION_CANCEL
-            putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
-        }
-        val cancelPendingIntent = PendingIntent.getBroadcast(
-            context,
-            id + 900000,
-            cancelIntent,
+            id + 510000,
+            appIntent,
             flags
         )
 
@@ -216,11 +211,21 @@ class NotificationService(private val context: Context) {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(false)
             .setOnlyAlertOnce(true)
-            .addAction(android.R.drawable.ic_media_play, context.getString(R.string.notif_action_resume), resumePendingIntent)
-            .addAction(android.R.drawable.ic_menu_close_clear_cancel, context.getString(R.string.notif_action_cancel), cancelPendingIntent)
+            .setContentIntent(appPendingIntent)
             .build()
 
         notificationManager.notify(notificationId, notification)
+
+        // Programar el auto-descarte según la configuración
+        val timeoutMs = com.fabian.downloader.ui.AppSettings.pausedNotificationTimeoutMs
+        if (timeoutMs > 0) {
+            val dismissRunnable = Runnable {
+                cancelProgressNotification(id)
+                pendingDismissRunnables.remove(notificationId)
+            }
+            pendingDismissRunnables[notificationId] = dismissRunnable
+            mainHandler.postDelayed(dismissRunnable, timeoutMs)
+        }
     }
 
     suspend fun showDownloadSuccess(id: Int, title: String, thumbnailUrl: String? = null) {
@@ -384,6 +389,7 @@ class NotificationService(private val context: Context) {
     }
     
     fun cancelNotification(id: Int) {
+        cancelPendingDismiss(id)
         shownSuccessIds.remove(id)
         synchronized(this) {
             if (foregroundDownloadId == id) {
@@ -398,6 +404,7 @@ class NotificationService(private val context: Context) {
     }
 
     fun cancelProgressNotification(id: Int) {
+        cancelPendingDismiss(id)
         synchronized(this) {
             if (foregroundDownloadId == id) {
                 notificationManager.cancel(9999)

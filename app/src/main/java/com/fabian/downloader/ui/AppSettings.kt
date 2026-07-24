@@ -282,6 +282,26 @@ object AppSettings {
             saveBoolean("showDownloadSpeedInNotification", value)
         }
 
+    val pausedNotificationTimeoutOptions = listOf("1 minuto", "5 minutos", "10 minutos", "30 minutos", "Nunca")
+    private val _selectedPausedNotificationTimeout = mutableStateOf("10 minutos")
+    val selectedPausedNotificationTimeoutState: androidx.compose.runtime.State<String> get() = _selectedPausedNotificationTimeout
+    var selectedPausedNotificationTimeout: String
+        get() = _selectedPausedNotificationTimeout.value
+        set(value) {
+            _selectedPausedNotificationTimeout.value = value
+            saveString("selectedPausedNotificationTimeout", value)
+            notifyChanged("selectedPausedNotificationTimeout")
+        }
+
+    val pausedNotificationTimeoutMs: Long
+        get() = when (selectedPausedNotificationTimeout) {
+            "1 minuto" -> 60L * 1000L
+            "5 minutos" -> 5L * 60L * 1000L
+            "10 minutos" -> 10L * 60L * 1000L
+            "30 minutos" -> 30L * 60L * 1000L
+            else -> 0L // Nunca
+        }
+
     private val _keepHistory = mutableStateOf(true)
     var keepHistory: Boolean
         get() = _keepHistory.value
@@ -371,6 +391,7 @@ object AppSettings {
         _bypassGeo.value = prefs.getBoolean("bypassGeo", true)
 
         _showDownloadSpeedInNotification.value = prefs.getBoolean("showDownloadSpeedInNotification", true)
+        _selectedPausedNotificationTimeout.value = prefs.getString("selectedPausedNotificationTimeout", "10 minutos") ?: "10 minutos"
         _keepHistory.value = prefs.getBoolean("keepHistory", true)
         _autoRetry.value = prefs.getBoolean("autoRetry", false)
         _dynamicColor.value = prefs.getBoolean("dynamicColor", true)

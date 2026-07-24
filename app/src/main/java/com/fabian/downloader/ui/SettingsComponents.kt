@@ -52,6 +52,7 @@ fun DownloadSettingsContent(
     var showThemeDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showStorageMarginDialog by remember { mutableStateOf(false) }
+    var showPausedTimeoutDialog by remember { mutableStateOf(false) }
 
     val threadOptions = listOf("1", "3", "5", "8", "10", "12", "16", "20")
     val simultaneousOptions = listOf("1", "2", "3", "4", "5", "6", "7", "8")
@@ -78,6 +79,12 @@ fun DownloadSettingsContent(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
                 ToggleSetting(Icons.Default.Notifications, stringResource(R.string.settings_download_notifications), AppSettings.notificationsEnabled) {
                     AppSettings.notificationsEnabled = it
+                }
+                if (AppSettings.notificationsEnabled) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingItem(Icons.Default.Timer, "Auto-cancelar pausa", trailing = AppSettings.selectedPausedNotificationTimeout) {
+                        showPausedTimeoutDialog = true
+                    }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
                 ToggleSetting(Icons.Default.DeleteSweep, stringResource(R.string.settings_confirm_on_delete), AppSettings.confirmOnDelete) {
@@ -355,6 +362,15 @@ fun DownloadSettingsContent(
                     showThemeDialog = false
                 },
                 onDismiss = { showThemeDialog = false }
+            )
+        }
+        if (showPausedTimeoutDialog) {
+            SelectionDialog("Auto-cancelar pausa", AppSettings.pausedNotificationTimeoutOptions, AppSettings.selectedPausedNotificationTimeout,
+                onSelection = {
+                    AppSettings.selectedPausedNotificationTimeout = it
+                    showPausedTimeoutDialog = false
+                },
+                onDismiss = { showPausedTimeoutDialog = false }
             )
         }
         if (showStorageMarginDialog) {

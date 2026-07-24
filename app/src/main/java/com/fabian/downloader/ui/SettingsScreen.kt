@@ -96,6 +96,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     var notificationsEnabled by remember { mutableStateOf(AppSettings.notificationsEnabled) }
     var showSpeedInNotif by remember { mutableStateOf(AppSettings.showDownloadSpeedInNotification) }
+    var showPausedTimeoutDialog by remember { mutableStateOf(false) }
 
     var keepHistory by remember { mutableStateOf(AppSettings.keepHistory) }
     var autoRetry by remember { mutableStateOf(AppSettings.autoRetry) }
@@ -297,6 +298,19 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 showAccentDialog = false
             },
             onDismiss = { showAccentDialog = false }
+        )
+    }
+
+    if (showPausedTimeoutDialog) {
+        SelectionDialog(
+            title = "Auto-cancelar pausa",
+            options = AppSettings.pausedNotificationTimeoutOptions,
+            selectedOption = AppSettings.selectedPausedNotificationTimeout,
+            onSelection = {
+                AppSettings.selectedPausedNotificationTimeout = it
+                showPausedTimeoutDialog = false
+            },
+            onDismiss = { showPausedTimeoutDialog = false }
         )
     }
 
@@ -523,6 +537,18 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             if (notificationsEnabled) {
                                 HorizontalDivider(color = C_border, thickness = 1.dp)
                                 SettingsToggleRow(Icons.Default.Speed, stringResource(R.string.settings_notif_speed), stringResource(R.string.settings_notif_speed_desc), showSpeedInNotif, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showSpeedInNotif = it }
+                                HorizontalDivider(color = C_border, thickness = 1.dp)
+                                SettingsRow(
+                                    icon = Icons.Default.Timer,
+                                    title = "Auto-cancelar pausa",
+                                    trailing = AppSettings.selectedPausedNotificationTimeout,
+                                    colorAccent = C_accent,
+                                    textColor = C_white,
+                                    grayColor = C_gray1,
+                                    card2Color = C_card2
+                                ) {
+                                    showPausedTimeoutDialog = true
+                                }
                             }
                         }
                     }
