@@ -98,6 +98,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var notificationsEnabled by remember { mutableStateOf(AppSettings.notificationsEnabled) }
     var showSpeedInNotif by remember { mutableStateOf(AppSettings.showDownloadSpeedInNotification) }
     var showPausedTimeoutDialog by remember { mutableStateOf(false) }
+    var showStorageMarginDialog by remember { mutableStateOf(false) }
 
     var keepHistory by remember { mutableStateOf(AppSettings.keepHistory) }
     var autoRetry by remember { mutableStateOf(AppSettings.autoRetry) }
@@ -394,6 +395,19 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         )
     }
 
+    if (showStorageMarginDialog) {
+        SelectionDialog(
+            title = stringResource(R.string.settings_select_storage_margin),
+            options = AppSettings.storageMarginOptions,
+            selectedOption = AppSettings.selectedStorageMargin,
+            onSelection = {
+                AppSettings.selectedStorageMargin = it
+                showStorageMarginDialog = false
+            },
+            onDismiss = { showStorageMarginDialog = false }
+        )
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -478,6 +492,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         Column {
                             SettingsRow(Icons.Default.Folder, stringResource(R.string.settings_download_dir), AppSettings.downloadLocation.substringAfterLast("/"), C_accent, C_white, C_gray1, C_card2) {
                                 launcher.launch(null)
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.Storage, stringResource(R.string.settings_storage_margin), AppSettings.selectedStorageMargin, C_accent, C_white, C_gray1, C_card2) {
+                                showStorageMarginDialog = true
                             }
                         }
                     }
@@ -772,6 +790,17 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Text(stringResource(R.string.settings_clear_cache_desc), color = C_gray1, fontSize = 11.sp)
+                            }
+                        }
+                    }
+
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    ) {
+                        Column {
+                            SettingsRow(Icons.Default.Storage, stringResource(R.string.settings_storage_margin), AppSettings.selectedStorageMargin, C_accent, C_white, C_gray1, C_card2) {
+                                showStorageMarginDialog = true
                             }
                         }
                     }
