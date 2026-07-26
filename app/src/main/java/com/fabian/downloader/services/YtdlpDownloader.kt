@@ -71,10 +71,16 @@ class YtdlpDownloader {
             }
 
             // ============================================================
-            // PARALELISMO Y VELOCIDAD (respetar ajustes del usuario)
+            // PARALELISMO Y VELOCIDAD (respetar ajustes del usuario o aplicar límites por batería baja)
             // ============================================================
-            // Concurrent fragments: user setting (default 10 for max speed)
-            val fragments = settings.concurrentFragments
+            val appCtx = com.fabian.downloader.MyApplication.getInstance()
+            val batteryManager = BatteryOptimizerManager.getInstance(appCtx)
+            val isBatteryLowMode = settings.batteryOptimizationEnabled && 
+                                   batteryManager.isBatteryLowAndNotCharging() && 
+                                   settings.batteryLowAction == "Optimizar recursos"
+
+            // Concurrent fragments: user setting (default 10 for max speed) - restricted to 2 in battery saving mode
+            val fragments = if (isBatteryLowMode) "2" else settings.concurrentFragments
             addOption("--concurrent-fragments", fragments)
 
             // Larger buffer = better throughput on fast connections
@@ -90,9 +96,19 @@ class YtdlpDownloader {
             addOption("--abort-on-unavailable-fragment")
 
             // ============================================================
-            // LIMITACIÓN DE VELOCIDAD (respetar maxSpeed)
+            // LIMITACIÓN DE VELOCIDAD (respetar maxSpeed o limitar por batería baja)
             // ============================================================
-            val maxSpeed = settings.maxSpeed
+            val maxSpeed = if (isBatteryLowMode) {
+                if (settings.maxSpeed == Config.SPEED_UNLIMITED || 
+                    settings.maxSpeed == Config.SPEED_5M || 
+                    settings.maxSpeed == Config.SPEED_10M) {
+                    Config.SPEED_1M
+                } else {
+                    settings.maxSpeed
+                }
+            } else {
+                settings.maxSpeed
+            }
 
             if (maxSpeed != Config.SPEED_UNLIMITED) {
                 val limit = when (maxSpeed) {

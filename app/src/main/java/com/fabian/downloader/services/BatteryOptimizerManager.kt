@@ -59,9 +59,9 @@ class BatteryOptimizerManager private constructor(private val context: Context) 
     fun evaluateBatteryStatus() {
         if (isBatteryLowAndNotCharging()) {
             val manager = DownloadManagerService.getInstance(context)
-            if (AppSettings.batteryLowAction == "Suspender todo") {
-                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Batería baja detectada ($currentLevel%). Suspendiendo descargas activas.")
-                manager.pauseAllActiveDownloads()
+            if (AppSettings.batteryLowAction == "Optimizar recursos") {
+                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Batería baja detectada ($currentLevel%). Optimizando recursos (concurrencia y hilos limitados).")
+                manager.throttleActiveDownloads()
             } else if (AppSettings.batteryLowAction == "Limitar concurrencia") {
                 Log.w(Config.TAG_DOWNLOAD_MANAGER, "Batería baja detectada ($currentLevel%). Limitando concurrencia a 1.")
                 manager.throttleActiveDownloads()

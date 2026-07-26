@@ -80,8 +80,9 @@ fun MainScreen(
         }
     )
 
-    // Observe downloads flow in real-time
-    val downloadsList by database.downloadDao().getAllDownloads().collectAsStateWithLifecycle(initialValue = emptyList())
+    // Observe downloads flow in real-time with memory cache & write optimization
+    val storageService = remember { com.fabian.downloader.services.StorageService.getInstance(ctx) }
+    val downloadsList by storageService.getAllDownloads().collectAsStateWithLifecycle(initialValue = emptyList())
     // Get last 3 completed downloads
     val recentDownloads by remember(downloadsList) {
         derivedStateOf { 

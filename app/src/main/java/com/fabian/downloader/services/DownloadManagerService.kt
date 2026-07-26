@@ -58,7 +58,7 @@ class DownloadManagerService private constructor(
             return instance ?: synchronized(this) {
                 instance ?: DownloadManagerService(
                     app,
-                    StorageService(com.fabian.downloader.database.AppDatabase.getInstance(app)),
+                    StorageService.getInstance(app),
                     ExtractionService(),
                     ConnectionService(),
                     NotificationService(app)
@@ -143,9 +143,7 @@ class DownloadManagerService private constructor(
                         var maxParallel = AppSettings.maxConcurrentDownloads
                         val batteryManager = BatteryOptimizerManager.getInstance(application)
                         if (AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
-                            if (AppSettings.batteryLowAction == "Suspender todo") {
-                                maxParallel = 0
-                            } else if (AppSettings.batteryLowAction == "Limitar concurrencia") {
+                            if (AppSettings.batteryLowAction == "Optimizar recursos" || AppSettings.batteryLowAction == "Limitar concurrencia") {
                                 maxParallel = 1
                             }
                         }
@@ -210,8 +208,8 @@ class DownloadManagerService private constructor(
                 val batteryManager = BatteryOptimizerManager.getInstance(application)
                 if (!isForced && AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
                     withContext(Dispatchers.Main) {
-                        val message = if (AppSettings.batteryLowAction == "Suspender todo") {
-                            "Descarga en cola (pausada por optimización de batería)"
+                        val message = if (AppSettings.batteryLowAction == "Optimizar recursos") {
+                            "Descarga iniciada en modo optimizado de recursos (batería baja)"
                         } else {
                             "Descarga iniciada con prioridad baja (concurrencia limitada por batería)"
                         }

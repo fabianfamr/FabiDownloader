@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.database.DownloadRecord
 import com.fabian.downloader.services.DownloadManagerService
+import com.fabian.downloader.services.StorageService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -12,7 +13,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
-    val downloads: Flow<List<DownloadRecord>> = database.downloadDao().getAllDownloads()
+    private val storageService = StorageService.getInstance(com.fabian.downloader.MyApplication.getInstance())
+    val downloads: Flow<List<DownloadRecord>> = storageService.getAllDownloads()
 
     init {
         cleanupOrphanDownloads()
@@ -21,7 +23,7 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
     private fun cleanupOrphanDownloads() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val list = database.downloadDao().getAllDownloadsDirect()
+                val list = storageService.getAllDownloadsDirect()
                 list.forEach { record ->
                     if (record.isCompleted) {
                         val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(
@@ -31,7 +33,7 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
                             record.format
                         )
                         if (!file.exists()) {
-                            database.downloadDao().deleteDownload(record.id)
+                            storageService.deleteDownload(record.id)
                         }
                     }
                 }
@@ -47,7 +49,7 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
 
     fun resumeDownload(id: Long) {
         viewModelScope.launch {
-            val record = database.downloadDao().getDownloadById(id)
+            val record = storageService.getDownloadById(id)
             if (record != null) {
                 DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).startDownload(
                     rawUrl = record.url,
@@ -63,7 +65,7 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
 
     fun forceDownload(id: Long) {
         viewModelScope.launch {
-            val record = database.downloadDao().getDownloadById(id)
+            val record = storageService.getDownloadById(id)
             if (record != null) {
                 DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).startDownload(
                     rawUrl = record.url,

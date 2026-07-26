@@ -325,8 +325,8 @@ object AppSettings {
     val batteryLowThresholdInt: Int
         get() = selectedBatteryLowThreshold.replace("%", "").toIntOrNull() ?: 20
 
-    val batteryLowActionOptions = listOf("Suspender todo", "Limitar concurrencia")
-    private val _selectedBatteryLowAction = mutableStateOf("Suspender todo")
+    val batteryLowActionOptions = listOf("Optimizar recursos", "Limitar concurrencia")
+    private val _selectedBatteryLowAction = mutableStateOf("Optimizar recursos")
     val selectedBatteryLowActionState: androidx.compose.runtime.State<String> get() = _selectedBatteryLowAction
     var selectedBatteryLowAction: String
         get() = _selectedBatteryLowAction.value
@@ -431,7 +431,8 @@ object AppSettings {
         _selectedPausedNotificationTimeout.value = prefs.getString("selectedPausedNotificationTimeout", "10 minutos") ?: "10 minutos"
         _batteryOptimizationEnabled.value = prefs.getBoolean("batteryOptimizationEnabled", true)
         _selectedBatteryLowThreshold.value = prefs.getString("selectedBatteryLowThreshold", "20%") ?: "20%"
-        _selectedBatteryLowAction.value = prefs.getString("selectedBatteryLowAction", "Suspender todo") ?: "Suspender todo"
+        val rawLowAction = prefs.getString("selectedBatteryLowAction", "Optimizar recursos") ?: "Optimizar recursos"
+        _selectedBatteryLowAction.value = if (rawLowAction == "Suspender todo") "Optimizar recursos" else rawLowAction
         _keepHistory.value = prefs.getBoolean("keepHistory", true)
         _autoRetry.value = prefs.getBoolean("autoRetry", false)
         _dynamicColor.value = prefs.getBoolean("dynamicColor", true)

@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(application: Application, private val database: AppDatabase) : AndroidViewModel(application) {
 
-    private val storageService = StorageService(database)
+    private val storageService = StorageService.getInstance(application)
     private val extractionService = ExtractionService()
     private val connectionService = ConnectionService()
     private val notificationService = NotificationService(application)

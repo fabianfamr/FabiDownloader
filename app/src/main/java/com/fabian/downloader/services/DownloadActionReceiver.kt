@@ -57,8 +57,8 @@ class DownloadActionReceiver : BroadcastReceiver() {
     }
 
     private suspend fun retryDownload(context: Context, downloadId: Long) {
-        val database = AppDatabase.getInstance(context)
-        val record = database.downloadDao().getDownloadById(downloadId) ?: return
+        val storageService = StorageService.getInstance(context)
+        val record = storageService.getDownloadById(downloadId) ?: return
         
         withContext(Dispatchers.Main) {
             DownloadManagerService.getInstance(context).startDownload(
@@ -73,8 +73,8 @@ class DownloadActionReceiver : BroadcastReceiver() {
     }
 
     private suspend fun resumeDownload(context: Context, downloadId: Long) {
-        val database = AppDatabase.getInstance(context)
-        val record = database.downloadDao().getDownloadById(downloadId) ?: return
+        val storageService = StorageService.getInstance(context)
+        val record = storageService.getDownloadById(downloadId) ?: return
         
         withContext(Dispatchers.Main) {
             DownloadManagerService.getInstance(context).startDownload(
@@ -89,8 +89,8 @@ class DownloadActionReceiver : BroadcastReceiver() {
     }
 
     private suspend fun openFile(context: Context, downloadId: Long) {
-        val database = AppDatabase.getInstance(context)
-        val record = database.downloadDao().getDownloadById(downloadId) ?: return
+        val storageService = StorageService.getInstance(context)
+        val record = storageService.getDownloadById(downloadId) ?: return
         val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(context, record.title, record.id, record.format)
         
         withContext(Dispatchers.Main) {
@@ -124,8 +124,8 @@ class DownloadActionReceiver : BroadcastReceiver() {
     }
 
     private suspend fun shareFile(context: Context, downloadId: Long) {
-        val database = AppDatabase.getInstance(context)
-        val record = database.downloadDao().getDownloadById(downloadId) ?: return
+        val storageService = StorageService.getInstance(context)
+        val record = storageService.getDownloadById(downloadId) ?: return
         val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(context, record.title, record.id, record.format)
         
         withContext(Dispatchers.Main) {
