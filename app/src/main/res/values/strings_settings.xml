@@ -161,4 +161,26 @@
     <string name="settings_select_theme">Selecciona Tema</string>
     <string name="settings_btn_accept">ACEPTAR</string>
     <string name="settings_btn_cancel">CANCELAR</string>
+    <string name="settings_audio_quality">Calidad de audio por defecto</string>
+    <string name="settings_audio_quality_desc">Selecciona el bitrate de audio</string>
+    <string name="settings_card_style">Estilo de tarjetas de descarga</string>
+    <string name="settings_card_style_desc">Estilo de lista de descargas</string>
+    <string name="settings_quality_badge">Mostrar insignia de calidad</string>
+    <string name="settings_quality_badge_desc">Muestra la resolución (1080p, 720p, etc.) en la tarjeta</string>
+    <string name="settings_realtime_speed">Velocidad en vivo en la lista</string>
+    <string name="settings_realtime_speed_desc">Muestra la velocidad actual de descarga en la tarjeta</string>
+    <string name="settings_clean_temp">Limpiar temporales al cancelar</string>
+    <string name="settings_clean_temp_desc">Elimina de inmediato archivos incompletos al cancelar</string>
+    <string name="settings_notify_batch">Notificar al finalizar lote</string>
+    <string name="settings_notify_batch_desc">Avisa cuando termine de procesar todos los elementos de la cola</string>
+    <string name="settings_early_start">Inicio temprano</string>
+    <string name="settings_disabled">Desactivado</string>
+    <string name="settings_battery_optimization_title">Optimización de Batería</string>
+    <string name="settings_battery_optimization">Optimizar por batería</string>
+    <string name="settings_battery_optimization_desc">Pausa o limita descargas si la batería está baja</string>
+    <string name="settings_battery_threshold">Umbral de batería baja</string>
+    <string name="settings_battery_action">Acción en batería baja</string>
+    <string name="settings_card_style_dialog">Estilo de tarjetas de descarga</string>
+    <string name="settings_audio_quality_dialog">Calidad de audio (Bitrate)</string>
+    <string name="settings_auto_cancel_pause">Auto-cancelar pausa</string>
 </resources>

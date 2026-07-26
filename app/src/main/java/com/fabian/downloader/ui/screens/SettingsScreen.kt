@@ -232,18 +232,18 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     }
 
     if (showEarlyStartThresholdDialog) {
-        val options = listOf("Desactivado", "95%", "96%", "97%", "98%", "99%")
+        val options = listOf(stringResource(R.string.settings_disabled), "95%", "96%", "97%", "98%", "99%")
         val currentLabel = when(val currentVal = AppSettings.earlyStartThreshold) {
-            0 -> "Desactivado"
+            0 -> stringResource(R.string.settings_disabled)
             else -> "$currentVal%"
         }
         SelectionDialog(
-            title = "Inicio temprano",
+            title = stringResource(R.string.settings_early_start),
             options = options,
             selectedOption = currentLabel,
             onSelection = { label ->
                 val newVal = when(label) {
-                    "Desactivado" -> 0
+                    "Desactivado", "Disabled" -> 0
                     "95%" -> 95
                     "96%" -> 96
                     "97%" -> 97
@@ -338,7 +338,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showBatteryLowThresholdDialog) {
         SelectionDialog(
-            title = "Umbral de batería baja",
+            title = stringResource(R.string.settings_battery_threshold),
             options = AppSettings.batteryLowThresholdOptions,
             selectedOption = AppSettings.selectedBatteryLowThreshold,
             onSelection = {
@@ -351,7 +351,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showBatteryLowActionDialog) {
         SelectionDialog(
-            title = "Acción en batería baja",
+            title = stringResource(R.string.settings_battery_action),
             options = AppSettings.batteryLowActionOptions,
             selectedOption = AppSettings.selectedBatteryLowAction,
             onSelection = {
@@ -364,7 +364,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showCardStyleDialog) {
         SelectionDialog(
-            title = "Estilo de tarjetas de descarga",
+            title = stringResource(R.string.settings_card_style_dialog),
             options = AppSettings.cardStyleOptions,
             selectedOption = AppSettings.cardStyle,
             onSelection = {
@@ -377,7 +377,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showAudioBitrateDialog) {
         SelectionDialog(
-            title = "Calidad de audio (Bitrate)",
+            title = stringResource(R.string.settings_audio_quality_dialog),
             options = AppSettings.defaultAudioBitrateOptions,
             selectedOption = AppSettings.defaultAudioBitrate,
             onSelection = {
@@ -565,7 +565,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 showVideoFormatDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.AudioFile, "Calidad de audio por defecto", AppSettings.defaultAudioBitrate, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.AudioFile, stringResource(R.string.settings_audio_quality), AppSettings.defaultAudioBitrate, C_accent, C_white, C_gray1, C_card2) {
                                 showAudioBitrateDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
@@ -574,12 +574,12 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             val earlyStartLabel = when (val th = AppSettings.earlyStartThreshold) {
-                                0 -> "Desactivado"
+                                0 -> stringResource(R.string.settings_disabled)
                                 else -> "$th%"
                             }
                             SettingsRow(
                                 Icons.Default.FastForward,
-                                "Inicio temprano",
+                                stringResource(R.string.settings_early_start),
                                 earlyStartLabel,
                                 C_accent,
                                 C_white,
@@ -591,8 +591,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(
                                 icon = Icons.Default.CleaningServices,
-                                title = "Limpiar temporales al cancelar",
-                                subtitle = "Elimina de inmediato archivos incompletos al cancelar",
+                                title = stringResource(R.string.settings_clean_temp),
+                                subtitle = stringResource(R.string.settings_clean_temp_desc),
                                 checked = cleanTempOnCancel,
                                 colorAccent = C_accent,
                                 textColor = C_white,
@@ -604,8 +604,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(
                                 icon = Icons.Default.CheckCircle,
-                                title = "Notificar al finalizar lote",
-                                subtitle = "Avisa cuando termine de procesar todos los elementos de la cola",
+                                title = stringResource(R.string.settings_notify_batch),
+                                subtitle = stringResource(R.string.settings_notify_batch_desc),
                                 checked = notifyBatchComplete,
                                 colorAccent = C_accent,
                                 textColor = C_white,
@@ -650,7 +650,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
 
                     // Optimización de Batería
-                    SettingsHeader("Optimización de Batería", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_battery_optimization_title), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -658,8 +658,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         Column {
                             SettingsToggleRow(
                                 icon = Icons.Default.BatteryChargingFull,
-                                title = "Optimizar por batería",
-                                subtitle = "Pausa o limita descargas si la batería está baja",
+                                title = stringResource(R.string.settings_battery_optimization),
+                                subtitle = stringResource(R.string.settings_battery_optimization_desc),
                                 checked = batteryOptimizationEnabled,
                                 colorAccent = C_accent,
                                 textColor = C_white,
@@ -673,7 +673,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 HorizontalDivider(color = C_border, thickness = 1.dp)
                                 SettingsRow(
                                     icon = Icons.Default.BatteryAlert,
-                                    title = "Umbral de batería baja",
+                                    title = stringResource(R.string.settings_battery_threshold),
                                     trailing = AppSettings.selectedBatteryLowThreshold,
                                     colorAccent = C_accent,
                                     textColor = C_white,
@@ -685,7 +685,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 HorizontalDivider(color = C_border, thickness = 1.dp)
                                 SettingsRow(
                                     icon = Icons.Default.SettingsApplications,
-                                    title = "Acción en batería baja",
+                                    title = stringResource(R.string.settings_battery_action),
                                     trailing = AppSettings.selectedBatteryLowAction,
                                     colorAccent = C_accent,
                                     textColor = C_white,
@@ -719,13 +719,13 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 }
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.ViewStream, "Estilo de lista de descargas", AppSettings.cardStyle, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.ViewStream, stringResource(R.string.settings_card_style), AppSettings.cardStyle, C_accent, C_white, C_gray1, C_card2) {
                                 showCardStyleDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.HighQuality, "Mostrar insignia de calidad", "Muestra la resolución (1080p, 720p, etc.) en la tarjeta", showQualityBadge, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showQualityBadge = it }
+                            SettingsToggleRow(Icons.Default.HighQuality, stringResource(R.string.settings_quality_badge), stringResource(R.string.settings_quality_badge_desc), showQualityBadge, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showQualityBadge = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.Speed, "Velocidad en vivo en la lista", "Muestra la velocidad actual de descarga en la tarjeta", showRealtimeSpeedCard, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showRealtimeSpeedCard = it }
+                            SettingsToggleRow(Icons.Default.Speed, stringResource(R.string.settings_realtime_speed), stringResource(R.string.settings_realtime_speed_desc), showRealtimeSpeedCard, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showRealtimeSpeedCard = it }
                         }
                     }
 
@@ -743,7 +743,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 HorizontalDivider(color = C_border, thickness = 1.dp)
                                 SettingsRow(
                                     icon = Icons.Default.Timer,
-                                    title = "Auto-cancelar pausa",
+                                    title = stringResource(R.string.settings_auto_cancel_pause),
                                     trailing = AppSettings.selectedPausedNotificationTimeout,
                                     colorAccent = C_accent,
                                     textColor = C_white,

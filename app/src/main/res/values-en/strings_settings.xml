@@ -161,4 +161,26 @@
     <string name="settings_select_theme">Select Theme</string>
     <string name="settings_btn_accept">ACCEPT</string>
     <string name="settings_btn_cancel">CANCEL</string>
+    <string name="settings_audio_quality">Default audio quality</string>
+    <string name="settings_audio_quality_desc">Select audio bitrate</string>
+    <string name="settings_card_style">Download Cards Style</string>
+    <string name="settings_card_style_desc">Downloads list style</string>
+    <string name="settings_quality_badge">Show quality badge</string>
+    <string name="settings_quality_badge_desc">Shows resolution (1080p, 720p, etc.) on the card</string>
+    <string name="settings_realtime_speed">Live speed in list</string>
+    <string name="settings_realtime_speed_desc">Shows current download speed on the card</string>
+    <string name="settings_clean_temp">Clean temp files on cancel</string>
+    <string name="settings_clean_temp_desc">Immediately deletes incomplete files upon cancellation</string>
+    <string name="settings_notify_batch">Notify on batch complete</string>
+    <string name="settings_notify_batch_desc">Notifies when all items in the queue are processed</string>
+    <string name="settings_early_start">Early start</string>
+    <string name="settings_disabled">Disabled</string>
+    <string name="settings_battery_optimization_title">Battery Optimization</string>
+    <string name="settings_battery_optimization">Optimize for battery</string>
+    <string name="settings_battery_optimization_desc">Pauses or limits downloads if battery is low</string>
+    <string name="settings_battery_threshold">Low battery threshold</string>
+    <string name="settings_battery_action">Action on low battery</string>
+    <string name="settings_card_style_dialog">Download cards style</string>
+    <string name="settings_audio_quality_dialog">Audio quality (Bitrate)</string>
+    <string name="settings_auto_cancel_pause">Auto-cancel pause</string>
 </resources>
