@@ -1,16 +1,19 @@
-name: Release Build
+name: Build and Release
 on:
   push:
+    branches:
+      - '**'
     tags:
       - 'v*'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  release:
-    name: Build and Publish Release
+  build-and-release:
+    name: Build and Release
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -30,6 +33,15 @@ jobs:
 
       - name: Create empty .env file
         run: touch .env
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: app/build/outputs/apk/debug/*.apk
 
       - name: Restaurar Keystore Fijo
         run: |
@@ -52,7 +64,7 @@ jobs:
           KEY_PASSWORD: "android"
         run: ./gradlew assembleRelease
 
-      - name: Upload APK Artifact
+      - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
@@ -70,7 +82,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('v{0}', steps.get_version.outputs.VERSION_NAME) }}
           name: "v${{ steps.get_version.outputs.VERSION_NAME }} - FabiDownloader"
           body: |
             Release generada automáticamente.
@@ -80,6 +92,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
+            app/build/outputs/apk/debug/*.apk
             app/build/outputs/apk/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
