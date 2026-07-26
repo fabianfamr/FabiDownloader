@@ -1,4 +1,4 @@
-package com.fabian.downloader.services
+package com.fabian.downloader.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.services.DownloadManagerService
+import com.fabian.downloader.services.StorageService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

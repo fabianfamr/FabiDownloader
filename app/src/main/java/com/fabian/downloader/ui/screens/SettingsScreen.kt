@@ -1,4 +1,7 @@
-package com.fabian.downloader.ui
+package com.fabian.downloader.ui.screens
+
+import com.fabian.downloader.ui.AppSettings
+import com.fabian.downloader.ui.components.*
 
 import android.net.Uri
 import android.widget.Toast

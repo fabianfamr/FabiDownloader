@@ -11,8 +11,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.fabian.downloader.configs.Config
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.MainActivity
-import com.fabian.downloader.ui.MainViewModel
-import com.fabian.downloader.ui.SharePopupScreen
+import com.fabian.downloader.ui.viewmodels.MainViewModel
+import com.fabian.downloader.ui.screens.SharePopupScreen
 import com.fabian.downloader.ui.theme.MyApplicationTheme
 
 class ShareReceiverActivity : ComponentActivity() {

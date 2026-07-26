@@ -1,4 +1,8 @@
-package com.fabian.downloader.ui
+package com.fabian.downloader.ui.screens
+
+import com.fabian.downloader.ui.AppSettings
+import com.fabian.downloader.ui.viewmodels.MainViewModel
+import com.fabian.downloader.ui.components.getPlatformIconAndColor
 
 import android.app.Application
 import android.content.Intent

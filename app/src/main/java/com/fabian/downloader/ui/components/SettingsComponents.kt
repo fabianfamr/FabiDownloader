@@ -1,4 +1,6 @@
-package com.fabian.downloader.ui
+package com.fabian.downloader.ui.components
+
+import com.fabian.downloader.ui.AppSettings
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background

@@ -66,7 +66,7 @@
             android:foregroundServiceType="dataSync" />
 
         <receiver
-            android:name=".services.DownloadActionReceiver"
+            android:name=".receivers.DownloadActionReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>

@@ -1,4 +1,4 @@
-package com.fabian.downloader.ui
+package com.fabian.downloader.ui.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*

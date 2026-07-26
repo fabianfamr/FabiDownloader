@@ -1,4 +1,4 @@
-package com.fabian.downloader.ui
+package com.fabian.downloader.ui.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
