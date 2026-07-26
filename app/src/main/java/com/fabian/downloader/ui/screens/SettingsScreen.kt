@@ -114,6 +114,13 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var dynamicColor by remember { mutableStateOf(AppSettings.dynamicColor) }
     var showAccentDialog by remember { mutableStateOf(false) }
 
+    var showCardStyleDialog by remember { mutableStateOf(false) }
+    var showAudioBitrateDialog by remember { mutableStateOf(false) }
+    var showQualityBadge by remember { mutableStateOf(AppSettings.showQualityBadge) }
+    var showRealtimeSpeedCard by remember { mutableStateOf(AppSettings.showRealtimeSpeedCard) }
+    var cleanTempOnCancel by remember { mutableStateOf(AppSettings.cleanTempOnCancel) }
+    var notifyBatchComplete by remember { mutableStateOf(AppSettings.notifyBatchComplete) }
+
     LaunchedEffect(maxConcurrent) { AppSettings.maxConcurrentDownloads = maxConcurrent }
     LaunchedEffect(autoDownload) { AppSettings.clipboardAction = if (autoDownload) "auto" else "disabled" }
     LaunchedEffect(wifiOnly) { AppSettings.dataSaverEnabled = wifiOnly }
@@ -129,6 +136,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     LaunchedEffect(confirmOnDelete) { AppSettings.confirmOnDelete = confirmOnDelete }
     LaunchedEffect(sponsorBlock) { AppSettings.sponsorBlockEnabled = sponsorBlock }
     LaunchedEffect(bypassGeo) { AppSettings.bypassGeo = bypassGeo }
+    LaunchedEffect(showQualityBadge) { AppSettings.showQualityBadge = showQualityBadge }
+    LaunchedEffect(showRealtimeSpeedCard) { AppSettings.showRealtimeSpeedCard = showRealtimeSpeedCard }
+    LaunchedEffect(cleanTempOnCancel) { AppSettings.cleanTempOnCancel = cleanTempOnCancel }
+    LaunchedEffect(notifyBatchComplete) { AppSettings.notifyBatchComplete = notifyBatchComplete }
 
     var contentVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -351,6 +362,32 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         )
     }
 
+    if (showCardStyleDialog) {
+        SelectionDialog(
+            title = "Estilo de tarjetas de descarga",
+            options = AppSettings.cardStyleOptions,
+            selectedOption = AppSettings.cardStyle,
+            onSelection = {
+                AppSettings.cardStyle = it
+                showCardStyleDialog = false
+            },
+            onDismiss = { showCardStyleDialog = false }
+        )
+    }
+
+    if (showAudioBitrateDialog) {
+        SelectionDialog(
+            title = "Calidad de audio (Bitrate)",
+            options = AppSettings.defaultAudioBitrateOptions,
+            selectedOption = AppSettings.defaultAudioBitrate,
+            onSelection = {
+                AppSettings.defaultAudioBitrate = it
+                showAudioBitrateDialog = false
+            },
+            onDismiss = { showAudioBitrateDialog = false }
+        )
+    }
+
     if (showCustomArgsDialog) {
         InputDialog(
             title = stringResource(R.string.settings_yt_args),
@@ -528,6 +565,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 showVideoFormatDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.AudioFile, "Calidad de audio por defecto", AppSettings.defaultAudioBitrate, C_accent, C_white, C_gray1, C_card2) {
+                                showAudioBitrateDialog = true
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsRow(Icons.Default.Download, stringResource(R.string.settings_threads), AppSettings.concurrentFragments, C_accent, C_white, C_gray1, C_card2) {
                                 showThreadsDialog = true
                             }
@@ -547,6 +588,32 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             ) {
                                 showEarlyStartThresholdDialog = true
                             }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(
+                                icon = Icons.Default.CleaningServices,
+                                title = "Limpiar temporales al cancelar",
+                                subtitle = "Elimina de inmediato archivos incompletos al cancelar",
+                                checked = cleanTempOnCancel,
+                                colorAccent = C_accent,
+                                textColor = C_white,
+                                grayColor = C_gray1,
+                                card2Color = C_card2,
+                                borderColor = C_border,
+                                bgColor = C_bg
+                            ) { cleanTempOnCancel = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(
+                                icon = Icons.Default.CheckCircle,
+                                title = "Notificar al finalizar lote",
+                                subtitle = "Avisa cuando termine de procesar todos los elementos de la cola",
+                                checked = notifyBatchComplete,
+                                colorAccent = C_accent,
+                                textColor = C_white,
+                                grayColor = C_gray1,
+                                card2Color = C_card2,
+                                borderColor = C_border,
+                                bgColor = C_bg
+                            ) { notifyBatchComplete = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
 
                             // Concurrent Downloads Stepper
@@ -651,6 +718,14 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                     showAccentDialog = true
                                 }
                             }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.ViewStream, "Estilo de lista de descargas", AppSettings.cardStyle, C_accent, C_white, C_gray1, C_card2) {
+                                showCardStyleDialog = true
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.HighQuality, "Mostrar insignia de calidad", "Muestra la resolución (1080p, 720p, etc.) en la tarjeta", showQualityBadge, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showQualityBadge = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.Speed, "Velocidad en vivo en la lista", "Muestra la velocidad actual de descarga en la tarjeta", showRealtimeSpeedCard, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showRealtimeSpeedCard = it }
                         }
                     }
 

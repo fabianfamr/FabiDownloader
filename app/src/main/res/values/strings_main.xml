@@ -14,11 +14,11 @@
     <string name="main_invalid_link">Por favor introduce un enlace válido</string>
     <string name="main_quick_download_title">Descarga con un Solo Toque</string>
     <string name="main_processing_link">Procesando enlace...</string>
-    <string name="main_downloading_mp3">🎵 Descargando audio MP3 en segundo plano...</string>
+    <string name="main_downloading_mp3">🎵 Descargando audio MP3...</string>
     <string name="main_only_mp3">Solo MP3</string>
-    <string name="main_downloading_m4a">🎵 Descargando audio M4A en segundo plano...</string>
+    <string name="main_downloading_m4a">🎵 Descargando audio M4A...</string>
     <string name="main_only_m4a">Solo M4A</string>
-    <string name="main_downloading_mp4">📹 Descargando video MP4 (720p) en segundo plano...</string>
+    <string name="main_downloading_mp4">📹 Descargando vídeo MP4 (720p)...</string>
     <string name="main_video_mp4">Video MP4</string>
     <string name="main_recent_downloads">Descargas Recientes</string>
     <string name="main_view_all">Ver todas</string>

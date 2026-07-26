@@ -75,7 +75,7 @@ class DownloadForegroundService : Service() {
         val channelIdToUse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Config.NOTIF_CHANNEL_PROGRESS else "default"
         return NotificationCompat.Builder(this, channelIdToUse)
             .setContentTitle(getString(R.string.app_name))
-            .setContentText("Descargando en segundo plano...")
+            .setContentText(getString(R.string.notif_foreground_service))
             .setSmallIcon(R.drawable.ic_cloud_download)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)

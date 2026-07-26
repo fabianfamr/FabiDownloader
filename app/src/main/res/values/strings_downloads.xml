@@ -105,6 +105,7 @@
     <string name="notif_action_pause">Pausar</string>
     <string name="notif_action_resume">Reanudar</string>
     <string name="notif_action_cancel">Cancelar</string>
+    <string name="notif_foreground_service">Descargas en curso...</string>
 
     <!-- Fallback titles -->
     <string name="downloads_default_title">Descarga</string>

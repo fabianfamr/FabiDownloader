@@ -18,7 +18,7 @@
     <string name="share_quick_download">Descarga Rápida</string>
     <string name="share_size">Tamaño:</string>
     <string name="share_started_title">¡Descarga iniciada!</string>
-    <string name="share_started_subtitle">Tu descarga ha comenzado en segundo plano</string>
+    <string name="share_started_subtitle">Tu descarga ha comenzado correctamente</string>
     <string name="share_not_now">Ahora no</string>
     <string name="share_view">Ver</string>
     <string name="share_size_mb">%1$.1f MB</string>

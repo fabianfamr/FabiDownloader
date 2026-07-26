@@ -113,10 +113,15 @@ class YtdlpDownloader {
 
             if (maxSpeed != Config.SPEED_UNLIMITED) {
                 val limit = when (maxSpeed) {
+                    Config.SPEED_100K -> Config.RATE_LIMIT_100K
+                    Config.SPEED_250K -> Config.RATE_LIMIT_250K
                     Config.SPEED_500K -> Config.RATE_LIMIT_500K
                     Config.SPEED_1M -> Config.RATE_LIMIT_1M
+                    Config.SPEED_2M -> Config.RATE_LIMIT_2M
                     Config.SPEED_5M -> Config.RATE_LIMIT_5M
                     Config.SPEED_10M -> Config.RATE_LIMIT_10M
+                    Config.SPEED_20M -> Config.RATE_LIMIT_20M
+                    Config.SPEED_50M -> Config.RATE_LIMIT_50M
                     else -> null
                 }
                 if (limit != null) {

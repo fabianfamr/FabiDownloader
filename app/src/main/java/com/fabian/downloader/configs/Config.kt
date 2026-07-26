@@ -106,16 +106,26 @@ object Config {
 
     // Speed Options
     const val SPEED_UNLIMITED = "Ilimitada"
+    const val SPEED_100K = "100 KB/s"
+    const val SPEED_250K = "250 KB/s"
     const val SPEED_500K = "500 KB/s"
     const val SPEED_1M = "1 MB/s"
+    const val SPEED_2M = "2 MB/s"
     const val SPEED_5M = "5 MB/s"
     const val SPEED_10M = "10 MB/s"
+    const val SPEED_20M = "20 MB/s"
+    const val SPEED_50M = "50 MB/s"
 
     // yt-dlp rate limit values
+    const val RATE_LIMIT_100K = "100K"
+    const val RATE_LIMIT_250K = "250K"
     const val RATE_LIMIT_500K = "500K"
     const val RATE_LIMIT_1M = "1M"
+    const val RATE_LIMIT_2M = "2M"
     const val RATE_LIMIT_5M = "5M"
     const val RATE_LIMIT_10M = "10M"
+    const val RATE_LIMIT_20M = "20M"
+    const val RATE_LIMIT_50M = "50M"
 
     // Bot Detection Patterns
     const val BOT_DETECTION_PATTERN = "Sign in to confirm you"

@@ -102,6 +102,10 @@
     <string name="notif_action_open">Open</string>
     <string name="notif_action_share">Share</string>
     <string name="notif_action_retry">Retry</string>
+    <string name="notif_action_pause">Pause</string>
+    <string name="notif_action_resume">Resume</string>
+    <string name="notif_action_cancel">Cancel</string>
+    <string name="notif_foreground_service">Downloads in progress...</string>
 
     <!-- Fallback titles -->
     <string name="downloads_default_title">Download</string>

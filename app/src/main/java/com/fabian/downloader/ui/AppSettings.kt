@@ -37,7 +37,20 @@ object AppSettings {
     val videoFormats = listOf(Config.FORMAT_MP4, Config.FORMAT_WEBM)
     val audioFormats = listOf(Config.FORMAT_MP3, Config.FORMAT_M4A, Config.FORMAT_OGG)
     val themeOptions = listOf("Sistema", "Claro", "Oscuro")
-    val speedOptions = listOf(Config.SPEED_500K, Config.SPEED_1M, Config.SPEED_5M, Config.SPEED_10M, Config.SPEED_UNLIMITED)
+    val speedOptions = listOf(
+        Config.SPEED_UNLIMITED,
+        Config.SPEED_100K,
+        Config.SPEED_250K,
+        Config.SPEED_500K,
+        Config.SPEED_1M,
+        Config.SPEED_2M,
+        Config.SPEED_5M,
+        Config.SPEED_10M,
+        Config.SPEED_20M,
+        Config.SPEED_50M
+    )
+    val cardStyleOptions = listOf("Detallado con miniatura", "Compacto en lista", "Minimalista")
+    val defaultAudioBitrateOptions = listOf("320 kbps (Máxima)", "256 kbps", "192 kbps (Estándar)", "128 kbps (Ligero)")
 
     private val _selectedQuality = mutableStateOf("720p")
     var selectedQuality: String
@@ -398,6 +411,54 @@ object AppSettings {
             else -> 0L // Desactivado
         }
 
+    private val _cardStyle = mutableStateOf("Detallado con miniatura")
+    var cardStyle: String
+        get() = _cardStyle.value
+        set(value) {
+            _cardStyle.value = value
+            saveString("cardStyle", value)
+        }
+
+    private val _showQualityBadge = mutableStateOf(true)
+    var showQualityBadge: Boolean
+        get() = _showQualityBadge.value
+        set(value) {
+            _showQualityBadge.value = value
+            saveBoolean("showQualityBadge", value)
+        }
+
+    private val _showRealtimeSpeedCard = mutableStateOf(true)
+    var showRealtimeSpeedCard: Boolean
+        get() = _showRealtimeSpeedCard.value
+        set(value) {
+            _showRealtimeSpeedCard.value = value
+            saveBoolean("showRealtimeSpeedCard", value)
+        }
+
+    private val _defaultAudioBitrate = mutableStateOf("192 kbps (Estándar)")
+    var defaultAudioBitrate: String
+        get() = _defaultAudioBitrate.value
+        set(value) {
+            _defaultAudioBitrate.value = value
+            saveString("defaultAudioBitrate", value)
+        }
+
+    private val _notifyBatchComplete = mutableStateOf(true)
+    var notifyBatchComplete: Boolean
+        get() = _notifyBatchComplete.value
+        set(value) {
+            _notifyBatchComplete.value = value
+            saveBoolean("notifyBatchComplete", value)
+        }
+
+    private val _cleanTempOnCancel = mutableStateOf(true)
+    var cleanTempOnCancel: Boolean
+        get() = _cleanTempOnCancel.value
+        set(value) {
+            _cleanTempOnCancel.value = value
+            saveBoolean("cleanTempOnCancel", value)
+        }
+
     fun init(context: Context) {
         prefs = context.getSharedPreferences("fabi_downloader_prefs", Context.MODE_PRIVATE)
         
@@ -438,6 +499,12 @@ object AppSettings {
         _dynamicColor.value = prefs.getBoolean("dynamicColor", true)
         _accentColorName.value = prefs.getString("accentColorName", "Azul Eléctrico") ?: "Azul Eléctrico"
         _selectedStorageMargin.value = prefs.getString("selectedStorageMargin", "200 MB") ?: "200 MB"
+        _cardStyle.value = prefs.getString("cardStyle", "Detallado con miniatura") ?: "Detallado con miniatura"
+        _showQualityBadge.value = prefs.getBoolean("showQualityBadge", true)
+        _showRealtimeSpeedCard.value = prefs.getBoolean("showRealtimeSpeedCard", true)
+        _defaultAudioBitrate.value = prefs.getString("defaultAudioBitrate", "192 kbps (Estándar)") ?: "192 kbps (Estándar)"
+        _notifyBatchComplete.value = prefs.getBoolean("notifyBatchComplete", true)
+        _cleanTempOnCancel.value = prefs.getBoolean("cleanTempOnCancel", true)
     }
 
     private fun saveString(key: String, value: String) {
