@@ -35,19 +35,22 @@ jobs:
       - name: Create empty .env file
         run: touch .env
 
-      - name: Generar Keystore temporal
+      - name: Restaurar Keystore Fijo
         run: |
-          keytool -genkey -v -keystore app/keystore.jks \
-            -alias release_key -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass "ProdSecurePass2026" -keypass "ProdSecurePass2026" \
-            -dname "CN=FabiDownloader, O=Fabi, C=VE"
+          if [ -f "debug.keystore.base64" ]; then
+            base64 -d debug.keystore.base64 > app/keystore.jks
+          elif [ -f "release.keystore" ]; then
+            cp release.keystore app/keystore.jks
+          else
+            cp debug.keystore app/keystore.jks
+          fi
 
       - name: Build Release APK
         env:
           KEYSTORE_PATH: "keystore.jks"
-          STORE_PASSWORD: "ProdSecurePass2026"
-          KEY_ALIAS: "release_key"
-          KEY_PASSWORD: "ProdSecurePass2026"
+          STORE_PASSWORD: "android"
+          KEY_ALIAS: "androiddebugkey"
+          KEY_PASSWORD: "android"
         run: ./gradlew assembleRelease
 
       - name: Upload APK Artifact
