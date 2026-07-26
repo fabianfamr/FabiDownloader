@@ -390,8 +390,8 @@ object AppSettings {
             saveString("accentColorName", value)
         }
 
-    val storageMarginOptions = listOf("Desactivado", "100 MB", "200 MB", "500 MB", "1 GB", "2 GB")
-    private val _selectedStorageMargin = mutableStateOf("200 MB")
+    val storageMarginOptions = listOf("Desactivado", "1 GB", "2 GB", "3 GB", "5 GB", "10 GB")
+    private val _selectedStorageMargin = mutableStateOf("1 GB")
     val selectedStorageMarginState: androidx.compose.runtime.State<String> get() = _selectedStorageMargin
     var selectedStorageMargin: String
         get() = _selectedStorageMargin.value
@@ -403,11 +403,11 @@ object AppSettings {
 
     val storageMarginBytes: Long
         get() = when (selectedStorageMargin) {
-            "100 MB" -> 100L * 1024L * 1024L
-            "200 MB" -> 200L * 1024L * 1024L
-            "500 MB" -> 500L * 1024L * 1024L
             "1 GB" -> 1024L * 1024L * 1024L
             "2 GB" -> 2L * 1024L * 1024L * 1024L
+            "3 GB" -> 3L * 1024L * 1024L * 1024L
+            "5 GB" -> 5L * 1024L * 1024L * 1024L
+            "10 GB" -> 10L * 1024L * 1024L * 1024L
             else -> 0L // Desactivado
         }
 
@@ -498,7 +498,8 @@ object AppSettings {
         _autoRetry.value = prefs.getBoolean("autoRetry", false)
         _dynamicColor.value = prefs.getBoolean("dynamicColor", true)
         _accentColorName.value = prefs.getString("accentColorName", "Azul Eléctrico") ?: "Azul Eléctrico"
-        _selectedStorageMargin.value = prefs.getString("selectedStorageMargin", "200 MB") ?: "200 MB"
+        val savedMargin = prefs.getString("selectedStorageMargin", "1 GB") ?: "1 GB"
+        _selectedStorageMargin.value = if (savedMargin in storageMarginOptions) savedMargin else "1 GB"
         _cardStyle.value = prefs.getString("cardStyle", "Detallado con miniatura") ?: "Detallado con miniatura"
         _showQualityBadge.value = prefs.getBoolean("showQualityBadge", true)
         _showRealtimeSpeedCard.value = prefs.getBoolean("showRealtimeSpeedCard", true)
