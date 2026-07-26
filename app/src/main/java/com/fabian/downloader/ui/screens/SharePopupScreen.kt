@@ -52,6 +52,13 @@ data class DownloadOption(
     val sizeStr: String = ""
 )
 
+data class Quadruple<A, B, C, D>(
+    val first: A,
+    val second: B,
+    val third: C,
+    val fourth: D
+)
+
 fun extractUrl(text: String): String {
     val regex = Regex("""https?://[^\s]+""")
     val match = regex.find(text)
@@ -74,6 +81,7 @@ fun SharePopupScreen(
     var thumbnailUrl by remember { mutableStateOf<String?>(null) }
     var formatSizes by remember { mutableStateOf<Map<String, Double>?>(null) }
     var platformInfoState by remember { mutableStateOf<Triple<String, String, String>?>(null) } // platformId, platformName, brandColorHex
+    var extractedPlaylist by remember { mutableStateOf<com.fabian.downloader.services.ExtractionService.ExtractedPlaylist?>(null) }
     
     var isLoading by remember { mutableStateOf(true) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
@@ -92,6 +100,18 @@ fun SharePopupScreen(
         val service = com.fabian.downloader.services.sites.SiteServiceProvider.getServiceForUrl(cleanUrl)
         platformInfoState = Triple(service.siteId, service.displayName, service.brandColorHex)
         
+        // Try playlist extraction if URL looks like playlist or multi-post
+        val jobPlaylist = launch {
+            try {
+                val playlist = viewModel.extractPlaylist(cleanUrl)
+                if (playlist != null && playlist.items.isNotEmpty()) {
+                    extractedPlaylist = playlist
+                }
+            } catch (e: Exception) {
+                Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error extracting playlist", e)
+            }
+        }
+
         // Parallel extraction: Title/Icon (FAST) and Sizes (SLOW)
         val jobTitleAndIcon = launch {
             try {
@@ -117,9 +137,10 @@ fun SharePopupScreen(
         }
         
         try {
-            // Wait for Title and Icon to load so we can transition out of loading state quickly
+            // Wait for Playlist check and Title/Icon to load
+            jobPlaylist.join()
             jobTitleAndIcon.join()
-            if (title == null) {
+            if (title == null && extractedPlaylist == null) {
                 title = if (service.siteId == "generic") ctx.getString(R.string.share_direct_link) else ctx.getString(R.string.share_video_of, service.displayName)
             }
             isLoading = false
@@ -250,12 +271,12 @@ fun SharePopupScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // --- CONTENT SWITCHER (LOADING, ERROR, SUCCESS) ---
+            // --- CONTENT SWITCHER (LOADING, ERROR, SUCCESS, PLAYLIST) ---
             Crossfade(
-                targetState = Triple(isLoading, errorMsg, extractedVideo),
+                targetState = Quadruple(isLoading, errorMsg, extractedPlaylist, extractedVideo),
                 label = "PopupContentState"
             ) { state ->
-                val (loading, error, video) = state
+                val (loading, error, playlist, video) = state
                 
                 when {
                     loading -> {
@@ -265,18 +286,15 @@ fun SharePopupScreen(
                         ErrorStateView(
                             errorMsg = error,
                             onRetry = {
-                                // Trigger retry by reloading
                                 isLoading = true
                                 errorMsg = null
                                 kotlin.concurrent.thread {
                                     try {
-                                        // Simple run block inside Thread to trigger launched effect re-run
                                         errorMsg = null
                                     } catch(e: Exception) {}
                                 }
                             },
                             onQuickDownload = {
-                                // Fallback to immediate download using general placeholders
                                 val allOptions = musicOptions + videoOptions
                                 val selected = allOptions.find { it.id == selectedOptionId } ?: musicOptions.first()
                                 AppSettings.lastDownloadedOptionId = selected.id
@@ -288,6 +306,15 @@ fun SharePopupScreen(
                                     thumbnailUrl = null
                                 )
                                 onClose()
+                            }
+                        )
+                    }
+                    playlist != null -> {
+                        com.fabian.downloader.ui.components.PlaylistBatchView(
+                            playlist = playlist,
+                            onStartBatchDownload = { selectedItems, quality, format ->
+                                viewModel.downloadBatch(selectedItems, quality, format)
+                                showDownloadStartedDialog = true
                             }
                         )
                     }

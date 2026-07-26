@@ -52,7 +52,25 @@ class MainViewModel(application: Application, private val database: AppDatabase)
         }
     }
 
+    suspend fun extractPlaylist(url: String): ExtractionService.ExtractedPlaylist? {
+        return extractionService.extractPlaylist(url)
+    }
+
     fun downloadVideo(url: String, quality: String = "720p", format: String = Config.FORMAT_MP4, title: String? = null, thumbnailUrl: String? = null) {
         downloadManager.startDownload(url, quality, format, title, thumbnailUrl)
+    }
+
+    fun downloadBatch(items: List<ExtractionService.PlaylistItem>, quality: String = "720p", format: String = Config.FORMAT_MP4) {
+        viewModelScope.launch {
+            items.forEach { item ->
+                downloadManager.startDownload(
+                    rawUrl = item.url,
+                    quality = quality,
+                    format = format,
+                    passedTitle = item.title,
+                    passedThumbnailUrl = item.thumbnailUrl.ifEmpty { null }
+                )
+            }
+        }
     }
 }

@@ -254,4 +254,65 @@ object YtdlpParser {
         }
         return bestAudioSize
     }
+
+    fun parsePlaylist(json: JSONObject, defaultAuthor: String = "Desconocido", defaultTitle: String = "Lista de reproducción"): com.fabian.downloader.services.ExtractionService.ExtractedPlaylist? {
+        val entriesArray = json.optJSONArray("entries") ?: return null
+        if (entriesArray.length() == 0) return null
+
+        val rawTitle = json.optString("title", "").ifEmpty { defaultTitle }
+        val author = json.optString("uploader", json.optString("channel", json.optString("uploader_id", defaultAuthor))).ifEmpty { defaultAuthor }
+        
+        val items = mutableListOf<com.fabian.downloader.services.ExtractionService.PlaylistItem>()
+        for (i in 0 until entriesArray.length()) {
+            val entry = entriesArray.optJSONObject(i) ?: continue
+            val id = entry.optString("id", "")
+            var itemTitle = entry.optString("title", entry.optString("name", "Vídeo #${i + 1}"))
+            itemTitle = cleanTitleOfSuffixes(itemTitle)
+            
+            var itemUrl = entry.optString("url", entry.optString("webpage_url", ""))
+            if (itemUrl.isEmpty() && id.isNotEmpty()) {
+                itemUrl = "https://www.youtube.com/watch?v=$id"
+            }
+            if (itemUrl.isEmpty()) continue
+
+            val durationSec = entry.optDouble("duration", 0.0).toInt()
+            val durationText = if (durationSec > 0) {
+                val mins = durationSec / 60
+                val secs = durationSec % 60
+                String.format(java.util.Locale.US, "%d:%02d", mins, secs)
+            } else ""
+
+            val uploader = entry.optString("uploader", entry.optString("channel", author))
+            
+            var thumb = entry.optString("thumbnail", "")
+            if (thumb.isEmpty()) {
+                val thumbsArr = entry.optJSONArray("thumbnails")
+                if (thumbsArr != null && thumbsArr.length() > 0) {
+                    val lastThumb = thumbsArr.optJSONObject(thumbsArr.length() - 1)
+                    thumb = lastThumb?.optString("url", "") ?: ""
+                }
+            }
+            if (thumb.isEmpty() && id.length == 11) {
+                thumb = com.fabian.downloader.configs.Config.YT_THUMBNAIL_URL.format(id)
+            }
+
+            items.add(
+                com.fabian.downloader.services.ExtractionService.PlaylistItem(
+                    id = id.ifEmpty { itemUrl },
+                    title = itemTitle,
+                    url = itemUrl,
+                    durationText = durationText,
+                    uploader = uploader,
+                    thumbnailUrl = thumb
+                )
+            )
+        }
+
+        if (items.isEmpty()) return null
+        return com.fabian.downloader.services.ExtractionService.ExtractedPlaylist(
+            title = rawTitle,
+            author = author,
+            items = items
+        )
+    }
 }

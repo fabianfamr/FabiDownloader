@@ -74,4 +74,45 @@ class YtdlpExtractor {
             return@withContext null
         }
     }
+
+    suspend fun obtenerDetallesPlaylist(playlistUrl: String): JSONObject? = withContext(Dispatchers.IO) {
+        com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
+        val isYoutube = playlistUrl.contains("youtube.com") || playlistUrl.contains("youtu.be")
+        
+        val request = YoutubeDLRequest(playlistUrl).apply {
+            addOption("--dump-single-json")
+            addOption("--flat-playlist")
+            
+            val cookiesFile = java.io.File(com.fabian.downloader.MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
+            if (cookiesFile.exists() && cookiesFile.length() > 0) {
+                addOption("--cookies", cookiesFile.absolutePath)
+            }
+            
+            addOption("--no-cache-dir")
+            
+            if (isYoutube) {
+                addOption("--extractor-args", "youtube:player-client=ios,android")
+                addOption("--user-agent", Config.UA_DESKTOP)
+            }
+            
+            addOption("--referer", Config.REFERER_DEFAULT)
+            addOption("--force-ipv4")
+            addOption("--no-check-certificate")
+            addOption("--no-call-home")
+            addOption("--geo-bypass")
+            addOption("--quiet")
+            addOption("--no-warnings")
+            addOption("--ignore-errors")
+            addOption("--no-mtime")
+        }
+
+        try {
+            val response = YoutubeDL.getInstance().execute(request)
+            val jsonRaw = response.out ?: return@withContext null
+            JSONObject(jsonRaw)
+        } catch (e: Exception) {
+            Log.e(Config.TAG_YTDLP_EXTRACTOR, "Error extracting playlist info: ${e.message}", e)
+            null
+        }
+    }
 }

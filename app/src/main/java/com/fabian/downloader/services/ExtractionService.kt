@@ -24,6 +24,24 @@ class ExtractionService {
         val platformName: String = "Enlace Directo",
         val brandColorHex: String = "#607D8B"
     )
+
+    data class PlaylistItem(
+        val id: String,
+        val title: String,
+        val url: String,
+        val durationText: String = "",
+        val uploader: String = "",
+        val thumbnailUrl: String = ""
+    )
+
+    data class ExtractedPlaylist(
+        val title: String,
+        val author: String,
+        val items: List<PlaylistItem>,
+        val platformId: String = "generic",
+        val platformName: String = "Lista de reproducción",
+        val brandColorHex: String = "#607D8B"
+    )
     
     private fun extractYoutubeVideoId(url: String): String? {
         val pattern = "(?:youtube\\.com/(?:[^/]+/\\S+/|(?:v|e(?:mbed)?)/|shorts/|watch\\?v=|\\S*?[?&]v=)|youtu\\.be/)([^\"&?/\\s]{11})"
@@ -209,6 +227,32 @@ class ExtractionService {
         private val titleCache = java.util.concurrent.ConcurrentHashMap<String, String>()
         private val thumbnailCache = java.util.concurrent.ConcurrentHashMap<String, String?>()
         private val sizeCache = java.util.concurrent.ConcurrentHashMap<String, Map<String, Double>>()
+        private val playlistCache = java.util.concurrent.ConcurrentHashMap<String, ExtractedPlaylist>()
+    }
+
+    suspend fun extractPlaylist(url: String): ExtractedPlaylist? = withContext(Dispatchers.IO) {
+        val cleanUrl = url.trim()
+        playlistCache[cleanUrl]?.let { return@withContext it }
+
+        val service = SiteServiceProvider.getServiceForUrl(cleanUrl)
+        val ytdlpExtractor = YtdlpExtractor()
+        
+        try {
+            val json = ytdlpExtractor.obtenerDetallesPlaylist(cleanUrl) ?: return@withContext null
+            val playlist = com.fabian.downloader.utils.YtdlpParser.parsePlaylist(json, service.displayName)
+            if (playlist != null) {
+                val updatedPlaylist = playlist.copy(
+                    platformId = service.siteId,
+                    platformName = service.displayName,
+                    brandColorHex = service.brandColorHex
+                )
+                playlistCache[cleanUrl] = updatedPlaylist
+                return@withContext updatedPlaylist
+            }
+        } catch (e: Exception) {
+            Log.e(Config.TAG_EXTRACTION_SERVICE, "Error extracting playlist for $cleanUrl", e)
+        }
+        return@withContext null
     }
 
     suspend fun extractTitle(url: String, downloadId: Long? = null): String = withContext(Dispatchers.IO) {
