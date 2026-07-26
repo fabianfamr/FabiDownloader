@@ -15,7 +15,6 @@ captures
 .cxx
 local.properties
 .env
-debug.keystore
 assets/.aistudio
 metadata.json
 *.py
