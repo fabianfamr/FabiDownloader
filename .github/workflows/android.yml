@@ -38,7 +38,7 @@ jobs:
       - name: Restaurar Keystore Fijo
         run: |
           if [ -f "debug.keystore.base64" ]; then
-            base64 -d debug.keystore.base64 > app/keystore.jks
+            tr -d '\n\r' < debug.keystore.base64 | base64 -d > app/keystore.jks
           elif [ -f "release.keystore" ]; then
             cp release.keystore app/keystore.jks
           else
