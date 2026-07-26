@@ -41,8 +41,11 @@ jobs:
             tr -d '\n\r' < debug.keystore.base64 | base64 -d > app/keystore.jks
           elif [ -f "release.keystore" ]; then
             cp release.keystore app/keystore.jks
-          else
+          elif [ -f "debug.keystore" ]; then
             cp debug.keystore app/keystore.jks
+          else
+            echo "No keystore found, generating a temporary one..."
+            keytool -genkey -v -keystore app/keystore.jks -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           fi
 
       - name: Build Release APK
