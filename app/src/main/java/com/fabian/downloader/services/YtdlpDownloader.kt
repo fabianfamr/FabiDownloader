@@ -1,6 +1,7 @@
 package com.fabian.downloader.services
 
-import com.fabian.downloader.utils.Config
+import com.fabian.downloader.configs.Config
+import com.fabian.downloader.managers.BatteryOptimizerManager
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
 import android.util.Log

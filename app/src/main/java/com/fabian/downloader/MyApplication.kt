@@ -3,7 +3,7 @@ package com.fabian.downloader
 import android.app.Application
 import android.util.Log
 import androidx.core.content.edit
-import com.fabian.downloader.utils.Config
+import com.fabian.downloader.configs.Config
 import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
 import kotlinx.coroutines.CoroutineScope

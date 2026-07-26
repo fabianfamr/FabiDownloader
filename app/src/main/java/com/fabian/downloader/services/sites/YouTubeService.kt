@@ -1,5 +1,6 @@
 package com.fabian.downloader.services.sites
 
+import com.fabian.downloader.configs.Config
 import com.yausername.youtubedl_android.YoutubeDLRequest
 
 class YouTubeService : BaseSiteService() {
@@ -17,7 +18,7 @@ class YouTubeService : BaseSiteService() {
         if (customUa.isNotEmpty()) {
             request.addOption("--user-agent", customUa)
         } else {
-            request.addOption("--user-agent", com.fabian.downloader.utils.Config.UA_DEFAULT_CHROME_WINDOWS)
+            request.addOption("--user-agent", Config.UA_DEFAULT_CHROME_WINDOWS)
         }
         
         request.addOption("--no-check-certificate")
@@ -34,7 +35,7 @@ class YouTubeService : BaseSiteService() {
         if (customUa.isNotEmpty()) {
             request.addOption("--user-agent", customUa)
         } else {
-            request.addOption("--user-agent", com.fabian.downloader.utils.Config.UA_DEFAULT_CHROME_WINDOWS)
+            request.addOption("--user-agent", Config.UA_DEFAULT_CHROME_WINDOWS)
         }
         
         request.addOption("--no-check-certificate")

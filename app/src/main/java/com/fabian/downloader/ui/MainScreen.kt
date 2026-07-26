@@ -37,6 +37,7 @@ import kotlin.math.sin
 import com.fabian.downloader.ui.theme.*
 import kotlinx.coroutines.delay
 import com.fabian.downloader.BuildConfig
+import com.fabian.downloader.configs.Config
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -142,7 +143,7 @@ fun MainScreen(
                     file
                 )
                 val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) com.fabian.downloader.utils.Config.MIME_VIDEO else com.fabian.downloader.utils.Config.MIME_AUDIO)
+                    setDataAndType(uri, if (record.format == Config.FORMAT_MP4) Config.MIME_VIDEO else Config.MIME_AUDIO)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 ctx.startActivity(intent)
@@ -712,7 +713,7 @@ fun MainScreen(
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = androidx.compose.ui.layout.ContentScale.Crop
                                         )
-                                    } else if (record.isCompleted && record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) {
+                                    } else if (record.isCompleted && record.format == Config.FORMAT_MP4) {
                                         val localFile = remember(record.id) {
                                             com.fabian.downloader.utils.PathUtils.getDownloadFile(
                                                 ctx,
@@ -752,14 +753,14 @@ fun MainScreen(
                                         modifier = Modifier.padding(top = 2.dp)
                                     ) {
                                         Surface(
-                                            color = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) Color(0x112ECC71) else C_accentDim,
+                                            color = if (record.format == Config.FORMAT_MP4) Color(0x112ECC71) else C_accentDim,
                                             shape = RoundedCornerShape(6.dp)
                                         ) {
                                             Text(
                                                 text = record.format,
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.Bold,
-                                                color = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) C_green else C_accent,
+                                                color = if (record.format == Config.FORMAT_MP4) C_green else C_accent,
                                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                             )
                                         }

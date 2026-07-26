@@ -1,6 +1,6 @@
 package com.fabian.downloader.network
 
-import com.fabian.downloader.utils.Config
+import com.fabian.downloader.configs.Config
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 

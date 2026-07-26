@@ -2,6 +2,7 @@ package com.fabian.downloader.utils
 
 import android.content.Context
 import android.os.Environment
+import com.fabian.downloader.configs.Config
 import java.io.File
 
 @Suppress("DEPRECATION")

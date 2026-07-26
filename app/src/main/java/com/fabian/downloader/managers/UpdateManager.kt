@@ -1,7 +1,7 @@
-package com.fabian.downloader.utils
+package com.fabian.downloader.managers
 
 import android.util.Log
-import com.fabian.downloader.utils.Config
+import com.fabian.downloader.configs.Config
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject

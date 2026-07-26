@@ -1,6 +1,6 @@
 package com.fabian.downloader.services
 
-import com.fabian.downloader.utils.Config
+import com.fabian.downloader.configs.Config
 import android.util.Log
 import com.fabian.downloader.services.sites.SiteServiceProvider
 import kotlinx.coroutines.Dispatchers

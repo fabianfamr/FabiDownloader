@@ -1,4 +1,4 @@
-package com.fabian.downloader.utils
+package com.fabian.downloader.configs
 
 object Config {
     // App Identity
@@ -31,9 +31,7 @@ object Config {
     // Files
     const val COOKIES_FILE_NAME = "cookies.txt"
 
-    // =============================================================
     // Log Tags
-    // =============================================================
     const val TAG_DOWNLOAD_MANAGER = "DownloadManager"
     const val TAG_EXTRACTION_SERVICE = "ExtractionService"
     const val TAG_YTDLP_DOWNLOADER = "YtdlpDownloader"
@@ -45,11 +43,7 @@ object Config {
     const val TAG_PATH_UTILS = "PathUtils"
     const val TAG_YT_DLP = "yt-dlp"
 
-    // =============================================================
-    // Download Status Strings (persisted in DB, compared with ==/startsWith)
-    // IMPORTANT: Do NOT localize these — they are stored in the database
-    // and used as markers for state machine logic.
-    // =============================================================
+    // Download Status Strings
     const val STATUS_FAILED_PREFIX = "Fallo: "
     const val STATUS_QUEUED = "En cola..."
     const val STATUS_WAITING = "Esperando..."
@@ -60,14 +54,12 @@ object Config {
     const val STATUS_FINALIZING = "Finalizando..."
     const val STATUS_ZERO_MB = "0 MB"
 
-    // Fallback values for media metadata parser (compared with == in ExtractionService)
+    // Fallback values for media metadata parser
     const val STATUS_UNKNOWN = "Desconocido"
     const val DEFAULT_TITLE = "Video sin título"
     const val DEFAULT_AUTHOR_INSTAGRAM = "Instagram User"
 
-    // =============================================================
-    // Media Formats (technical identifiers, not user-facing)
-    // =============================================================
+    // Media Formats
     const val FORMAT_MP4 = "MP4"
     const val FORMAT_MP3 = "MP3"
     const val FORMAT_M4A = "M4A"
@@ -79,9 +71,7 @@ object Config {
     const val MIME_AUDIO = "audio/*"
     const val MIME_VIDEO = "video/*"
 
-    // =============================================================
     // Intent Extras and Actions
-    // =============================================================
     const val EXTRA_DOWNLOAD_ID = "EXTRA_DOWNLOAD_ID"
     const val EXTRA_NAVIGATE_TO_DOWNLOADS = "navigate_to_downloads"
     const val EXTRA_INITIAL_PAGE = "initialPage"
@@ -93,38 +83,28 @@ object Config {
     const val ACTION_RESUME = "com.fabian.downloader.ACTION_RESUME"
     const val ACTION_CANCEL = "com.fabian.downloader.ACTION_CANCEL"
 
-    // =============================================================
     // Notification Channel IDs
-    // =============================================================
     const val NOTIF_CHANNEL_PROGRESS = "downloads_channel_progress"
     const val NOTIF_CHANNEL_STATUS = "downloads_channel_status"
     const val NOTIF_GROUP = "downloads_group"
 
-    // =============================================================
     // Database Names
-    // =============================================================
     const val DB_NAME = "downloader-database"
     const val DB_TABLE_DOWNLOADS = "download_records"
     const val DB_TABLE_SEARCH_HISTORY = "search_history"
 
-    // =============================================================
     // Storage Paths
-    // =============================================================
     const val PATH_VIDEO_SUBFOLDER = "FabiDownloader/video"
     const val PATH_AUDIO_SUBFOLDER = "FabiDownloader/audio"
     const val PATH_VIDEO_SUBFOLDER_ALT = "Fabidownloader/video"
     const val PATH_AUDIO_SUBFOLDER_ALT = "Fabidownloader/audio"
     const val PATH_DOWNLOAD_LOCATION_DEFAULT = "Downloads/FabiDownloader"
 
-    // =============================================================
-    // UI Placeholder Titles (compared with ==, used as state markers)
-    // =============================================================
+    // UI Placeholder Titles
     const val TITLE_PROCESSING_LINK = "Procesando enlace..."
     const val TITLE_ANALYZING_SHARED = "Analizando enlace compartido..."
 
-    // =============================================================
-    // Speed Options (used in AppSettings + YtdlpDownloader)
-    // =============================================================
+    // Speed Options
     const val SPEED_UNLIMITED = "Ilimitada"
     const val SPEED_500K = "500 KB/s"
     const val SPEED_1M = "1 MB/s"
@@ -137,18 +117,14 @@ object Config {
     const val RATE_LIMIT_5M = "5M"
     const val RATE_LIMIT_10M = "10M"
 
-    // =============================================================
-    // Bot Detection Patterns (yt-dlp error messages)
-    // =============================================================
+    // Bot Detection Patterns
     const val BOT_DETECTION_PATTERN = "Sign in to confirm you"
     const val BOT_DETECTION_LOGIN = "login"
 
-    // =============================================================
-    // Valid media file extensions (used to find downloaded file)
-    // =============================================================
+    // Valid media file extensions
     val VALID_EXTENSIONS = listOf("mp4", "mp3", "m4a", "webm", "ogg", "wav", "mkv")
 
-    // Windows-reserved filenames (sanitization safety, for cloud sync)
+    // Windows-reserved filenames
     val RESERVED_FILENAMES = setOf(
         "CON", "PRN", "AUX", "NUL",
         "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",

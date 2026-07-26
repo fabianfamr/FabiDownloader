@@ -11,7 +11,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.fabian.downloader.services.DownloadActionReceiver
 import com.fabian.downloader.R
-import com.fabian.downloader.utils.Config
+import com.fabian.downloader.configs.Config
 import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

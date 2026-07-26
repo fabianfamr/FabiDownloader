@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.fabian.downloader.configs.Config
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.MainActivity
 import com.fabian.downloader.ui.MainViewModel
@@ -89,8 +90,8 @@ class ShareReceiverActivity : ComponentActivity() {
                     onClose = { finish() },
                     onNavigateToDownloads = {
                         val intent = Intent(this@ShareReceiverActivity, MainActivity::class.java).apply {
-                            putExtra(com.fabian.downloader.utils.Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
-                            putExtra(com.fabian.downloader.utils.Config.EXTRA_INITIAL_PAGE, 1) // Go to "En progreso" tab
+                            putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
+                            putExtra(Config.EXTRA_INITIAL_PAGE, 1) // Go to "En progreso" tab
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                         }
                         startActivity(intent)

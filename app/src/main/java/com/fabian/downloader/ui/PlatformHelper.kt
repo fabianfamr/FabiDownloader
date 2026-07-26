@@ -4,11 +4,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.fabian.downloader.configs.Config
 
 fun getPlatformIconAndColor(url: String, format: String): Pair<ImageVector, Color> {
     val lowerUrl = url.lowercase()
     val upperFormat = format.uppercase()
-    val isAudio = upperFormat.contains(com.fabian.downloader.utils.Config.FORMAT_MP3) || upperFormat.contains(com.fabian.downloader.utils.Config.FORMAT_M4A) || upperFormat.contains(com.fabian.downloader.utils.Config.FORMAT_OGG) || upperFormat.contains(com.fabian.downloader.utils.Config.FORMAT_WAV)
+    val isAudio = upperFormat.contains(Config.FORMAT_MP3) || upperFormat.contains(Config.FORMAT_M4A) || upperFormat.contains(Config.FORMAT_OGG) || upperFormat.contains(Config.FORMAT_WAV)
     
     return when {
         lowerUrl.contains("youtube.com") || lowerUrl.contains("youtu.be") || lowerUrl.contains("shorts") -> 

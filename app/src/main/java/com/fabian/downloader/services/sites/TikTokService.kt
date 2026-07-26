@@ -1,5 +1,6 @@
 package com.fabian.downloader.services.sites
 
+import com.fabian.downloader.configs.Config
 import com.yausername.youtubedl_android.YoutubeDLRequest
 
 class TikTokService : BaseSiteService() {
@@ -11,11 +12,11 @@ class TikTokService : BaseSiteService() {
 
     override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         super.customizeExtractorRequest(request, url)
-        request.addOption("--user-agent", com.fabian.downloader.utils.Config.UA_TIKTOK_MOBILE)
+        request.addOption("--user-agent", Config.UA_TIKTOK_MOBILE)
     }
 
     override fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
         super.customizeDownloaderRequest(request, url)
-        request.addOption("--user-agent", com.fabian.downloader.utils.Config.UA_TIKTOK_MOBILE)
+        request.addOption("--user-agent", Config.UA_TIKTOK_MOBILE)
     }
 }

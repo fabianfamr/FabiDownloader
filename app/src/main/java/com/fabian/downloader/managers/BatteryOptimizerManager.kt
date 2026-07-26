@@ -1,4 +1,4 @@
-package com.fabian.downloader.services
+package com.fabian.downloader.managers
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -6,8 +6,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import android.util.Log
+import com.fabian.downloader.configs.Config
+import com.fabian.downloader.services.DownloadManagerService
 import com.fabian.downloader.ui.AppSettings
-import com.fabian.downloader.utils.Config
 
 class BatteryOptimizerManager private constructor(private val context: Context) {
 

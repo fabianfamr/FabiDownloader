@@ -3,6 +3,7 @@ package com.fabian.downloader.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.fabian.downloader.configs.Config
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.database.SearchHistoryRecord
 import com.fabian.downloader.network.ConnectionService
@@ -51,7 +52,7 @@ class MainViewModel(application: Application, private val database: AppDatabase)
         }
     }
 
-    fun downloadVideo(url: String, quality: String = "720p", format: String = com.fabian.downloader.utils.Config.FORMAT_MP4, title: String? = null, thumbnailUrl: String? = null) {
+    fun downloadVideo(url: String, quality: String = "720p", format: String = Config.FORMAT_MP4, title: String? = null, thumbnailUrl: String? = null) {
         downloadManager.startDownload(url, quality, format, title, thumbnailUrl)
     }
 }

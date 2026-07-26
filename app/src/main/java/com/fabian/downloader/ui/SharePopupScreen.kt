@@ -36,7 +36,7 @@ import coil.compose.AsyncImage
 import com.fabian.downloader.R
 import androidx.compose.ui.res.painterResource
 import com.fabian.downloader.services.ExtractionService
-import com.fabian.downloader.utils.Config
+import com.fabian.downloader.configs.Config
 import kotlinx.coroutines.launch
 
 data class DownloadOption(

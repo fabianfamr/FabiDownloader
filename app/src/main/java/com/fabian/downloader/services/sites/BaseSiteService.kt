@@ -1,7 +1,7 @@
 package com.fabian.downloader.services.sites
 
 import android.util.Log
-import com.fabian.downloader.utils.Config
+import com.fabian.downloader.configs.Config
 import com.fabian.downloader.services.InfoMedia
 import com.fabian.downloader.services.YtdlpDownloader
 import com.fabian.downloader.services.YtdlpExtractor

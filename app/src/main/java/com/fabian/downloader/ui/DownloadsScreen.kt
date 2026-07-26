@@ -1,5 +1,6 @@
 package com.fabian.downloader.ui
 
+import com.fabian.downloader.configs.Config
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
@@ -108,7 +109,7 @@ fun DownloadsScreen(
                 val uri = FileProvider.getUriForFile(ctx, "com.fabian.downloader.fileprovider", file)
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     putExtra(Intent.EXTRA_STREAM, uri)
-                    type = if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) com.fabian.downloader.utils.Config.MIME_VIDEO else com.fabian.downloader.utils.Config.MIME_AUDIO
+                    type = if (record.format == Config.FORMAT_MP4) Config.MIME_VIDEO else Config.MIME_AUDIO
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 ctx.startActivity(Intent.createChooser(intent, ctx.getString(R.string.downloads_share_title)))
@@ -131,7 +132,7 @@ fun DownloadsScreen(
                     file
                 )
                 val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) com.fabian.downloader.utils.Config.MIME_VIDEO else com.fabian.downloader.utils.Config.MIME_AUDIO)
+                    setDataAndType(uri, if (record.format == Config.FORMAT_MP4) Config.MIME_VIDEO else Config.MIME_AUDIO)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 ctx.startActivity(intent)
@@ -636,15 +637,15 @@ fun DownloadsScreen(
         ) { page ->
             val filteredCompleted = remember(completed, filterType) {
                 when (filterType) {
-                    ctx.getString(R.string.downloads_filter_music) -> completed.filter { it.format == com.fabian.downloader.utils.Config.FORMAT_MP3 || it.format == com.fabian.downloader.utils.Config.FORMAT_M4A }
-                    ctx.getString(R.string.downloads_filter_video) -> completed.filter { it.format == com.fabian.downloader.utils.Config.FORMAT_MP4 }
+                    ctx.getString(R.string.downloads_filter_music) -> completed.filter { it.format == Config.FORMAT_MP3 || it.format == Config.FORMAT_M4A }
+                    ctx.getString(R.string.downloads_filter_video) -> completed.filter { it.format == Config.FORMAT_MP4 }
                     else -> completed
                 }
             }
             val filteredDownloading = remember(downloading, filterType) {
                 when (filterType) {
-                    ctx.getString(R.string.downloads_filter_music) -> downloading.filter { it.format == com.fabian.downloader.utils.Config.FORMAT_MP3 || it.format == com.fabian.downloader.utils.Config.FORMAT_M4A }
-                    ctx.getString(R.string.downloads_filter_video) -> downloading.filter { it.format == com.fabian.downloader.utils.Config.FORMAT_MP4 }
+                    ctx.getString(R.string.downloads_filter_music) -> downloading.filter { it.format == Config.FORMAT_MP3 || it.format == Config.FORMAT_M4A }
+                    ctx.getString(R.string.downloads_filter_video) -> downloading.filter { it.format == Config.FORMAT_MP4 }
                     else -> downloading
                 }
             }
@@ -895,7 +896,7 @@ fun MobileDownloadingItem(
                             modifier = Modifier.fillMaxSize(),
                             contentScale = androidx.compose.ui.layout.ContentScale.Crop
                         )
-                    } else if (record.isCompleted && record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) {
+                    } else if (record.isCompleted && record.format == Config.FORMAT_MP4) {
                         val localFile = remember(record.id) {
                             com.fabian.downloader.utils.PathUtils.getDownloadFile(
                                 ctx,
@@ -1116,13 +1117,13 @@ fun MobileDownloadedItem(
 
     val cleanTitle = remember(record.title) {
         var t = record.title
-        while (t.startsWith("Fallo: ") || t.startsWith("Failed: ") || t.startsWith(com.fabian.downloader.utils.Config.STATUS_FAILED_PREFIX)) {
+        while (t.startsWith("Fallo: ") || t.startsWith("Failed: ") || t.startsWith(Config.STATUS_FAILED_PREFIX)) {
             t = if (t.startsWith("Fallo: ")) {
                 t.substringAfter("Fallo: ")
             } else if (t.startsWith("Failed: ")) {
                 t.substringAfter("Failed: ")
             } else {
-                t.substringAfter(com.fabian.downloader.utils.Config.STATUS_FAILED_PREFIX)
+                t.substringAfter(Config.STATUS_FAILED_PREFIX)
             }
         }
         t
@@ -1161,7 +1162,7 @@ fun MobileDownloadedItem(
                         modifier = Modifier.fillMaxSize(),
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop
                     )
-                } else if (record.format == com.fabian.downloader.utils.Config.FORMAT_MP4) {
+                } else if (record.format == Config.FORMAT_MP4) {
                     val localFile = remember(record.id) {
                         com.fabian.downloader.utils.PathUtils.getDownloadFile(
                             ctx,

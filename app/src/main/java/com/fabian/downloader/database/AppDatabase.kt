@@ -1,6 +1,7 @@
 package com.fabian.downloader.database
 
 import android.content.Context
+import com.fabian.downloader.configs.Config
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -75,7 +76,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    com.fabian.downloader.utils.Config.DB_NAME
+                    Config.DB_NAME
                 )
                 .addMigrations(MIGRATION_1_7, MIGRATION_2_7, MIGRATION_3_7, MIGRATION_4_7, MIGRATION_5_7, MIGRATION_6_7, MIGRATION_7_8)
                 .build()

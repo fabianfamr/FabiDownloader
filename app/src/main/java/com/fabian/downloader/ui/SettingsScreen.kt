@@ -31,9 +31,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fabian.downloader.BuildConfig
 import com.fabian.downloader.R
+import com.fabian.downloader.configs.Config
+import com.fabian.downloader.managers.UpdateManager
+import com.fabian.downloader.managers.UpdateInfo
 import com.fabian.downloader.ui.theme.*
-import com.fabian.downloader.utils.UpdateManager
-import com.fabian.downloader.utils.UpdateInfo
 import android.content.Intent
 import androidx.compose.material.icons.automirrored.filled.Label
 import kotlinx.coroutines.delay
@@ -852,7 +853,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsRow(Icons.Default.Code, stringResource(R.string.settings_github_repo), stringResource(R.string.settings_view_code), C_accent, C_white, C_gray1, C_card2) {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(com.fabian.downloader.utils.Config.GITHUB_URL))
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Config.GITHUB_URL))
                                 ctx.startActivity(intent)
                             }
                         }

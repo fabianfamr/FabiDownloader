@@ -21,7 +21,8 @@ import android.content.Context
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.CancellationException
 import com.fabian.downloader.R
-import com.fabian.downloader.utils.Config
+import com.fabian.downloader.configs.Config
+import com.fabian.downloader.managers.BatteryOptimizerManager
 
 class DownloadManagerService private constructor(
     private val application: Application,

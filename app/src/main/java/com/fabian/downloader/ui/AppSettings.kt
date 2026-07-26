@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.fabian.downloader.utils.Config
+import com.fabian.downloader.configs.Config
 
 object AppSettings {
     private lateinit var prefs: SharedPreferences

@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import com.fabian.downloader.configs.Config
 import com.fabian.downloader.R
 
 class DownloadForegroundService : Service() {
@@ -71,7 +72,7 @@ class DownloadForegroundService : Service() {
     }
 
     private fun createNotification(): Notification {
-        val channelIdToUse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) com.fabian.downloader.utils.Config.NOTIF_CHANNEL_PROGRESS else "default"
+        val channelIdToUse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Config.NOTIF_CHANNEL_PROGRESS else "default"
         return NotificationCompat.Builder(this, channelIdToUse)
             .setContentTitle(getString(R.string.app_name))
             .setContentText("Descargando en segundo plano...")
@@ -87,7 +88,7 @@ class DownloadForegroundService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channel = NotificationChannel(
-                com.fabian.downloader.utils.Config.NOTIF_CHANNEL_PROGRESS,
+                Config.NOTIF_CHANNEL_PROGRESS,
                 getString(R.string.notif_channel_progress),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {

@@ -1,6 +1,7 @@
 package com.fabian.downloader.services
 
 import android.content.Context
+import com.fabian.downloader.configs.Config
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.database.DownloadRecord
 import kotlinx.coroutines.CoroutineScope
@@ -106,7 +107,7 @@ class StorageService(private val database: AppDatabase) {
         val existingUpdate = activeProgressUpdates.value[id]
         val newUpdate = ProgressUpdate(
             progress = progress,
-            size = existingUpdate?.size ?: com.fabian.downloader.utils.Config.STATUS_ZERO_MB,
+            size = existingUpdate?.size ?: Config.STATUS_ZERO_MB,
             speed = existingUpdate?.speed ?: ""
         )
         activeProgressUpdates.update { current -> current + (id to newUpdate) }
@@ -154,7 +155,7 @@ class StorageService(private val database: AppDatabase) {
 
         // Guardar estado final garantizado en la base de datos SQLite
         if (lastUpdate != null) {
-            database.downloadDao().updateDownloadProgressSizeAndSpeed(id, 100, com.fabian.downloader.utils.Config.STATUS_COMPLETED, com.fabian.downloader.utils.Config.STATUS_COMPLETED)
+            database.downloadDao().updateDownloadProgressSizeAndSpeed(id, 100, Config.STATUS_COMPLETED, Config.STATUS_COMPLETED)
         }
         database.downloadDao().markAsCompleted(id)
         memoryCache.remove(id)

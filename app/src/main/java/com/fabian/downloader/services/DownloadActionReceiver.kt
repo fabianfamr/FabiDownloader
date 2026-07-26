@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.fabian.downloader.R
-import com.fabian.downloader.utils.Config
+import com.fabian.downloader.configs.Config
 
 class DownloadActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {

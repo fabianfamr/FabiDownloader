@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import androidx.room.Room
+import com.fabian.downloader.configs.Config
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.ui.FabiDownloaderApp
 import com.fabian.downloader.ui.theme.MyApplicationTheme
@@ -47,8 +48,8 @@ class MainActivity : ComponentActivity() {
         com.fabian.downloader.ui.AppSettings.init(this)
         database = AppDatabase.getInstance(this)
         
-        startOnDownloadsState.value = intent.getBooleanExtra(com.fabian.downloader.utils.Config.EXTRA_NAVIGATE_TO_DOWNLOADS, false)
-        initialPageState.value = intent.getIntExtra(com.fabian.downloader.utils.Config.EXTRA_INITIAL_PAGE, 0)
+        startOnDownloadsState.value = intent.getBooleanExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, false)
+        initialPageState.value = intent.getIntExtra(Config.EXTRA_INITIAL_PAGE, 0)
         
         checkAndRequestNotifications()
         enableEdgeToEdge()
@@ -78,9 +79,9 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        if (intent.getBooleanExtra(com.fabian.downloader.utils.Config.EXTRA_NAVIGATE_TO_DOWNLOADS, false)) {
+        if (intent.getBooleanExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, false)) {
             startOnDownloadsState.value = true
-            initialPageState.value = intent.getIntExtra(com.fabian.downloader.utils.Config.EXTRA_INITIAL_PAGE, 0)
+            initialPageState.value = intent.getIntExtra(Config.EXTRA_INITIAL_PAGE, 0)
         }
     }
 
