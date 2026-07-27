@@ -459,6 +459,15 @@ object AppSettings {
             saveBoolean("cleanTempOnCancel", value)
         }
 
+    private val _quickShareMode = mutableStateOf(true)
+    val quickShareModeState: androidx.compose.runtime.State<Boolean> get() = _quickShareMode
+    var quickShareMode: Boolean
+        get() = _quickShareMode.value
+        set(value) {
+            _quickShareMode.value = value
+            saveBoolean("quickShareMode", value)
+        }
+
     fun init(context: Context) {
         prefs = context.getSharedPreferences("fabi_downloader_prefs", Context.MODE_PRIVATE)
         
@@ -506,6 +515,7 @@ object AppSettings {
         _defaultAudioBitrate.value = prefs.getString("defaultAudioBitrate", "192 kbps (Estándar)") ?: "192 kbps (Estándar)"
         _notifyBatchComplete.value = prefs.getBoolean("notifyBatchComplete", true)
         _cleanTempOnCancel.value = prefs.getBoolean("cleanTempOnCancel", true)
+        _quickShareMode.value = prefs.getBoolean("quickShareMode", true)
     }
 
     private fun saveString(key: String, value: String) {

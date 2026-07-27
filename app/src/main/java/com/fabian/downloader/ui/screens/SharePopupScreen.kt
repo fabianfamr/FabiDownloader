@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -100,15 +101,23 @@ fun SharePopupScreen(
         val service = com.fabian.downloader.services.sites.SiteServiceProvider.getServiceForUrl(cleanUrl)
         platformInfoState = Triple(service.siteId, service.displayName, service.brandColorHex)
         
+        val isLikelyPlaylist = cleanUrl.contains("playlist", ignoreCase = true) || 
+                               cleanUrl.contains("list=", ignoreCase = true) ||
+                               cleanUrl.contains("album", ignoreCase = true) ||
+                               cleanUrl.contains("series", ignoreCase = true) ||
+                               (cleanUrl.contains("tiktok.com/@") && !cleanUrl.contains("/video/"))
+
         // Try playlist extraction if URL looks like playlist or multi-post
         val jobPlaylist = launch {
-            try {
-                val playlist = viewModel.extractPlaylist(cleanUrl)
-                if (playlist != null && playlist.items.isNotEmpty()) {
-                    extractedPlaylist = playlist
+            if (isLikelyPlaylist) {
+                try {
+                    val playlist = viewModel.extractPlaylist(cleanUrl)
+                    if (playlist != null && playlist.items.isNotEmpty()) {
+                        extractedPlaylist = playlist
+                    }
+                } catch (e: Exception) {
+                    Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error extracting playlist", e)
                 }
-            } catch (e: Exception) {
-                Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error extracting playlist", e)
             }
         }
 
@@ -137,13 +146,21 @@ fun SharePopupScreen(
         }
         
         try {
-            // Wait for Playlist check and Title/Icon to load
-            jobPlaylist.join()
-            jobTitleAndIcon.join()
-            if (title == null && extractedPlaylist == null) {
+            if (AppSettings.quickShareMode) {
+                // Modo rápido activado: muestra los botones de descarga de inmediato sin bloquear en "Procesando enlace..."
                 title = if (service.siteId == "generic") ctx.getString(R.string.share_direct_link) else ctx.getString(R.string.share_video_of, service.displayName)
+                isLoading = false
+            } else {
+                // Modo tradicional: espera a la extracción antes de mostrar opciones
+                kotlinx.coroutines.withTimeoutOrNull(1000) {
+                    jobPlaylist.join()
+                    jobTitleAndIcon.join()
+                }
+                if (title == null && extractedPlaylist == null) {
+                    title = if (service.siteId == "generic") ctx.getString(R.string.share_direct_link) else ctx.getString(R.string.share_video_of, service.displayName)
+                }
+                isLoading = false
             }
-            isLoading = false
         } catch (e: Exception) {
             Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error in extraction coroutines", e)
             errorMsg = ctx.getString(R.string.share_error_analyze)
@@ -163,18 +180,17 @@ fun SharePopupScreen(
     
     // Synthesize ExtractedVideo for backward compatibility with downstream UI components
     val extractedVideo = remember(title, thumbnailUrl, formatSizes, currentPlatform, sizeText) {
-        if (title != null) {
-            com.fabian.downloader.services.ExtractionService.ExtractedVideo(
-                title = title ?: "",
-                availableFormats = listOf(Config.FORMAT_MP4, Config.FORMAT_MP3, Config.FORMAT_M4A),
-                size = sizeText,
-                thumbnailUrl = thumbnailUrl,
-                formatSizes = formatSizes ?: emptyMap(),
-                platformId = currentPlatform.first,
-                platformName = currentPlatform.second,
-                brandColorHex = currentPlatform.third
-            )
-        } else null
+        val effectiveTitle = title ?: if (currentPlatform.first == "generic") ctx.getString(R.string.share_direct_link) else ctx.getString(R.string.share_video_of, currentPlatform.second)
+        com.fabian.downloader.services.ExtractionService.ExtractedVideo(
+            title = effectiveTitle,
+            availableFormats = listOf(Config.FORMAT_MP4, Config.FORMAT_MP3, Config.FORMAT_M4A),
+            size = sizeText,
+            thumbnailUrl = thumbnailUrl,
+            formatSizes = formatSizes ?: emptyMap(),
+            platformId = currentPlatform.first,
+            platformName = currentPlatform.second,
+            brandColorHex = currentPlatform.third
+        )
     }
     
     val musicOptions = remember(formatSizes) {
@@ -323,7 +339,27 @@ fun SharePopupScreen(
                             // Video Metadata Header Card
                             VideoMetadataHeader(video, platformIcon, platformColor)
                             
-                            Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // Quick Direct Resolution & Format Bar (MP3/MP4 1-click download)
+                            QuickResolutionAndFormatBar(
+                                onQuickDownload = { quality, format ->
+                                    val selectedId = if (format == Config.FORMAT_MP3) "music_$quality" else "video_${quality.removeSuffix("p")}"
+                                    AppSettings.lastDownloadedOptionId = selectedId
+                                    val currentTitle = title ?: ctx.getString(R.string.share_download_prefix, (System.currentTimeMillis() % 100000).toString())
+                                    viewModel.downloadVideo(
+                                        url = cleanUrl,
+                                        quality = quality,
+                                        format = format,
+                                        title = currentTitle,
+                                        thumbnailUrl = thumbnailUrl
+                                    )
+                                    showDownloadStartedDialog = true
+                                },
+                                accentColor = platformColor
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
                             
                             // --- MUSIC SECTION ---
                             Row(
@@ -1153,6 +1189,139 @@ fun SnaptubeFormatItem(
                     modifier = Modifier.size(12.dp)
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun QuickResolutionAndFormatBar(
+    onQuickDownload: (quality: String, format: String) -> Unit,
+    accentColor: Color
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF141417), RoundedCornerShape(16.dp))
+            .border(1.dp, Color(0xFF26262B), RoundedCornerShape(16.dp))
+            .padding(14.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 10.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Bolt,
+                    contentDescription = null,
+                    tint = accentColor,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Descarga Rápida Instantánea",
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Text(
+                text = "1-Clic",
+                color = accentColor,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.ExtraBold
+            )
+        }
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(vertical = 2.dp)
+        ) {
+            item {
+                QuickChip(
+                    label = "MP3 320k",
+                    icon = Icons.Default.MusicNote,
+                    color = Color(0xFFAB47BC),
+                    onClick = { onQuickDownload("320", Config.FORMAT_MP3) }
+                )
+            }
+            item {
+                QuickChip(
+                    label = "MP3 192k",
+                    icon = Icons.Default.MusicNote,
+                    color = Color(0xFF8E24AA),
+                    onClick = { onQuickDownload("192", Config.FORMAT_MP3) }
+                )
+            }
+            item {
+                QuickChip(
+                    label = "MP4 1080p",
+                    icon = Icons.Default.Videocam,
+                    color = Color(0xFF2196F3),
+                    onClick = { onQuickDownload("1080p", Config.FORMAT_MP4) }
+                )
+            }
+            item {
+                QuickChip(
+                    label = "MP4 720p",
+                    icon = Icons.Default.Videocam,
+                    color = Color(0xFF03A9F4),
+                    onClick = { onQuickDownload("720p", Config.FORMAT_MP4) }
+                )
+            }
+            item {
+                QuickChip(
+                    label = "MP4 480p",
+                    icon = Icons.Default.Videocam,
+                    color = Color(0xFF00BCD4),
+                    onClick = { onQuickDownload("480p", Config.FORMAT_MP4) }
+                )
+            }
+            item {
+                QuickChip(
+                    label = "MP4 360p",
+                    icon = Icons.Default.Videocam,
+                    color = Color(0xFF009688),
+                    onClick = { onQuickDownload("360p", Config.FORMAT_MP4) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickChip(
+    label: String,
+    icon: ImageVector,
+    color: Color,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        color = color.copy(alpha = 0.15f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.4f)),
+        modifier = Modifier.height(38.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 12.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(15.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = label,
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }

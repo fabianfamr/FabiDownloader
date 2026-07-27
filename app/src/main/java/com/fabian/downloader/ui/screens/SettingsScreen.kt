@@ -120,6 +120,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var showRealtimeSpeedCard by remember { mutableStateOf(AppSettings.showRealtimeSpeedCard) }
     var cleanTempOnCancel by remember { mutableStateOf(AppSettings.cleanTempOnCancel) }
     var notifyBatchComplete by remember { mutableStateOf(AppSettings.notifyBatchComplete) }
+    var quickShareMode by remember { mutableStateOf(AppSettings.quickShareMode) }
 
     LaunchedEffect(maxConcurrent) { AppSettings.maxConcurrentDownloads = maxConcurrent }
     LaunchedEffect(autoDownload) { AppSettings.clipboardAction = if (autoDownload) "auto" else "disabled" }
@@ -140,6 +141,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     LaunchedEffect(showRealtimeSpeedCard) { AppSettings.showRealtimeSpeedCard = showRealtimeSpeedCard }
     LaunchedEffect(cleanTempOnCancel) { AppSettings.cleanTempOnCancel = cleanTempOnCancel }
     LaunchedEffect(notifyBatchComplete) { AppSettings.notifyBatchComplete = notifyBatchComplete }
+    LaunchedEffect(quickShareMode) { AppSettings.quickShareMode = quickShareMode }
 
     var contentVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -795,6 +797,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
+                            SettingsToggleRow(Icons.Default.Bolt, stringResource(R.string.settings_quick_share), stringResource(R.string.settings_quick_share_desc), quickShareMode, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { quickShareMode = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.Block, stringResource(R.string.settings_sponsorblock), stringResource(R.string.settings_sponsorblock_desc), sponsorBlock, C_amber, C_white, C_gray1, C_card2, C_border, C_bg) { sponsorBlock = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.Public, stringResource(R.string.settings_geo_bypass), stringResource(R.string.settings_geo_bypass_desc), bypassGeo, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { bypassGeo = it }
