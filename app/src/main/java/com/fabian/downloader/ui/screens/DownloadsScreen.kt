@@ -1057,46 +1057,16 @@ fun MobileDownloadingItem(
                     }
                 }
             } else {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
+                IconButton(
+                    onClick = { onDelete() },
+                    modifier = Modifier.size(32.dp)
                 ) {
-                    IconButton(
-                        onClick = { onDelete() },
-                        modifier = Modifier.size(28.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = stringResource(R.string.downloads_action_options),
-                            modifier = Modifier.size(16.dp),
-                            tint = C_gray1
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(6.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .border(1.dp, C_white.copy(alpha = 0.7f), CircleShape)
-                            .clickable {
-                                if (isFailed) onResume()
-                                else if (record.isPaused) onResume()
-                                else onPause()
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = when {
-                                isFailed -> Icons.Default.Refresh
-                                record.isPaused -> Icons.Default.PlayArrow
-                                else -> Icons.Default.Pause
-                            },
-                            contentDescription = if (record.isPaused) "Reanudar" else "Pausar",
-                            tint = if (isFailed) C_red else C_white,
-                            modifier = Modifier.size(14.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = stringResource(R.string.downloads_action_options),
+                        modifier = Modifier.size(18.dp),
+                        tint = C_white
+                    )
                 }
             }
         }
