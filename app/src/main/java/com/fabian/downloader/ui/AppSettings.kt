@@ -476,14 +476,6 @@ object AppSettings {
             saveBoolean("allowDuplicateDownloads", value)
         }
 
-    private val _vibrateOnComplete = mutableStateOf(true)
-    var vibrateOnComplete: Boolean
-        get() = _vibrateOnComplete.value
-        set(value) {
-            _vibrateOnComplete.value = value
-            saveBoolean("vibrateOnComplete", value)
-        }
-
     private val _embedChapters = mutableStateOf(true)
     var embedChapters: Boolean
         get() = _embedChapters.value
@@ -493,14 +485,6 @@ object AppSettings {
                 saveBoolean("embedChapters", value)
                 notifyChanged("embedChapters")
             }
-        }
-
-    private val _organizeSubfolders = mutableStateOf(false)
-    var organizeSubfolders: Boolean
-        get() = _organizeSubfolders.value
-        set(value) {
-            _organizeSubfolders.value = value
-            saveBoolean("organizeSubfolders", value)
         }
 
     private val _amoledMode = mutableStateOf(false)
@@ -561,9 +545,7 @@ object AppSettings {
         _cleanTempOnCancel.value = prefs.getBoolean("cleanTempOnCancel", true)
         _quickShareMode.value = prefs.getBoolean("quickShareMode", true)
         _allowDuplicateDownloads.value = prefs.getBoolean("allowDuplicateDownloads", true)
-        _vibrateOnComplete.value = prefs.getBoolean("vibrateOnComplete", true)
         _embedChapters.value = prefs.getBoolean("embedChapters", true)
-        _organizeSubfolders.value = prefs.getBoolean("organizeSubfolders", false)
         _amoledMode.value = prefs.getBoolean("amoledMode", false)
     }
 

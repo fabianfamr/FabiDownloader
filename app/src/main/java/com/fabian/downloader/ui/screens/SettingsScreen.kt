@@ -124,9 +124,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var notifyBatchComplete by remember { mutableStateOf(AppSettings.notifyBatchComplete) }
     var quickShareMode by remember { mutableStateOf(AppSettings.quickShareMode) }
     var allowDuplicateDownloads by remember { mutableStateOf(AppSettings.allowDuplicateDownloads) }
-    var vibrateOnComplete by remember { mutableStateOf(AppSettings.vibrateOnComplete) }
     var embedChapters by remember { mutableStateOf(AppSettings.embedChapters) }
-    var organizeSubfolders by remember { mutableStateOf(AppSettings.organizeSubfolders) }
     var amoledMode by remember { mutableStateOf(AppSettings.amoledMode) }
 
     LaunchedEffect(maxConcurrent) { AppSettings.maxConcurrentDownloads = maxConcurrent }
@@ -150,9 +148,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     LaunchedEffect(notifyBatchComplete) { AppSettings.notifyBatchComplete = notifyBatchComplete }
     LaunchedEffect(quickShareMode) { AppSettings.quickShareMode = quickShareMode }
     LaunchedEffect(allowDuplicateDownloads) { AppSettings.allowDuplicateDownloads = allowDuplicateDownloads }
-    LaunchedEffect(vibrateOnComplete) { AppSettings.vibrateOnComplete = vibrateOnComplete }
     LaunchedEffect(embedChapters) { AppSettings.embedChapters = embedChapters }
-    LaunchedEffect(organizeSubfolders) { AppSettings.organizeSubfolders = organizeSubfolders }
     LaunchedEffect(amoledMode) { AppSettings.amoledMode = amoledMode }
 
     var contentVisible by remember { mutableStateOf(false) }
@@ -615,19 +611,6 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(
-                                icon = Icons.Default.FolderZip,
-                                title = stringResource(R.string.settings_organize_subfolders),
-                                subtitle = stringResource(R.string.settings_organize_subfolders_desc),
-                                checked = organizeSubfolders,
-                                colorAccent = C_accent,
-                                textColor = C_white,
-                                grayColor = C_gray1,
-                                card2Color = C_card2,
-                                borderColor = C_border,
-                                bgColor = C_bg
-                            ) { organizeSubfolders = it }
-                            HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(
                                 icon = Icons.Default.CleaningServices,
                                 title = stringResource(R.string.settings_clean_temp),
                                 subtitle = stringResource(R.string.settings_clean_temp_desc),
@@ -780,8 +763,6 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             if (notificationsEnabled) {
                                 HorizontalDivider(color = C_border, thickness = 1.dp)
                                 SettingsToggleRow(Icons.Default.Speed, stringResource(R.string.settings_notif_speed), stringResource(R.string.settings_notif_speed_desc), showSpeedInNotif, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showSpeedInNotif = it }
-                                HorizontalDivider(color = C_border, thickness = 1.dp)
-                                SettingsToggleRow(Icons.Default.Vibration, stringResource(R.string.settings_vibrate), stringResource(R.string.settings_vibrate_desc), vibrateOnComplete, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { vibrateOnComplete = it }
                             }
                         }
                     }

@@ -187,12 +187,8 @@
     <string name="settings_card_style_dialog">Estilo de tarjetas de descarga</string>
     <string name="settings_audio_quality_dialog">Calidad de audio (Bitrate)</string>
     <string name="settings_auto_cancel_pause">Auto-cancelar pausa</string>
-    <string name="settings_vibrate">Vibración al completar</string>
-    <string name="settings_vibrate_desc">Vibrar al terminar una descarga</string>
     <string name="settings_embed_chapters">Incrustar capítulos</string>
     <string name="settings_embed_chapters_desc">Incrustar marcas de tiempo en el archivo</string>
-    <string name="settings_organize_subfolders">Organizar por sitio</string>
-    <string name="settings_organize_subfolders_desc">Crear subcarpetas por plataforma (YouTube, TikTok, etc.)</string>
     <string name="settings_amoled_mode">Modo OLED (Negro puro)</string>
     <string name="settings_amoled_mode_desc">Fondo negro absoluto para pantallas AMOLED</string>
     <string name="settings_user_agent_title">User-Agent personalizado</string>
