@@ -14,6 +14,7 @@ import com.fabian.downloader.MainActivity
 import com.fabian.downloader.ui.viewmodels.MainViewModel
 import com.fabian.downloader.ui.screens.SharePopupScreen
 import com.fabian.downloader.ui.theme.MyApplicationTheme
+import androidx.compose.runtime.getValue
 
 class ShareReceiverActivity : ComponentActivity() {
     private val requestPermissionsLauncher = registerForActivityResult(
@@ -83,7 +84,17 @@ class ShareReceiverActivity : ComponentActivity() {
         enableEdgeToEdge()
         
         setContent {
-            MyApplicationTheme {
+            val themePreference by com.fabian.downloader.ui.AppSettings.themePreferenceState
+            val dynamicColor by com.fabian.downloader.ui.AppSettings.dynamicColorState
+            val accentColorName by com.fabian.downloader.ui.AppSettings.accentColorNameState
+            val amoledMode by com.fabian.downloader.ui.AppSettings.amoledModeState
+
+            MyApplicationTheme(
+                themePreference = themePreference,
+                dynamicColor = dynamicColor,
+                accentColorName = accentColorName,
+                amoledMode = amoledMode
+            ) {
                 SharePopupScreen(
                     url = sharedText, 
                     viewModel = viewModel,

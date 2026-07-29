@@ -62,9 +62,24 @@ private val DarkFabiColors = FabiColors(
     sheet = Sheet,
 )
 
-// We don't have a light palette defined in the example, so we fallback to dark for now
-// or define a basic light one if needed. The app seems to be dark-only in spirit.
-private val LightFabiColors = DarkFabiColors 
+private val LightFabiColors = FabiColors(
+    background = Color(0xFFF8FAFC),
+    card = Color(0xFFFFFFFF),
+    cardSecondary = Color(0xFFF1F5F9),
+    border = Color(0xFFE2E8F0),
+    accent = AccentBlue,
+    accentDim = AccentBlue.copy(alpha = 0.12f),
+    accentGlow = AccentBlue.copy(alpha = 0.20f),
+    textPrimary = Color(0xFF0F172A),
+    textSecondary = Color(0xFF475569),
+    textMuted = Color(0xFF64748B),
+    textDisabled = Color(0xFF94A3B8),
+    error = Red,
+    errorDim = RedDim,
+    success = Green,
+    amber = Amber,
+    sheet = Color(0xFFFFFFFF),
+) 
 
 val LocalFabiColors = staticCompositionLocalOf { DarkFabiColors }
 
@@ -176,8 +191,13 @@ fun MyApplicationTheme(
             )
         } else DarkFabiColors
     } else {
-        // Fallback or Light colors if we defined them properly
-        DarkFabiColors
+        if (selectedAccent != null) {
+            LightFabiColors.copy(
+                accent = selectedAccent,
+                accentDim = selectedAccent.copy(alpha = 0.12f),
+                accentGlow = selectedAccent.copy(alpha = 0.20f)
+            )
+        } else LightFabiColors
     }
 
     val fabiColors = if (darkTheme && amoledMode) {
