@@ -5,4 +5,6 @@
     <string name="downloads_realtime_speed_title">Velocidad en Tiempo Real</string>
     <string name="downloads_active_downloads_count">%1$d descargas activas</string>
     <string name="downloads_active_count">%1$d en vivo</string>
+    <string name="downloads_pause_all">Pausar todo</string>
+    <string name="downloads_resume_all">Reanudar todo</string>
 </resources>

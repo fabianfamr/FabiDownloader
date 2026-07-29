@@ -733,6 +733,44 @@ fun DownloadsScreen(
                         }
                     }
                     if (filteredDownloading.isNotEmpty()) {
+                        item {
+                            val anyActive = filteredDownloading.any { !it.isPaused && it.speed != "FAILED" }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable {
+                                        if (anyActive) {
+                                            filteredDownloading.forEach { if (!it.isPaused) viewModel.pauseDownload(it.id) }
+                                        } else {
+                                            filteredDownloading.forEach { if (it.isPaused) viewModel.resumeDownload(it.id) }
+                                        }
+                                    }
+                                    .padding(vertical = 6.dp, horizontal = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .border(1.5.dp, C_white, CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = if (anyActive) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                        contentDescription = null,
+                                        tint = C_white,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = if (anyActive) stringResource(R.string.downloads_pause_all) else stringResource(R.string.downloads_resume_all),
+                                    color = C_white,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
                         items(filteredDownloading, key = { it.id }) { record ->
                             MobileDownloadingItem(
                                 record = record,
@@ -867,7 +905,10 @@ fun MobileDownloadingItem(
     Surface(
         color = if (isSelected) C_accentDim else C_card,
         shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(if (isSelected) 2.dp else 1.5.dp, if (isSelected) C_accent else (if (isFailed) statusColor.copy(alpha = 0.35f) else C_border)),
+        border = BorderStroke(
+            if (isSelected) 2.dp else 1.dp, 
+            if (isSelected) C_accent else (if (isFailed) statusColor.copy(alpha = 0.35f) else C_border)
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
@@ -884,225 +925,178 @@ fun MobileDownloadingItem(
                 onLongClick = { onLongPress() }
             )
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+            val (platformIcon, platformColor) = getPlatformIconAndColor(record.url, record.format)
+            
+            // Thumbnail / Icon
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(
+                        color = if (isFailed) C_red.copy(alpha = 0.15f) else platformColor.copy(alpha = 0.12f)
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                val (platformIcon, platformColor) = getPlatformIconAndColor(record.url, record.format)
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(
-                            color = if (isFailed) {
-                                if (isNetworkError) C_amber.copy(alpha = 0.15f) else C_redDim
-                            } else {
-                                platformColor.copy(alpha = 0.12f)
-                            }
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (!record.thumbnailUrl.isNullOrEmpty()) {
-                        coil.compose.AsyncImage(
-                            model = record.thumbnailUrl,
-                            contentDescription = stringResource(R.string.downloads_thumbnail),
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                        )
-                    } else if (record.isCompleted && record.format == Config.FORMAT_MP4) {
-                        val localFile = remember(record.id) {
-                            com.fabian.downloader.utils.PathUtils.getDownloadFile(
-                                ctx,
-                                record.title,
-                                record.id,
-                                record.format
-                            )
-                        }
-                        coil.compose.AsyncImage(
-                            model = localFile,
-                            contentDescription = stringResource(R.string.downloads_thumbnail),
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                        )
-                    } else {
-                        Icon(
-                            imageVector = if (isFailed) {
-                                if (isNetworkError) Icons.Default.WifiOff else Icons.Default.Error
-                            } else {
-                                platformIcon
-                            },
-                            contentDescription = null, 
-                            modifier = Modifier.size(20.dp),
-                            tint = if (isFailed) {
-                                if (isNetworkError) C_amber else C_red
-                            } else {
-                                platformColor
-                            }
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = cleanTitle, 
-                        style = MaterialTheme.typography.titleSmall,
-                        color = C_white, 
-                        fontWeight = FontWeight.Bold, 
-                        maxLines = 1, 
-                        overflow = TextOverflow.Ellipsis
+                if (!record.thumbnailUrl.isNullOrEmpty()) {
+                    coil.compose.AsyncImage(
+                        model = record.thumbnailUrl,
+                        contentDescription = stringResource(R.string.downloads_thumbnail),
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
                     )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically, 
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        if (AppSettings.showQualityBadge) {
-                            Surface(
-                                color = platformColor.copy(alpha = 0.12f),
-                                shape = RoundedCornerShape(6.dp)
-                            ) {
-                                Text(
-                                    text = "${record.quality} • ${record.format}", 
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = platformColor,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-                        }
-                        
-                        if (isFailed) {
-                            Surface(
-                                color = if (isNetworkError) C_amber.copy(alpha = 0.12f) else C_redDim,
-                                shape = RoundedCornerShape(6.dp)
-                            ) {
-                                Text(
-                                    text = if (isNetworkError) stringResource(R.string.downloads_error_network_retry) else stringResource(R.string.downloads_error_retry), 
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isNetworkError) C_amber else C_red,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
-                            }
-                        } else if (record.isPaused) {
-                            Surface(
-                                color = C_amber.copy(alpha = 0.12f),
-                                shape = RoundedCornerShape(6.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.downloads_status_paused), 
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = C_amber,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-                
-                if (isSelectionMode) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(if (isSelected) C_accent else Color.Transparent)
-                            .border(1.5.dp, if (isSelected) C_accent else C_border, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isSelected) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                tint = Color(0xFF0A0A0C),
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
                 } else {
-                    IconButton(
-                        onClick = { onDelete() }, 
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert, 
-                            contentDescription = stringResource(R.string.downloads_action_options), 
-                            modifier = Modifier.size(18.dp), 
-                            tint = C_white
-                        )
-                    }
+                    Icon(
+                        imageVector = if (isFailed) Icons.Default.Error else platformIcon,
+                        contentDescription = null, 
+                        modifier = Modifier.size(24.dp),
+                        tint = if (isFailed) C_red else platformColor
+                    )
                 }
             }
 
-            if (!isFailed) {
-                Spacer(modifier = Modifier.height(8.dp))
-                
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Middle Column: Title + Progress Bar + Speed/Percentage
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = cleanTitle, 
+                    style = MaterialTheme.typography.titleSmall,
+                    color = C_white, 
+                    fontWeight = FontWeight.Bold, 
+                    fontSize = 13.sp,
+                    maxLines = 2, 
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 17.sp
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Progress Line directly below title
+                val rawProgress = if (record.progress < 0) 0f else record.progress / 100f
+                LinearProgressIndicator(
+                    progress = { rawProgress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(3.dp)
+                        .clip(CircleShape),
+                    color = statusColor,
+                    trackColor = C_border.copy(alpha = 0.6f),
+                    strokeCap = StrokeCap.Round
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Speed and Percentage row
                 Row(
-                    modifier = Modifier.fillMaxWidth(), 
-                    horizontalArrangement = Arrangement.SpaceBetween, 
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val speedText = when {
+                        isFailed -> stringResource(R.string.downloads_error_retry)
+                        record.isPaused -> stringResource(R.string.downloads_status_paused)
+                        record.progress < 0 -> stringResource(R.string.downloads_status_waiting)
+                        else -> record.speed
+                    }
+
                     Text(
-                        text = if (record.isPaused) {
-                            "${if (record.progress < 0) 0 else record.progress}%"
-                        } else if (record.progress < 0) {
-                            stringResource(R.string.downloads_status_waiting)
-                        } else {
-                            "${record.progress}%"
-                        }, 
-                        style = MaterialTheme.typography.labelLarge,
+                        text = speedText,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (record.isPaused) C_amber else if (isFailed) C_red else C_accent,
                         fontWeight = FontWeight.Bold,
-                        color = statusColor,
+                        fontSize = 11.5.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    val speedText = if (record.isPaused) stringResource(R.string.downloads_status_paused) else record.speed
+
+                    val percentText = if (record.isPaused) {
+                        "${if (record.progress < 0) 0 else record.progress}%"
+                    } else if (record.progress < 0) {
+                        "0%"
+                    } else {
+                        "${record.progress}%"
+                    }
+
                     Text(
-                        text = speedText, 
+                        text = percentText,
                         style = MaterialTheme.typography.labelSmall,
                         color = C_gray1,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(start = 8.dp).weight(1f, fill = false),
-                        textAlign = TextAlign.End
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 11.5.sp
                     )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
+            }
 
-                if (record.progress < 0 && !record.isPaused) {
-                    // Optimización de rendimiento: Para elementos en espera, mostramos una barra estática limpia al 0%
-                    // en lugar de una animación infinita indeterminada que satura la CPU y GPU del móvil de forma innecesaria.
-                    LinearProgressIndicator(
-                        progress = { 0f },
+            Spacer(modifier = Modifier.width(10.dp))
+
+            // Action button on the far right: Circular outline Pause/Play button
+            if (isSelectionMode) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(if (isSelected) C_accent else Color.Transparent)
+                        .border(1.5.dp, if (isSelected) C_accent else C_border, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = Color(0xFF0A0A0C),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            } else {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(3.dp)
-                            .clip(CircleShape),
-                        color = statusColor.copy(alpha = 0.4f),
-                        trackColor = C_border,
-                        strokeCap = StrokeCap.Round
-                    )
-                } else {
-                    // Optimización de rendimiento: Renderizado directo sin animaciones pesadas innecesarias
-                    // que causan constantes llamadas de recomposición y relag en hilos principales.
-                    val rawProgress = if (record.progress < 0) 0f else record.progress / 100f
-                    LinearProgressIndicator(
-                        progress = { rawProgress },
+                            .size(30.dp)
+                            .clip(CircleShape)
+                            .border(1.5.dp, C_white.copy(alpha = 0.9f), CircleShape)
+                            .clickable {
+                                if (isFailed) onResume()
+                                else if (record.isPaused) onResume()
+                                else onPause()
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = when {
+                                isFailed -> Icons.Default.Refresh
+                                record.isPaused -> Icons.Default.PlayArrow
+                                else -> Icons.Default.Pause
+                            },
+                            contentDescription = if (record.isPaused) "Reanudar" else "Pausar",
+                            tint = if (isFailed) C_red else C_white,
+                            modifier = Modifier.size(15.dp)
+                        )
+                    }
+
+                    IconButton(
+                        onClick = { onDelete() },
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(3.dp)
-                            .clip(CircleShape),
-                        color = statusColor,
-                        trackColor = C_border,
-                        strokeCap = StrokeCap.Round
-                    )
+                            .size(28.dp)
+                            .padding(start = 2.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.downloads_action_options),
+                            modifier = Modifier.size(16.dp),
+                            tint = C_gray1
+                        )
+                    }
                 }
             }
         }
