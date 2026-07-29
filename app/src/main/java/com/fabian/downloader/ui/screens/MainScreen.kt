@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -99,9 +100,9 @@ fun MainScreen(
     }
     
     val lifecycleOwner = LocalLifecycleOwner.current
-    var clipboardUrl by remember { mutableStateOf<String?>(null) }
-    var urlToDownloadInDialog by remember { mutableStateOf<String?>(null) }
-    var lastProcessedClipboardUrl by remember { mutableStateOf("") }
+    var clipboardUrl by rememberSaveable { mutableStateOf<String?>(null) }
+    var urlToDownloadInDialog by rememberSaveable { mutableStateOf<String?>(null) }
+    var lastProcessedClipboardUrl by rememberSaveable { mutableStateOf("") }
     val clipboardManager = remember {
         ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
     }

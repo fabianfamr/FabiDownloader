@@ -25,6 +25,13 @@ class BatteryOptimizerManager private constructor(private val context: Context) 
 
     private var currentLevel = 100
     private var isCharging = false
+    private var isRegistered = false
+
+    private val settingsListener = { key: String ->
+        if (key == "batteryOptimizationEnabled") {
+            evaluateRegistration()
+        }
+    }
 
     private val batteryReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -48,8 +55,34 @@ class BatteryOptimizerManager private constructor(private val context: Context) 
     }
 
     init {
-        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        context.registerReceiver(batteryReceiver, filter)
+        AppSettings.addListener(settingsListener)
+        evaluateRegistration()
+    }
+
+    @Synchronized
+    private fun evaluateRegistration() {
+        if (AppSettings.batteryOptimizationEnabled) {
+            if (!isRegistered) {
+                try {
+                    val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+                    context.registerReceiver(batteryReceiver, filter)
+                    isRegistered = true
+                    Log.d(Config.TAG_DOWNLOAD_MANAGER, "BatteryOptimizerManager: Receiver de batería registrado de forma segura.")
+                } catch (e: Exception) {
+                    Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al registrar batteryReceiver", e)
+                }
+            }
+        } else {
+            if (isRegistered) {
+                try {
+                    context.unregisterReceiver(batteryReceiver)
+                    isRegistered = false
+                    Log.d(Config.TAG_DOWNLOAD_MANAGER, "BatteryOptimizerManager: Receiver de batería desregistrado de forma segura.")
+                } catch (e: Exception) {
+                    Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al desregistrar batteryReceiver", e)
+                }
+            }
+        }
     }
 
     fun isBatteryLowAndNotCharging(): Boolean {

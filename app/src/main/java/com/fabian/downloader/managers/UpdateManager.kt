@@ -2,7 +2,7 @@ package com.fabian.downloader.managers
 
 import android.util.Log
 import com.fabian.downloader.configs.Config
-import okhttp3.OkHttpClient
+import com.fabian.downloader.network.NetworkClient
 import okhttp3.Request
 import org.json.JSONObject
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +15,7 @@ data class UpdateInfo(
 )
 
 object UpdateManager {
-    private val client = OkHttpClient()
+    private val client = NetworkClient.okHttpClient
     private val GITHUB_API_URL = Config.GITHUB_API_LATEST_RELEASE
 
     suspend fun checkForUpdates(): Result<UpdateInfo?> = withContext(Dispatchers.IO) {
