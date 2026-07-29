@@ -16,33 +16,6 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
     private val storageService = StorageService.getInstance(com.fabian.downloader.MyApplication.getInstance())
     val downloads: Flow<List<DownloadRecord>> = storageService.getAllDownloads()
 
-    init {
-        cleanupOrphanDownloads()
-    }
-
-    private fun cleanupOrphanDownloads() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val list = storageService.getAllDownloadsDirect()
-                list.forEach { record ->
-                    if (record.isCompleted) {
-                        val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(
-                            com.fabian.downloader.MyApplication.getInstance(),
-                            record.title,
-                            record.id,
-                            record.format
-                        )
-                        if (!file.exists()) {
-                            storageService.deleteDownload(record.id)
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                // Ignore errors during quiet cleanup
-            }
-        }
-    }
-
     fun pauseDownload(id: Long) {
         DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).pauseDownload(id)
     }

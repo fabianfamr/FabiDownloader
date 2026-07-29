@@ -141,6 +141,7 @@
     <string name="settings_embed_thumbnail">Incrustar carátula/miniatura</string>
     <string name="settings_embed_metadata">Incrustar metadatos y etiquetas</string>
     <string name="settings_allow_playlists">Permitir listas de reproducción</string>
+    <string name="settings_allow_playlists_desc">Habilita o deshabilita la descarga de listas de reproducción completas</string>
     <string name="settings_section_integration_network">Integración y Red</string>
     <string name="settings_sponsorblock_geo">SponsorBlock (omitir patrocinios)</string>
     <string name="settings_bypass_geo">Evitar bloqueos regionales (Bypass Geo)</string>

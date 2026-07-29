@@ -139,6 +139,7 @@
     <string name="settings_embed_thumbnail">Embed cover/thumbnail</string>
     <string name="settings_embed_metadata">Embed metadata and tags</string>
     <string name="settings_allow_playlists">Allow playlists</string>
+    <string name="settings_allow_playlists_desc">Enable or disable downloading full playlists</string>
     <string name="settings_section_integration_network">Integration and Network</string>
     <string name="settings_sponsorblock_geo">SponsorBlock (skip sponsors)</string>
     <string name="settings_bypass_geo">Bypass regional blocks</string>

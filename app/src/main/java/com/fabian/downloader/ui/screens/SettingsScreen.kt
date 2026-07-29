@@ -90,6 +90,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var confirmOnDelete by remember { mutableStateOf(AppSettings.confirmOnDelete) }
     var sponsorBlock by remember { mutableStateOf(AppSettings.sponsorBlockEnabled) }
     var bypassGeo by remember { mutableStateOf(AppSettings.bypassGeo) }
+    var playlistEnabledState by remember { mutableStateOf(AppSettings.playlistEnabled) }
     
     var showSpeedDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
@@ -157,6 +158,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     LaunchedEffect(confirmOnDelete) { AppSettings.confirmOnDelete = confirmOnDelete }
     LaunchedEffect(sponsorBlock) { AppSettings.sponsorBlockEnabled = sponsorBlock }
     LaunchedEffect(bypassGeo) { AppSettings.bypassGeo = bypassGeo }
+    LaunchedEffect(playlistEnabledState) { AppSettings.playlistEnabled = playlistEnabledState }
     LaunchedEffect(showQualityBadge) { AppSettings.showQualityBadge = showQualityBadge }
     LaunchedEffect(showRealtimeSpeedCard) { AppSettings.showRealtimeSpeedCard = showRealtimeSpeedCard }
     LaunchedEffect(cleanTempOnCancel) { AppSettings.cleanTempOnCancel = cleanTempOnCancel }
@@ -268,14 +270,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             options = options,
             selectedOption = currentLabel,
             onSelection = { label ->
-                val newVal = when(label) {
-                    "Desactivado", "Disabled" -> 0
-                    "95%" -> 95
-                    "96%" -> 96
-                    "97%" -> 97
-                    "98%" -> 98
-                    "99%" -> 99
-                    else -> 0
+                val newVal = if (label.contains("%")) {
+                    label.replace("%", "").toIntOrNull() ?: 0
+                } else {
+                    0
                 }
                 AppSettings.earlyStartThreshold = newVal
                 showEarlyStartThresholdDialog = false
@@ -612,6 +610,19 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.Link, stringResource(R.string.settings_auto_download), stringResource(R.string.settings_auto_download_desc), autoDownload, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoDownload = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(
+                                icon = Icons.Default.List,
+                                title = stringResource(R.string.settings_allow_playlists),
+                                subtitle = stringResource(R.string.settings_allow_playlists_desc),
+                                checked = playlistEnabledState,
+                                colorAccent = C_accent,
+                                textColor = C_white,
+                                grayColor = C_gray1,
+                                card2Color = C_card2,
+                                borderColor = C_border,
+                                bgColor = C_bg
+                            ) { playlistEnabledState = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
                             
                             SettingsRow(Icons.Default.Speed, stringResource(R.string.settings_speed_limit), maxSpeedState, C_accent, C_white, C_gray1, C_card2) {
                                 showSpeedDialog = true
@@ -635,6 +646,18 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsRow(Icons.Default.Download, stringResource(R.string.settings_threads), concurrentFragmentsState, C_accent, C_white, C_gray1, C_card2) {
                                 showThreadsDialog = true
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(
+                                icon = Icons.Default.FastForward,
+                                title = stringResource(R.string.settings_early_start),
+                                trailing = if (AppSettings.earlyStartThreshold == 0) stringResource(R.string.settings_disabled) else "${AppSettings.earlyStartThreshold}%",
+                                colorAccent = C_accent,
+                                textColor = C_white,
+                                grayColor = C_gray1,
+                                card2Color = C_card2
+                            ) {
+                                showEarlyStartThresholdDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(
