@@ -6,7 +6,7 @@
     <string name="share_error_analyze">Could not analyze the link. Want to try a quick download?</string>
     <string name="share_options_title">Download Options</string>
     <string name="share_close">Close</string>
-    <string name="share_download_prefix">Download_%1$s</string>
+    <string name="share_download_prefix">Download</string>
     <string name="share_music_section">MUSIC</string>
     <string name="share_video_section">VIDEO</string>
     <string name="share_download_button">Download</string>

@@ -6,7 +6,7 @@
     <string name="share_error_analyze">No se pudo procesar el enlace. ¿Quieres intentar una descarga rápida?</string>
     <string name="share_options_title">Opciones de Descarga</string>
     <string name="share_close">Cerrar</string>
-    <string name="share_download_prefix">Descarga_%1$s</string>
+    <string name="share_download_prefix">Descarga</string>
     <string name="share_music_section">MÚSICA</string>
     <string name="share_video_section">VIDEO</string>
     <string name="share_download_button">Descargar</string>

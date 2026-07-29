@@ -14,6 +14,8 @@ class YtdlpDownloader {
     companion object {
         private val SPEED_REGEX = Regex("""at\s+([0-9.]+[a-zA-Z]+/s)""")
         private val SIZE_REGEX = Regex("""of\s+([~]?[0-9.]+[a-zA-Z]+)""")
+        // Garantizar que el post-procesado / conversión FFmpeg de varias descargas ocurra de uno en uno
+        private val postProcessingSemaphore = java.util.concurrent.Semaphore(1, true)
     }
 
     private fun createRequest(
@@ -295,11 +297,35 @@ class YtdlpDownloader {
             val maxAttempts = 3
             while (attempt < maxAttempts) {
                 if (!isActive) throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
+                var holdsPostProcLock = false
                 try {
                     val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, level, customizeRequest)
                     var lastUiUpdate = 0L
                     YoutubeDL.getInstance().execute(request, processId) { progreso, _, line ->
                         lastLine = line
+                        val lowerLine = line.lowercase()
+                        val isPostProcLine = lowerLine.contains("[extractaudio]") ||
+                                lowerLine.contains("[merger]") ||
+                                lowerLine.contains("[videoconvertor]") ||
+                                lowerLine.contains("[ffmpeg]") ||
+                                lowerLine.contains("[fixup") ||
+                                lowerLine.contains("[postprocessor]") ||
+                                lowerLine.contains("[embed") ||
+                                lowerLine.contains("[sponsorblock]") ||
+                                lowerLine.contains("deleting original file") ||
+                                progreso >= 100f
+
+                        if (isPostProcLine && !holdsPostProcLock) {
+                            try {
+                                Log.i(Config.TAG_YTDLP_DOWNLOADER, "Descarga $processId solicitando turno de post-procesado/conversión...")
+                                postProcessingSemaphore.acquire()
+                                holdsPostProcLock = true
+                                Log.i(Config.TAG_YTDLP_DOWNLOADER, "Turno de post-procesado/conversión asignado a $processId")
+                            } catch (e: Exception) {
+                                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Error al obtener turno de post-procesado para $processId", e)
+                            }
+                        }
+
                         val now = System.currentTimeMillis()
                         // Throttle updates: process regex and notify progress only every 1000ms or on critical milestones (0%, 100%)
                         if (now - lastUiUpdate >= 1000 || progreso == 0f || progreso >= 100f) {
@@ -317,8 +343,10 @@ class YtdlpDownloader {
                                 sizeText = sizeMatch.groupValues[1].replace("~", "")
                             }
 
-                            if (progreso == 100f && speedText == Config.STATUS_CALCULATING) {
-                                speedText = Config.STATUS_FINALIZING
+                            if (progreso >= 100f || holdsPostProcLock) {
+                                if (speedText == Config.STATUS_CALCULATING || speedText == Config.STATUS_DOWNLOADING) {
+                                    speedText = Config.STATUS_FINALIZING
+                                }
                             }
 
                             alProgresar(progreso, sizeText, speedText)
@@ -357,6 +385,12 @@ class YtdlpDownloader {
                         Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido. Reintentando en 2 segundos...")
                         kotlinx.coroutines.delay(2000)
                         cleanupBeforeRetry()
+                    }
+                } finally {
+                    if (holdsPostProcLock) {
+                        holdsPostProcLock = false
+                        postProcessingSemaphore.release()
+                        Log.i(Config.TAG_YTDLP_DOWNLOADER, "Turno de post-procesado/conversión liberado por $processId")
                     }
                 }
             }

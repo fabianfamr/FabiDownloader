@@ -318,7 +318,7 @@ fun SharePopupScreen(
                                     url = cleanUrl,
                                     quality = selected.quality,
                                     format = selected.format,
-                                    title = ctx.getString(R.string.share_download_prefix, (System.currentTimeMillis() % 100000).toString()),
+                                    title = title,
                                     thumbnailUrl = null
                                 )
                                 onClose()
@@ -346,7 +346,7 @@ fun SharePopupScreen(
                                 onQuickDownload = { quality, format ->
                                     val selectedId = if (format == Config.FORMAT_MP3) "music_$quality" else "video_${quality.removeSuffix("p")}"
                                     AppSettings.lastDownloadedOptionId = selectedId
-                                    val currentTitle = title ?: ctx.getString(R.string.share_download_prefix, (System.currentTimeMillis() % 100000).toString())
+                                    val currentTitle = title
                                     viewModel.downloadVideo(
                                         url = cleanUrl,
                                         quality = quality,
