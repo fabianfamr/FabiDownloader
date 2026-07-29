@@ -34,6 +34,17 @@ jobs:
       - name: Create empty .env file
         run: touch .env
 
+      - name: Prepare Keystore
+        run: |
+          if [ -f "debug.keystore.base64" ]; then
+            echo "Decoding debug.keystore.base64 to debug.keystore..."
+            tr -d '\n\r' < debug.keystore.base64 | base64 -d > debug.keystore
+          fi
+          if [ ! -f "debug.keystore" ] && [ ! -f "release.keystore" ]; then
+            echo "No keystore found, generating a new debug.keystore..."
+            keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 

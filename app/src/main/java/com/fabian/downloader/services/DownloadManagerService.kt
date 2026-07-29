@@ -583,6 +583,45 @@ class DownloadManagerService private constructor(
         }
     }
 
+    fun requeueDownload(id: Long) {
+        serviceScope.launch {
+            forcedDownloadIds.remove(id)
+            storageService.updatePausedState(id, false)
+            
+            try {
+                val currentRecord = storageService.getDownloadById(id)
+                if (currentRecord != null) {
+                    val currentProgress = if (currentRecord.progress < 0) 0 else currentRecord.progress
+                    storageService.updateDownloadProgressAndSizeAndSpeed(
+                        id,
+                        currentProgress,
+                        Config.STATUS_QUEUED,
+                        Config.STATUS_WAITING
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al actualizar estado durante reencolado", e)
+            }
+
+            try {
+                com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
+            } catch (e: Exception) {
+                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Error al destruir proceso $id al reencolar", e)
+            }
+            activeCalls[id]?.cancel()
+            val job = activeJobs[id]
+            job?.cancel()
+            activeCalls.remove(id)
+            activeJobs.remove(id)
+            processingIds.remove(id)
+            activeProgresses.remove(id)
+            
+            notificationService.cancelProgressNotification(id.toInt())
+            
+            triggerQueue()
+        }
+    }
+
     fun pauseAllActiveDownloads() {
         serviceScope.launch {
             val activeIds = activeJobs.keys.toList()
@@ -597,7 +636,7 @@ class DownloadManagerService private constructor(
             val activeIds = activeJobs.keys.toList()
             if (activeIds.size > 1) {
                 activeIds.drop(1).forEach { id ->
-                    pauseDownload(id)
+                    requeueDownload(id)
                 }
             }
             triggerQueue()
@@ -750,10 +789,10 @@ class DownloadManagerService private constructor(
             if (runningIds.size > newLimit) {
                 val excessCount = runningIds.size - newLimit
                 val sortedIds = runningIds.sortedDescending()
-                val toPause = sortedIds.take(excessCount)
-                toPause.forEach { id ->
-                    Log.i(Config.TAG_DOWNLOAD_MANAGER, "Pausando automáticamente descarga $id debido a reducción del límite de descargas concurrentes a $newLimit")
-                    pauseDownload(id)
+                val toRequeue = sortedIds.take(excessCount)
+                toRequeue.forEach { id ->
+                    Log.i(Config.TAG_DOWNLOAD_MANAGER, "Reencolando descarga $id (esperando en cola) por reducción de descargas simultáneas a $newLimit")
+                    requeueDownload(id)
                 }
             } else {
                 triggerQueue()
