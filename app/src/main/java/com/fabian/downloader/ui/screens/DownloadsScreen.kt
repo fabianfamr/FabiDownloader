@@ -977,22 +977,22 @@ fun MobileDownloadingItem(
                     lineHeight = 17.sp
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-                // Progress Line directly below title
+                // Progress Line directly below title (sleek and thin)
                 val rawProgress = if (record.progress < 0) 0f else record.progress / 100f
                 LinearProgressIndicator(
                     progress = { rawProgress },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(3.dp)
+                        .height(2.dp)
                         .clip(CircleShape),
                     color = statusColor,
-                    trackColor = C_border.copy(alpha = 0.6f),
+                    trackColor = C_white.copy(alpha = 0.12f),
                     strokeCap = StrokeCap.Round
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 // Speed and Percentage row
                 Row(
@@ -1012,7 +1012,7 @@ fun MobileDownloadingItem(
                         style = MaterialTheme.typography.labelSmall,
                         color = if (record.isPaused) C_amber else if (isFailed) C_red else C_accent,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.5.sp,
+                        fontSize = 11.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -1030,14 +1030,14 @@ fun MobileDownloadingItem(
                         style = MaterialTheme.typography.labelSmall,
                         color = C_gray1,
                         fontWeight = FontWeight.Medium,
-                        fontSize = 11.5.sp
+                        fontSize = 11.sp
                     )
                 }
             }
 
             Spacer(modifier = Modifier.width(10.dp))
 
-            // Action button on the far right: Circular outline Pause/Play button
+            // Action button on the far right: Circular outline Pause/Play button (as shown in the reference image)
             if (isSelectionMode) {
                 Box(
                     modifier = Modifier
@@ -1060,11 +1060,25 @@ fun MobileDownloadingItem(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    IconButton(
+                        onClick = { onDelete() },
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.downloads_action_options),
+                            modifier = Modifier.size(16.dp),
+                            tint = C_gray1
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
                     Box(
                         modifier = Modifier
-                            .size(30.dp)
+                            .size(32.dp)
                             .clip(CircleShape)
-                            .border(1.5.dp, C_white.copy(alpha = 0.9f), CircleShape)
+                            .border(1.dp, C_white.copy(alpha = 0.7f), CircleShape)
                             .clickable {
                                 if (isFailed) onResume()
                                 else if (record.isPaused) onResume()
@@ -1080,21 +1094,7 @@ fun MobileDownloadingItem(
                             },
                             contentDescription = if (record.isPaused) "Reanudar" else "Pausar",
                             tint = if (isFailed) C_red else C_white,
-                            modifier = Modifier.size(15.dp)
-                        )
-                    }
-
-                    IconButton(
-                        onClick = { onDelete() },
-                        modifier = Modifier
-                            .size(28.dp)
-                            .padding(start = 2.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = stringResource(R.string.downloads_action_options),
-                            modifier = Modifier.size(16.dp),
-                            tint = C_gray1
+                            modifier = Modifier.size(14.dp)
                         )
                     }
                 }
