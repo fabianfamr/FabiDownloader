@@ -2,4 +2,7 @@
     <string name="app_name">Fabi Downloader</string>
     <string name="shortcut_library">Biblioteca</string>
     <string name="shortcut_download">Descargar</string>
+    <string name="downloads_realtime_speed_title">Velocidad en Tiempo Real</string>
+    <string name="downloads_active_downloads_count">%1$d descargas activas</string>
+    <string name="downloads_active_count">%1$d en vivo</string>
 </resources>

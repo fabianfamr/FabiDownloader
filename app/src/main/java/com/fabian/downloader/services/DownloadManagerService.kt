@@ -206,6 +206,13 @@ class DownloadManagerService private constructor(
                     return@launch
                 }
 
+                if (AppSettings.dataSaverEnabled && isCellularNetwork()) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(application, "Modo 'Solo Wi-Fi' activo: Conéctate a Wi-Fi para descargar", Toast.LENGTH_LONG).show()
+                    }
+                    return@launch
+                }
+
                 val batteryManager = BatteryOptimizerManager.getInstance(application)
                 if (!isForced && AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
                     withContext(Dispatchers.Main) {
@@ -431,8 +438,12 @@ class DownloadManagerService private constructor(
                     }
                 }
 
-                storageService.updateDownloadProgressAndSizeAndSpeed(id, 100, Config.STATUS_COMPLETED, Config.STATUS_COMPLETED)
-                storageService.markAsCompleted(id)
+                if (AppSettings.keepHistory) {
+                    storageService.updateDownloadProgressAndSizeAndSpeed(id, 100, Config.STATUS_COMPLETED, Config.STATUS_COMPLETED)
+                    storageService.markAsCompleted(id)
+                } else {
+                    storageService.deleteDownload(id)
+                }
 
                 val actualFile = destFolder.listFiles { _, name ->
                     name.startsWith("${fileNameWithoutExt}.") &&
@@ -663,6 +674,9 @@ class DownloadManagerService private constructor(
                     file.delete()
                 }
             }
+            if (AppSettings.cleanTempOnCancel) {
+                cleanTempFiles(id, record?.title, record?.format ?: "MP4")
+            }
             
             val thumbnailsDir = java.io.File(application.filesDir, "thumbnails")
             val thumbFile = java.io.File(thumbnailsDir, "thumb_$id.jpg")
@@ -853,6 +867,34 @@ class DownloadManagerService private constructor(
                     Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al restablecer el estado de la descarga $id", e)
                 }
             }
+        }
+    }
+
+    private fun isCellularNetwork(): Boolean {
+        return try {
+            val cm = application.getSystemService(Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager ?: return false
+            val network = cm.activeNetwork ?: return false
+            val capabilities = cm.getNetworkCapabilities(network) ?: return false
+            capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR)
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun cleanTempFiles(id: Long, title: String?, format: String = "MP4") {
+        try {
+            val destFolder = com.fabian.downloader.utils.PathUtils.getDownloadFolder(application, format)
+            if (destFolder.exists() && destFolder.isDirectory) {
+                destFolder.listFiles()?.forEach { file ->
+                    val name = file.name
+                    if ((name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp")) &&
+                        (name.contains(id.toString()) || (title != null && name.contains(title.take(15))))) {
+                        file.delete()
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error cleaning temp files for $id", e)
         }
     }
 }

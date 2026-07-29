@@ -127,6 +127,21 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var embedChapters by remember { mutableStateOf(AppSettings.embedChapters) }
     var amoledMode by remember { mutableStateOf(AppSettings.amoledMode) }
 
+    var maxSpeedState by remember { mutableStateOf(AppSettings.maxSpeed) }
+    var selectedQualityState by remember { mutableStateOf(AppSettings.selectedQuality) }
+    var selectedVideoFormatState by remember { mutableStateOf(AppSettings.selectedVideoFormat) }
+    var selectedAudioFormatState by remember { mutableStateOf(AppSettings.selectedAudioFormat) }
+    var defaultAudioBitrateState by remember { mutableStateOf(AppSettings.defaultAudioBitrate) }
+    var concurrentFragmentsState by remember { mutableStateOf(AppSettings.concurrentFragments) }
+    var themePreferenceState by remember { mutableStateOf(AppSettings.themePreference) }
+    var accentColorNameState by remember { mutableStateOf(AppSettings.accentColorName) }
+    var cardStyleState by remember { mutableStateOf(AppSettings.cardStyle) }
+    var languageState by remember { mutableStateOf(AppSettings.language) }
+    var pausedTimeoutState by remember { mutableStateOf(AppSettings.selectedPausedNotificationTimeout) }
+    var batteryLowThresholdState by remember { mutableStateOf(AppSettings.selectedBatteryLowThreshold) }
+    var batteryLowActionState by remember { mutableStateOf(AppSettings.selectedBatteryLowAction) }
+    var storageMarginState by remember { mutableStateOf(AppSettings.selectedStorageMargin) }
+
     LaunchedEffect(maxConcurrent) { AppSettings.maxConcurrentDownloads = maxConcurrent }
     LaunchedEffect(autoDownload) { AppSettings.clipboardAction = if (autoDownload) "auto" else "disabled" }
     LaunchedEffect(wifiOnly) { AppSettings.dataSaverEnabled = wifiOnly }
@@ -232,9 +247,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SelectionDialog(
             title = stringResource(R.string.settings_quality_default),
             options = AppSettings.qualityOptions,
-            selectedOption = AppSettings.selectedQuality,
+            selectedOption = selectedQualityState,
             onSelection = {
                 AppSettings.selectedQuality = it
+                selectedQualityState = it
                 showQualityDialog = false
             },
             onDismiss = { showQualityDialog = false }
@@ -272,9 +288,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SelectionDialog(
             title = stringResource(R.string.settings_format_video),
             options = AppSettings.videoFormats,
-            selectedOption = AppSettings.selectedVideoFormat,
+            selectedOption = selectedVideoFormatState,
             onSelection = {
                 AppSettings.selectedVideoFormat = it
+                selectedVideoFormatState = it
                 showVideoFormatDialog = false
             },
             onDismiss = { showVideoFormatDialog = false }
@@ -285,9 +302,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SelectionDialog(
             title = stringResource(R.string.settings_threads),
             options = listOf("1", "3", "5", "8", "12", "16"),
-            selectedOption = AppSettings.concurrentFragments,
+            selectedOption = concurrentFragmentsState,
             onSelection = {
                 AppSettings.concurrentFragments = it
+                concurrentFragmentsState = it
                 showThreadsDialog = false
             },
             onDismiss = { showThreadsDialog = false }
@@ -298,9 +316,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SelectionDialog(
             title = stringResource(R.string.settings_speed_limit),
             options = AppSettings.speedOptions,
-            selectedOption = AppSettings.maxSpeed,
+            selectedOption = maxSpeedState,
             onSelection = {
                 AppSettings.maxSpeed = it
+                maxSpeedState = it
                 showSpeedDialog = false
             },
             onDismiss = { showSpeedDialog = false }
@@ -311,9 +330,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SelectionDialog(
             title = stringResource(R.string.settings_theme_visual),
             options = AppSettings.themeOptions,
-            selectedOption = AppSettings.themePreference,
+            selectedOption = themePreferenceState,
             onSelection = {
                 AppSettings.themePreference = it
+                themePreferenceState = it
                 showThemeDialog = false
             },
             onDismiss = { showThemeDialog = false }
@@ -324,9 +344,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SelectionDialog(
             title = stringResource(R.string.settings_accent_color),
             options = AppSettings.accentColorOptions,
-            selectedOption = AppSettings.accentColorName,
+            selectedOption = accentColorNameState,
             onSelection = {
                 AppSettings.accentColorName = it
+                accentColorNameState = it
                 showAccentDialog = false
             },
             onDismiss = { showAccentDialog = false }
@@ -337,9 +358,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SelectionDialog(
             title = "Auto-cancelar pausa",
             options = AppSettings.pausedNotificationTimeoutOptions,
-            selectedOption = AppSettings.selectedPausedNotificationTimeout,
+            selectedOption = pausedTimeoutState,
             onSelection = {
                 AppSettings.selectedPausedNotificationTimeout = it
+                pausedTimeoutState = it
                 showPausedTimeoutDialog = false
             },
             onDismiss = { showPausedTimeoutDialog = false }
@@ -350,9 +372,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SelectionDialog(
             title = stringResource(R.string.settings_battery_threshold),
             options = AppSettings.batteryLowThresholdOptions,
-            selectedOption = AppSettings.selectedBatteryLowThreshold,
+            selectedOption = batteryLowThresholdState,
             onSelection = {
                 AppSettings.selectedBatteryLowThreshold = it
+                batteryLowThresholdState = it
                 showBatteryLowThresholdDialog = false
             },
             onDismiss = { showBatteryLowThresholdDialog = false }
@@ -363,9 +386,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SelectionDialog(
             title = stringResource(R.string.settings_battery_action),
             options = AppSettings.batteryLowActionOptions,
-            selectedOption = AppSettings.selectedBatteryLowAction,
+            selectedOption = batteryLowActionState,
             onSelection = {
                 AppSettings.selectedBatteryLowAction = it
+                batteryLowActionState = it
                 showBatteryLowActionDialog = false
             },
             onDismiss = { showBatteryLowActionDialog = false }
@@ -376,9 +400,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SelectionDialog(
             title = stringResource(R.string.settings_card_style_dialog),
             options = AppSettings.cardStyleOptions,
-            selectedOption = AppSettings.cardStyle,
+            selectedOption = cardStyleState,
             onSelection = {
                 AppSettings.cardStyle = it
+                cardStyleState = it
                 showCardStyleDialog = false
             },
             onDismiss = { showCardStyleDialog = false }
@@ -389,9 +414,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SelectionDialog(
             title = stringResource(R.string.settings_audio_quality_dialog),
             options = AppSettings.defaultAudioBitrateOptions,
-            selectedOption = AppSettings.defaultAudioBitrate,
+            selectedOption = defaultAudioBitrateState,
             onSelection = {
                 AppSettings.defaultAudioBitrate = it
+                defaultAudioBitrateState = it
                 showAudioBitrateDialog = false
             },
             onDismiss = { showAudioBitrateDialog = false }
@@ -402,9 +428,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SelectionDialog(
             title = stringResource(R.string.settings_select_audio_format),
             options = AppSettings.audioFormats,
-            selectedOption = AppSettings.selectedAudioFormat,
+            selectedOption = selectedAudioFormatState,
             onSelection = {
                 AppSettings.selectedAudioFormat = it
+                selectedAudioFormatState = it
                 showAudioFormatDialog = false
             },
             onDismiss = { showAudioFormatDialog = false }
@@ -568,7 +595,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 launcher.launch(null)
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.Storage, stringResource(R.string.settings_storage_margin), AppSettings.selectedStorageMargin, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.Storage, stringResource(R.string.settings_storage_margin), storageMarginState, C_accent, C_white, C_gray1, C_card2) {
                                 showStorageMarginDialog = true
                             }
                         }
@@ -586,27 +613,27 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             SettingsToggleRow(Icons.Default.Link, stringResource(R.string.settings_auto_download), stringResource(R.string.settings_auto_download_desc), autoDownload, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoDownload = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             
-                            SettingsRow(Icons.Default.Speed, stringResource(R.string.settings_speed_limit), AppSettings.maxSpeed, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.Speed, stringResource(R.string.settings_speed_limit), maxSpeedState, C_accent, C_white, C_gray1, C_card2) {
                                 showSpeedDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.Hd, stringResource(R.string.settings_quality_default), AppSettings.selectedQuality, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.Hd, stringResource(R.string.settings_quality_default), selectedQualityState, C_accent, C_white, C_gray1, C_card2) {
                                 showQualityDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.VideoFile, stringResource(R.string.settings_format_video), AppSettings.selectedVideoFormat, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.VideoFile, stringResource(R.string.settings_format_video), selectedVideoFormatState, C_accent, C_white, C_gray1, C_card2) {
                                 showVideoFormatDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.AudioFile, stringResource(R.string.settings_audio_format), AppSettings.selectedAudioFormat, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.AudioFile, stringResource(R.string.settings_audio_format), selectedAudioFormatState, C_accent, C_white, C_gray1, C_card2) {
                                 showAudioFormatDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.GraphicEq, stringResource(R.string.settings_audio_quality), AppSettings.defaultAudioBitrate, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.GraphicEq, stringResource(R.string.settings_audio_quality), defaultAudioBitrateState, C_accent, C_white, C_gray1, C_card2) {
                                 showAudioBitrateDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.Download, stringResource(R.string.settings_threads), AppSettings.concurrentFragments, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.Download, stringResource(R.string.settings_threads), concurrentFragmentsState, C_accent, C_white, C_gray1, C_card2) {
                                 showThreadsDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
@@ -695,7 +722,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 SettingsRow(
                                     icon = Icons.Default.BatteryAlert,
                                     title = stringResource(R.string.settings_battery_threshold),
-                                    trailing = AppSettings.selectedBatteryLowThreshold,
+                                    trailing = batteryLowThresholdState,
                                     colorAccent = C_accent,
                                     textColor = C_white,
                                     grayColor = C_gray1,
@@ -707,7 +734,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 SettingsRow(
                                     icon = Icons.Default.SettingsApplications,
                                     title = stringResource(R.string.settings_battery_action),
-                                    trailing = AppSettings.selectedBatteryLowAction,
+                                    trailing = batteryLowActionState,
                                     colorAccent = C_accent,
                                     textColor = C_white,
                                     grayColor = C_gray1,
@@ -728,21 +755,21 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsRow(Icons.Default.DarkMode, stringResource(R.string.settings_theme_visual), AppSettings.themePreference, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.DarkMode, stringResource(R.string.settings_theme_visual), themePreferenceState, C_accent, C_white, C_gray1, C_card2) {
                                 showThemeDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.Palette, stringResource(R.string.settings_dynamic_color), stringResource(R.string.settings_dynamic_color_desc), dynamicColor, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { dynamicColor = it }
                             if (!dynamicColor) {
                                 HorizontalDivider(color = C_border, thickness = 1.dp)
-                                SettingsRow(Icons.Default.ColorLens, stringResource(R.string.settings_accent_color), AppSettings.accentColorName, C_accent, C_white, C_gray1, C_card2) {
+                                SettingsRow(Icons.Default.ColorLens, stringResource(R.string.settings_accent_color), accentColorNameState, C_accent, C_white, C_gray1, C_card2) {
                                     showAccentDialog = true
                                 }
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.Brightness1, stringResource(R.string.settings_amoled_mode), stringResource(R.string.settings_amoled_mode_desc), amoledMode, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { amoledMode = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.ViewStream, stringResource(R.string.settings_card_style), AppSettings.cardStyle, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.ViewStream, stringResource(R.string.settings_card_style), cardStyleState, C_accent, C_white, C_gray1, C_card2) {
                                 showCardStyleDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)

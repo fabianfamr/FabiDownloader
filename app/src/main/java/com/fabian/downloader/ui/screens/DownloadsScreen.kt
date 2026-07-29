@@ -656,7 +656,7 @@ fun DownloadsScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                verticalArrangement = Arrangement.spacedBy(if (AppSettings.cardStyle == "Minimalista") 8.dp else 14.dp)
             ) {
                 if (page == 0) {
                     // Descargados (Completados)
@@ -719,6 +719,19 @@ fun DownloadsScreen(
                     }
                 } else {
                     // En progreso
+                    if (AppSettings.showRealtimeSpeedCard && filteredDownloading.isNotEmpty()) {
+                        item {
+                            RealtimeSpeedCardBanner(
+                                activeDownloads = filteredDownloading,
+                                accentColor = C_accent,
+                                cardBg = C_card,
+                                card2Bg = C_card2,
+                                borderColor = C_border,
+                                textColor = C_white,
+                                grayColor = C_gray1
+                            )
+                        }
+                    }
                     if (filteredDownloading.isNotEmpty()) {
                         items(filteredDownloading, key = { it.id }) { record ->
                             MobileDownloadingItem(
@@ -947,19 +960,21 @@ fun MobileDownloadingItem(
                         verticalAlignment = Alignment.CenterVertically, 
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Surface(
-                            color = platformColor.copy(alpha = 0.12f),
-                            shape = RoundedCornerShape(6.dp)
-                        ) {
-                            Text(
-                                text = "${record.quality} • ${record.format}", 
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = platformColor,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                        if (AppSettings.showQualityBadge) {
+                            Surface(
+                                color = platformColor.copy(alpha = 0.12f),
+                                shape = RoundedCornerShape(6.dp)
+                            ) {
+                                Text(
+                                    text = "${record.quality} • ${record.format}", 
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = platformColor,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                         
                         if (isFailed) {
@@ -1205,19 +1220,21 @@ fun MobileDownloadedItem(
                     verticalAlignment = Alignment.CenterVertically, 
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Surface(
-                        color = platformColor.copy(alpha = 0.12f),
-                        shape = RoundedCornerShape(6.dp)
-                    ) {
-                        Text(
-                            text = "${record.quality} • ${record.format}", 
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = platformColor,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
+                    if (AppSettings.showQualityBadge) {
+                        Surface(
+                            color = platformColor.copy(alpha = 0.12f),
+                            shape = RoundedCornerShape(6.dp)
+                        ) {
+                            Text(
+                                text = "${record.quality} • ${record.format}", 
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = platformColor,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                        Box(modifier = Modifier.size(3.dp).background(C_gray1, CircleShape))
                     }
-                    Box(modifier = Modifier.size(3.dp).background(C_gray1, CircleShape))
                     Text(
                         text = record.size, 
                         style = MaterialTheme.typography.labelSmall,
@@ -1259,6 +1276,84 @@ fun MobileDownloadedItem(
                         modifier = Modifier.size(18.dp)
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun RealtimeSpeedCardBanner(
+    activeDownloads: List<DownloadRecord>,
+    accentColor: Color,
+    cardBg: Color,
+    card2Bg: Color,
+    borderColor: Color,
+    textColor: Color,
+    grayColor: Color
+) {
+    val activeCount = activeDownloads.count { !it.isPaused && it.speed != "FAILED" }
+    val currentSpeeds = activeDownloads
+        .filter { !it.isPaused && it.speed != "FAILED" }
+        .map { it.speed }
+        .joinToString(" • ")
+        .ifEmpty { stringResource(R.string.downloads_active_downloads_count, activeDownloads.size) }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 6.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = cardBg,
+        border = BorderStroke(1.dp, borderColor)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(accentColor.copy(alpha = 0.15f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Speed,
+                    contentDescription = null,
+                    tint = accentColor,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.downloads_realtime_speed_title),
+                    color = textColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = currentSpeeds,
+                    color = grayColor,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Surface(
+                color = card2Bg,
+                shape = RoundedCornerShape(20.dp),
+                border = BorderStroke(1.dp, borderColor)
+            ) {
+                Text(
+                    text = stringResource(R.string.downloads_active_count, activeCount),
+                    color = accentColor,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                )
             }
         }
     }

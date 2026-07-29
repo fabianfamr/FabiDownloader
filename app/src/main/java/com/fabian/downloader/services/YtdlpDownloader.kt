@@ -39,7 +39,10 @@ class YtdlpDownloader {
                 }
                 addOption("--extract-audio")
                 addOption("--audio-format", "mp3")
-                addOption("--audio-quality", quality.filter { it.isDigit() }.ifEmpty { "128" })
+                val defaultBitrateDigits = settings.defaultAudioBitrate.filter { it.isDigit() }.ifEmpty { "320" }
+                val selectedBitrateDigits = quality.filter { it.isDigit() }
+                val finalAudioQuality = if (selectedBitrateDigits.isNotEmpty()) selectedBitrateDigits else defaultBitrateDigits
+                addOption("--audio-quality", finalAudioQuality)
             } else if (format == Config.FORMAT_M4A) {
                 if (fallbackLevel == 0) {
                     addOption("-f", "bestaudio/best")
@@ -64,6 +67,10 @@ class YtdlpDownloader {
                 }
                 addOption("--merge-output-format", "mp4")
                 addOption("--remux-video", "mp4")
+            }
+
+            if (settings.embedChapters) {
+                addOption("--embed-chapters")
             }
 
             addOption("-o", "${destFolder.absolutePath}/$fileNameWithoutExt.%(ext)s")

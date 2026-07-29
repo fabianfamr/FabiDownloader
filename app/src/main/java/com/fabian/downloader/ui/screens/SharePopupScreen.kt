@@ -217,10 +217,22 @@ fun SharePopupScreen(
     
     var selectedOptionId by remember {
         mutableStateOf(
-            if (cleanUrl.contains("music.youtube.com") || cleanUrl.contains("spotify") || cleanUrl.contains("soundcloud")) {
-                if (AppSettings.lastDownloadedOptionId.startsWith("music")) AppSettings.lastDownloadedOptionId else "music_320"
+            if (cleanUrl.contains("music.youtube.com") || cleanUrl.contains("spotify") || cleanUrl.contains("soundcloud") || AppSettings.selectedQuality.contains("Solo Audio")) {
+                when (AppSettings.defaultAudioBitrate) {
+                    "320 kbps (Máxima)", "320 kbps" -> "music_320"
+                    "256 kbps", "192 kbps" -> "music_192"
+                    "128 kbps" -> "music_128"
+                    else -> "music_320"
+                }
             } else {
-                AppSettings.lastDownloadedOptionId.ifEmpty { "video_720" }
+                when {
+                    AppSettings.selectedQuality.contains("1080p") -> "video_1080"
+                    AppSettings.selectedQuality.contains("720p") -> "video_720"
+                    AppSettings.selectedQuality.contains("480p") -> "video_480"
+                    AppSettings.selectedQuality.contains("360p") -> "video_360"
+                    AppSettings.selectedQuality.contains("2160p") || AppSettings.selectedQuality.contains("4K") -> "video_1080"
+                    else -> AppSettings.lastDownloadedOptionId.ifEmpty { "video_720" }
+                }
             }
         )
     }

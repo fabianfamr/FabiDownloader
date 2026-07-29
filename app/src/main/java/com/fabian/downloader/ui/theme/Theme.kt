@@ -182,29 +182,33 @@ fun MyApplicationTheme(
         )
     }
 
-    val baseFabiColors = if (darkTheme) {
-        if (selectedAccent != null) {
-            DarkFabiColors.copy(
-                accent = selectedAccent,
-                accentDim = selectedAccent.copy(alpha = 0.10f),
-                accentGlow = selectedAccent.copy(alpha = 0.22f)
-            )
-        } else DarkFabiColors
+    val effectiveAccent = if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        colorScheme.primary
     } else {
-        if (selectedAccent != null) {
-            LightFabiColors.copy(
-                accent = selectedAccent,
-                accentDim = selectedAccent.copy(alpha = 0.12f),
-                accentGlow = selectedAccent.copy(alpha = 0.20f)
-            )
-        } else LightFabiColors
+        selectedAccent ?: AccentBlue
+    }
+
+    val baseFabiColors = if (darkTheme) {
+        DarkFabiColors.copy(
+            accent = effectiveAccent,
+            accentDim = effectiveAccent.copy(alpha = 0.12f),
+            accentGlow = effectiveAccent.copy(alpha = 0.22f)
+        )
+    } else {
+        LightFabiColors.copy(
+            accent = effectiveAccent,
+            accentDim = effectiveAccent.copy(alpha = 0.12f),
+            accentGlow = effectiveAccent.copy(alpha = 0.20f)
+        )
     }
 
     val fabiColors = if (darkTheme && amoledMode) {
         baseFabiColors.copy(
             background = Color.Black,
-            card = Color(0xFF09090A),
-            cardSecondary = Color(0xFF121214)
+            card = Color(0xFF070708),
+            cardSecondary = Color(0xFF101012),
+            border = Color(0xFF1E1E24),
+            sheet = Color(0xFF050506)
         )
     } else baseFabiColors
 
