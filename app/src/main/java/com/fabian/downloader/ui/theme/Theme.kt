@@ -113,6 +113,7 @@ fun MyApplicationTheme(
     themePreference: String = "Sistema",
     dynamicColor: Boolean = true,
     accentColorName: String = "Azul Eléctrico",
+    amoledMode: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
@@ -136,7 +137,7 @@ fun MyApplicationTheme(
         }
     }
 
-    val colorScheme = when {
+    var colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
@@ -159,7 +160,14 @@ fun MyApplicationTheme(
         }
     }
 
-    val fabiColors = if (darkTheme) {
+    if (darkTheme && amoledMode) {
+        colorScheme = colorScheme.copy(
+            background = Color.Black,
+            surface = Color.Black
+        )
+    }
+
+    val baseFabiColors = if (darkTheme) {
         if (selectedAccent != null) {
             DarkFabiColors.copy(
                 accent = selectedAccent,
@@ -171,6 +179,14 @@ fun MyApplicationTheme(
         // Fallback or Light colors if we defined them properly
         DarkFabiColors
     }
+
+    val fabiColors = if (darkTheme && amoledMode) {
+        baseFabiColors.copy(
+            background = Color.Black,
+            card = Color(0xFF09090A),
+            cardSecondary = Color(0xFF121214)
+        )
+    } else baseFabiColors
 
     val view = LocalView.current
     if (!view.isInEditMode) {

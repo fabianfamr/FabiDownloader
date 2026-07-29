@@ -116,12 +116,18 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     var showCardStyleDialog by remember { mutableStateOf(false) }
     var showAudioBitrateDialog by remember { mutableStateOf(false) }
+    var showAudioFormatDialog by remember { mutableStateOf(false) }
+    var showUserAgentDialog by remember { mutableStateOf(false) }
     var showQualityBadge by remember { mutableStateOf(AppSettings.showQualityBadge) }
     var showRealtimeSpeedCard by remember { mutableStateOf(AppSettings.showRealtimeSpeedCard) }
     var cleanTempOnCancel by remember { mutableStateOf(AppSettings.cleanTempOnCancel) }
     var notifyBatchComplete by remember { mutableStateOf(AppSettings.notifyBatchComplete) }
     var quickShareMode by remember { mutableStateOf(AppSettings.quickShareMode) }
     var allowDuplicateDownloads by remember { mutableStateOf(AppSettings.allowDuplicateDownloads) }
+    var vibrateOnComplete by remember { mutableStateOf(AppSettings.vibrateOnComplete) }
+    var embedChapters by remember { mutableStateOf(AppSettings.embedChapters) }
+    var organizeSubfolders by remember { mutableStateOf(AppSettings.organizeSubfolders) }
+    var amoledMode by remember { mutableStateOf(AppSettings.amoledMode) }
 
     LaunchedEffect(maxConcurrent) { AppSettings.maxConcurrentDownloads = maxConcurrent }
     LaunchedEffect(autoDownload) { AppSettings.clipboardAction = if (autoDownload) "auto" else "disabled" }
@@ -144,6 +150,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     LaunchedEffect(notifyBatchComplete) { AppSettings.notifyBatchComplete = notifyBatchComplete }
     LaunchedEffect(quickShareMode) { AppSettings.quickShareMode = quickShareMode }
     LaunchedEffect(allowDuplicateDownloads) { AppSettings.allowDuplicateDownloads = allowDuplicateDownloads }
+    LaunchedEffect(vibrateOnComplete) { AppSettings.vibrateOnComplete = vibrateOnComplete }
+    LaunchedEffect(embedChapters) { AppSettings.embedChapters = embedChapters }
+    LaunchedEffect(organizeSubfolders) { AppSettings.organizeSubfolders = organizeSubfolders }
+    LaunchedEffect(amoledMode) { AppSettings.amoledMode = amoledMode }
 
     var contentVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -392,6 +402,29 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         )
     }
 
+    if (showAudioFormatDialog) {
+        SelectionDialog(
+            title = stringResource(R.string.settings_select_audio_format),
+            options = AppSettings.audioFormats,
+            selectedOption = AppSettings.selectedAudioFormat,
+            onSelection = {
+                AppSettings.selectedAudioFormat = it
+                showAudioFormatDialog = false
+            },
+            onDismiss = { showAudioFormatDialog = false }
+        )
+    }
+
+    if (showUserAgentDialog) {
+        InputDialog(
+            title = stringResource(R.string.settings_user_agent_title),
+            placeholder = stringResource(R.string.settings_user_agent_placeholder),
+            initialValue = AppSettings.customUserAgent,
+            onConfirm = { AppSettings.customUserAgent = it },
+            onDismiss = { showUserAgentDialog = false }
+        )
+    }
+
     if (showCustomArgsDialog) {
         InputDialog(
             title = stringResource(R.string.settings_yt_args),
@@ -569,7 +602,11 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 showVideoFormatDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.AudioFile, stringResource(R.string.settings_audio_quality), AppSettings.defaultAudioBitrate, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.AudioFile, stringResource(R.string.settings_audio_format), AppSettings.selectedAudioFormat, C_accent, C_white, C_gray1, C_card2) {
+                                showAudioFormatDialog = true
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.GraphicEq, stringResource(R.string.settings_audio_quality), AppSettings.defaultAudioBitrate, C_accent, C_white, C_gray1, C_card2) {
                                 showAudioBitrateDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
@@ -577,21 +614,18 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 showThreadsDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            val earlyStartLabel = when (val th = AppSettings.earlyStartThreshold) {
-                                0 -> stringResource(R.string.settings_disabled)
-                                else -> "$th%"
-                            }
-                            SettingsRow(
-                                Icons.Default.FastForward,
-                                stringResource(R.string.settings_early_start),
-                                earlyStartLabel,
-                                C_accent,
-                                C_white,
-                                C_gray1,
-                                C_card2
-                            ) {
-                                showEarlyStartThresholdDialog = true
-                            }
+                            SettingsToggleRow(
+                                icon = Icons.Default.FolderZip,
+                                title = stringResource(R.string.settings_organize_subfolders),
+                                subtitle = stringResource(R.string.settings_organize_subfolders_desc),
+                                checked = organizeSubfolders,
+                                colorAccent = C_accent,
+                                textColor = C_white,
+                                grayColor = C_gray1,
+                                card2Color = C_card2,
+                                borderColor = C_border,
+                                bgColor = C_bg
+                            ) { organizeSubfolders = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(
                                 icon = Icons.Default.CleaningServices,
@@ -723,6 +757,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 }
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.Brightness1, stringResource(R.string.settings_amoled_mode), stringResource(R.string.settings_amoled_mode_desc), amoledMode, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { amoledMode = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsRow(Icons.Default.ViewStream, stringResource(R.string.settings_card_style), AppSettings.cardStyle, C_accent, C_white, C_gray1, C_card2) {
                                 showCardStyleDialog = true
                             }
@@ -745,17 +781,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 HorizontalDivider(color = C_border, thickness = 1.dp)
                                 SettingsToggleRow(Icons.Default.Speed, stringResource(R.string.settings_notif_speed), stringResource(R.string.settings_notif_speed_desc), showSpeedInNotif, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showSpeedInNotif = it }
                                 HorizontalDivider(color = C_border, thickness = 1.dp)
-                                SettingsRow(
-                                    icon = Icons.Default.Timer,
-                                    title = stringResource(R.string.settings_auto_cancel_pause),
-                                    trailing = AppSettings.selectedPausedNotificationTimeout,
-                                    colorAccent = C_accent,
-                                    textColor = C_white,
-                                    grayColor = C_gray1,
-                                    card2Color = C_card2
-                                ) {
-                                    showPausedTimeoutDialog = true
-                                }
+                                SettingsToggleRow(Icons.Default.Vibration, stringResource(R.string.settings_vibrate), stringResource(R.string.settings_vibrate_desc), vibrateOnComplete, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { vibrateOnComplete = it }
                             }
                         }
                     }
@@ -788,6 +814,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.Subtitles, stringResource(R.string.settings_subtitles), stringResource(R.string.settings_subtitles_desc), embedSubtitles, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedSubtitles = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.Bookmark, stringResource(R.string.settings_embed_chapters), stringResource(R.string.settings_embed_chapters_desc), embedChapters, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedChapters = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.DeleteForever, stringResource(R.string.settings_confirm_delete), stringResource(R.string.settings_confirm_delete_desc), confirmOnDelete, C_red, C_white, C_gray1, C_card2, C_border, C_bg) { confirmOnDelete = it }
                         }
                     }
@@ -806,6 +834,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             SettingsToggleRow(Icons.Default.Block, stringResource(R.string.settings_sponsorblock), stringResource(R.string.settings_sponsorblock_desc), sponsorBlock, C_amber, C_white, C_gray1, C_card2, C_border, C_bg) { sponsorBlock = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.Public, stringResource(R.string.settings_geo_bypass), stringResource(R.string.settings_geo_bypass_desc), bypassGeo, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { bypassGeo = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.Person, stringResource(R.string.settings_user_agent_title), AppSettings.customUserAgent.ifEmpty { stringResource(R.string.settings_value_default) }, C_accent, C_white, C_gray1, C_card2) { showUserAgentDialog = true }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsRow(Icons.Default.Code, stringResource(R.string.settings_yt_args), AppSettings.customArguments.ifEmpty { stringResource(R.string.settings_yt_args_default) }, C_accent, C_white, C_gray1, C_card2) { showCustomArgsDialog = true }
                             HorizontalDivider(color = C_border, thickness = 1.dp)

@@ -476,6 +476,42 @@ object AppSettings {
             saveBoolean("allowDuplicateDownloads", value)
         }
 
+    private val _vibrateOnComplete = mutableStateOf(true)
+    var vibrateOnComplete: Boolean
+        get() = _vibrateOnComplete.value
+        set(value) {
+            _vibrateOnComplete.value = value
+            saveBoolean("vibrateOnComplete", value)
+        }
+
+    private val _embedChapters = mutableStateOf(true)
+    var embedChapters: Boolean
+        get() = _embedChapters.value
+        set(value) {
+            if (_embedChapters.value != value) {
+                _embedChapters.value = value
+                saveBoolean("embedChapters", value)
+                notifyChanged("embedChapters")
+            }
+        }
+
+    private val _organizeSubfolders = mutableStateOf(false)
+    var organizeSubfolders: Boolean
+        get() = _organizeSubfolders.value
+        set(value) {
+            _organizeSubfolders.value = value
+            saveBoolean("organizeSubfolders", value)
+        }
+
+    private val _amoledMode = mutableStateOf(false)
+    val amoledModeState: androidx.compose.runtime.State<Boolean> get() = _amoledMode
+    var amoledMode: Boolean
+        get() = _amoledMode.value
+        set(value) {
+            _amoledMode.value = value
+            saveBoolean("amoledMode", value)
+        }
+
     fun init(context: Context) {
         prefs = context.getSharedPreferences("fabi_downloader_prefs", Context.MODE_PRIVATE)
         
@@ -525,6 +561,10 @@ object AppSettings {
         _cleanTempOnCancel.value = prefs.getBoolean("cleanTempOnCancel", true)
         _quickShareMode.value = prefs.getBoolean("quickShareMode", true)
         _allowDuplicateDownloads.value = prefs.getBoolean("allowDuplicateDownloads", true)
+        _vibrateOnComplete.value = prefs.getBoolean("vibrateOnComplete", true)
+        _embedChapters.value = prefs.getBoolean("embedChapters", true)
+        _organizeSubfolders.value = prefs.getBoolean("organizeSubfolders", false)
+        _amoledMode.value = prefs.getBoolean("amoledMode", false)
     }
 
     private fun saveString(key: String, value: String) {

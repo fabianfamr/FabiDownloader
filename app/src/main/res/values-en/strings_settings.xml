@@ -185,4 +185,14 @@
     <string name="settings_card_style_dialog">Download cards style</string>
     <string name="settings_audio_quality_dialog">Audio quality (Bitrate)</string>
     <string name="settings_auto_cancel_pause">Auto-cancel pause</string>
+    <string name="settings_vibrate">Vibrate on complete</string>
+    <string name="settings_vibrate_desc">Vibrate when a download finishes</string>
+    <string name="settings_embed_chapters">Embed chapters</string>
+    <string name="settings_embed_chapters_desc">Embed timestamp markers into the file</string>
+    <string name="settings_organize_subfolders">Organize by site</string>
+    <string name="settings_organize_subfolders_desc">Create subfolders by platform (YouTube, TikTok, etc.)</string>
+    <string name="settings_amoled_mode">OLED Mode (Pure black)</string>
+    <string name="settings_amoled_mode_desc">Pure black background for AMOLED displays</string>
+    <string name="settings_user_agent_title">Custom User-Agent</string>
+    <string name="settings_user_agent_desc">Custom browser header for downloads</string>
 </resources>

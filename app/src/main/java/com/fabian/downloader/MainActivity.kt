@@ -57,11 +57,13 @@ class MainActivity : ComponentActivity() {
             val themePreference by com.fabian.downloader.ui.AppSettings.themePreferenceState
             val dynamicColor by com.fabian.downloader.ui.AppSettings.dynamicColorState
             val accentColorName by com.fabian.downloader.ui.AppSettings.accentColorNameState
+            val amoledMode by com.fabian.downloader.ui.AppSettings.amoledModeState
             
             MyApplicationTheme(
                 themePreference = themePreference,
                 dynamicColor = dynamicColor,
-                accentColorName = accentColorName
+                accentColorName = accentColorName,
+                amoledMode = amoledMode
             ) {
                 FabiDownloaderApp(
                     database = database,
