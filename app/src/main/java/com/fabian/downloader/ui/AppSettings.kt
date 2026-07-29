@@ -468,6 +468,14 @@ object AppSettings {
             saveBoolean("quickShareMode", value)
         }
 
+    private val _allowDuplicateDownloads = mutableStateOf(true)
+    var allowDuplicateDownloads: Boolean
+        get() = _allowDuplicateDownloads.value
+        set(value) {
+            _allowDuplicateDownloads.value = value
+            saveBoolean("allowDuplicateDownloads", value)
+        }
+
     fun init(context: Context) {
         prefs = context.getSharedPreferences("fabi_downloader_prefs", Context.MODE_PRIVATE)
         
@@ -516,6 +524,7 @@ object AppSettings {
         _notifyBatchComplete.value = prefs.getBoolean("notifyBatchComplete", true)
         _cleanTempOnCancel.value = prefs.getBoolean("cleanTempOnCancel", true)
         _quickShareMode.value = prefs.getBoolean("quickShareMode", true)
+        _allowDuplicateDownloads.value = prefs.getBoolean("allowDuplicateDownloads", true)
     }
 
     private fun saveString(key: String, value: String) {

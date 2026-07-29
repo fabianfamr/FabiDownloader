@@ -84,6 +84,8 @@
 
     <string name="settings_sponsorblock">Bloqueo de sponsors</string>
     <string name="settings_sponsorblock_desc">Omitir partes patrocinadas</string>
+    <string name="settings_allow_duplicates">Permitir descargas duplicadas</string>
+    <string name="settings_allow_duplicates_desc">Permite volver a descargar contenido previamente completado</string>
     <string name="settings_quick_share">Botones Directos al Compartir</string>
     <string name="settings_quick_share_desc">Muestra opciones de MP3, MP4 y resoluciones al instante sin pantalla de carga</string>
     <string name="settings_geo_bypass">Saltar bloqueos geográficos</string>

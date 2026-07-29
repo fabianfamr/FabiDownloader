@@ -121,6 +121,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var cleanTempOnCancel by remember { mutableStateOf(AppSettings.cleanTempOnCancel) }
     var notifyBatchComplete by remember { mutableStateOf(AppSettings.notifyBatchComplete) }
     var quickShareMode by remember { mutableStateOf(AppSettings.quickShareMode) }
+    var allowDuplicateDownloads by remember { mutableStateOf(AppSettings.allowDuplicateDownloads) }
 
     LaunchedEffect(maxConcurrent) { AppSettings.maxConcurrentDownloads = maxConcurrent }
     LaunchedEffect(autoDownload) { AppSettings.clipboardAction = if (autoDownload) "auto" else "disabled" }
@@ -142,6 +143,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     LaunchedEffect(cleanTempOnCancel) { AppSettings.cleanTempOnCancel = cleanTempOnCancel }
     LaunchedEffect(notifyBatchComplete) { AppSettings.notifyBatchComplete = notifyBatchComplete }
     LaunchedEffect(quickShareMode) { AppSettings.quickShareMode = quickShareMode }
+    LaunchedEffect(allowDuplicateDownloads) { AppSettings.allowDuplicateDownloads = allowDuplicateDownloads }
 
     var contentVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -798,6 +800,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     ) {
                         Column {
                             SettingsToggleRow(Icons.Default.Bolt, stringResource(R.string.settings_quick_share), stringResource(R.string.settings_quick_share_desc), quickShareMode, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { quickShareMode = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.ControlPointDuplicate, stringResource(R.string.settings_allow_duplicates), stringResource(R.string.settings_allow_duplicates_desc), allowDuplicateDownloads, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { allowDuplicateDownloads = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.Block, stringResource(R.string.settings_sponsorblock), stringResource(R.string.settings_sponsorblock_desc), sponsorBlock, C_amber, C_white, C_gray1, C_card2, C_border, C_bg) { sponsorBlock = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)

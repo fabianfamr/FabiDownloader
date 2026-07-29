@@ -228,6 +228,19 @@ class DownloadManagerService private constructor(
                         return@launch
                     }
 
+                    if (!AppSettings.allowDuplicateDownloads) {
+                        val completed = existing.find { it.isCompleted }
+                        if (completed != null) {
+                            val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(application, completed.title, completed.id, completed.format)
+                            if (file.exists()) {
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(application, application.getString(R.string.downloads_toast_already_downloaded), Toast.LENGTH_SHORT).show()
+                                }
+                                return@launch
+                            }
+                        }
+                    }
+
                     var resolvedTitle = passedTitle
                     var resolvedThumbnail = passedThumbnailUrl
 
