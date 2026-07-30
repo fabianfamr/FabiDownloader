@@ -924,10 +924,17 @@ fun MobileDownloadingItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp),
+                .padding(
+                    start = 14.dp,
+                    top = 12.dp,
+                    bottom = 12.dp,
+                    end = if (isSelectionMode) 14.dp else 2.dp
+                ),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val (platformIcon, platformColor) = getPlatformIconAndColor(record.url, record.format)
+            val (platformIcon, platformColor) = remember(record.url, record.format) {
+                getPlatformIconAndColor(record.url, record.format)
+            }
             
             // Thumbnail / Icon
             Box(
@@ -1107,7 +1114,9 @@ fun MobileDownloadedItem(
         }
         t
     }
-    val (platformIcon, platformColor) = getPlatformIconAndColor(record.url, record.format)
+    val (platformIcon, platformColor) = remember(record.url, record.format) {
+        getPlatformIconAndColor(record.url, record.format)
+    }
 
     Surface(
         shape = RoundedCornerShape(14.dp),
@@ -1124,7 +1133,12 @@ fun MobileDownloadedItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(
+                    start = 14.dp,
+                    top = 12.dp,
+                    bottom = 12.dp,
+                    end = if (isSelectionMode) 14.dp else 2.dp
+                ),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(

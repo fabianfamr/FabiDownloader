@@ -208,8 +208,12 @@ class StorageService(private val database: AppDatabase) {
     suspend fun getDownloadById(id: Long): DownloadRecord? {
         val cached = memoryCache[id]
         val update = activeProgressUpdates.value[id]
-        if (cached != null && update != null && !cached.isCompleted) {
-            return cached.copy(progress = update.progress, size = update.size, speed = update.speed)
+        if (cached != null) {
+            return if (update != null && !cached.isCompleted) {
+                cached.copy(progress = update.progress, size = update.size, speed = update.speed)
+            } else {
+                cached
+            }
         }
         val dbRecord = database.downloadDao().getDownloadById(id) ?: return null
         memoryCache[dbRecord.id] = dbRecord
