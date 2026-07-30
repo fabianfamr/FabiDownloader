@@ -48,7 +48,7 @@ class DownloadForegroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         promoteToForeground()
-        return START_NOT_STICKY
+        return START_STICKY
     }
 
     private fun promoteToForeground() {
@@ -111,10 +111,14 @@ class DownloadForegroundService : Service() {
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
         try {
-            DownloadManagerService.getInstance(applicationContext).onAppClosed()
+            val hasActive = DownloadManagerService.getInstance(applicationContext).hasActiveDownloads()
+            if (!hasActive) {
+                stopSelf()
+            } else {
+                android.util.Log.i("DownloadService", "La app se cerró de recientes pero hay descargas activas. El servicio en segundo plano continúa en ejecución.")
+            }
         } catch (e: Exception) {
-            android.util.Log.e("DownloadService", "Error cleaning up on task removed", e)
+            android.util.Log.e("DownloadService", "Error comprobando descargas activas en onTaskRemoved", e)
         }
-        stopSelf()
     }
 }

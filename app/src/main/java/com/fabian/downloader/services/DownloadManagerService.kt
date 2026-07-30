@@ -91,6 +91,10 @@ class DownloadManagerService private constructor(
         activeCalls.remove(id)
     }
 
+    fun hasActiveDownloads(): Boolean {
+        return processingIds.isNotEmpty()
+    }
+
     init {
         // Inicializar el optimizador de batería para que empiece a monitorear desde el inicio del servicio
         BatteryOptimizerManager.getInstance(application)
