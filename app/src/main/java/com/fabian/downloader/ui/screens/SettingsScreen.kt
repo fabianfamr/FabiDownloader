@@ -514,9 +514,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     ) {
         AnimatedVisibility(
             visible = contentVisible,
-            enter = fadeIn(tween(400)) + slideInVertically(
-                initialOffsetY = { 40 },
-                animationSpec = tween(400, easing = FastOutSlowInEasing)
+            enter = fadeIn(tween(300, easing = FastOutSlowInEasing)) + slideInVertically(
+                initialOffsetY = { 20 },
+                animationSpec = tween(300, easing = FastOutSlowInEasing)
             )
         ) {
             Column(

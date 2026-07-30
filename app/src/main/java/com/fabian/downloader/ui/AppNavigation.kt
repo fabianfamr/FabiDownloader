@@ -186,27 +186,39 @@ fun FabiDownloaderApp(
                 startDestination = Screen.Main.route,
                 modifier = Modifier.fillMaxSize(),
                 enterTransition = {
-                    slideInVertically(
-                        initialOffsetY = { 40 },
-                        animationSpec = tween(300, easing = EaseOutQuart)
+                    val initialIndex = getRouteIndex(initialState.destination.route)
+                    val targetIndex = getRouteIndex(targetState.destination.route)
+                    val direction = if (targetIndex >= initialIndex) 1 else -1
+                    slideInHorizontally(
+                        initialOffsetX = { fullWidth -> (fullWidth * 0.25f * direction).toInt() },
+                        animationSpec = tween(300, easing = FastOutSlowInEasing)
                     ) + fadeIn(animationSpec = tween(250))
                 },
                 exitTransition = {
-                    slideOutVertically(
-                        targetOffsetY = { -40 },
-                        animationSpec = tween(300, easing = EaseOutQuart)
+                    val initialIndex = getRouteIndex(initialState.destination.route)
+                    val targetIndex = getRouteIndex(targetState.destination.route)
+                    val direction = if (targetIndex >= initialIndex) 1 else -1
+                    slideOutHorizontally(
+                        targetOffsetX = { fullWidth -> (-fullWidth * 0.25f * direction).toInt() },
+                        animationSpec = tween(300, easing = FastOutSlowInEasing)
                     ) + fadeOut(animationSpec = tween(200))
                 },
                 popEnterTransition = {
-                    slideInVertically(
-                        initialOffsetY = { -40 },
-                        animationSpec = tween(300, easing = EaseOutQuart)
+                    val initialIndex = getRouteIndex(initialState.destination.route)
+                    val targetIndex = getRouteIndex(targetState.destination.route)
+                    val direction = if (targetIndex >= initialIndex) 1 else -1
+                    slideInHorizontally(
+                        initialOffsetX = { fullWidth -> (-fullWidth * 0.25f * direction).toInt() },
+                        animationSpec = tween(300, easing = FastOutSlowInEasing)
                     ) + fadeIn(animationSpec = tween(250))
                 },
                 popExitTransition = {
-                    slideOutVertically(
-                        targetOffsetY = { 40 },
-                        animationSpec = tween(300, easing = EaseOutQuart)
+                    val initialIndex = getRouteIndex(initialState.destination.route)
+                    val targetIndex = getRouteIndex(targetState.destination.route)
+                    val direction = if (targetIndex >= initialIndex) 1 else -1
+                    slideOutHorizontally(
+                        targetOffsetX = { fullWidth -> (fullWidth * 0.25f * direction).toInt() },
+                        animationSpec = tween(300, easing = FastOutSlowInEasing)
                     ) + fadeOut(animationSpec = tween(200))
                 }
             ) {

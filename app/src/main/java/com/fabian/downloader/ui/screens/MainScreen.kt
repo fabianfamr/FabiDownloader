@@ -171,9 +171,7 @@ fun MainScreen(
     
     LaunchedEffect(Unit) {
         headerVisible = true
-        kotlinx.coroutines.delay(120)
         searchBarVisible = true
-        kotlinx.coroutines.delay(100)
         contentVisible = true
     }
 
@@ -240,9 +238,9 @@ fun MainScreen(
             // Header (exactly as React App.tsx)
             AnimatedVisibility(
                 visible = headerVisible,
-                enter = fadeIn(animationSpec = tween(500)) + slideInVertically(
-                    initialOffsetY = { -40 },
-                    animationSpec = tween(500, easing = FastOutSlowInEasing)
+                enter = fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing)) + slideInVertically(
+                    initialOffsetY = { -20 },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
                 )
             ) {
                 Row(
@@ -305,7 +303,7 @@ fun MainScreen(
             // Hero Text Section
             AnimatedVisibility(
                 visible = searchBarVisible,
-                enter = fadeIn(tween(450)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(450, easing = FastOutSlowInEasing))
+                enter = fadeIn(tween(300, easing = FastOutSlowInEasing)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, easing = FastOutSlowInEasing))
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -410,7 +408,7 @@ fun MainScreen(
             // Unified Custom Text Field (exactly as React App.tsx)
             AnimatedVisibility(
                 visible = searchBarVisible,
-                enter = fadeIn(tween(500)) + slideInVertically(initialOffsetY = { 30 }, animationSpec = tween(500, easing = FastOutSlowInEasing))
+                enter = fadeIn(tween(300, easing = FastOutSlowInEasing)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, easing = FastOutSlowInEasing))
             ) {
                 Box(
                     modifier = Modifier
@@ -546,7 +544,7 @@ fun MainScreen(
             // Big CTA Button (stringResource(R.string.main_analyze_button) - exactly as React App.tsx)
             AnimatedVisibility(
                 visible = searchBarVisible,
-                enter = fadeIn(tween(550)) + slideInVertically(initialOffsetY = { 30 }, animationSpec = tween(550, easing = FastOutSlowInEasing))
+                enter = fadeIn(tween(300, easing = FastOutSlowInEasing)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, easing = FastOutSlowInEasing))
             ) {
                 val isQueryValid = query.isNotEmpty() && (query.startsWith("http") || query.contains("."))
                 Button(
@@ -653,9 +651,9 @@ fun MainScreen(
             // Recent Downloads
             AnimatedVisibility(
                 visible = contentVisible && recentDownloads.isNotEmpty(),
-                enter = fadeIn(tween(400, delayMillis = 100)) + slideInVertically(
-                    initialOffsetY = { 40 },
-                    animationSpec = tween(400, easing = FastOutSlowInEasing)
+                enter = fadeIn(tween(300, easing = FastOutSlowInEasing)) + slideInVertically(
+                    initialOffsetY = { 20 },
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
                 )
             ) {
                 Column {
