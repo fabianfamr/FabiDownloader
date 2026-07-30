@@ -719,58 +719,54 @@ fun DownloadsScreen(
                     }
                 } else {
                     // En progreso
-                    if (AppSettings.showRealtimeSpeedCard && filteredDownloading.isNotEmpty()) {
-                        item {
-                            RealtimeSpeedCardBanner(
-                                activeDownloads = filteredDownloading,
-                                accentColor = C_accent,
-                                cardBg = C_card,
-                                card2Bg = C_card2,
-                                borderColor = C_border,
-                                textColor = C_white,
-                                grayColor = C_gray1
-                            )
+                    if (filteredDownloading.isNotEmpty()) {
+                        @OptIn(ExperimentalFoundationApi::class)
+                        stickyHeader {
+                            val anyActive = filteredDownloading.any { !it.isPaused && it.speed != "FAILED" }
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = C_bg
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable {
+                                            if (anyActive) {
+                                                filteredDownloading.forEach { if (!it.isPaused) viewModel.pauseDownload(it.id) }
+                                            } else {
+                                                filteredDownloading.forEach { if (it.isPaused) viewModel.resumeDownload(it.id) }
+                                            }
+                                        }
+                                        .padding(vertical = 10.dp, horizontal = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(28.dp)
+                                            .border(1.5.dp, C_white, CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = if (anyActive) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                            contentDescription = null,
+                                            tint = C_white,
+                                            modifier = Modifier.size(15.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text(
+                                        text = if (anyActive) stringResource(R.string.downloads_pause_all) else stringResource(R.string.downloads_resume_all),
+                                        color = C_white,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
                         }
                     }
                     if (filteredDownloading.isNotEmpty()) {
-                        item {
-                            val anyActive = filteredDownloading.any { !it.isPaused && it.speed != "FAILED" }
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .clickable {
-                                        if (anyActive) {
-                                            filteredDownloading.forEach { if (!it.isPaused) viewModel.pauseDownload(it.id) }
-                                        } else {
-                                            filteredDownloading.forEach { if (it.isPaused) viewModel.resumeDownload(it.id) }
-                                        }
-                                    }
-                                    .padding(vertical = 6.dp, horizontal = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(28.dp)
-                                        .border(1.5.dp, C_white, CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = if (anyActive) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                        contentDescription = null,
-                                        tint = C_white,
-                                        modifier = Modifier.size(15.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Text(
-                                    text = if (anyActive) stringResource(R.string.downloads_pause_all) else stringResource(R.string.downloads_resume_all),
-                                    color = C_white,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
-                        }
                         items(filteredDownloading, key = { it.id }) { record ->
                             MobileDownloadingItem(
                                 record = record,
