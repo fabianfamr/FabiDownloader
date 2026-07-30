@@ -69,7 +69,7 @@ class NotificationService(private val context: Context) {
         }
     }
 
-    private val thumbnailCache = mutableMapOf<String, Bitmap>()
+    private val thumbnailCache = android.util.LruCache<String, Bitmap>(20)
     private val shownSuccessIds = java.util.Collections.synchronizedSet(mutableSetOf<Int>())
     private var foregroundDownloadId: Int? = null
 
@@ -376,7 +376,7 @@ class NotificationService(private val context: Context) {
     }
 
     private suspend fun getBitmapFromUrl(url: String): Bitmap? = withContext(Dispatchers.IO) {
-        val cached = thumbnailCache[url]
+        val cached = thumbnailCache.get(url)
         if (cached != null) return@withContext cached
 
         try {
@@ -392,10 +392,11 @@ class NotificationService(private val context: Context) {
                 BitmapFactory.decodeFile(url)
             }
             if (bitmap != null) {
-                thumbnailCache[url] = bitmap
+                thumbnailCache.put(url, bitmap)
             }
             bitmap
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             null
         }
     }

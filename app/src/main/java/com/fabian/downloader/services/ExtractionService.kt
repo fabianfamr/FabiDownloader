@@ -218,16 +218,48 @@ class ExtractionService {
     }
 
     companion object {
-        // Usamos un caché estático para que se comparta globalmente entre llamadas y pantallas,
-        // ahorrando la ejecución de yt-dlp que es sumamente pesada.
-        private val metadataCache = java.util.concurrent.ConcurrentHashMap<String, InfoMedia>()
-        private val videoCache = java.util.concurrent.ConcurrentHashMap<String, ExtractedVideo>()
+        // Usamos un caché estático LRU con límite de tamaño para evitar fugas de memoria,
+        // compartiendo resultados globalmente entre llamadas y pantallas.
+        private val metadataCache = LruCacheMap<String, InfoMedia>(50)
+        private val videoCache = LruCacheMap<String, ExtractedVideo>(50)
 
-        // Cachés individuales para optimización y rapidez
-        private val titleCache = java.util.concurrent.ConcurrentHashMap<String, String>()
-        private val thumbnailCache = java.util.concurrent.ConcurrentHashMap<String, String?>()
-        private val sizeCache = java.util.concurrent.ConcurrentHashMap<String, Map<String, Double>>()
-        private val playlistCache = java.util.concurrent.ConcurrentHashMap<String, ExtractedPlaylist>()
+        // Cachés individuales con límites para optimización y rapidez
+        private val titleCache = LruCacheMap<String, String>(100)
+        private val thumbnailCache = LruCacheMap<String, String?>(100)
+        private val sizeCache = LruCacheMap<String, Map<String, Double>>(50)
+        private val playlistCache = LruCacheMap<String, ExtractedPlaylist>(20)
+    }
+
+    class LruCacheMap<K, V>(private val maxSize: Int = 50) {
+        private val map = object : java.util.LinkedHashMap<K, V>(maxSize, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, V>?): Boolean {
+                return size > maxSize
+            }
+        }
+
+        @Synchronized
+        operator fun get(key: K): V? = map[key]
+
+        @Synchronized
+        fun put(key: K, value: V) {
+            map[key] = value
+        }
+
+        @Synchronized
+        operator fun set(key: K, value: V) {
+            map[key] = value
+        }
+
+        @Synchronized
+        fun containsKey(key: K): Boolean = map.containsKey(key)
+
+        @Synchronized
+        fun remove(key: K): V? = map.remove(key)
+
+        @Synchronized
+        fun clear() {
+            map.clear()
+        }
     }
 
     suspend fun extractPlaylist(url: String): ExtractedPlaylist? = withContext(Dispatchers.IO) {

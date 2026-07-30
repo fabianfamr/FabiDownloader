@@ -324,10 +324,10 @@ class YtdlpDownloader {
 
                         if (isPostProcLine && !holdsPostProcLock) {
                             try {
-                                Log.i(Config.TAG_YTDLP_DOWNLOADER, "Descarga $processId solicitando turno de post-procesado/conversión...")
-                                postProcessingSemaphore.acquire()
-                                holdsPostProcLock = true
-                                Log.i(Config.TAG_YTDLP_DOWNLOADER, "Turno de post-procesado/conversión asignado a $processId")
+                                if (postProcessingSemaphore.tryAcquire(50, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                                    holdsPostProcLock = true
+                                    Log.i(Config.TAG_YTDLP_DOWNLOADER, "Turno de post-procesado/conversión asignado a $processId")
+                                }
                             } catch (e: Exception) {
                                 Log.w(Config.TAG_YTDLP_DOWNLOADER, "Error al obtener turno de post-procesado para $processId", e)
                             }

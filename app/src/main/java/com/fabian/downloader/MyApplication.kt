@@ -30,7 +30,7 @@ class MyApplication : Application(), ImageLoaderFactory {
         }
     }
 
-    private val applicationScope = CoroutineScope(Dispatchers.IO)
+    private val applicationScope = CoroutineScope(Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
     private var isInitialized = false
     private val initLatch = java.util.concurrent.CountDownLatch(1)
 

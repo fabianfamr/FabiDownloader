@@ -71,7 +71,11 @@ class StorageService(private val database: AppDatabase) {
         return database.downloadDao().getAllDownloads()
             .combine(activeProgressUpdates) { dbList, updates ->
                 dbList.map { record ->
-                    memoryCache[record.id] = record
+                    if (!record.isCompleted) {
+                        memoryCache[record.id] = record
+                    } else {
+                        memoryCache.remove(record.id)
+                    }
                     val update = updates[record.id]
                     if (update != null && !record.isCompleted) {
                         val merged = record.copy(

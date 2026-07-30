@@ -80,6 +80,12 @@ abstract class BaseSiteService : SiteService {
 
         try {
             return deferred.await()
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) {
+                deferred.cancel()
+                throw e
+            }
+            return null
         } finally {
             activeExtractions.remove(cleanUrl, deferred)
         }

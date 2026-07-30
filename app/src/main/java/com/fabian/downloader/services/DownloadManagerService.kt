@@ -68,7 +68,7 @@ class DownloadManagerService private constructor(
         }
     }
 
-    private val serviceScope = kotlinx.coroutines.CoroutineScope(Dispatchers.IO)
+    private val serviceScope = kotlinx.coroutines.CoroutineScope(Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
     private val client = com.fabian.downloader.network.NetworkClient.okHttpClient
     
     private val activeJobs = java.util.concurrent.ConcurrentHashMap<Long, kotlinx.coroutines.Job>()
@@ -510,10 +510,7 @@ class DownloadManagerService private constructor(
             } finally {
                 activeJobs.remove(id)
                 try {
-                    val record = storageService.getDownloadById(id)
-                    if (record == null || record.isPaused || !record.isCompleted) {
-                        notificationService.cancelProgressNotification(id.toInt())
-                    }
+                    notificationService.cancelProgressNotification(id.toInt())
                 } catch (e: Exception) {
                     Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al limpiar la notificación de progreso", e)
                 }
