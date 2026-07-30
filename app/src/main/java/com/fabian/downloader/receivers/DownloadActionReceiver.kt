@@ -27,6 +27,16 @@ class DownloadActionReceiver : BroadcastReceiver() {
         }
         
         Log.d(Config.TAG_DOWNLOAD_ACTION_RECEIVER, "Action received: $action for ID $downloadId")
+        
+        // Cancelar las notificaciones de éxito o fallo al interactuar con ellas para no dejarlas huérfanas
+        try {
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            notificationManager.cancel(downloadId.toInt() + 300000)
+            notificationManager.cancel(downloadId.toInt() + 500000)
+        } catch (e: Exception) {
+            Log.e(Config.TAG_DOWNLOAD_ACTION_RECEIVER, "Error cancelling notification on action", e)
+        }
+
         val pendingResult = goAsync()
         
         CoroutineScope(Dispatchers.IO).launch {

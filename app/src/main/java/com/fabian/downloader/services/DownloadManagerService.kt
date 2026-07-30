@@ -857,6 +857,15 @@ class DownloadManagerService private constructor(
         processingIds.clear()
         activeProgresses.clear()
         
+        // Cancelar de inmediato las notificaciones de progreso activas para que no queden huérfanas
+        activeIdsList.forEach { id ->
+            try {
+                notificationService.cancelProgressNotification(id.toInt())
+            } catch (e: Exception) {
+                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error cancelando notificación de progreso para $id al cerrar", e)
+            }
+        }
+        
         val dbScope = kotlinx.coroutines.CoroutineScope(Dispatchers.IO)
         dbScope.launch {
             activeIdsList.forEach { id ->

@@ -296,8 +296,6 @@ class NotificationService(private val context: Context) {
             .setAutoCancel(true)
             .setOngoing(false)
             .setContentIntent(openPendingIntent)
-            .addAction(android.R.drawable.ic_media_play, context.getString(R.string.notif_action_open), openPendingIntent)
-            .addAction(android.R.drawable.ic_menu_share, context.getString(R.string.notif_action_share), sharePendingIntent)
             .build()
 
         notificationManager.notify(id + 300000, notification) // ID diferente para no solapar con el progreso ya cancelado
@@ -344,6 +342,19 @@ class NotificationService(private val context: Context) {
 
         val cleanTitle = title.removePrefix(Config.STATUS_FAILED_PREFIX)
 
+        // Crear Intent para abrir la aplicación en la pestaña de progreso
+        val appIntent = Intent(context, com.fabian.downloader.MainActivity::class.java).apply {
+            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
+            putExtra(Config.EXTRA_INITIAL_PAGE, 1)
+        }
+        val appPendingIntent = PendingIntent.getActivity(
+            context,
+            id + 520000,
+            appIntent,
+            flags
+        )
+
         val channelIdToUse = if (com.fabian.downloader.MyApplication.getInstance().isAppInForeground) {
             channelProgressId // Silent channel when in foreground
         } else {
@@ -357,6 +368,7 @@ class NotificationService(private val context: Context) {
             .setLargeIcon(largeIcon)
             .setAutoCancel(true)
             .setOngoing(false)
+            .setContentIntent(appPendingIntent)
             .addAction(R.drawable.ic_cloud_download, context.getString(R.string.notif_action_retry), retryPendingIntent)
             .build()
 
