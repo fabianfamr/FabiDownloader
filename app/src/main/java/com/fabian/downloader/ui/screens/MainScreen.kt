@@ -3,6 +3,7 @@ package com.fabian.downloader.ui.screens
 import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.ui.viewmodels.MainViewModel
 import com.fabian.downloader.ui.components.getPlatformIconAndColor
+import com.fabian.downloader.utils.ToastUtils
 
 import android.app.Application
 import android.content.Intent
@@ -561,7 +562,7 @@ fun MainScreen(
                                 analyzeState = AnalyzeState.Idle
                             }
                         } else if (query.isNotEmpty() && analyzeState == AnalyzeState.Idle) {
-                            android.widget.Toast.makeText(ctx, ctx.getString(R.string.main_invalid_link), android.widget.Toast.LENGTH_SHORT).show()
+                            ToastUtils.showShort(ctx, R.string.main_invalid_link)
                         }
                     },
                     enabled = query.isNotEmpty() && analyzeState != AnalyzeState.Loading,

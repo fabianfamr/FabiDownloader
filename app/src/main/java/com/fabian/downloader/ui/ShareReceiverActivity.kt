@@ -61,7 +61,7 @@ class ShareReceiverActivity : ComponentActivity() {
         }
         
         if (sharedText.isEmpty()) {
-            android.widget.Toast.makeText(this, getString(com.fabian.downloader.R.string.downloads_toast_no_valid_link), android.widget.Toast.LENGTH_SHORT).show()
+            com.fabian.downloader.utils.ToastUtils.showShort(this, com.fabian.downloader.R.string.downloads_toast_no_valid_link)
             finish()
             return
         }

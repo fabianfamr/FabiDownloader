@@ -2,7 +2,7 @@ package com.fabian.downloader.services
 
 import android.app.Application
 import android.util.Log
-import android.widget.Toast
+import com.fabian.downloader.utils.ToastUtils
 import com.fabian.downloader.database.DownloadRecord
 import com.fabian.downloader.network.ConnectionService
 import com.fabian.downloader.ui.AppSettings
@@ -204,38 +204,30 @@ class DownloadManagerService private constructor(
             var newId: Long = existingId ?: 0L
             try {
                 if (!connectionService.checkConnection()) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(application, application.getString(R.string.downloads_toast_no_connection), Toast.LENGTH_SHORT).show()
-                    }
+                    ToastUtils.showShort(application, R.string.downloads_toast_no_connection)
                     return@launch
                 }
 
                 if (AppSettings.dataSaverEnabled && isCellularNetwork()) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(application, "Modo 'Solo Wi-Fi' activo: Conéctate a Wi-Fi para descargar", Toast.LENGTH_LONG).show()
-                    }
+                    ToastUtils.showLong(application, "Modo 'Solo Wi-Fi' activo: Conéctate a Wi-Fi para descargar")
                     return@launch
                 }
 
                 val batteryManager = BatteryOptimizerManager.getInstance(application)
                 if (!isForced && AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
-                    withContext(Dispatchers.Main) {
-                        val message = if (AppSettings.batteryLowAction == "Optimizar recursos") {
-                            "Descarga iniciada en modo optimizado de recursos (batería baja)"
-                        } else {
-                            "Descarga iniciada con prioridad baja (concurrencia limitada por batería)"
-                        }
-                        Toast.makeText(application, message, Toast.LENGTH_LONG).show()
+                    val message = if (AppSettings.batteryLowAction == "Optimizar recursos") {
+                        "Descarga iniciada en modo optimizado de recursos (batería baja)"
+                    } else {
+                        "Descarga iniciada con prioridad baja (concurrencia limitada por batería)"
                     }
+                    ToastUtils.showLong(application, message)
                 }
 
                 if (existingId == null) {
                     val existing = storageService.getDownloadsByUrl(url)
                     val inProgress = existing.find { !it.isCompleted && !it.isPaused && it.speed != "FAILED" && !it.title.startsWith(Config.STATUS_FAILED_PREFIX) }
                     if (inProgress != null) {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(application, application.getString(R.string.downloads_toast_already_in_progress), Toast.LENGTH_SHORT).show()
-                        }
+                        ToastUtils.showShort(application, R.string.downloads_toast_already_in_progress)
                         return@launch
                     }
 
@@ -244,9 +236,7 @@ class DownloadManagerService private constructor(
                         if (completed != null) {
                             val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(application, completed.title, completed.id, completed.format)
                             if (file.exists()) {
-                                withContext(Dispatchers.Main) {
-                                    Toast.makeText(application, application.getString(R.string.downloads_toast_already_downloaded), Toast.LENGTH_SHORT).show()
-                                }
+                                ToastUtils.showShort(application, R.string.downloads_toast_already_downloaded)
                                 return@launch
                             }
                         }
@@ -589,9 +579,7 @@ class DownloadManagerService private constructor(
                 }
             }
             
-            withContext(Dispatchers.Main) {
-                Toast.makeText(application, application.getString(R.string.downloads_toast_paused), Toast.LENGTH_SHORT).show()
-            }
+            ToastUtils.showShort(application, R.string.downloads_toast_paused)
         }
     }
 

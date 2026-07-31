@@ -40,7 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import android.content.Intent
 import android.content.ClipData
-import android.widget.Toast
+import com.fabian.downloader.utils.ToastUtils
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -118,10 +118,10 @@ fun DownloadsScreen(
                 }
                 ctx.startActivity(Intent.createChooser(intent, ctx.getString(R.string.downloads_share_title)))
             } else {
-                Toast.makeText(ctx, ctx.getString(R.string.main_error_file_not_found), Toast.LENGTH_SHORT).show()
+                ToastUtils.showShort(ctx, R.string.main_error_file_not_found)
             }
         } catch (e: Exception) {
-            Toast.makeText(ctx, ctx.getString(R.string.downloads_share_error_prefix, e.localizedMessage ?: ""), Toast.LENGTH_SHORT).show()
+            ToastUtils.showShort(ctx, R.string.downloads_share_error_prefix, e.localizedMessage ?: "")
         }
     }
 
@@ -141,10 +141,10 @@ fun DownloadsScreen(
                 }
                 ctx.startActivity(intent)
             } else {
-                Toast.makeText(ctx, ctx.getString(R.string.main_error_file_not_found), Toast.LENGTH_SHORT).show()
+                ToastUtils.showShort(ctx, R.string.main_error_file_not_found)
             }
         } catch (e: Exception) {
-            Toast.makeText(ctx, ctx.getString(R.string.main_error_opening_file, e.localizedMessage ?: ""), Toast.LENGTH_SHORT).show()
+            ToastUtils.showShort(ctx, R.string.main_error_opening_file, e.localizedMessage ?: "")
         }
     }
 
@@ -175,10 +175,10 @@ fun DownloadsScreen(
                 }
                 ctx.startActivity(Intent.createChooser(intent, ctx.getString(R.string.downloads_share_title)))
             } else {
-                Toast.makeText(ctx, ctx.getString(R.string.downloads_share_empty), Toast.LENGTH_SHORT).show()
+                ToastUtils.showShort(ctx, R.string.downloads_share_empty)
             }
         } catch (e: Exception) {
-            Toast.makeText(ctx, ctx.getString(R.string.downloads_share_error, e.localizedMessage ?: ""), Toast.LENGTH_SHORT).show()
+            ToastUtils.showShort(ctx, R.string.downloads_share_error, e.localizedMessage ?: "")
         }
     }
     
@@ -211,7 +211,7 @@ fun DownloadsScreen(
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable {
                             clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(menuRecord!!.url))
-                            Toast.makeText(ctx, ctx.getString(R.string.downloads_link_copied), Toast.LENGTH_SHORT).show()
+                            ToastUtils.showShort(ctx, R.string.downloads_link_copied)
                             menuRecord = null
                         }.padding(20.dp, 16.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -264,7 +264,7 @@ fun DownloadsScreen(
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable {
                             clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(menuRecord!!.url))
-                            Toast.makeText(ctx, ctx.getString(R.string.downloads_link_copied), Toast.LENGTH_SHORT).show()
+                            ToastUtils.showShort(ctx, R.string.downloads_link_copied)
                             menuRecord = null
                         }.padding(20.dp, 16.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -399,7 +399,7 @@ fun DownloadsScreen(
                 Button(
                     onClick = {
                         clipboardManager.setText(AnnotatedString(errorToShow!!))
-                        Toast.makeText(ctx, ctx.getString(R.string.downloads_error_copied), Toast.LENGTH_SHORT).show()
+                        ToastUtils.showShort(ctx, R.string.downloads_error_copied)
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = C_accent, contentColor = Color(0xFF0A0A0C))
                 ) {

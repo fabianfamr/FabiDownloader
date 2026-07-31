@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import android.widget.Toast
+import com.fabian.downloader.utils.ToastUtils
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.services.DownloadManagerService
 import com.fabian.downloader.services.StorageService
@@ -126,10 +126,10 @@ class DownloadActionReceiver : BroadcastReceiver() {
                     context.startActivity(intent)
                 } catch (e: Exception) {
                     Log.e(Config.TAG_DOWNLOAD_ACTION_RECEIVER, "Failed to open file", e)
-                    Toast.makeText(context, context.getString(R.string.downloads_toast_no_app_to_open), Toast.LENGTH_SHORT).show()
+                    ToastUtils.showShort(context, R.string.downloads_toast_no_app_to_open)
                 }
             } else {
-                Toast.makeText(context, context.getString(R.string.downloads_toast_file_not_found), Toast.LENGTH_SHORT).show()
+                ToastUtils.showShort(context, R.string.downloads_toast_file_not_found)
             }
         }
     }
@@ -161,10 +161,10 @@ class DownloadActionReceiver : BroadcastReceiver() {
                     context.startActivity(chooser)
                 } catch (e: Exception) {
                     Log.e(Config.TAG_DOWNLOAD_ACTION_RECEIVER, "Failed to share file", e)
-                    Toast.makeText(context, context.getString(R.string.downloads_toast_share_error), Toast.LENGTH_SHORT).show()
+                    ToastUtils.showShort(context, R.string.downloads_toast_share_error)
                 }
             } else {
-                Toast.makeText(context, context.getString(R.string.downloads_toast_file_not_found_short), Toast.LENGTH_SHORT).show()
+                ToastUtils.showShort(context, R.string.downloads_toast_file_not_found_short)
             }
         }
     }

@@ -4,7 +4,7 @@ import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.ui.components.*
 
 import android.net.Uri
-import android.widget.Toast
+import com.fabian.downloader.utils.ToastUtils
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
@@ -990,10 +990,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                             if (info != null && UpdateManager.isNewerVersion(info.latestVersion, BuildConfig.VERSION_NAME)) {
                                                 updateFound = info
                                             } else {
-                                                Toast.makeText(ctx, ctx.getString(R.string.settings_update_not_available), Toast.LENGTH_SHORT).show()
+                                                ToastUtils.showShort(ctx, R.string.settings_update_not_available)
                                             }
                                         }.onFailure { e ->
-                                            Toast.makeText(ctx, ctx.getString(R.string.settings_error_prefix, e.message ?: ""), Toast.LENGTH_SHORT).show()
+                                            ToastUtils.showShort(ctx, R.string.settings_error_prefix, e.message ?: "")
                                         }
                                     }
                                 }
