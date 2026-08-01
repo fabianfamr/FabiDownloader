@@ -77,6 +77,8 @@
     <string name="settings_thumbnail_desc">Add covers to files</string>
     <string name="settings_metadata">Embed Metadata</string>
     <string name="settings_metadata_desc">Title, artist, album</string>
+    <string name="settings_mark_as_mv">MV Tag in Metadata</string>
+    <string name="settings_mark_as_mv_desc">Tag downloads as MV / Music Video (off by default)</string>
     <string name="settings_subtitles">Download Subtitles</string>
     <string name="settings_subtitles_desc">Embed subtitles if available</string>
     <string name="settings_confirm_delete">Confirm Deletion</string>

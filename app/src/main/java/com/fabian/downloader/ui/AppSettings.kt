@@ -56,48 +56,66 @@ object AppSettings {
     var selectedQuality: String
         get() = _selectedQuality.value
         set(value) {
-            _selectedQuality.value = value
-            saveString("selectedQuality", value)
+            if (_selectedQuality.value != value) {
+                _selectedQuality.value = value
+                saveString("selectedQuality", value)
+                notifyChanged("selectedQuality")
+            }
         }
 
     private val _selectedVideoFormat = mutableStateOf(Config.FORMAT_MP4)
     var selectedVideoFormat: String
         get() = _selectedVideoFormat.value
         set(value) {
-            _selectedVideoFormat.value = value
-            saveString("selectedVideoFormat", value)
+            if (_selectedVideoFormat.value != value) {
+                _selectedVideoFormat.value = value
+                saveString("selectedVideoFormat", value)
+                notifyChanged("selectedVideoFormat")
+            }
         }
 
     private val _selectedAudioFormat = mutableStateOf(Config.FORMAT_MP3)
     var selectedAudioFormat: String
         get() = _selectedAudioFormat.value
         set(value) {
-            _selectedAudioFormat.value = value
-            saveString("selectedAudioFormat", value)
+            if (_selectedAudioFormat.value != value) {
+                _selectedAudioFormat.value = value
+                saveString("selectedAudioFormat", value)
+                notifyChanged("selectedAudioFormat")
+            }
         }
 
     private val _notificationsEnabled = mutableStateOf(true)
     var notificationsEnabled: Boolean
         get() = _notificationsEnabled.value
         set(value) {
-            _notificationsEnabled.value = value
-            saveBoolean("notificationsEnabled", value)
+            if (_notificationsEnabled.value != value) {
+                _notificationsEnabled.value = value
+                saveBoolean("notificationsEnabled", value)
+                notifyChanged("notificationsEnabled")
+            }
         }
 
     private val _dataSaverEnabled = mutableStateOf(false)
     var dataSaverEnabled: Boolean
         get() = _dataSaverEnabled.value
         set(value) {
-            _dataSaverEnabled.value = value
-            saveBoolean("dataSaverEnabled", value)
+            if (_dataSaverEnabled.value != value) {
+                _dataSaverEnabled.value = value
+                saveBoolean("dataSaverEnabled", value)
+                notifyChanged("dataSaverEnabled")
+            }
         }
 
     private val _downloadLocation = mutableStateOf(Config.PATH_DOWNLOAD_LOCATION_DEFAULT)
     var downloadLocation: String
         get() = _downloadLocation.value
         set(value) {
-            _downloadLocation.value = value
-            saveString("downloadLocation", value)
+            if (_downloadLocation.value != value) {
+                _downloadLocation.value = value
+                saveString("downloadLocation", value)
+                notifyChanged("downloadLocation")
+            }
         }
 
     private val _maxSpeed = mutableStateOf(Config.SPEED_UNLIMITED)
@@ -117,8 +135,11 @@ object AppSettings {
     var themePreference: String
         get() = _themePreference.value
         set(value) {
-            _themePreference.value = value
-            saveString("themePreference", value)
+            if (_themePreference.value != value) {
+                _themePreference.value = value
+                saveString("themePreference", value)
+                notifyChanged("themePreference")
+            }
         }
 
     private val _language = mutableStateOf("Sistema")
@@ -376,8 +397,23 @@ object AppSettings {
     var dynamicColor: Boolean
         get() = _dynamicColor.value
         set(value) {
-            _dynamicColor.value = value
-            saveBoolean("dynamicColor", value)
+            if (_dynamicColor.value != value) {
+                _dynamicColor.value = value
+                saveBoolean("dynamicColor", value)
+                notifyChanged("dynamicColor")
+            }
+        }
+
+    private val _markAsMV = mutableStateOf(false)
+    val markAsMVState: androidx.compose.runtime.State<Boolean> get() = _markAsMV
+    var markAsMV: Boolean
+        get() = _markAsMV.value
+        set(value) {
+            if (_markAsMV.value != value) {
+                _markAsMV.value = value
+                saveBoolean("markAsMV", value)
+                notifyChanged("markAsMV")
+            }
         }
 
     private val _accentColorName = mutableStateOf("Azul Eléctrico")
@@ -386,8 +422,11 @@ object AppSettings {
     var accentColorName: String
         get() = _accentColorName.value
         set(value) {
-            _accentColorName.value = value
-            saveString("accentColorName", value)
+            if (_accentColorName.value != value) {
+                _accentColorName.value = value
+                saveString("accentColorName", value)
+                notifyChanged("accentColorName")
+            }
         }
 
     val storageMarginOptions = listOf("Desactivado", "1 GB", "2 GB", "3 GB", "5 GB", "10 GB")
@@ -415,48 +454,66 @@ object AppSettings {
     var cardStyle: String
         get() = _cardStyle.value
         set(value) {
-            _cardStyle.value = value
-            saveString("cardStyle", value)
+            if (_cardStyle.value != value) {
+                _cardStyle.value = value
+                saveString("cardStyle", value)
+                notifyChanged("cardStyle")
+            }
         }
 
     private val _showQualityBadge = mutableStateOf(true)
     var showQualityBadge: Boolean
         get() = _showQualityBadge.value
         set(value) {
-            _showQualityBadge.value = value
-            saveBoolean("showQualityBadge", value)
+            if (_showQualityBadge.value != value) {
+                _showQualityBadge.value = value
+                saveBoolean("showQualityBadge", value)
+                notifyChanged("showQualityBadge")
+            }
         }
 
     private val _showRealtimeSpeedCard = mutableStateOf(true)
     var showRealtimeSpeedCard: Boolean
         get() = _showRealtimeSpeedCard.value
         set(value) {
-            _showRealtimeSpeedCard.value = value
-            saveBoolean("showRealtimeSpeedCard", value)
+            if (_showRealtimeSpeedCard.value != value) {
+                _showRealtimeSpeedCard.value = value
+                saveBoolean("showRealtimeSpeedCard", value)
+                notifyChanged("showRealtimeSpeedCard")
+            }
         }
 
     private val _defaultAudioBitrate = mutableStateOf("192 kbps (Estándar)")
     var defaultAudioBitrate: String
         get() = _defaultAudioBitrate.value
         set(value) {
-            _defaultAudioBitrate.value = value
-            saveString("defaultAudioBitrate", value)
+            if (_defaultAudioBitrate.value != value) {
+                _defaultAudioBitrate.value = value
+                saveString("defaultAudioBitrate", value)
+                notifyChanged("defaultAudioBitrate")
+            }
         }
 
     private val _notifyBatchComplete = mutableStateOf(true)
     var notifyBatchComplete: Boolean
         get() = _notifyBatchComplete.value
         set(value) {
-            _notifyBatchComplete.value = value
-            saveBoolean("notifyBatchComplete", value)
+            if (_notifyBatchComplete.value != value) {
+                _notifyBatchComplete.value = value
+                saveBoolean("notifyBatchComplete", value)
+                notifyChanged("notifyBatchComplete")
+            }
         }
 
     private val _cleanTempOnCancel = mutableStateOf(true)
     var cleanTempOnCancel: Boolean
         get() = _cleanTempOnCancel.value
         set(value) {
-            _cleanTempOnCancel.value = value
-            saveBoolean("cleanTempOnCancel", value)
+            if (_cleanTempOnCancel.value != value) {
+                _cleanTempOnCancel.value = value
+                saveBoolean("cleanTempOnCancel", value)
+                notifyChanged("cleanTempOnCancel")
+            }
         }
 
     private val _quickShareMode = mutableStateOf(true)
@@ -464,16 +521,22 @@ object AppSettings {
     var quickShareMode: Boolean
         get() = _quickShareMode.value
         set(value) {
-            _quickShareMode.value = value
-            saveBoolean("quickShareMode", value)
+            if (_quickShareMode.value != value) {
+                _quickShareMode.value = value
+                saveBoolean("quickShareMode", value)
+                notifyChanged("quickShareMode")
+            }
         }
 
     private val _allowDuplicateDownloads = mutableStateOf(true)
     var allowDuplicateDownloads: Boolean
         get() = _allowDuplicateDownloads.value
         set(value) {
-            _allowDuplicateDownloads.value = value
-            saveBoolean("allowDuplicateDownloads", value)
+            if (_allowDuplicateDownloads.value != value) {
+                _allowDuplicateDownloads.value = value
+                saveBoolean("allowDuplicateDownloads", value)
+                notifyChanged("allowDuplicateDownloads")
+            }
         }
 
     private val _embedChapters = mutableStateOf(true)
@@ -492,8 +555,11 @@ object AppSettings {
     var amoledMode: Boolean
         get() = _amoledMode.value
         set(value) {
-            _amoledMode.value = value
-            saveBoolean("amoledMode", value)
+            if (_amoledMode.value != value) {
+                _amoledMode.value = value
+                saveBoolean("amoledMode", value)
+                notifyChanged("amoledMode")
+            }
         }
 
     fun init(context: Context) {
@@ -547,6 +613,7 @@ object AppSettings {
         _allowDuplicateDownloads.value = prefs.getBoolean("allowDuplicateDownloads", true)
         _embedChapters.value = prefs.getBoolean("embedChapters", true)
         _amoledMode.value = prefs.getBoolean("amoledMode", false)
+        _markAsMV.value = prefs.getBoolean("markAsMV", false)
     }
 
     private fun saveString(key: String, value: String) {

@@ -4,7 +4,7 @@ import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.ui.components.*
 
 import android.net.Uri
-import com.fabian.downloader.utils.ToastUtils
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
@@ -127,6 +127,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var allowDuplicateDownloads by remember { mutableStateOf(AppSettings.allowDuplicateDownloads) }
     var embedChapters by remember { mutableStateOf(AppSettings.embedChapters) }
     var amoledMode by remember { mutableStateOf(AppSettings.amoledMode) }
+    var markAsMV by remember { mutableStateOf(AppSettings.markAsMV) }
 
     var maxSpeedState by remember { mutableStateOf(AppSettings.maxSpeed) }
     var selectedQualityState by remember { mutableStateOf(AppSettings.selectedQuality) }
@@ -167,6 +168,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     LaunchedEffect(allowDuplicateDownloads) { AppSettings.allowDuplicateDownloads = allowDuplicateDownloads }
     LaunchedEffect(embedChapters) { AppSettings.embedChapters = embedChapters }
     LaunchedEffect(amoledMode) { AppSettings.amoledMode = amoledMode }
+    LaunchedEffect(markAsMV) { AppSettings.markAsMV = markAsMV }
 
     var contentVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -843,6 +845,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.AutoMirrored.Filled.Label, stringResource(R.string.settings_metadata), stringResource(R.string.settings_metadata_desc), embedMetadata, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedMetadata = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.VideoLibrary, stringResource(R.string.settings_mark_as_mv), stringResource(R.string.settings_mark_as_mv_desc), markAsMV, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { markAsMV = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.Subtitles, stringResource(R.string.settings_subtitles), stringResource(R.string.settings_subtitles_desc), embedSubtitles, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedSubtitles = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.Bookmark, stringResource(R.string.settings_embed_chapters), stringResource(R.string.settings_embed_chapters_desc), embedChapters, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedChapters = it }
@@ -990,10 +994,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                             if (info != null && UpdateManager.isNewerVersion(info.latestVersion, BuildConfig.VERSION_NAME)) {
                                                 updateFound = info
                                             } else {
-                                                ToastUtils.showShort(ctx, R.string.settings_update_not_available)
+                                                Toast.makeText(ctx, ctx.getString(R.string.settings_update_not_available), Toast.LENGTH_SHORT).show()
                                             }
                                         }.onFailure { e ->
-                                            ToastUtils.showShort(ctx, R.string.settings_error_prefix, e.message ?: "")
+                                            Toast.makeText(ctx, ctx.getString(R.string.settings_error_prefix, e.message ?: ""), Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 }

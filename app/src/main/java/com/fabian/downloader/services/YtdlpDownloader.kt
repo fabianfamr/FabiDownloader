@@ -192,6 +192,24 @@ class YtdlpDownloader {
             // Miniaturas y Metadatos globales
             if (settings.embedMetadata) {
                 addOption("--embed-metadata")
+
+                // Limpiar sufijos no deseados (- video, - audio, - Topic, etc.) directamente en las etiquetas incrustadas
+                val metaFields = "title,uploader,artist,channel,album,album_artist"
+                addOption("--replace-in-metadata", "$metaFields (?i)\\s*-\\s*(video|audio|topic)$ ")
+                addOption("--replace-in-metadata", "$metaFields (?i)\\s*\\(video|audio\\)$ ")
+                addOption("--replace-in-metadata", "$metaFields (?i)\\s*\\[video|audio\\]$ ")
+
+                // Parsear álbum para que solo sea el artista/subidor
+                addOption("--parse-metadata", "%(uploader,artist)s:%(album)s")
+
+                if (settings.markAsMV) {
+                    addOption("--parse-metadata", "MV:%(genre)s")
+                    addOption("--postprocessor-args", "FFmpegMetadata:-metadata media_type=6 -metadata stik=6 -metadata genre=\"MV\"")
+                } else {
+                    // Si el usuario no activó "Marcar como MV", establecer género como "Music" y media_type=0 para evitar que reproductores añadan la etiqueta [MV]
+                    addOption("--parse-metadata", "Music:%(genre)s")
+                    addOption("--postprocessor-args", "FFmpegMetadata:-metadata media_type=0 -metadata stik=0 -metadata genre=\"Music\"")
+                }
             }
             if (settings.embedThumbnail) {
                 addOption("--embed-thumbnail")

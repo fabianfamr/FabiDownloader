@@ -77,6 +77,8 @@
     <string name="settings_thumbnail_desc">Agrega portadas a los archivos</string>
     <string name="settings_metadata">Incrustar metadatos</string>
     <string name="settings_metadata_desc">Título, artista, álbum</string>
+    <string name="settings_mark_as_mv">Etiqueta MV en metadatos</string>
+    <string name="settings_mark_as_mv_desc">Etiquetar descargas como MV / Music Video (desactivado por defecto)</string>
     <string name="settings_subtitles">Descargar subtítulos</string>
     <string name="settings_subtitles_desc">Incrustar subtítulos si existen</string>
     <string name="settings_confirm_delete">Confirmar eliminación</string>
