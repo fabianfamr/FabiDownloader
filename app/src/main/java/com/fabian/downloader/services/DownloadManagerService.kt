@@ -532,6 +532,8 @@ class DownloadManagerService private constructor(
                 } catch (e: Exception) {
                     // Ignorar
                 }
+                // Programar tarea en segundo plano con WorkManager para liberar caché, archivos temporales y memoria RAM
+                com.fabian.downloader.workers.CacheCleanupWorker.scheduleCleanup(application)
             }
         }
         

@@ -32,6 +32,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.fabian.downloader.BuildConfig
 import com.fabian.downloader.R
 import com.fabian.downloader.configs.Config
@@ -910,7 +912,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             if (cacheState == 0) {
                                 scope.launch {
                                     cacheState = 1
-                                    delay(2200)
+                                    withContext(Dispatchers.IO) {
+                                        com.fabian.downloader.workers.CacheCleanupWorker.performDirectCleanup(ctx)
+                                    }
                                     cacheState = 2
                                     delay(2000)
                                     cacheState = 0

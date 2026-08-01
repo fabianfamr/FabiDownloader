@@ -228,6 +228,15 @@ class ExtractionService {
         private val thumbnailCache = LruCacheMap<String, String?>(100)
         private val sizeCache = LruCacheMap<String, Map<String, Double>>(50)
         private val playlistCache = LruCacheMap<String, ExtractedPlaylist>(20)
+
+        fun clearCaches() {
+            metadataCache.reset()
+            videoCache.reset()
+            titleCache.reset()
+            thumbnailCache.reset()
+            sizeCache.reset()
+            playlistCache.reset()
+        }
     }
 
     class LruCacheMap<K, V>(private val maxSize: Int = 50) {
@@ -235,6 +244,11 @@ class ExtractionService {
             override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, V>?): Boolean {
                 return size > maxSize
             }
+        }
+
+        @Synchronized
+        fun reset() {
+            map.clear()
         }
 
         @Synchronized
