@@ -422,36 +422,42 @@ class YtdlpDownloader {
             return false
         }
 
-        // Nivel 0: Intentar con la calidad / formato solicitados (y fallback interno de calidad)
-        val success0 = executeWithRetry(0) { e ->
-            if (!autoRetry) {
-                // If autoRetry is disabled, fail immediately without fallbacks
-                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Descarga fallida (autoRetry desactivado): $videoUrl - ${e.message}")
-                val errorMessage = lastLine.ifEmpty { e.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
+        try {
+            // Nivel 0: Intentar con la calidad / formato solicitados (y fallback interno de calidad)
+            val success0 = executeWithRetry(0) { e ->
+                if (!autoRetry) {
+                    // If autoRetry is disabled, fail immediately without fallbacks
+                    Log.w(Config.TAG_YTDLP_DOWNLOADER, "Descarga fallida (autoRetry desactivado): $videoUrl - ${e.message}")
+                    val errorMessage = lastLine.ifEmpty { e.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
+                    throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
+                }
+                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1 (bestvideo+bestaudio/best)...")
+                executionError = e
+                cleanupBeforeRetry()
+            }
+            if (success0) return@withContext true
+
+            // Nivel 1: Intentar con mejor formato disponible sin limitación estricta de altura
+            val success1 = executeWithRetry(1) { e ->
+                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Segundo nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 2 (best)...")
+                executionError = e
+                cleanupBeforeRetry()
+            }
+            if (success1) return@withContext true
+
+            // Nivel 2: Descargar formato absoluto básico 'best'
+            val success2 = executeWithRetry(2) { e ->
+                Log.e(Config.TAG_YTDLP_DOWNLOADER, "Todos los niveles e intentos de descarga fallaron para $videoUrl. Última línea: $lastLine", e)
+                val errorMessage = lastLine.ifEmpty { e.message ?: executionError?.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
                 throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
             }
-            Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1 (bestvideo+bestaudio/best)...")
-            executionError = e
-            cleanupBeforeRetry()
+            return@withContext success2
+        } finally {
+            try {
+                YoutubeDL.getInstance().destroyProcessById(processId)
+            } catch (e: Exception) {
+                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Could not destroy process $processId in final cleanup", e)
+            }
         }
-        if (success0) return@withContext true
-
-        // Nivel 1: Intentar con mejor formato disponible sin limitación estricta de altura
-        val success1 = executeWithRetry(1) { e ->
-            Log.w(Config.TAG_YTDLP_DOWNLOADER, "Segundo nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 2 (best)...")
-            executionError = e
-            cleanupBeforeRetry()
-        }
-        if (success1) return@withContext true
-
-        // Nivel 2: Descargar formato absoluto básico 'best'
-        val success2 = executeWithRetry(2) { e ->
-            Log.e(Config.TAG_YTDLP_DOWNLOADER, "Todos los niveles e intentos de descarga fallaron para $videoUrl. Última línea: $lastLine", e)
-            val errorMessage = lastLine.ifEmpty { e.message ?: executionError?.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
-            throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
-        }
-        if (success2) return@withContext true
-
-        return@withContext false
     }
 }

@@ -138,6 +138,7 @@ class DownloadManagerService private constructor(
                                         forcedDownloadIds.remove(record.id)
                                         if (processingIds.isEmpty()) {
                                             DownloadForegroundService.stop(application)
+                                            System.gc()
                                         }
                                         triggerQueue()
                                     }
@@ -179,6 +180,7 @@ class DownloadManagerService private constructor(
                                         if (processingIds.isEmpty()) {
                                             // Detener servicio en segundo plano cuando no queden descargas activas
                                             DownloadForegroundService.stop(application)
+                                            System.gc()
                                         }
                                         triggerQueue() // Trigger again to let other queued items start instantly
                                     }
@@ -513,6 +515,13 @@ class DownloadManagerService private constructor(
                 }
             } finally {
                 activeJobs.remove(id)
+                activeCalls.remove(id)
+                activeProgresses.remove(id)
+                try {
+                    com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
+                } catch (e: Exception) {
+                    Log.e(Config.TAG_DOWNLOAD_MANAGER, "Failed to destroy process in finally", e)
+                }
                 try {
                     notificationService.cancelProgressNotification(id.toInt())
                 } catch (e: Exception) {
