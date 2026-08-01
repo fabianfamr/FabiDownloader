@@ -99,11 +99,9 @@ class YtdlpDownloader {
             // HTTP chunk size: improves speed on large downloads (10MB chunks)
             addOption("--http-chunk-size", "10M")
 
-            // Detect YouTube throttling (~70KB/s) and abort+retry immediately
-            addOption("--throttled-rate", "100K")
-
-            // Abort immediately if a fragment is unavailable (don't waste time waiting)
-            addOption("--abort-on-unavailable-fragment")
+            // Allow retries on throttled rates or fragments instead of failing immediately
+            // addOption("--throttled-rate", "100K")
+            // addOption("--abort-on-unavailable-fragment")
 
             // ============================================================
             // LIMITACIÓN DE VELOCIDAD (respetar maxSpeed o limitar por batería baja)
@@ -169,17 +167,12 @@ class YtdlpDownloader {
             // YOUTUBE-SPECIFIC OPTIMIZATIONS
             // ============================================================
             if (isYoutube) {
-                // Use ios client for faster connection (bypasses some signature deciphering)
-                addOption("--extractor-args", "youtube:player-client=ios,android")
+                addOption("--extractor-args", "youtube:player-client=android,web")
 
                 val customUa = settings.customUserAgent
                 if (customUa.isNotEmpty()) {
                     addOption("--user-agent", customUa)
                 }
-
-                // Skip DASH and HLS manifests (faster connection/extraction)
-                addOption("--youtube-skip-dash-manifest")
-                addOption("--youtube-skip-hls-manifest")
             }
 
             addOption("--referer", Config.REFERER_DEFAULT)
