@@ -21,7 +21,12 @@ class DownloadForegroundService : Service() {
             try {
                 val intent = Intent(context, DownloadForegroundService::class.java)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(intent)
+                    try {
+                        context.startForegroundService(intent)
+                    } catch (e: Exception) {
+                        android.util.Log.w("DownloadService", "No se pudo iniciar startForegroundService, fallback a startService", e)
+                        context.startService(intent)
+                    }
                 } else {
                     context.startService(intent)
                 }
@@ -55,16 +60,23 @@ class DownloadForegroundService : Service() {
         try {
             val notification = createNotification()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(
-                    NOTIFICATION_ID,
-                    notification,
-                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-                )
+                try {
+                    startForeground(
+                        NOTIFICATION_ID,
+                        notification,
+                        android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                    )
+                } catch (e: Exception) {
+                    startForeground(NOTIFICATION_ID, notification)
+                }
             } else {
                 startForeground(NOTIFICATION_ID, notification)
             }
         } catch (e: Exception) {
             android.util.Log.e("DownloadService", "Error calling startForeground in DownloadForegroundService", e)
+            try {
+                stopSelf()
+            } catch (_: Exception) {}
         }
     }
 

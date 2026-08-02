@@ -59,7 +59,7 @@ class YtdlpExtractor {
             }
         }
 
-        val clientOptions = listOf("android,ios,mweb", "android,ios", "tv,mweb")
+        val clientOptions = listOf("android,ios", "android,ios,mweb", "tv,android", "web,mweb")
 
         for (client in clientOptions) {
             try {
