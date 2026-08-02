@@ -167,10 +167,10 @@ class YtdlpDownloader {
             // YOUTUBE-SPECIFIC OPTIMIZATIONS
             // ============================================================
             if (isYoutube) {
-                if (fallbackLevel == 0) {
-                    addOption("--extractor-args", "youtube:player-client=android,web")
-                } else {
-                    addOption("--extractor-args", "youtube:player-client=web,android")
+                when (fallbackLevel) {
+                    0 -> addOption("--extractor-args", "youtube:player-client=ios,android,mweb,web")
+                    1 -> addOption("--extractor-args", "youtube:player-client=android,ios,web")
+                    // Level 2+: omite --extractor-args para que yt-dlp use su estrategia por defecto completa
                 }
 
                 val customUa = settings.customUserAgent

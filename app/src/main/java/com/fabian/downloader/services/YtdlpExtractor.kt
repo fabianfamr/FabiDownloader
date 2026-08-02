@@ -43,7 +43,7 @@ class YtdlpExtractor {
             addOption("--no-cache-dir")
             
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player-client=android,web")
+                addOption("--extractor-args", "youtube:player-client=ios,android,mweb,web")
                 addOption("--user-agent", Config.UA_DESKTOP)
             }
             
@@ -88,7 +88,7 @@ class YtdlpExtractor {
             addOption("--no-cache-dir")
             
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player-client=android,web")
+                addOption("--extractor-args", "youtube:player-client=ios,android,mweb,web")
                 addOption("--user-agent", Config.UA_DESKTOP)
             }
             
