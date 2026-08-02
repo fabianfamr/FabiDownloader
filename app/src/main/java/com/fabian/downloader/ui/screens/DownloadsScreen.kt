@@ -111,9 +111,14 @@ fun DownloadsScreen(
             val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(ctx, record.title, record.id, record.format)
             if (file.exists()) {
                 val uri = FileProvider.getUriForFile(ctx, "com.fabian.downloader.fileprovider", file)
+                val mimeType = when (record.format.uppercase()) {
+                    Config.FORMAT_MP4, Config.FORMAT_WEBM -> Config.MIME_VIDEO
+                    Config.FORMAT_JPG, Config.FORMAT_PNG, Config.FORMAT_WEBP, "JPEG" -> Config.MIME_IMAGE
+                    else -> Config.MIME_AUDIO
+                }
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     putExtra(Intent.EXTRA_STREAM, uri)
-                    type = if (record.format == Config.FORMAT_MP4) Config.MIME_VIDEO else Config.MIME_AUDIO
+                    type = mimeType
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 ctx.startActivity(Intent.createChooser(intent, ctx.getString(R.string.downloads_share_title)))
@@ -135,8 +140,13 @@ fun DownloadsScreen(
                     "com.fabian.downloader.fileprovider",
                     file
                 )
+                val mimeType = when (record.format.uppercase()) {
+                    Config.FORMAT_MP4, Config.FORMAT_WEBM -> Config.MIME_VIDEO
+                    Config.FORMAT_JPG, Config.FORMAT_PNG, Config.FORMAT_WEBP, "JPEG" -> Config.MIME_IMAGE
+                    else -> Config.MIME_AUDIO
+                }
                 val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, if (record.format == Config.FORMAT_MP4) Config.MIME_VIDEO else Config.MIME_AUDIO)
+                    setDataAndType(uri, mimeType)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 ctx.startActivity(intent)
@@ -610,7 +620,8 @@ fun DownloadsScreen(
             listOf(
                 stringResource(R.string.downloads_filter_all),
                 stringResource(R.string.downloads_filter_music),
-                stringResource(R.string.downloads_filter_video)
+                stringResource(R.string.downloads_filter_video),
+                stringResource(R.string.downloads_filter_image)
             ).forEach { type ->
                 val isSelected = filterType == type
                 Surface(
@@ -642,14 +653,26 @@ fun DownloadsScreen(
             val filteredCompleted = remember(completed, filterType) {
                 when (filterType) {
                     ctx.getString(R.string.downloads_filter_music) -> completed.filter { it.format == Config.FORMAT_MP3 || it.format == Config.FORMAT_M4A }
-                    ctx.getString(R.string.downloads_filter_video) -> completed.filter { it.format == Config.FORMAT_MP4 }
+                    ctx.getString(R.string.downloads_filter_video) -> completed.filter { it.format == Config.FORMAT_MP4 || it.format == Config.FORMAT_WEBM }
+                    ctx.getString(R.string.downloads_filter_image) -> completed.filter { 
+                        it.format.equals(Config.FORMAT_JPG, ignoreCase = true) || 
+                        it.format.equals(Config.FORMAT_PNG, ignoreCase = true) || 
+                        it.format.equals(Config.FORMAT_WEBP, ignoreCase = true) || 
+                        it.format.equals("JPEG", ignoreCase = true) 
+                    }
                     else -> completed
                 }
             }
             val filteredDownloading = remember(downloading, filterType) {
                 when (filterType) {
                     ctx.getString(R.string.downloads_filter_music) -> downloading.filter { it.format == Config.FORMAT_MP3 || it.format == Config.FORMAT_M4A }
-                    ctx.getString(R.string.downloads_filter_video) -> downloading.filter { it.format == Config.FORMAT_MP4 }
+                    ctx.getString(R.string.downloads_filter_video) -> downloading.filter { it.format == Config.FORMAT_MP4 || it.format == Config.FORMAT_WEBM }
+                    ctx.getString(R.string.downloads_filter_image) -> downloading.filter { 
+                        it.format.equals(Config.FORMAT_JPG, ignoreCase = true) || 
+                        it.format.equals(Config.FORMAT_PNG, ignoreCase = true) || 
+                        it.format.equals(Config.FORMAT_WEBP, ignoreCase = true) || 
+                        it.format.equals("JPEG", ignoreCase = true) 
+                    }
                     else -> downloading
                 }
             }
@@ -1155,7 +1178,7 @@ fun MobileDownloadedItem(
                         modifier = Modifier.fillMaxSize(),
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop
                     )
-                } else if (record.format == Config.FORMAT_MP4) {
+                } else if (record.format == Config.FORMAT_MP4 || record.format.uppercase() == Config.FORMAT_JPG || record.format.uppercase() == Config.FORMAT_PNG || record.format.uppercase() == Config.FORMAT_WEBP) {
                     val localFile = remember(record.id) {
                         com.fabian.downloader.utils.PathUtils.getDownloadFile(
                             ctx,

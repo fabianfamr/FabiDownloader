@@ -148,8 +148,13 @@ fun MainScreen(
                     "com.fabian.downloader.fileprovider",
                     file
                 )
+                val mimeType = when (record.format.uppercase()) {
+                    Config.FORMAT_MP4, Config.FORMAT_WEBM -> Config.MIME_VIDEO
+                    Config.FORMAT_JPG, Config.FORMAT_PNG, Config.FORMAT_WEBP, "JPEG" -> Config.MIME_IMAGE
+                    else -> Config.MIME_AUDIO
+                }
                 val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, if (record.format == Config.FORMAT_MP4) Config.MIME_VIDEO else Config.MIME_AUDIO)
+                    setDataAndType(uri, mimeType)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 ctx.startActivity(intent)

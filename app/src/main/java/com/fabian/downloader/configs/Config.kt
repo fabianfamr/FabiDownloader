@@ -66,10 +66,14 @@ object Config {
     const val FORMAT_WEBM = "WEBM"
     const val FORMAT_OGG = "OGG"
     const val FORMAT_WAV = "WAV"
+    const val FORMAT_JPG = "JPG"
+    const val FORMAT_PNG = "PNG"
+    const val FORMAT_WEBP = "WEBP"
 
     // MIME types
     const val MIME_AUDIO = "audio/*"
     const val MIME_VIDEO = "video/*"
+    const val MIME_IMAGE = "image/*"
 
     // Intent Extras and Actions
     const val EXTRA_DOWNLOAD_ID = "EXTRA_DOWNLOAD_ID"
@@ -96,8 +100,10 @@ object Config {
     // Storage Paths
     const val PATH_VIDEO_SUBFOLDER = "FabiDownloader/video"
     const val PATH_AUDIO_SUBFOLDER = "FabiDownloader/audio"
+    const val PATH_IMAGE_SUBFOLDER = "FabiDownloader/image"
     const val PATH_VIDEO_SUBFOLDER_ALT = "Fabidownloader/video"
     const val PATH_AUDIO_SUBFOLDER_ALT = "Fabidownloader/audio"
+    const val PATH_IMAGE_SUBFOLDER_ALT = "Fabidownloader/image"
     const val PATH_DOWNLOAD_LOCATION_DEFAULT = "Downloads/FabiDownloader"
 
     // UI Placeholder Titles
@@ -132,7 +138,7 @@ object Config {
     const val BOT_DETECTION_LOGIN = "login"
 
     // Valid media file extensions
-    val VALID_EXTENSIONS = listOf("mp4", "mp3", "m4a", "webm", "ogg", "wav", "mkv")
+    val VALID_EXTENSIONS = listOf("mp4", "mp3", "m4a", "webm", "ogg", "wav", "mkv", "jpg", "jpeg", "png", "webp")
 
     // Windows-reserved filenames
     val RESERVED_FILENAMES = setOf(

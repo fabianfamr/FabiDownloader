@@ -112,10 +112,10 @@ class DownloadActionReceiver : BroadcastReceiver() {
                         "${context.packageName}.fileprovider",
                         file
                     )
-                    val mimeType = if (record.format.uppercase() == Config.FORMAT_MP3 || record.format.uppercase() == Config.FORMAT_M4A) {
-                        Config.MIME_AUDIO
-                    } else {
-                        Config.MIME_VIDEO
+                    val mimeType = when (record.format.uppercase()) {
+                        Config.FORMAT_MP4, Config.FORMAT_WEBM -> Config.MIME_VIDEO
+                        Config.FORMAT_JPG, Config.FORMAT_PNG, Config.FORMAT_WEBP, "JPEG" -> Config.MIME_IMAGE
+                        else -> Config.MIME_AUDIO
                     }
                     
                     val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -148,8 +148,14 @@ class DownloadActionReceiver : BroadcastReceiver() {
                         file
                     )
                     
+                    val mimeType = when (record.format.uppercase()) {
+                        Config.FORMAT_MP4, Config.FORMAT_WEBM -> Config.MIME_VIDEO
+                        Config.FORMAT_JPG, Config.FORMAT_PNG, Config.FORMAT_WEBP, "JPEG" -> Config.MIME_IMAGE
+                        else -> Config.MIME_AUDIO
+                    }
+                    
                     val intent = Intent(Intent.ACTION_SEND).apply {
-                        type = if (record.format.uppercase() == Config.FORMAT_MP3 || record.format.uppercase() == Config.FORMAT_M4A) Config.MIME_AUDIO else Config.MIME_VIDEO
+                        type = mimeType
                         putExtra(Intent.EXTRA_STREAM, uri)
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

@@ -31,7 +31,16 @@ class YtdlpDownloader {
         val settings = com.fabian.downloader.ui.AppSettings
 
         return YoutubeDLRequest(videoUrl).apply {
-            if (format == Config.FORMAT_MP3) {
+            val isImage = format.equals(Config.FORMAT_JPG, ignoreCase = true) || 
+                          format.equals(Config.FORMAT_PNG, ignoreCase = true) || 
+                          format.equals(Config.FORMAT_WEBP, ignoreCase = true) || 
+                          format.equals("JPEG", ignoreCase = true)
+
+            if (isImage) {
+                addOption("--write-thumbnail")
+                addOption("--skip-download")
+                addOption("--convert-thumbnails", format.lowercase())
+            } else if (format == Config.FORMAT_MP3) {
                 if (fallbackLevel == 0) {
                     addOption("-f", "bestaudio/best")
                 } else {
@@ -276,6 +285,40 @@ class YtdlpDownloader {
         com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
         var lastLine = ""
         var executionError: Exception? = null
+
+        val isImage = format.equals(Config.FORMAT_JPG, ignoreCase = true) || 
+                      format.equals(Config.FORMAT_PNG, ignoreCase = true) || 
+                      format.equals(Config.FORMAT_WEBP, ignoreCase = true) || 
+                      format.equals("JPEG", ignoreCase = true)
+
+        if (isImage) {
+            val isDirectImgUrl = videoUrl.endsWith(".jpg", ignoreCase = true) ||
+                                 videoUrl.endsWith(".jpeg", ignoreCase = true) ||
+                                 videoUrl.endsWith(".png", ignoreCase = true) ||
+                                 videoUrl.endsWith(".webp", ignoreCase = true) ||
+                                 videoUrl.contains("/image", ignoreCase = true)
+            if (isDirectImgUrl) {
+                try {
+                    alProgresar(15f, Config.STATUS_DOWNLOADING, Config.STATUS_DOWNLOADING)
+                    val imgFile = java.io.File(destFolder, "$fileNameWithoutExt.${format.lowercase()}")
+                    val request = okhttp3.Request.Builder()
+                        .url(videoUrl)
+                        .addHeader("User-Agent", Config.UA_DESKTOP)
+                        .build()
+                    com.fabian.downloader.network.NetworkClient.okHttpClient.newCall(request).execute().use { response ->
+                        if (response.isSuccessful && response.body != null) {
+                            imgFile.outputStream().use { out ->
+                                response.body!!.byteStream().copyTo(out)
+                            }
+                            alProgresar(100f, Config.STATUS_COMPLETED, Config.STATUS_COMPLETED)
+                            return@withContext true
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.w(Config.TAG_YTDLP_DOWNLOADER, "Direct image download failed, falling back to yt-dlp", e)
+                }
+            }
+        }
 
         // Helper: destroy any previous yt-dlp process and clean partial files before retrying
         suspend fun cleanupBeforeRetry() {

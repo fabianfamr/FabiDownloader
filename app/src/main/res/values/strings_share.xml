@@ -9,6 +9,10 @@
     <string name="share_download_prefix">Descarga</string>
     <string name="share_music_section">MÚSICA</string>
     <string name="share_video_section">VIDEO</string>
+    <string name="share_image_section">IMAGEN / MINIATURA</string>
+    <string name="share_format_jpg">JPG (HD)</string>
+    <string name="share_format_png">PNG (Sin pérdida)</string>
+    <string name="share_format_webp">WEBP (Optimizado)</string>
     <string name="share_download_button">Descargar</string>
     <string name="share_select_option">Selecciona una opción</string>
     <string name="share_thumbnail">Miniatura del video</string>
@@ -39,4 +43,5 @@
     <!-- Category labels (internal, but kept for consistency) -->
     <string name="share_category_music">Music</string>
     <string name="share_category_video">Video</string>
+    <string name="share_category_image">Image</string>
 </resources>

@@ -214,6 +214,16 @@ fun SharePopupScreen(
             option.copy(sizeStr = getOptionSize(ctx, option, formatSizes))
         }
     }
+
+    val imageOptions = remember(formatSizes) {
+        listOf(
+            DownloadOption("image_jpg", ctx.getString(R.string.share_format_jpg), Config.FORMAT_JPG, "HD", ctx.getString(R.string.share_category_image)),
+            DownloadOption("image_png", ctx.getString(R.string.share_format_png), Config.FORMAT_PNG, "HD", ctx.getString(R.string.share_category_image)),
+            DownloadOption("image_webp", ctx.getString(R.string.share_format_webp), Config.FORMAT_WEBP, "HD", ctx.getString(R.string.share_category_image))
+        ).map { option ->
+            option.copy(sizeStr = getOptionSize(ctx, option, formatSizes))
+        }
+    }
     
     var selectedOptionId by remember {
         mutableStateOf(
@@ -457,13 +467,66 @@ fun SharePopupScreen(
                                 }
                             }
 
+                            Spacer(modifier = Modifier.height(28.dp))
+                            
+                            // --- IMAGE SECTION ---
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = ctx.getString(R.string.share_image_section),
+                                    color = Color(0xFFAAAAAA),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.2.sp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                HorizontalDivider(
+                                    modifier = Modifier.weight(1f),
+                                    color = Color(0xFF242428),
+                                    thickness = 1.dp
+                                )
+                            }
+                            
+                            // Grid of Image Options (2 columns)
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                imageOptions.chunked(2).forEach { chunk ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        chunk.forEach { option ->
+                                            Box(modifier = Modifier.weight(1f)) {
+                                                SnaptubeFormatItem(
+                                                    option = option,
+                                                    isSelected = selectedOptionId == option.id,
+                                                    accentColor = MaterialTheme.colorScheme.primary,
+                                                    onClick = {
+                                                        selectedOptionId = option.id
+                                                    }
+                                                )
+                                            }
+                                        }
+                                        if (chunk.size < 2) {
+                                            Spacer(modifier = Modifier.weight(1f))
+                                        }
+                                    }
+                                }
+                            }
+
                             Spacer(modifier = Modifier.height(32.dp))
                             
                             // Download button
-                            val isDownloadEnabled = (musicOptions + videoOptions).any { it.id == selectedOptionId }
+                            val allOptions = musicOptions + videoOptions + imageOptions
+                            val isDownloadEnabled = allOptions.any { it.id == selectedOptionId }
                             Button(
                                 onClick = {
-                                    val allOptions = musicOptions + videoOptions
                                     val selected = allOptions.find { it.id == selectedOptionId }
                                     if (selected != null) {
                                         AppSettings.lastDownloadedOptionId = selected.id

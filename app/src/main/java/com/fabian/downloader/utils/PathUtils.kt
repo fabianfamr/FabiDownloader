@@ -61,8 +61,17 @@ object PathUtils {
  
     fun getDownloadFolder(context: Context, format: String): File {
         val isVideo = format.equals(Config.FORMAT_MP4, ignoreCase = true) || format.equals(Config.FORMAT_WEBM, ignoreCase = true)
-        val relativeSubfolder = if (isVideo) "${Config.APP_NAME}/video" else "${Config.APP_NAME}/audio"
-        val subfolderName = if (isVideo) "video" else "audio"
+        val isImage = format.equals(Config.FORMAT_JPG, ignoreCase = true) || format.equals(Config.FORMAT_PNG, ignoreCase = true) || format.equals(Config.FORMAT_WEBP, ignoreCase = true) || format.equals("JPEG", ignoreCase = true)
+        val relativeSubfolder = when {
+            isVideo -> "${Config.APP_NAME}/video"
+            isImage -> "${Config.APP_NAME}/image"
+            else -> "${Config.APP_NAME}/audio"
+        }
+        val subfolderName = when {
+            isVideo -> "video"
+            isImage -> "image"
+            else -> "audio"
+        }
         
         cachedFolders[relativeSubfolder]?.let {
             if (it.exists()) return it
@@ -209,12 +218,13 @@ object PathUtils {
         // 3. Fallback search in all possible historical locations (including legacy names)
         val storageRoot = Environment.getExternalStorageDirectory()
         val isVideo = format.equals(Config.FORMAT_MP4, ignoreCase = true) || format.equals(Config.FORMAT_WEBM, ignoreCase = true)
+        val isImage = format.equals(Config.FORMAT_JPG, ignoreCase = true) || format.equals(Config.FORMAT_PNG, ignoreCase = true) || format.equals(Config.FORMAT_WEBP, ignoreCase = true) || format.equals("JPEG", ignoreCase = true)
         
         // We support both FabiDownloader and Fabidownloader
-        val subFolders = if (isVideo) {
-            listOf("${Config.APP_NAME}/video", "${Config.APP_NAME_LOWER.capitalize()}/video")
-        } else {
-            listOf("${Config.APP_NAME}/audio", "${Config.APP_NAME_LOWER.capitalize()}/audio")
+        val subFolders = when {
+            isVideo -> listOf("${Config.APP_NAME}/video", "${Config.APP_NAME_LOWER.capitalize()}/video")
+            isImage -> listOf("${Config.APP_NAME}/image", "${Config.APP_NAME_LOWER.capitalize()}/image")
+            else -> listOf("${Config.APP_NAME}/audio", "${Config.APP_NAME_LOWER.capitalize()}/audio")
         }
         
         val folderList = mutableListOf<File>()
