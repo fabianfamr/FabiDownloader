@@ -12,7 +12,7 @@ class YouTubeService : BaseSiteService() {
 
     override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         super.customizeExtractorRequest(request, url)
-        request.addOption("--extractor-args", "youtube:player-client=android,mweb")
+        request.addOption("--extractor-args", "youtube:player-client=android_creator,android,web_creator")
         
         val customUa = com.fabian.downloader.ui.AppSettings.customUserAgent
         if (customUa.isNotEmpty()) {
@@ -27,7 +27,7 @@ class YouTubeService : BaseSiteService() {
 
     override fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
         super.customizeDownloaderRequest(request, url)
-        request.addOption("--extractor-args", "youtube:player-client=android,mweb")
+        request.addOption("--extractor-args", "youtube:player-client=android_creator,android,web_creator")
         
         val customUa = com.fabian.downloader.ui.AppSettings.customUserAgent
         if (customUa.isNotEmpty()) {
