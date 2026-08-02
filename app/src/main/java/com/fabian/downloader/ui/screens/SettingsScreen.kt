@@ -145,6 +145,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var batteryLowThresholdState by remember { mutableStateOf(AppSettings.selectedBatteryLowThreshold) }
     var batteryLowActionState by remember { mutableStateOf(AppSettings.selectedBatteryLowAction) }
     var storageMarginState by remember { mutableStateOf(AppSettings.selectedStorageMargin) }
+    var isCopyingErrors by remember { mutableStateOf(false) }
 
     LaunchedEffect(maxConcurrent) { AppSettings.maxConcurrentDownloads = maxConcurrent }
     LaunchedEffect(autoDownload) { AppSettings.clipboardAction = if (autoDownload) "auto" else "disabled" }
@@ -1010,6 +1011,25 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             SettingsRow(Icons.Default.Code, stringResource(R.string.settings_github_repo), stringResource(R.string.settings_view_code), C_accent, C_white, C_gray1, C_card2) {
                                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Config.GITHUB_URL))
                                 ctx.startActivity(intent)
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(
+                                Icons.Default.BugReport,
+                                "Copiar errores de la app",
+                                if (isCopyingErrors) "Copiando..." else "Copiar al portapapeles",
+                                C_amber,
+                                C_white,
+                                C_gray1,
+                                C_card2
+                            ) {
+                                if (!isCopyingErrors) {
+                                    scope.launch {
+                                        isCopyingErrors = true
+                                        com.fabian.downloader.managers.ErrorLogManager.copyErrorsToClipboard(ctx)
+                                        isCopyingErrors = false
+                                        Toast.makeText(ctx, "Registros de errores copiados al portapapeles", Toast.LENGTH_LONG).show()
+                                    }
+                                }
                             }
                         }
                     }

@@ -57,6 +57,7 @@ class MyApplication : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        com.fabian.downloader.managers.ErrorLogManager.init(this)
         com.fabian.downloader.ui.AppSettings.init(this)
         
         registerActivityLifecycleCallbacks(object : android.app.Application.ActivityLifecycleCallbacks {
