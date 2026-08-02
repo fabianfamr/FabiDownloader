@@ -65,9 +65,18 @@ class BatteryOptimizerManager private constructor(private val context: Context) 
             if (!isRegistered) {
                 try {
                     val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-                    context.registerReceiver(batteryReceiver, filter)
+                    val stickyIntent = context.registerReceiver(batteryReceiver, filter)
                     isRegistered = true
-                    Log.d(Config.TAG_DOWNLOAD_MANAGER, "BatteryOptimizerManager: Receiver de batería registrado de forma segura.")
+                    if (stickyIntent != null) {
+                        val level = stickyIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                        val scale = stickyIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+                        val status = stickyIntent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+                        if (level != -1 && scale != -1) {
+                            currentLevel = (level * 100 / scale.toFloat()).toInt()
+                        }
+                        isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
+                    }
+                    Log.d(Config.TAG_DOWNLOAD_MANAGER, "BatteryOptimizerManager: Receiver de batería registrado de forma segura. Batería: $currentLevel%, cargando: $isCharging")
                 } catch (e: Exception) {
                     Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al registrar batteryReceiver", e)
                 }

@@ -468,6 +468,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             selectedOption = AppSettings.clipboardAction,
             onSelection = {
                 AppSettings.clipboardAction = it
+                autoDownload = (it == "auto")
                 showClipboardDialog = false
             },
             onDismiss = { showClipboardDialog = false }
@@ -503,9 +504,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         SelectionDialog(
             title = stringResource(R.string.settings_select_storage_margin),
             options = AppSettings.storageMarginOptions,
-            selectedOption = AppSettings.selectedStorageMargin,
+            selectedOption = storageMarginState,
             onSelection = {
                 AppSettings.selectedStorageMargin = it
+                storageMarginState = it
                 showStorageMarginDialog = false
             },
             onDismiss = { showStorageMarginDialog = false }
@@ -956,7 +958,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsRow(Icons.Default.Storage, stringResource(R.string.settings_storage_margin), AppSettings.selectedStorageMargin, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.Storage, stringResource(R.string.settings_storage_margin), storageMarginState, C_accent, C_white, C_gray1, C_card2) {
                                 showStorageMarginDialog = true
                             }
                         }

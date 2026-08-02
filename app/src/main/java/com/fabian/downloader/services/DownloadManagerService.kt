@@ -785,28 +785,41 @@ class DownloadManagerService private constructor(
         if (minimumRequiredBytes <= 0L) return // Comprobación desactivada por el usuario
 
         try {
-            val stat = android.os.StatFs(destFolder.absolutePath)
+            var targetDir = destFolder
+            if (!targetDir.exists()) {
+                targetDir.mkdirs()
+            }
+            while (!targetDir.exists() && targetDir.parentFile != null) {
+                targetDir = targetDir.parentFile!!
+            }
+            if (!targetDir.exists()) {
+                targetDir = application.filesDir
+            }
+
+            val stat = android.os.StatFs(targetDir.absolutePath)
             val availableBytes = stat.availableBytes
             if (availableBytes < minimumRequiredBytes) {
-                // Destruir proceso activo de descarga para detenerlo inmediatamente de raíz
-                try {
-                    com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
-                } catch (e: Exception) {
-                    Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo destruir el proceso $id durante la parada por espacio", e)
-                }
-                try {
-                    activeCalls[id]?.cancel()
-                } catch (e: Exception) {
-                    Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo cancelar la llamada $id durante la parada por espacio", e)
+                if (id > 0) {
+                    try {
+                        com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
+                    } catch (e: Exception) {
+                        Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo destruir el proceso $id durante la parada por espacio", e)
+                    }
+                    try {
+                        activeCalls[id]?.cancel()
+                    } catch (e: Exception) {
+                        Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo cancelar la llamada $id durante la parada por espacio", e)
+                    }
                 }
                 val marginText = AppSettings.selectedStorageMargin
-                throw Exception("Almacenamiento casi lleno (menos de $marginText libres). Libera espacio para descargar.")
+                val availableMb = availableBytes / (1024 * 1024)
+                throw Exception("Almacenamiento casi lleno (quedan $availableMb MB, requiere min $marginText libres). Libera espacio para descargar.")
             }
         } catch (e: Exception) {
             if (e.message?.contains("Almacenamiento casi lleno") == true) {
                 throw e
             }
-            // Otros errores de StatFs se ignoran para no bloquear
+            Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error comprobando espacio en ${destFolder.absolutePath}", e)
         }
     }
 
