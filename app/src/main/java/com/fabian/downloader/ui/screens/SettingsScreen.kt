@@ -590,8 +590,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 }
 
                 if (selectedCategory == "Descargas") {
-                    // 1. Ubicación de Descargas
-                    SettingsHeader(stringResource(R.string.settings_section_storage), C_gray2)
+                    // 1. Ubicación y Almacenamiento
+                    SettingsHeader("Ubicación y Almacenamiento", C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -603,8 +603,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         }
                     }
 
-                    // 2. Red y Descargas
-                    SettingsHeader(stringResource(R.string.settings_section_network), C_gray2)
+                    // 2. Conexión y Red
+                    SettingsHeader("Conexión y Red", C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -658,8 +658,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         }
                     }
 
-                    // 4. Rendimiento de Descargas
-                    SettingsHeader("Rendimiento de Descargas", C_gray2)
+                    // 4. Rendimiento y Fragmentos
+                    SettingsHeader("Rendimiento y Fragmentos", C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -716,8 +716,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 }
 
                 if (selectedCategory == "Biblioteca") {
-                    // 1. Metadatos y Medios
-                    SettingsHeader(stringResource(R.string.settings_section_library), C_gray2)
+                    // 1. Metadatos y Etiquetas
+                    SettingsHeader("Metadatos y Etiquetas", C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -728,15 +728,24 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             SettingsToggleRow(Icons.AutoMirrored.Filled.Label, stringResource(R.string.settings_metadata), stringResource(R.string.settings_metadata_desc), embedMetadata, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedMetadata = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.VideoLibrary, stringResource(R.string.settings_mark_as_mv), stringResource(R.string.settings_mark_as_mv_desc), markAsMV, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { markAsMV = it }
-                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                        }
+                    }
+
+                    // 2. Subtítulos y Capítulos
+                    SettingsHeader("Subtítulos y Capítulos", C_gray2)
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    ) {
+                        Column {
                             SettingsToggleRow(Icons.Default.Subtitles, stringResource(R.string.settings_subtitles), stringResource(R.string.settings_subtitles_desc), embedSubtitles, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedSubtitles = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.Bookmark, stringResource(R.string.settings_embed_chapters), stringResource(R.string.settings_embed_chapters_desc), embedChapters, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedChapters = it }
                         }
                     }
 
-                    // 2. Filtros y yt-dlp
-                    SettingsHeader("Filtros y Contenido", C_gray2)
+                    // 3. Filtros y Restricciones
+                    SettingsHeader("Filtros y Restricciones", C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -750,8 +759,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 }
 
                 if (selectedCategory == "Apariencia") {
-                    // 1. Apariencia y Estética
-                    SettingsHeader(stringResource(R.string.settings_section_appearance), C_gray2)
+                    // 1. Tema y Colores
+                    SettingsHeader("Tema y Colores", C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -770,7 +779,16 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.Brightness1, stringResource(R.string.settings_amoled_mode), stringResource(R.string.settings_amoled_mode_desc), amoledMode, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { amoledMode = it }
-                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                        }
+                    }
+
+                    // 2. Estilo Visual
+                    SettingsHeader("Estilo Visual", C_gray2)
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    ) {
+                        Column {
                             SettingsRow(Icons.Default.ViewStream, stringResource(R.string.settings_card_style), cardStyleState, C_accent, C_white, C_gray1, C_card2) {
                                 showCardStyleDialog = true
                             }
@@ -781,8 +799,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         }
                     }
 
-                    // 2. Notificaciones y Alertas
-                    SettingsHeader(stringResource(R.string.settings_section_notifications), C_gray2)
+                    // 3. Notificaciones y Alertas
+                    SettingsHeader("Notificaciones y Alertas", C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -811,8 +829,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 }
 
                 if (selectedCategory == "Avanzado") {
-                    // 1. Comportamiento y Acciones
-                    SettingsHeader(stringResource(R.string.settings_section_behavior), C_gray2)
+                    // 1. Comportamiento de Descarga
+                    SettingsHeader("Comportamiento de Descarga", C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -822,16 +840,25 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.Replay, stringResource(R.string.settings_retry), stringResource(R.string.settings_retry_desc), autoRetry, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoRetry = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.DeleteForever, stringResource(R.string.settings_confirm_delete), stringResource(R.string.settings_confirm_delete_desc), confirmOnDelete, C_red, C_white, C_gray1, C_card2, C_border, C_bg) { confirmOnDelete = it }
-                            HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.Bolt, stringResource(R.string.settings_quick_share), stringResource(R.string.settings_quick_share_desc), quickShareMode, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { quickShareMode = it }
-                            HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(Icons.Default.ControlPointDuplicate, stringResource(R.string.settings_allow_duplicates), stringResource(R.string.settings_allow_duplicates_desc), allowDuplicateDownloads, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { allowDuplicateDownloads = it }
                         }
                     }
 
-                    // 2. Avanzado y Motor yt-dlp
-                    SettingsHeader(stringResource(R.string.settings_section_advanced), C_gray2)
+                    // 2. Acciones y Confirmaciones
+                    SettingsHeader("Acciones y Confirmaciones", C_gray2)
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    ) {
+                        Column {
+                            SettingsToggleRow(Icons.Default.DeleteForever, stringResource(R.string.settings_confirm_delete), stringResource(R.string.settings_confirm_delete_desc), confirmOnDelete, C_red, C_white, C_gray1, C_card2, C_border, C_bg) { confirmOnDelete = it }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsToggleRow(Icons.Default.Bolt, stringResource(R.string.settings_quick_share), stringResource(R.string.settings_quick_share_desc), quickShareMode, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { quickShareMode = it }
+                        }
+                    }
+
+                    // 3. Motor de Extracción (yt-dlp)
+                    SettingsHeader("Motor de Extracción (yt-dlp)", C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -847,8 +874,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 }
 
                 if (selectedCategory == "Sistema") {
-                    // 1. Almacenamiento y Caché
-                    SettingsHeader(stringResource(R.string.settings_section_storage), C_gray2)
+                    // 1. Limpieza y Caché
+                    SettingsHeader("Limpieza y Caché", C_gray2)
 
                     val cacheBg = when(cacheState) {
                         2 -> Color(0xFF0E1F0E)
@@ -923,7 +950,16 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             SettingsRow(Icons.Default.Storage, stringResource(R.string.settings_storage_margin), storageMarginState, C_accent, C_white, C_gray1, C_card2) {
                                 showStorageMarginDialog = true
                             }
-                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                        }
+                    }
+
+                    // 2. Archivos Temporales
+                    SettingsHeader("Archivos Temporales", C_gray2)
+                    Surface(
+                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                    ) {
+                        Column {
                             SettingsToggleRow(
                                 icon = Icons.Default.CleaningServices,
                                 title = stringResource(R.string.settings_clean_temp),
@@ -939,8 +975,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         }
                     }
 
-                    // 2. Optimización de Batería
-                    SettingsHeader(stringResource(R.string.settings_battery_optimization_title), C_gray2)
+                    // 3. Energía y Batería
+                    SettingsHeader("Energía y Batería", C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
