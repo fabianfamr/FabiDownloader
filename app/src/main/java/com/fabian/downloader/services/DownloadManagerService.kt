@@ -198,10 +198,11 @@ class DownloadManagerService private constructor(
     }
 
     fun startDownload(rawUrl: String, quality: String, format: String, passedTitle: String? = null, passedThumbnailUrl: String? = null, existingId: Long? = null, isForced: Boolean = false) {
-        val url = rawUrl.trim().let { text ->
-            val regex = Regex("""https?://[^\s]+""")
-            regex.find(text)?.value ?: text
-        }
+        // Estación 1: Recepción y limpieza del enlace
+        val url = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawUrl)
+        // Estación 2: Inyección de configuración de usuario
+        val taskSpec = com.fabian.downloader.pipeline.DownloadAssemblyLine.station2_assembleUserSettings(rawUrl, url, quality, format)
+        
         serviceScope.launch {
             var newId: Long = existingId ?: 0L
             try {
@@ -460,18 +461,8 @@ class DownloadManagerService private constructor(
                     val ext = actualFile.extension.uppercase()
                     storageService.updateDownloadFormat(id, ext)
                     
-                    // Escanear el archivo para que aparezca inmediatamente en el sistema / galería / descargas
-                    try {
-                        android.media.MediaScannerConnection.scanFile(
-                            application,
-                            arrayOf(actualFile.absolutePath),
-                            null
-                        ) { path, uri ->
-                            Log.d(Config.TAG_DOWNLOAD_MANAGER, "MediaScanner: Archivo escaneado $path -> Uri: $uri")
-                        }
-                    } catch (e: Exception) {
-                        Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al escanear archivo con MediaScannerConnection", e)
-                    }
+                    // Estación 5: Control de Calidad y Escaneo en MediaStore (Entrega Final)
+                    com.fabian.downloader.pipeline.DownloadAssemblyLine.station5_verifyAndDeliver(application, actualFile)
                 }
                 
                 // Mostrar notificación de éxito REAL solo cuando ya se tiene el archivo y terminó el post-procesado
