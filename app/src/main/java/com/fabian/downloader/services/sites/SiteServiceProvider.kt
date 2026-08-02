@@ -9,7 +9,11 @@ object SiteServiceProvider {
         FacebookService(),
         TwitterService(),
         TwitchService(),
-        KickService()
+        KickService(),
+        RedditService(),
+        PinterestService(),
+        VimeoService(),
+        SoundCloudService()
     )
 
     fun getServiceForUrl(url: String): SiteService {

@@ -26,6 +26,14 @@ fun getPlatformIconAndColor(url: String, format: String): Pair<ImageVector, Colo
             Pair(Icons.Default.VideogameAsset, Color(0xFF9146FF))
         lowerUrl.contains("kick.com") -> 
             Pair(Icons.Default.LiveTv, Color(0xFF53FC18))
+        lowerUrl.contains("reddit.com") || lowerUrl.contains("v.redd.it") -> 
+            Pair(Icons.Default.Forum, Color(0xFFFF4500))
+        lowerUrl.contains("pinterest.com") || lowerUrl.contains("pin.it") -> 
+            Pair(Icons.Default.PushPin, Color(0xFFE60023))
+        lowerUrl.contains("vimeo.com") -> 
+            Pair(Icons.Default.VideoLibrary, Color(0xFF1AB7EA))
+        lowerUrl.contains("soundcloud.com") -> 
+            Pair(Icons.Default.GraphicEq, Color(0xFFFF5500))
         else -> 
             Pair(if (isAudio) Icons.Default.Audiotrack else Icons.Default.OndemandVideo, Color(0xFF2979FF))
     }
