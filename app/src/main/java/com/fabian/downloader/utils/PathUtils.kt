@@ -96,9 +96,16 @@ object PathUtils {
                     finalFolder.mkdirs()
                 }
                 if (finalFolder.exists()) {
-                    val testFile = File(finalFolder, ".test_write_${System.currentTimeMillis()}")
-                    if (testFile.createNewFile()) {
-                        testFile.delete()
+                    val testFile = File(finalFolder, "test_write_${System.currentTimeMillis()}.tmp")
+                    val isWritable = try {
+                        if (testFile.createNewFile()) {
+                            testFile.delete()
+                            true
+                        } else finalFolder.canWrite() || finalFolder.exists()
+                    } catch (_: Exception) {
+                        finalFolder.exists()
+                    }
+                    if (isWritable) {
                         android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified configured folder: ${finalFolder.absolutePath}")
                         cachedFolders[relativeSubfolder] = finalFolder
                         return finalFolder
@@ -117,9 +124,7 @@ object PathUtils {
                 if (!downloadFabiFolder.exists()) {
                     downloadFabiFolder.mkdirs()
                 }
-                val testFile = File(downloadFabiFolder, ".test_write_${System.currentTimeMillis()}")
-                if (testFile.createNewFile()) {
-                    testFile.delete()
+                if (downloadFabiFolder.exists()) {
                     android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified public Download folder: ${downloadFabiFolder.absolutePath}")
                     cachedFolders[relativeSubfolder] = downloadFabiFolder
                     return downloadFabiFolder
@@ -130,9 +135,7 @@ object PathUtils {
 
             // Fallback 2: Usar directamente la carpeta raíz pública Downloads (sin subcarpetas com.fabian.downloader)
             try {
-                val testFile = File(publicDownloads, ".test_write_${System.currentTimeMillis()}")
-                if (testFile.createNewFile()) {
-                    testFile.delete()
+                if (publicDownloads.exists()) {
                     android.util.Log.d(Config.TAG_PATH_UTILS, "Using raw public Downloads directory: ${publicDownloads.absolutePath}")
                     cachedFolders[relativeSubfolder] = publicDownloads
                     return publicDownloads

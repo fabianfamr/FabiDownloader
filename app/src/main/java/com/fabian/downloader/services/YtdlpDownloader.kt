@@ -168,12 +168,10 @@ class YtdlpDownloader {
             // ============================================================
             if (isYoutube) {
                 if (fallbackLevel == 0) {
-                    addOption("--extractor-args", "youtube:player-client=android,mweb,web")
-                } else {
                     addOption("--extractor-args", "youtube:player-client=android,web")
+                } else {
+                    addOption("--extractor-args", "youtube:player-client=web,android")
                 }
-                addOption("--youtube-skip-dash-manifest")
-                addOption("--youtube-skip-hls-manifest")
 
                 val customUa = settings.customUserAgent
                 if (customUa.isNotEmpty()) {
