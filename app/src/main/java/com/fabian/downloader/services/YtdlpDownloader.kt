@@ -41,10 +41,10 @@ class YtdlpDownloader {
                 addOption("--skip-download")
                 addOption("--convert-thumbnails", format.lowercase())
             } else if (format == Config.FORMAT_MP3) {
-                if (fallbackLevel == 0) {
-                    addOption("-f", "bestaudio/best")
-                } else {
-                    addOption("-f", "best")
+                when (fallbackLevel) {
+                    0 -> addOption("-f", "bestaudio/best")
+                    1 -> addOption("-f", "ba/b/best")
+                    else -> addOption("-f", "best")
                 }
                 addOption("--extract-audio")
                 addOption("--audio-format", "mp3")
@@ -53,10 +53,10 @@ class YtdlpDownloader {
                 val finalAudioQuality = if (selectedBitrateDigits.isNotEmpty()) selectedBitrateDigits else defaultBitrateDigits
                 addOption("--audio-quality", finalAudioQuality)
             } else if (format == Config.FORMAT_M4A) {
-                if (fallbackLevel == 0) {
-                    addOption("-f", "bestaudio/best")
-                } else {
-                    addOption("-f", "best")
+                when (fallbackLevel) {
+                    0 -> addOption("-f", "bestaudio/best")
+                    1 -> addOption("-f", "ba/b/best")
+                    else -> addOption("-f", "best")
                 }
                 addOption("--extract-audio")
                 addOption("--audio-format", "m4a")
@@ -64,18 +64,29 @@ class YtdlpDownloader {
                 val height = quality.filter { it.isDigit() }.ifEmpty { "720" }
                 when (fallbackLevel) {
                     0 -> {
-                        // Priorizar mejor video hasta la altura deseada + mejor audio, luego cualquier formato combinado
-                        addOption("-f", "bv*[height<=$height]+ba/b[height<=$height]/bv*+ba/b/best")
+                        addOption("-f", "bv*[height<=$height]+ba/b[height<=$height]/bestvideo[height<=$height]+bestaudio/bv*+ba/b/best")
                     }
                     1 -> {
+                        addOption("-f", "bv*+ba/b[height<=$height]/bestvideo+bestaudio/b/best")
+                    }
+                    2 -> {
                         addOption("-f", "bv*+ba/b/best")
                     }
                     else -> {
-                        addOption("-f", "best")
+                        addOption("-f", "best/b")
                     }
                 }
                 addOption("--merge-output-format", "mp4")
                 addOption("--remux-video", "mp4")
+            }
+
+            if (isYoutube) {
+                when (fallbackLevel) {
+                    0 -> addOption("--extractor-args", "youtube:player-client=android,ios,mweb")
+                    1 -> addOption("--extractor-args", "youtube:player-client=android,ios")
+                    2 -> addOption("--extractor-args", "youtube:player-client=tv,mweb")
+                    else -> { /* omit player-client for raw yt-dlp fallback */ }
+                }
             }
 
             if (settings.embedChapters) {
@@ -424,6 +435,15 @@ class YtdlpDownloader {
                     }
                     
                     attempt++
+                    val lowerMsg = (e.message ?: "").lowercase()
+                    val lowerLast = lastLine.lowercase()
+                    if (lowerMsg.contains("web player api") || lowerLast.contains("web player api") ||
+                        lowerMsg.contains("requested format") || lowerLast.contains("requested format") ||
+                        lowerMsg.contains("format is not available") || lowerLast.contains("format is not available")) {
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectada incompatibilidad de API/formato en YouTube. Intentando refrescar binario yt-dlp...")
+                        com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(com.fabian.downloader.MyApplication.getInstance())
+                    }
+
                     val hasInternet = connService.checkConnection()
                     val isNetworkError = !hasInternet || isNetworkOrTemporaryError(e, lastLine)
 
@@ -471,7 +491,7 @@ class YtdlpDownloader {
                     val errorMessage = lastLine.ifEmpty { e.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
                     throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
                 }
-                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1 (bestvideo+bestaudio/best)...")
+                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1...")
                 executionError = e
                 cleanupBeforeRetry()
             }
@@ -479,19 +499,27 @@ class YtdlpDownloader {
 
             // Nivel 1: Intentar con mejor formato disponible sin limitación estricta de altura
             val success1 = executeWithRetry(1) { e ->
-                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Segundo nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 2 (best)...")
+                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Segundo nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 2...")
                 executionError = e
                 cleanupBeforeRetry()
             }
             if (success1) return@withContext true
 
-            // Nivel 2: Descargar formato absoluto básico 'best'
+            // Nivel 2: Descargar formato de fallback amplio
             val success2 = executeWithRetry(2) { e ->
+                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Tercer nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 3 (best/b)...")
+                executionError = e
+                cleanupBeforeRetry()
+            }
+            if (success2) return@withContext true
+
+            // Nivel 3: Descargar formato absoluto básico 'best/b'
+            val success3 = executeWithRetry(3) { e ->
                 Log.e(Config.TAG_YTDLP_DOWNLOADER, "Todos los niveles e intentos de descarga fallaron para $videoUrl. Última línea: $lastLine", e)
                 val errorMessage = lastLine.ifEmpty { e.message ?: executionError?.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
                 throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
             }
-            return@withContext success2
+            return@withContext success3
         } finally {
             try {
                 YoutubeDL.getInstance().destroyProcessById(processId)

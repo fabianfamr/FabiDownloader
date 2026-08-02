@@ -26,50 +26,59 @@ class YtdlpExtractor {
         val isYoutube = videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be") || videoUrl.contains("shorts") || videoUrl.contains("music.youtube.com")
         val isInstagram = videoUrl.contains("instagram.com")
 
-        val request = YoutubeDLRequest(videoUrl).apply {
-            addOption("--dump-json")
-            
-            val cookiesFile = java.io.File(com.fabian.downloader.MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
-            if (cookiesFile.exists() && cookiesFile.length() > 0) {
-                addOption("--cookies", cookiesFile.absolutePath)
+        fun createExtractorRequest(playerClient: String?): YoutubeDLRequest {
+            return YoutubeDLRequest(videoUrl).apply {
+                addOption("--dump-json")
+                
+                val cookiesFile = java.io.File(com.fabian.downloader.MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
+                if (cookiesFile.exists() && cookiesFile.length() > 0) {
+                    addOption("--cookies", cookiesFile.absolutePath)
+                }
+                
+                if (!com.fabian.downloader.ui.AppSettings.playlistEnabled) {
+                    addOption("--no-playlist")
+                }
+                addOption("--no-cache-dir")
+                
+                if (isYoutube) {
+                    val clientArg = playerClient ?: "android,ios,mweb"
+                    addOption("--extractor-args", "youtube:player-client=$clientArg")
+                    addOption("--user-agent", Config.UA_DESKTOP)
+                }
+                
+                addOption("--no-check-formats")
+                addOption("--referer", Config.REFERER_DEFAULT)
+                addOption("--force-ipv4")
+                addOption("--no-check-certificate")
+                addOption("--no-call-home")
+                addOption("--geo-bypass")
+                addOption("--quiet")
+                addOption("--no-warnings")
+                addOption("--ignore-errors")
+                addOption("--no-mtime")
             }
-            
-            if (!com.fabian.downloader.ui.AppSettings.playlistEnabled) {
-                // Only use --flat-playlist if not dumping json, but here we ARE dumping json.
-                // However, the user request says: "Quitar --flat-playlist" in BaseSiteService.
-                // Let's remove it if we want full format info.
-                addOption("--no-playlist")
-            }
-            addOption("--no-cache-dir")
-            
-            if (isYoutube) {
-                addOption("--extractor-args", "youtube:player-client=ios,android,mweb,web")
-                addOption("--user-agent", Config.UA_DESKTOP)
-            }
-            
-            addOption("--no-check-formats")
-            addOption("--referer", Config.REFERER_DEFAULT)
-            addOption("--force-ipv4")
-            addOption("--no-check-certificate")
-            addOption("--no-call-home")
-            addOption("--geo-bypass")
-            addOption("--quiet")
-            addOption("--no-warnings")
-            addOption("--ignore-errors")
-            addOption("--no-mtime")
         }
 
-        try {
-            val response = YoutubeDL.getInstance().execute(request)
-            val jsonRaw = response.out ?: return@withContext null
-            val json = JSONObject(jsonRaw)
+        val clientOptions = listOf("android,ios,mweb", "android,ios", "tv,mweb")
 
-            val defaultAuthor = if (isInstagram) Config.DEFAULT_AUTHOR_INSTAGRAM else Config.STATUS_UNKNOWN
-            return@withContext com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, defaultAuthor)
-        } catch (e: Exception) {
-            Log.e(Config.TAG_YTDLP_EXTRACTOR, "Error extracting video info: ${e.message}", e)
-            return@withContext null
+        for (client in clientOptions) {
+            try {
+                val request = createExtractorRequest(client)
+                val response = YoutubeDL.getInstance().execute(request)
+                val jsonRaw = response.out ?: continue
+                val json = JSONObject(jsonRaw)
+
+                val defaultAuthor = if (isInstagram) Config.DEFAULT_AUTHOR_INSTAGRAM else Config.STATUS_UNKNOWN
+                return@withContext com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, defaultAuthor)
+            } catch (e: Exception) {
+                Log.w(Config.TAG_YTDLP_EXTRACTOR, "Error extrayendo con client=$client: ${e.message}")
+                val msg = (e.message ?: "").lowercase()
+                if (msg.contains("web player api") || msg.contains("format") || msg.contains("bot")) {
+                    com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(com.fabian.downloader.MyApplication.getInstance())
+                }
+            }
         }
+        return@withContext null
     }
 
     suspend fun obtenerDetallesPlaylist(playlistUrl: String): JSONObject? = withContext(Dispatchers.IO) {
@@ -88,7 +97,7 @@ class YtdlpExtractor {
             addOption("--no-cache-dir")
             
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player-client=ios,android,mweb,web")
+                addOption("--extractor-args", "youtube:player-client=android,ios,mweb")
                 addOption("--user-agent", Config.UA_DESKTOP)
             }
             

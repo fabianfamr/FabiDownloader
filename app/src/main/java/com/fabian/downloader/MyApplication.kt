@@ -135,6 +135,26 @@ class MyApplication : Application(), ImageLoaderFactory {
         }
     }
 
+    private var lastForceUpdateTimestamp = 0L
+
+    fun forceUpdateYtdlpBinary(context: android.content.Context): Boolean {
+        val now = System.currentTimeMillis()
+        if (now - lastForceUpdateTimestamp < 60_000) {
+            Log.d(Config.TAG_YT_DLP, "Actualización de yt-dlp omitida (solicitada recientemente)")
+            return false
+        }
+        lastForceUpdateTimestamp = now
+        return try {
+            Log.i(Config.TAG_YT_DLP, "Forzando actualización de binario yt-dlp por incompatibilidad de YouTube...")
+            YoutubeDL.getInstance().updateYoutubeDL(context)
+            Log.i(Config.TAG_YT_DLP, "Binario de yt-dlp actualizado exitosamente")
+            true
+        } catch (e: Exception) {
+            Log.e(Config.TAG_YT_DLP, "Error al forzar la actualización de binario yt-dlp", e)
+            false
+        }
+    }
+
     fun waitForInitialization() {
         if (!isInitialized) {
             val started = initLatch.await(10, java.util.concurrent.TimeUnit.SECONDS)
