@@ -21,8 +21,9 @@ data class InfoMedia(
 
 class YtdlpExtractor {
 
-    suspend fun obtenerDetallesVideo(videoUrl: String, quality: String? = null, format: String? = null): InfoMedia? = withContext(Dispatchers.IO) {
+    suspend fun obtenerDetallesVideo(rawVideoUrl: String, quality: String? = null, format: String? = null): InfoMedia? = withContext(Dispatchers.IO) {
         com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
+        val videoUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawVideoUrl)
         val isYoutube = videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be") || videoUrl.contains("shorts") || videoUrl.contains("music.youtube.com")
         val isInstagram = videoUrl.contains("instagram.com")
 
@@ -82,8 +83,9 @@ class YtdlpExtractor {
         return@withContext null
     }
 
-    suspend fun obtenerDetallesPlaylist(playlistUrl: String): JSONObject? = withContext(Dispatchers.IO) {
+    suspend fun obtenerDetallesPlaylist(rawPlaylistUrl: String): JSONObject? = withContext(Dispatchers.IO) {
         com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
+        val playlistUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawPlaylistUrl)
         val isYoutube = playlistUrl.contains("youtube.com") || playlistUrl.contains("youtu.be")
         
         val request = YoutubeDLRequest(playlistUrl).apply {

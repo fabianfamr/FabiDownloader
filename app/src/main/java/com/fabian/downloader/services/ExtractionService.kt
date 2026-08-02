@@ -302,7 +302,7 @@ class ExtractionService {
     }
 
     suspend fun extractTitle(url: String, downloadId: Long? = null): String = withContext(Dispatchers.IO) {
-        val cleanUrl = url.trim()
+        val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
 
         // 1. Check title cache
         titleCache[cleanUrl]?.let { return@withContext it }
@@ -359,7 +359,7 @@ class ExtractionService {
     }
 
     suspend fun extractThumbnail(url: String, downloadId: Long? = null): String? = withContext(Dispatchers.IO) {
-        val cleanUrl = url.trim()
+        val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
 
         // 1. Check thumbnail cache
         if (thumbnailCache.containsKey(cleanUrl)) {
@@ -419,7 +419,7 @@ class ExtractionService {
     }
 
     suspend fun extractFormatSizes(url: String, downloadId: Long? = null): Map<String, Double> = withContext(Dispatchers.IO) {
-        val cleanUrl = url.trim()
+        val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
 
         // 1. Check size cache
         sizeCache[cleanUrl]?.let { return@withContext it }
@@ -456,7 +456,7 @@ class ExtractionService {
     }
 
     suspend fun extractVideoInfo(url: String, downloadId: Long? = null): ExtractedVideo = withContext(Dispatchers.IO) {
-        val cleanUrl = url.trim()
+        val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
 
         // Check videoCache first
         videoCache[cleanUrl]?.let { return@withContext it }
@@ -485,7 +485,7 @@ class ExtractionService {
     }
 
     suspend fun getRealSizeAndUrl(url: String, quality: String, format: String): Pair<String, String> = withContext(Dispatchers.IO) {
-        val cleanUrl = url.trim()
+        val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
         val service = SiteServiceProvider.getServiceForUrl(cleanUrl)
         
         // 1. Intentar buscar en el caché de InfoMedia primero para evitar llamadas a la red redundantes

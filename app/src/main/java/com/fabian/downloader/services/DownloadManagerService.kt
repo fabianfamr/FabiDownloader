@@ -388,7 +388,23 @@ class DownloadManagerService private constructor(
                 val service = com.fabian.downloader.services.sites.SiteServiceProvider.getServiceForUrl(url)
                 var lastProgressUpdate = System.currentTimeMillis()
 
-                val destFolder = com.fabian.downloader.utils.PathUtils.getDownloadFolder(application, format)
+                // Estación 2: Inyección de Configuración
+                val initialSpec = com.fabian.downloader.pipeline.DownloadAssemblyLine.station2_assembleUserSettings(
+                    rawUrl = url,
+                    cleanUrl = url,
+                    requestedQuality = quality,
+                    requestedFormat = format
+                )
+                // Estación 3: Asignación de Almacenamiento y Destino
+                val specWithDest = com.fabian.downloader.pipeline.DownloadAssemblyLine.station3_assignDestination(
+                    context = application,
+                    spec = initialSpec,
+                    recordId = id,
+                    title = videoTitle,
+                    thumbnailUrl = passedThumbnailUrl
+                )
+
+                val destFolder = specWithDest.outputDirectory ?: com.fabian.downloader.utils.PathUtils.getDownloadFolder(application, format)
                 val fileNameWithoutExt = "${sanitizeFileName(videoTitle)}_$id"
 
                 // Comprobar espacio antes de iniciar la descarga

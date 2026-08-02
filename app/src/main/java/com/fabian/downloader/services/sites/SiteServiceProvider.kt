@@ -17,6 +17,7 @@ object SiteServiceProvider {
     )
 
     fun getServiceForUrl(url: String): SiteService {
-        return services.find { it.canHandle(url) } ?: GenericSiteService()
+        val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
+        return services.find { it.canHandle(cleanUrl) } ?: GenericSiteService()
     }
 }

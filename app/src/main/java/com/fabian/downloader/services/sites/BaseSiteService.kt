@@ -44,7 +44,7 @@ abstract class BaseSiteService : SiteService {
     }
 
     override suspend fun extractMetadata(url: String): InfoMedia? {
-        val cleanUrl = url.trim()
+        val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
         
         @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
         val deferred = activeExtractions.computeIfAbsent(cleanUrl) { _ ->
@@ -100,7 +100,7 @@ abstract class BaseSiteService : SiteService {
         onProgress: (progress: Float, sizeText: String, speedText: String) -> Unit
     ): Boolean = withContext(Dispatchers.IO) {
         downloader.descargar(
-            videoUrl = url,
+            rawVideoUrl = url,
             quality = quality,
             format = format,
             destFolder = destFolder,

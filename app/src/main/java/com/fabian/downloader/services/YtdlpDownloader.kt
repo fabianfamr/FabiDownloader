@@ -278,7 +278,7 @@ class YtdlpDownloader {
     }
 
     suspend fun descargar(
-        videoUrl: String,
+        rawVideoUrl: String,
         quality: String,
         format: String,
         destFolder: java.io.File,
@@ -287,6 +287,7 @@ class YtdlpDownloader {
         customizeRequest: ((YoutubeDLRequest) -> Unit)? = null,
         alProgresar: (Float, String, String) -> Unit
     ): Boolean = withContext(Dispatchers.IO) {
+        val videoUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawVideoUrl)
         com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
         var lastLine = ""
         var executionError: Exception? = null
