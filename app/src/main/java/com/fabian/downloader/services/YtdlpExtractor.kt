@@ -60,7 +60,7 @@ class YtdlpExtractor {
             }
         }
 
-        val clientOptions: List<String?> = listOf("android,web", "android", "tv,android", "web", null)
+        val clientOptions: List<String?> = listOf("android,mweb", "android", "tv,android", "mweb", null)
 
         for (client in clientOptions) {
             try {
@@ -98,7 +98,7 @@ class YtdlpExtractor {
             addOption("--no-cache-dir")
             
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player-client=android,web")
+                addOption("--extractor-args", "youtube:player-client=android,mweb")
                 addOption("--user-agent", Config.UA_DESKTOP)
             }
             

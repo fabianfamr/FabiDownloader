@@ -82,9 +82,9 @@ class YtdlpDownloader {
 
             if (isYoutube) {
                 when (fallbackLevel) {
-                    0 -> addOption("--extractor-args", "youtube:player-client=android,web")
-                    1 -> addOption("--extractor-args", "youtube:player-client=android")
-                    2 -> addOption("--extractor-args", "youtube:player-client=tv,android")
+                    0 -> addOption("--extractor-args", "youtube:player-client=android,mweb")
+                    1 -> addOption("--extractor-args", "youtube:player-client=android,tv")
+                    2 -> addOption("--extractor-args", "youtube:player-client=android")
                     else -> { /* omit player-client for raw yt-dlp fallback */ }
                 }
             }
@@ -187,12 +187,6 @@ class YtdlpDownloader {
             // YOUTUBE-SPECIFIC OPTIMIZATIONS
             // ============================================================
             if (isYoutube) {
-                when (fallbackLevel) {
-                    0 -> addOption("--extractor-args", "youtube:player-client=ios,android,mweb,web")
-                    1 -> addOption("--extractor-args", "youtube:player-client=android,ios,web")
-                    // Level 2+: omite --extractor-args para que yt-dlp use su estrategia por defecto completa
-                }
-
                 val customUa = settings.customUserAgent
                 if (customUa.isNotEmpty()) {
                     addOption("--user-agent", customUa)
