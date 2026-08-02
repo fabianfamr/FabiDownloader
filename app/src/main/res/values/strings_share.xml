@@ -9,7 +9,7 @@
     <string name="share_download_prefix">Descarga</string>
     <string name="share_music_section">MÚSICA</string>
     <string name="share_video_section">VIDEO</string>
-    <string name="share_image_section">IMAGEN / MINIATURA</string>
+    <string name="share_image_section">IMAGEN</string>
     <string name="share_format_jpg">JPG (HD)</string>
     <string name="share_format_png">PNG (Sin pérdida)</string>
     <string name="share_format_webp">WEBP (Optimizado)</string>

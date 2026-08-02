@@ -193,6 +193,30 @@ fun SharePopupScreen(
         )
     }
     
+    val isImageLink = remember(cleanUrl) {
+        val urlLower = cleanUrl.lowercase()
+        val isDirectImg = urlLower.endsWith(".jpg") || urlLower.endsWith(".jpeg") || 
+                          urlLower.endsWith(".png") || urlLower.endsWith(".webp") || 
+                          urlLower.endsWith(".gif") || urlLower.contains(".jpg?") || 
+                          urlLower.contains(".jpeg?") || urlLower.contains(".png?") || 
+                          urlLower.contains(".webp?") || urlLower.contains("i.imgur.com") || 
+                          urlLower.contains("pbs.twimg.com") || urlLower.contains("pinterest.com/pin") || 
+                          urlLower.contains("pin.it/") || urlLower.contains("/photo/") ||
+                          urlLower.contains("format=jpg") || urlLower.contains("format=png") ||
+                          urlLower.contains("format=webp")
+        isDirectImg || com.fabian.downloader.services.sites.SiteServiceProvider.getServiceForUrl(cleanUrl).siteId == "pinterest"
+    }
+
+    val imageOptions = remember(formatSizes) {
+        listOf(
+            DownloadOption("image_jpg", ctx.getString(R.string.share_format_jpg), Config.FORMAT_JPG, "HD", ctx.getString(R.string.share_category_image)),
+            DownloadOption("image_png", ctx.getString(R.string.share_format_png), Config.FORMAT_PNG, "HD", ctx.getString(R.string.share_category_image)),
+            DownloadOption("image_webp", ctx.getString(R.string.share_format_webp), Config.FORMAT_WEBP, "HD", ctx.getString(R.string.share_category_image))
+        ).map { option ->
+            option.copy(sizeStr = getOptionSize(ctx, option, formatSizes))
+        }
+    }
+    
     val musicOptions = remember(formatSizes) {
         listOf(
             DownloadOption("music_320", ctx.getString(R.string.share_quality_320kbps), Config.FORMAT_MP3, "320", ctx.getString(R.string.share_category_music)),
@@ -215,9 +239,11 @@ fun SharePopupScreen(
         }
     }
     
-    var selectedOptionId by remember {
+    var selectedOptionId by remember(isImageLink) {
         mutableStateOf(
-            if (cleanUrl.contains("music.youtube.com") || cleanUrl.contains("spotify") || cleanUrl.contains("soundcloud") || AppSettings.selectedQuality.contains("Solo Audio")) {
+            if (isImageLink) {
+                "image_jpg"
+            } else if (cleanUrl.contains("music.youtube.com") || cleanUrl.contains("spotify") || cleanUrl.contains("soundcloud") || AppSettings.selectedQuality.contains("Solo Audio")) {
                 when (AppSettings.defaultAudioBitrate) {
                     "320 kbps (Máxima)", "320 kbps" -> "music_320"
                     "256 kbps", "192 kbps" -> "music_192"
@@ -353,105 +379,158 @@ fun SharePopupScreen(
                             
                             Spacer(modifier = Modifier.height(16.dp))
                             
-                            // --- MUSIC SECTION ---
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 14.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = ctx.getString(R.string.share_music_section),
-                                    color = Color(0xFFAAAAAA),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.2.sp
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                HorizontalDivider(
-                                    modifier = Modifier.weight(1f),
-                                    color = Color(0xFF242428),
-                                    thickness = 1.dp
-                                )
-                            }
-                            
-                            // Grid of Music Options (2 columns)
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                musicOptions.chunked(2).forEach { chunk ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                    ) {
-                                        chunk.forEach { option ->
-                                            Box(modifier = Modifier.weight(1f)) {
-                                                SnaptubeFormatItem(
-                                                    option = option,
-                                                    isSelected = selectedOptionId == option.id,
-                                                    accentColor = MaterialTheme.colorScheme.primary,
-                                                    onClick = {
-                                                        selectedOptionId = option.id
-                                                    }
-                                                )
+                            if (isImageLink) {
+                                // --- IMAGEN SECTION ---
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 14.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = ctx.getString(R.string.share_image_section),
+                                        color = Color(0xFFAAAAAA),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.2.sp
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    HorizontalDivider(
+                                        modifier = Modifier.weight(1f),
+                                        color = Color(0xFF242428),
+                                        thickness = 1.dp
+                                    )
+                                }
+                                
+                                // Grid of Image Options (2 columns)
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    imageOptions.chunked(2).forEach { chunk ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            chunk.forEach { option ->
+                                                Box(modifier = Modifier.weight(1f)) {
+                                                    SnaptubeFormatItem(
+                                                        option = option,
+                                                        isSelected = selectedOptionId == option.id,
+                                                        accentColor = MaterialTheme.colorScheme.primary,
+                                                        onClick = {
+                                                            selectedOptionId = option.id
+                                                        }
+                                                    )
+                                                }
                                             }
-                                        }
-                                        if (chunk.size < 2) {
-                                            Spacer(modifier = Modifier.weight(1f))
+                                            if (chunk.size < 2) {
+                                                Spacer(modifier = Modifier.weight(1f))
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            
-                            Spacer(modifier = Modifier.height(28.dp))
-                            
-                            // --- VIDEO SECTION ---
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 14.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = ctx.getString(R.string.share_video_section),
-                                    color = Color(0xFFAAAAAA),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.2.sp
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                HorizontalDivider(
-                                    modifier = Modifier.weight(1f),
-                                    color = Color(0xFF242428),
-                                    thickness = 1.dp
-                                )
-                            }
-                            
-                            // Grid of Video Options (2 columns)
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                videoOptions.chunked(2).forEach { chunk ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                    ) {
-                                        chunk.forEach { option ->
-                                            Box(modifier = Modifier.weight(1f)) {
-                                                SnaptubeFormatItem(
-                                                    option = option,
-                                                    isSelected = selectedOptionId == option.id,
-                                                    accentColor = MaterialTheme.colorScheme.primary,
-                                                    onClick = {
-                                                        selectedOptionId = option.id
-                                                    }
-                                                )
+                            } else {
+                                // --- MUSIC SECTION ---
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 14.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = ctx.getString(R.string.share_music_section),
+                                        color = Color(0xFFAAAAAA),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.2.sp
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    HorizontalDivider(
+                                        modifier = Modifier.weight(1f),
+                                        color = Color(0xFF242428),
+                                        thickness = 1.dp
+                                    )
+                                }
+                                
+                                // Grid of Music Options (2 columns)
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    musicOptions.chunked(2).forEach { chunk ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            chunk.forEach { option ->
+                                                Box(modifier = Modifier.weight(1f)) {
+                                                    SnaptubeFormatItem(
+                                                        option = option,
+                                                        isSelected = selectedOptionId == option.id,
+                                                        accentColor = MaterialTheme.colorScheme.primary,
+                                                        onClick = {
+                                                            selectedOptionId = option.id
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                            if (chunk.size < 2) {
+                                                Spacer(modifier = Modifier.weight(1f))
                                             }
                                         }
-                                        if (chunk.size < 2) {
-                                            Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
+                                
+                                Spacer(modifier = Modifier.height(28.dp))
+                                
+                                // --- VIDEO SECTION ---
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 14.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = ctx.getString(R.string.share_video_section),
+                                        color = Color(0xFFAAAAAA),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.2.sp
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    HorizontalDivider(
+                                        modifier = Modifier.weight(1f),
+                                        color = Color(0xFF242428),
+                                        thickness = 1.dp
+                                    )
+                                }
+                                
+                                // Grid of Video Options (2 columns)
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    videoOptions.chunked(2).forEach { chunk ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            chunk.forEach { option ->
+                                                Box(modifier = Modifier.weight(1f)) {
+                                                    SnaptubeFormatItem(
+                                                        option = option,
+                                                        isSelected = selectedOptionId == option.id,
+                                                        accentColor = MaterialTheme.colorScheme.primary,
+                                                        onClick = {
+                                                            selectedOptionId = option.id
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                            if (chunk.size < 2) {
+                                                Spacer(modifier = Modifier.weight(1f))
+                                            }
                                         }
                                     }
                                 }
@@ -460,7 +539,7 @@ fun SharePopupScreen(
                             Spacer(modifier = Modifier.height(32.dp))
                             
                             // Download button
-                            val allOptions = musicOptions + videoOptions
+                            val allOptions = if (isImageLink) imageOptions else (musicOptions + videoOptions)
                             val isDownloadEnabled = allOptions.any { it.id == selectedOptionId }
                             Button(
                                 onClick = {
