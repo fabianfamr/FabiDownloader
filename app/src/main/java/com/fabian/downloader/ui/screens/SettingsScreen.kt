@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -620,7 +621,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             SettingsToggleRow(Icons.Default.Link, stringResource(R.string.settings_auto_download), stringResource(R.string.settings_auto_download_desc), autoDownload, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoDownload = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(
-                                icon = Icons.Default.List,
+                                icon = Icons.AutoMirrored.Filled.List,
                                 title = stringResource(R.string.settings_allow_playlists),
                                 subtitle = stringResource(R.string.settings_allow_playlists_desc),
                                 checked = playlistEnabledState,
