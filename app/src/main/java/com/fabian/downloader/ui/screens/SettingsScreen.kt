@@ -186,6 +186,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     var showThreadsDialog by remember { mutableStateOf(false) }
     
     var isCheckingUpdates by remember { mutableStateOf(false) }
+    var isUpdatingYtdlp by remember { mutableStateOf(false) }
     var updateFound by remember { mutableStateOf<UpdateInfo?>(null) }
 
     if (updateFound != null) {
@@ -1065,6 +1066,23 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                             }
                                         }.onFailure { e ->
                                             Toast.makeText(ctx, ctx.getString(R.string.settings_error_prefix, e.message ?: ""), Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                            }
+                            HorizontalDivider(color = C_border, thickness = 1.dp)
+                            SettingsRow(Icons.Default.Download, "Actualizar motor yt-dlp", if (isUpdatingYtdlp) "Actualizando..." else "Actualizar binario", C_accent, C_white, C_gray1, C_card2) {
+                                if (!isUpdatingYtdlp) {
+                                    scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                                        isUpdatingYtdlp = true
+                                        val success = com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(ctx, ignoreThrottle = true)
+                                        isUpdatingYtdlp = false
+                                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                            if (success) {
+                                                Toast.makeText(ctx, "Binario yt-dlp actualizado correctamente", Toast.LENGTH_SHORT).show()
+                                            } else {
+                                                Toast.makeText(ctx, "Error al actualizar binario yt-dlp", Toast.LENGTH_SHORT).show()
+                                            }
                                         }
                                     }
                                 }

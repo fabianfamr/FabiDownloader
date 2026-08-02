@@ -137,9 +137,9 @@ class MyApplication : Application(), ImageLoaderFactory {
 
     private var lastForceUpdateTimestamp = 0L
 
-    fun forceUpdateYtdlpBinary(context: android.content.Context): Boolean {
+    fun forceUpdateYtdlpBinary(context: android.content.Context, ignoreThrottle: Boolean = false): Boolean {
         val now = System.currentTimeMillis()
-        if (now - lastForceUpdateTimestamp < 60_000) {
+        if (!ignoreThrottle && now - lastForceUpdateTimestamp < 60_000) {
             Log.d(Config.TAG_YT_DLP, "Actualización de yt-dlp omitida (solicitada recientemente)")
             return false
         }
