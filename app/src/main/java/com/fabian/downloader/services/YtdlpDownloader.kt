@@ -167,7 +167,9 @@ class YtdlpDownloader {
             // YOUTUBE-SPECIFIC OPTIMIZATIONS
             // ============================================================
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player-client=android,web")
+                addOption("--extractor-args", "youtube:player-client=ios,android,web")
+                addOption("--youtube-skip-dash-manifest")
+                addOption("--youtube-skip-hls-manifest")
 
                 val customUa = settings.customUserAgent
                 if (customUa.isNotEmpty()) {
