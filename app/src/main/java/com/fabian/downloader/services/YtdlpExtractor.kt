@@ -41,8 +41,9 @@ class YtdlpExtractor {
                 addOption("--no-cache-dir")
                 
                 if (isYoutube) {
-                    val clientArg = playerClient ?: "android,ios,mweb"
-                    addOption("--extractor-args", "youtube:player-client=$clientArg")
+                    if (!playerClient.isNullOrEmpty()) {
+                        addOption("--extractor-args", "youtube:player-client=$playerClient")
+                    }
                     addOption("--user-agent", Config.UA_DESKTOP)
                 }
                 
@@ -59,7 +60,7 @@ class YtdlpExtractor {
             }
         }
 
-        val clientOptions = listOf("android,ios", "android,ios,mweb", "tv,android", "web,mweb")
+        val clientOptions: List<String?> = listOf("android,web", "android", "tv,android", "web", null)
 
         for (client in clientOptions) {
             try {
@@ -73,7 +74,7 @@ class YtdlpExtractor {
             } catch (e: Exception) {
                 Log.w(Config.TAG_YTDLP_EXTRACTOR, "Error extrayendo con client=$client: ${e.message}")
                 val msg = (e.message ?: "").lowercase()
-                if (msg.contains("web player api") || msg.contains("format") || msg.contains("bot")) {
+                if (msg.contains("player api") || msg.contains("web player api") || msg.contains("ios") || msg.contains("format") || msg.contains("bot")) {
                     com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(com.fabian.downloader.MyApplication.getInstance())
                 }
             }
@@ -97,7 +98,7 @@ class YtdlpExtractor {
             addOption("--no-cache-dir")
             
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player-client=android,ios,mweb")
+                addOption("--extractor-args", "youtube:player-client=android,web")
                 addOption("--user-agent", Config.UA_DESKTOP)
             }
             

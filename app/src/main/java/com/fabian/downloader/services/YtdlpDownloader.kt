@@ -82,8 +82,8 @@ class YtdlpDownloader {
 
             if (isYoutube) {
                 when (fallbackLevel) {
-                    0 -> addOption("--extractor-args", "youtube:player-client=android,ios")
-                    1 -> addOption("--extractor-args", "youtube:player-client=android,ios,mweb")
+                    0 -> addOption("--extractor-args", "youtube:player-client=android,web")
+                    1 -> addOption("--extractor-args", "youtube:player-client=android")
                     2 -> addOption("--extractor-args", "youtube:player-client=tv,android")
                     else -> { /* omit player-client for raw yt-dlp fallback */ }
                 }
@@ -437,7 +437,8 @@ class YtdlpDownloader {
                     attempt++
                     val lowerMsg = (e.message ?: "").lowercase()
                     val lowerLast = lastLine.lowercase()
-                    if (lowerMsg.contains("web player api") || lowerLast.contains("web player api") ||
+                    if (lowerMsg.contains("player api") || lowerLast.contains("player api") ||
+                        lowerMsg.contains("ios") || lowerLast.contains("ios") ||
                         lowerMsg.contains("requested format") || lowerLast.contains("requested format") ||
                         lowerMsg.contains("format is not available") || lowerLast.contains("format is not available")) {
                         Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectada incompatibilidad de API/formato en YouTube. Intentando refrescar binario yt-dlp...")
