@@ -43,7 +43,7 @@ class YtdlpExtractor {
             addOption("--no-cache-dir")
             
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player-client=ios,android,web")
+                addOption("--extractor-args", "youtube:player-client=android,mweb,web")
                 addOption("--user-agent", Config.UA_DESKTOP)
                 addOption("--youtube-skip-dash-manifest")
                 addOption("--youtube-skip-hls-manifest")
@@ -90,7 +90,7 @@ class YtdlpExtractor {
             addOption("--no-cache-dir")
             
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player-client=ios,android,web")
+                addOption("--extractor-args", "youtube:player-client=android,mweb,web")
                 addOption("--user-agent", Config.UA_DESKTOP)
                 addOption("--youtube-skip-dash-manifest")
                 addOption("--youtube-skip-hls-manifest")

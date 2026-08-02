@@ -167,7 +167,11 @@ class YtdlpDownloader {
             // YOUTUBE-SPECIFIC OPTIMIZATIONS
             // ============================================================
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player-client=ios,android,web")
+                if (fallbackLevel == 0) {
+                    addOption("--extractor-args", "youtube:player-client=android,mweb,web")
+                } else {
+                    addOption("--extractor-args", "youtube:player-client=android,web")
+                }
                 addOption("--youtube-skip-dash-manifest")
                 addOption("--youtube-skip-hls-manifest")
 

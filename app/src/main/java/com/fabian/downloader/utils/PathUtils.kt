@@ -77,23 +77,32 @@ object PathUtils {
         } else if (locationSetting.isNotEmpty()) {
             configuredDir = if (locationSetting.startsWith("/")) {
                 File(locationSetting)
+            } else if (locationSetting.startsWith("Downloads/", ignoreCase = true) || locationSetting.startsWith("Download/", ignoreCase = true)) {
+                val rel = locationSetting.substringAfter("/")
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), rel)
             } else {
-                File(Environment.getExternalStorageDirectory(), locationSetting)
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), locationSetting)
             }
         }
 
         if (configuredDir != null) {
-            val finalFolder = File(configuredDir, subfolderName)
+            val finalFolder = if (configuredDir.name.equals(subfolderName, ignoreCase = true)) {
+                configuredDir
+            } else {
+                File(configuredDir, subfolderName)
+            }
             try {
                 if (!finalFolder.exists()) {
                     finalFolder.mkdirs()
                 }
-                val testFile = File(finalFolder, ".test_write_${System.currentTimeMillis()}")
-                if (testFile.createNewFile()) {
-                    testFile.delete()
-                    android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified configured folder: ${finalFolder.absolutePath}")
-                    cachedFolders[relativeSubfolder] = finalFolder
-                    return finalFolder
+                if (finalFolder.exists()) {
+                    val testFile = File(finalFolder, ".test_write_${System.currentTimeMillis()}")
+                    if (testFile.createNewFile()) {
+                        testFile.delete()
+                        android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified configured folder: ${finalFolder.absolutePath}")
+                        cachedFolders[relativeSubfolder] = finalFolder
+                        return finalFolder
+                    }
                 }
             } catch (e: Exception) {
                 android.util.Log.e(Config.TAG_PATH_UTILS, "Configured folder ${finalFolder.absolutePath} is NOT writable: ${e.message}")
