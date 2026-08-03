@@ -921,6 +921,15 @@ fun MobileDownloadingItem(
         label = "statusColor"
     )
 
+    val targetProgress = remember(record.progress) {
+        if (record.progress < 0) 0f else (record.progress / 100f).coerceIn(0f, 1f)
+    }
+    val animatedProgress by animateFloatAsState(
+        targetValue = targetProgress,
+        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+        label = "downloadProgressAnimation"
+    )
+
     Surface(
         color = if (isSelected) C_accentDim else C_card,
         shape = RoundedCornerShape(14.dp),
@@ -959,7 +968,7 @@ fun MobileDownloadingItem(
                 getPlatformIconAndColor(record.url, record.format)
             }
             
-            // Thumbnail / Icon
+            // Thumbnail / Icon with Circular Progress Indicator Overlay
             Box(
                 modifier = Modifier
                     .size(56.dp)
@@ -984,6 +993,31 @@ fun MobileDownloadingItem(
                         tint = if (isFailed) C_red else platformColor
                     )
                 }
+
+                // Circular Progress Indicator overlay frame when downloading
+                if (!record.isPaused && !isFailed) {
+                    if (record.progress < 0) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(2.dp),
+                            color = statusColor,
+                            strokeWidth = 2.5.dp,
+                            trackColor = statusColor.copy(alpha = 0.15f)
+                        )
+                    } else {
+                        CircularProgressIndicator(
+                            progress = { animatedProgress },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(2.dp),
+                            color = statusColor,
+                            strokeWidth = 2.5.dp,
+                            trackColor = statusColor.copy(alpha = 0.15f),
+                            strokeCap = StrokeCap.Round
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -1005,13 +1039,12 @@ fun MobileDownloadingItem(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Progress Line directly below title (sleek and thin)
-                val rawProgress = if (record.progress < 0) 0f else record.progress / 100f
+                // Progress Line directly below title with smooth animation
                 LinearProgressIndicator(
-                    progress = { rawProgress },
+                    progress = { animatedProgress },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(2.dp)
+                        .height(2.5.dp)
                         .clip(CircleShape),
                     color = statusColor,
                     trackColor = C_white.copy(alpha = 0.12f),
@@ -1043,21 +1076,45 @@ fun MobileDownloadingItem(
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    val percentText = if (record.isPaused) {
-                        "${if (record.progress < 0) 0 else record.progress}%"
-                    } else if (record.progress < 0) {
-                        "0%"
-                    } else {
-                        "${record.progress}%"
-                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        if (!record.isPaused && !isFailed) {
+                            if (record.progress < 0) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(10.dp),
+                                    color = statusColor,
+                                    strokeWidth = 1.5.dp
+                                )
+                            } else {
+                                CircularProgressIndicator(
+                                    progress = { animatedProgress },
+                                    modifier = Modifier.size(10.dp),
+                                    color = statusColor,
+                                    strokeWidth = 1.5.dp,
+                                    trackColor = statusColor.copy(alpha = 0.2f),
+                                    strokeCap = StrokeCap.Round
+                                )
+                            }
+                        }
 
-                    Text(
-                        text = percentText,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = C_gray1,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 11.sp
-                    )
+                        val percentText = if (record.isPaused) {
+                            "${if (record.progress < 0) 0 else record.progress}%"
+                        } else if (record.progress < 0) {
+                            "0%"
+                        } else {
+                            "${record.progress}%"
+                        }
+
+                        Text(
+                            text = percentText,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = C_gray1,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 11.sp
+                        )
+                    }
                 }
             }
 
