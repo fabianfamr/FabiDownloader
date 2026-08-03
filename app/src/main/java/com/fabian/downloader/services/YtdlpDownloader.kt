@@ -433,7 +433,13 @@ class YtdlpDownloader {
                     attempt++
                     val lowerMsg = (e.message ?: "").lowercase()
                     val lowerLast = lastLine.lowercase()
-                    if (lowerMsg.contains("player api") || lowerLast.contains("player api") ||
+                    val isCorruptBinary = lowerMsg.contains("zipimport") || lowerLast.contains("zipimport") ||
+                                          lowerMsg.contains("bad local file header") || lowerLast.contains("bad local file header")
+                    if (isCorruptBinary) {
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectado binario yt-dlp corrupto durante descarga. Ejecutando reset de emergencia desde APK assets...")
+                        val appCtx = com.fabian.downloader.MyApplication.getInstance()
+                        appCtx.resetAndReinitYtdlp(appCtx)
+                    } else if (lowerMsg.contains("player api") || lowerLast.contains("player api") ||
                         lowerMsg.contains("ios") || lowerLast.contains("ios") ||
                         lowerMsg.contains("requested format") || lowerLast.contains("requested format") ||
                         lowerMsg.contains("format is not available") || lowerLast.contains("format is not available")) {

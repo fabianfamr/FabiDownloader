@@ -137,6 +137,26 @@ class MyApplication : Application(), ImageLoaderFactory {
 
     private var lastForceUpdateTimestamp = 0L
 
+    fun resetAndReinitYtdlp(context: android.content.Context): Boolean {
+        return try {
+            Log.w(Config.TAG_YT_DLP, "Resetting corrupt yt-dlp directory and re-initializing from APK assets...")
+            val noBackupDir = context.noBackupFilesDir
+            if (noBackupDir != null) {
+                val ytdlDir = java.io.File(noBackupDir, "youtubedl-android")
+                if (ytdlDir.exists()) {
+                    ytdlDir.deleteRecursively()
+                }
+            }
+            YoutubeDL.getInstance().init(context)
+            FFmpeg.getInstance().init(context)
+            Log.i(Config.TAG_YT_DLP, "yt-dlp directory cleanly re-initialized from APK assets")
+            true
+        } catch (e: Exception) {
+            Log.e(Config.TAG_YT_DLP, "Error resetting and re-initializing yt-dlp", e)
+            false
+        }
+    }
+
     fun forceUpdateYtdlpBinary(context: android.content.Context, ignoreThrottle: Boolean = false): Boolean {
         val now = System.currentTimeMillis()
         if (!ignoreThrottle && now - lastForceUpdateTimestamp < 60_000) {
@@ -146,11 +166,12 @@ class MyApplication : Application(), ImageLoaderFactory {
         lastForceUpdateTimestamp = now
         return try {
             Log.i(Config.TAG_YT_DLP, "Forzando actualización de binario yt-dlp por incompatibilidad de YouTube...")
-            YoutubeDL.getInstance().updateYoutubeDL(context)
-            Log.i(Config.TAG_YT_DLP, "Binario de yt-dlp actualizado exitosamente")
+            val updateResult = YoutubeDL.getInstance().updateYoutubeDL(context)
+            Log.i(Config.TAG_YT_DLP, "Binario de yt-dlp actualizado exitosamente: $updateResult")
             true
         } catch (e: Exception) {
-            Log.e(Config.TAG_YT_DLP, "Error al forzar la actualización de binario yt-dlp", e)
+            Log.e(Config.TAG_YT_DLP, "Error al forzar la actualización de binario yt-dlp. Ejecutando reset limpio...", e)
+            resetAndReinitYtdlp(context)
             false
         }
     }

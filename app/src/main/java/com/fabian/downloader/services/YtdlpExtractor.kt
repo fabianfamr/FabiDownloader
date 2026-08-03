@@ -75,7 +75,11 @@ class YtdlpExtractor {
             } catch (e: Exception) {
                 Log.w(Config.TAG_YTDLP_EXTRACTOR, "Error extrayendo con client=$client: ${e.message}")
                 val msg = (e.message ?: "").lowercase()
-                if (msg.contains("player api") || msg.contains("web player api") || msg.contains("ios") || msg.contains("format") || msg.contains("bot")) {
+                if (msg.contains("zipimport") || msg.contains("bad local file header")) {
+                    Log.w(Config.TAG_YTDLP_EXTRACTOR, "Binario de yt-dlp corrupto. Reseteando desde APK assets...")
+                    val appCtx = com.fabian.downloader.MyApplication.getInstance()
+                    appCtx.resetAndReinitYtdlp(appCtx)
+                } else if (msg.contains("player api") || msg.contains("web player api") || msg.contains("ios") || msg.contains("format") || msg.contains("bot")) {
                     com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(com.fabian.downloader.MyApplication.getInstance())
                 }
             }

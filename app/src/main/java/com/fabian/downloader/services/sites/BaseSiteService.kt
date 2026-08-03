@@ -73,6 +73,21 @@ abstract class BaseSiteService : SiteService {
                     com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, Config.STATUS_UNKNOWN, "Video de $displayName")
                 } catch (e: Exception) {
                     Log.e(Config.TAG_BASE_SITE_SERVICE, "Error extracting info for $cleanUrl in service $siteId: ${e.message}", e)
+                    val lowerMsg = (e.message ?: "").lowercase()
+                    if (lowerMsg.contains("zipimport") || lowerMsg.contains("bad local file header") ||
+                        lowerMsg.contains("player api") || lowerMsg.contains("player-client")) {
+                        Log.w(Config.TAG_BASE_SITE_SERVICE, "Detectada corrupción de binario o error de API player. Re-inicializando binario limpio y reintentando...")
+                        val appCtx = com.fabian.downloader.MyApplication.getInstance()
+                        appCtx.resetAndReinitYtdlp(appCtx)
+                        try {
+                            val retryResponse = YoutubeDL.getInstance().execute(request)
+                            val retryJsonRaw = retryResponse.out ?: return@async null
+                            val retryJson = JSONObject(retryJsonRaw)
+                            return@async com.fabian.downloader.utils.YtdlpParser.parseMetadata(retryJson, Config.STATUS_UNKNOWN, "Video de $displayName")
+                        } catch (retryException: Exception) {
+                            Log.e(Config.TAG_BASE_SITE_SERVICE, "Reintento de extracción falló tras re-inicializar: ${retryException.message}", retryException)
+                        }
+                    }
                     null
                 }
             }
