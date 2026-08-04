@@ -430,9 +430,9 @@ class DownloadManagerService private constructor(
                     // Throttling de actualizaciones de progreso a 2000ms para evitar lags de pantalla y saturación de base de datos
                     if (currentTime - lastProgressUpdate > 2000 || progress >= 100f) {
                         lastProgressUpdate = currentTime
-                        serviceScope.launch {
+                        kotlinx.coroutines.runBlocking {
                             val currentRecord = storageService.getDownloadById(id)
-                            if (currentRecord != null && !currentRecord.isPaused) {
+                            if (currentRecord != null && !currentRecord.isPaused && !currentRecord.isCompleted) {
                                 val displaySize = if (sizeText == Config.STATUS_DOWNLOADING) {
                                     currentRecord.size.takeIf { it != Config.STATUS_ZERO_MB && it.isNotEmpty() } ?: Config.STATUS_DOWNLOADING
                                 } else {

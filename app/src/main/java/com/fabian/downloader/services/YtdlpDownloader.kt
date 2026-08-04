@@ -426,13 +426,17 @@ class YtdlpDownloader {
                     }
                     return true
                 } catch (e: Exception) {
-                    if (e is kotlinx.coroutines.CancellationException || !isActive) {
+                    val lowerMsg = (e.message ?: "").lowercase()
+                    val lowerLast = lastLine.lowercase()
+                    val isCancelledBySystem = e is kotlinx.coroutines.CancellationException || !isActive ||
+                            lowerMsg.contains("destroy") || lowerMsg.contains("interrupted") || lowerMsg.contains("killed") ||
+                            lowerMsg.contains("cancel") || lowerLast.contains("interrupted") || lowerLast.contains("killed")
+
+                    if (isCancelledBySystem) {
                         throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
                     }
                     
                     attempt++
-                    val lowerMsg = (e.message ?: "").lowercase()
-                    val lowerLast = lastLine.lowercase()
                     val isCorruptBinary = lowerMsg.contains("zipimport") || lowerLast.contains("zipimport") ||
                                           lowerMsg.contains("bad local file header") || lowerLast.contains("bad local file header")
                     if (isCorruptBinary) {

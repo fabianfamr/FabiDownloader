@@ -135,13 +135,16 @@ class StorageService(private val database: AppDatabase) {
     }
 
     suspend fun updateDownloadProgressAndSizeAndSpeed(id: Long, progress: Int, size: String, speed: String) {
+        // Ignorar actualizaciones de progreso si la descarga ya se completó en memoria
+        val cached = memoryCache[id]
+        if (cached?.isCompleted == true) return
+
         // Actualización de alta frecuencia durante la descarga.
         // Se actualiza la memoria de inmediato (60fps en la UI) y se marca como "sucia" para volcado periódico a disco.
         val update = ProgressUpdate(progress, size, speed)
         activeProgressUpdates.update { current -> current + (id to update) }
         dirtyIds.add(id)
 
-        val cached = memoryCache[id]
         if (cached != null) {
             memoryCache[id] = cached.copy(progress = progress, size = size, speed = speed)
         }
