@@ -17,7 +17,8 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
     val downloads: Flow<List<DownloadRecord>> = storageService.getAllDownloads()
 
     init {
-        cleanupOrphanDownloads()
+        // No borramos silenciosamente registros de la BD al iniciar el ViewModel para evitar
+        // pérdida de historial si un almacenamiento externo/SD está temporalmente desorganizado.
     }
 
     private fun cleanupOrphanDownloads() {

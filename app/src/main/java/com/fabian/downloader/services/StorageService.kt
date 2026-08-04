@@ -37,7 +37,7 @@ class StorageService(private val database: AppDatabase) {
         // evitando escrituras continuas e innecesarias en disco durante las descargas activas.
         serviceScope.launch {
             while (true) {
-                delay(8000L) // Guarda en la BD cada 8 segundos los progresos acumulados
+                delay(3000L) // Guarda en la BD cada 3 segundos los progresos acumulados
                 flushPendingWrites()
             }
         }

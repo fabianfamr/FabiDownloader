@@ -55,9 +55,9 @@ class ExtractionService {
             val encodedUrl = java.net.URLEncoder.encode(videoUrl, "UTF-8")
             val oEmbedUrl = when {
                 videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be") -> 
-                    Config.YT_OEMBED_URL.format(encodedUrl)
+                    Config.YT_OEMBED_BASE_URL + encodedUrl + "&format=json"
                 videoUrl.contains("tiktok.com") -> 
-                    Config.TIKTOK_OEMBED_URL.format(encodedUrl)
+                    Config.TIKTOK_OEMBED_BASE_URL + encodedUrl
                 else -> null
             } ?: return null
 
@@ -119,7 +119,12 @@ class ExtractionService {
                 try {
                     call.execute().use { response ->
                         if (response.isSuccessful) {
-                            val html = response.body?.string() ?: ""
+                            val bodySource = response.body?.source()
+                            val html = if (bodySource != null) {
+                                bodySource.request(1024 * 1024)
+                                val buffer = bodySource.buffer.clone()
+                                buffer.readString(Charsets.UTF_8)
+                            } else ""
                             if (html.isNotEmpty()) {
                                 // Intentar buscar og:title o twitter:title o name="title"
                                 var title = extractMetaTagContent(html, "property=\"og:title\"")

@@ -70,7 +70,13 @@ class NotificationService(private val context: Context) {
     }
 
     private val thumbnailCache = android.util.LruCache<String, Bitmap>(20)
-    private val shownSuccessIds = java.util.Collections.synchronizedSet(mutableSetOf<Int>())
+    private val shownSuccessIds = java.util.Collections.synchronizedSet(
+        object : java.util.LinkedHashMap<Int, Boolean>(100, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, Boolean>?): Boolean {
+                return size > 100
+            }
+        }.keys
+    )
     private var foregroundDownloadId: Int? = null
 
     /**
@@ -375,21 +381,45 @@ class NotificationService(private val context: Context) {
         notificationManager.notify(id + 500000, notification)
     }
 
+    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+        val (height: Int, width: Int) = options.run { outHeight to outWidth }
+        var inSampleSize = 1
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight: Int = height / 2
+            val halfWidth: Int = width / 2
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+        return inSampleSize
+    }
+
     private suspend fun getBitmapFromUrl(url: String): Bitmap? = withContext(Dispatchers.IO) {
         val cached = thumbnailCache.get(url)
         if (cached != null) return@withContext cached
 
         try {
             val bitmap = if (url.startsWith("http://") || url.startsWith("https://")) {
-                val connection = URL(url).openConnection()
-                connection.doInput = true
-                connection.connect()
-                connection.getInputStream().use { input ->
-                    BitmapFactory.decodeStream(input)
+                val conn = (URL(url).openConnection() as java.net.HttpURLConnection).apply {
+                    connectTimeout = 4000
+                    readTimeout = 4000
+                    instanceFollowRedirects = true
+                    setRequestProperty("User-Agent", Config.UA_DESKTOP)
+                }
+                conn.inputStream.use { input ->
+                    val bytes = input.readBytes()
+                    val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+                    opts.inSampleSize = calculateInSampleSize(opts, 256, 256)
+                    opts.inJustDecodeBounds = false
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
                 }
             } else {
-                // Soporte para cargar miniaturas guardadas localmente en el dispositivo
-                BitmapFactory.decodeFile(url)
+                val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeFile(url, opts)
+                opts.inSampleSize = calculateInSampleSize(opts, 256, 256)
+                opts.inJustDecodeBounds = false
+                BitmapFactory.decodeFile(url, opts)
             }
             if (bitmap != null) {
                 thumbnailCache.put(url, bitmap)

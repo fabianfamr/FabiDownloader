@@ -71,32 +71,28 @@ class DownloadActionReceiver : BroadcastReceiver() {
         val storageService = StorageService.getInstance(context)
         val record = storageService.getDownloadById(downloadId) ?: return
         
-        withContext(Dispatchers.Main) {
-            DownloadManagerService.getInstance(context).startDownload(
-                rawUrl = record.url,
-                quality = record.quality,
-                format = record.format,
-                passedTitle = record.title.removePrefix(Config.STATUS_FAILED_PREFIX),
-                passedThumbnailUrl = record.thumbnailUrl,
-                existingId = record.id
-            )
-        }
+        DownloadManagerService.getInstance(context).startDownload(
+            rawUrl = record.url,
+            quality = record.quality,
+            format = record.format,
+            passedTitle = record.title.removePrefix(Config.STATUS_FAILED_PREFIX),
+            passedThumbnailUrl = record.thumbnailUrl,
+            existingId = record.id
+        )
     }
 
     private suspend fun resumeDownload(context: Context, downloadId: Long) {
         val storageService = StorageService.getInstance(context)
         val record = storageService.getDownloadById(downloadId) ?: return
         
-        withContext(Dispatchers.Main) {
-            DownloadManagerService.getInstance(context).startDownload(
-                rawUrl = record.url,
-                quality = record.quality,
-                format = record.format,
-                passedTitle = record.title,
-                passedThumbnailUrl = record.thumbnailUrl,
-                existingId = record.id
-            )
-        }
+        DownloadManagerService.getInstance(context).startDownload(
+            rawUrl = record.url,
+            quality = record.quality,
+            format = record.format,
+            passedTitle = record.title,
+            passedThumbnailUrl = record.thumbnailUrl,
+            existingId = record.id
+        )
     }
 
     private suspend fun openFile(context: Context, downloadId: Long) {

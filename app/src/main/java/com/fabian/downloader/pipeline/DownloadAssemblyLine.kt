@@ -26,7 +26,28 @@ object DownloadAssemblyLine {
     fun station1_cleanUrl(rawUrl: String): String {
         val trimmed = rawUrl.trim()
         val regex = Regex("""https?://[^\s]+""")
-        val clean = regex.find(trimmed)?.value ?: trimmed
+        var clean = regex.find(trimmed)?.value ?: trimmed
+        
+        try {
+            val uri = android.net.Uri.parse(clean)
+            if (uri.isHierarchical && uri.queryParameterNames.isNotEmpty()) {
+                val trackingParams = setOf("utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "si", "fbclid", "igshid", "feature")
+                val builder = uri.buildUpon().clearQuery()
+                for (param in uri.queryParameterNames) {
+                    if (param != null && !trackingParams.contains(param.lowercase())) {
+                        for (valStr in uri.getQueryParameters(param)) {
+                            builder.appendQueryParameter(param, valStr)
+                        }
+                    }
+                }
+                clean = builder.build().toString()
+            }
+        } catch (_: Exception) {}
+        
+        if (clean.length > 8 && clean.endsWith("/")) {
+            clean = clean.dropLast(1)
+        }
+        
         Log.d(TAG, "Estación 1 (Recepción): Enlace procesado -> $clean")
         return clean
     }

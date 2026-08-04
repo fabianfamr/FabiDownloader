@@ -43,8 +43,18 @@ abstract class AppDatabase : RoomDatabase() {
                 // Agregar tabla search_history si no existe
                 db.execSQL("CREATE TABLE IF NOT EXISTS `search_history` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `query` TEXT NOT NULL, `timestamp` INTEGER NOT NULL)")
                 
-                // Intentar agregar columnas nuevas a download_records.
-                // Como no sabemos la versión exacta en la que se agregaron, capturamos la excepción si ya existen.
+                val existingCols = mutableSetOf<String>()
+                try {
+                    val cursor = db.query("PRAGMA table_info(`download_records`)")
+                    while (cursor.moveToNext()) {
+                        val nameIndex = cursor.getColumnIndex("name")
+                        if (nameIndex != -1) {
+                            existingCols.add(cursor.getString(nameIndex))
+                        }
+                    }
+                    cursor.close()
+                } catch (_: Exception) {}
+
                 val columns = listOf(
                     "quality" to "TEXT NOT NULL DEFAULT '720p'",
                     "format" to "TEXT NOT NULL DEFAULT 'MP4'",
@@ -56,10 +66,10 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                 
                 for ((colName, colDef) in columns) {
-                    try {
-                        db.execSQL("ALTER TABLE `download_records` ADD COLUMN `$colName` $colDef")
-                    } catch (e: Exception) {
-                        // La columna probablemente ya existe
+                    if (!existingCols.contains(colName)) {
+                        try {
+                            db.execSQL("ALTER TABLE `download_records` ADD COLUMN `$colName` $colDef")
+                        } catch (_: Exception) {}
                     }
                 }
             }

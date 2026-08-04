@@ -308,6 +308,17 @@ object AppSettings {
             }
         }
 
+    private val _bypassSslVerification = mutableStateOf(false)
+    var bypassSslVerification: Boolean
+        get() = _bypassSslVerification.value
+        set(value) {
+            if (_bypassSslVerification.value != value) {
+                _bypassSslVerification.value = value
+                saveBoolean("bypassSslVerification", value)
+                notifyChanged("bypassSslVerification")
+            }
+        }
+
     private val _showDownloadSpeedInNotification = mutableStateOf(true)
     var showDownloadSpeedInNotification: Boolean
         get() = _showDownloadSpeedInNotification.value
@@ -590,6 +601,7 @@ object AppSettings {
         _embedThumbnail.value = prefs.getBoolean("embedThumbnail", true)
         _embedMetadata.value = prefs.getBoolean("embedMetadata", true)
         _bypassGeo.value = prefs.getBoolean("bypassGeo", true)
+        _bypassSslVerification.value = prefs.getBoolean("bypassSslVerification", false)
 
         _showDownloadSpeedInNotification.value = prefs.getBoolean("showDownloadSpeedInNotification", true)
         _selectedPausedNotificationTimeout.value = prefs.getString("selectedPausedNotificationTimeout", "10 minutos") ?: "10 minutos"

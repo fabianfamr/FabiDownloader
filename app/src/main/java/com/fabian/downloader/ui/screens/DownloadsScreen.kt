@@ -89,7 +89,17 @@ fun DownloadsScreen(
         when (sortOrder) {
             sortDateStr -> list.sortedByDescending { it.timestamp }
             sortNameStr -> list.sortedBy { it.title }
-            sortSizeStr -> list.sortedByDescending { it.size }
+            sortSizeStr -> list.sortedByDescending { rec ->
+                val s = rec.size.uppercase().trim()
+                val num = Regex("""[\d.]+""").find(s)?.value?.toDoubleOrNull() ?: 0.0
+                when {
+                    s.contains("GB") -> (num * 1024 * 1024 * 1024).toLong()
+                    s.contains("MB") -> (num * 1024 * 1024).toLong()
+                    s.contains("KB") -> (num * 1024).toLong()
+                    s.contains("B") -> num.toLong()
+                    else -> 0L
+                }
+            }
             else -> list
         }
     }
@@ -903,7 +913,8 @@ fun MobileDownloadingItem(
         s.contains("network") || 
         s.contains("connection") || 
         s.contains("timeout") || 
-        s.contains("red") || 
+        s.contains("error de red") || 
+        s.contains("sin red") || 
         s.contains("conexión") || 
         s.contains("host") || 
         s.contains("offline") || 

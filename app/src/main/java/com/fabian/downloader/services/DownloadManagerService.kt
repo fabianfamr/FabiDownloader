@@ -8,6 +8,7 @@ import com.fabian.downloader.network.ConnectionService
 import com.fabian.downloader.ui.AppSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -430,7 +431,7 @@ class DownloadManagerService private constructor(
                     // Throttling de actualizaciones de progreso a 2000ms para evitar lags de pantalla y saturación de base de datos
                     if (currentTime - lastProgressUpdate > 2000 || progress >= 100f) {
                         lastProgressUpdate = currentTime
-                        kotlinx.coroutines.runBlocking {
+                        serviceScope.launch {
                             val currentRecord = storageService.getDownloadById(id)
                             if (currentRecord != null && !currentRecord.isPaused && !currentRecord.isCompleted) {
                                 val displaySize = if (sizeText == Config.STATUS_DOWNLOADING) {
@@ -576,6 +577,8 @@ class DownloadManagerService private constructor(
             job?.cancel()
             activeCalls.remove(id)
             activeJobs.remove(id)
+            processingIds.remove(id)
+            activeProgresses.remove(id)
             
             // Mostrar la notificación de pausa si están activadas las notificaciones
             if (AppSettings.notificationsEnabled) {
@@ -656,8 +659,12 @@ class DownloadManagerService private constructor(
     fun pauseAllActiveDownloads() {
         serviceScope.launch {
             val activeIds = activeJobs.keys.toList()
-            activeIds.forEach { id ->
-                pauseDownload(id)
+            coroutineScope {
+                activeIds.map { id ->
+                    launch {
+                        pauseDownload(id)
+                    }
+                }
             }
         }
     }

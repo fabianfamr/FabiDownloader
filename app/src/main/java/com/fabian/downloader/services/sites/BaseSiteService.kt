@@ -14,7 +14,8 @@ import java.io.File
 abstract class BaseSiteService : SiteService {
 
     companion object {
-        private val activeExtractions = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.Deferred<InfoMedia?>>()
+        private val activeExtractions = java.util.concurrent.ConcurrentHashMap<String, Deferred<InfoMedia?>>()
+        private val extractionScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 
     private val downloader = YtdlpDownloader()
@@ -26,7 +27,9 @@ abstract class BaseSiteService : SiteService {
         request.addOption("--no-warnings")
         request.addOption("--socket-timeout", "10")
         request.addOption("--retries", "5")
-        request.addOption("--no-check-certificate")
+        if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
+            request.addOption("--no-check-certificate")
+        }
         request.addOption("--no-call-home")
         request.addOption("--no-check-formats")
     }
@@ -38,7 +41,9 @@ abstract class BaseSiteService : SiteService {
         request.addOption("--no-overwrites")
         request.addOption("--no-mtime")
         request.addOption("--referer", Config.REFERER_DEFAULT)
-        request.addOption("--no-check-certificate")
+        if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
+            request.addOption("--no-check-certificate")
+        }
         request.addOption("--no-call-home")
         request.addOption("--no-check-formats")
     }
@@ -46,9 +51,8 @@ abstract class BaseSiteService : SiteService {
     override suspend fun extractMetadata(url: String): InfoMedia? {
         val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
         
-        @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
         val deferred = activeExtractions.computeIfAbsent(cleanUrl) { _ ->
-            kotlinx.coroutines.GlobalScope.async(Dispatchers.IO) {
+            extractionScope.async {
                 val request = YoutubeDLRequest(cleanUrl).apply {
                     addOption("--dump-json")
                     
