@@ -112,11 +112,11 @@ fun DownloadsScreen(
     @Suppress("DEPRECATION")
     val clipboardManager = LocalClipboardManager.current
 
-    val toggleSelection: (Long) -> Unit = { id ->
+    val toggleSelection: (Long) -> Unit = remember { { id ->
         selectedIds = if (selectedIds.contains(id)) selectedIds - id else selectedIds + id
-    }
+    } }
 
-    val onShareFile: (DownloadRecord) -> Unit = { record ->
+    val onShareFile: (DownloadRecord) -> Unit = remember(ctx) { { record ->
         try {
             val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(ctx, record.title, record.id, record.format)
             if (file.exists()) {
@@ -138,9 +138,9 @@ fun DownloadsScreen(
         } catch (e: Exception) {
             ToastUtils.showShort(ctx, R.string.downloads_share_error_prefix, e.localizedMessage ?: "")
         }
-    }
+    } }
 
-    val openFile: (DownloadRecord) -> Unit = { record ->
+    val openFile: (DownloadRecord) -> Unit = remember(ctx) { { record ->
         try {
             val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(ctx, record.title, record.id, record.format)
             
@@ -166,7 +166,7 @@ fun DownloadsScreen(
         } catch (e: Exception) {
             ToastUtils.showShort(ctx, R.string.main_error_opening_file, e.localizedMessage ?: "")
         }
-    }
+    } }
 
     val shareSelectedFiles: () -> Unit = {
         try {
@@ -312,8 +312,8 @@ fun DownloadsScreen(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
-                            Text("Forzar descarga", color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Text("Iniciar de inmediato ignorando el límite de concurrencia", color = C_gray1, fontSize = 12.sp)
+                            Text(stringResource(R.string.downloads_force_download_title), color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.downloads_force_download_desc), color = C_gray1, fontSize = 12.sp)
                         }
                     }
                     HorizontalDivider(color = C_border)
@@ -662,26 +662,44 @@ fun DownloadsScreen(
         ) { page ->
             val filteredCompleted = remember(completed, filterType) {
                 when (filterType) {
-                    ctx.getString(R.string.downloads_filter_music) -> completed.filter { it.format == Config.FORMAT_MP3 || it.format == Config.FORMAT_M4A }
-                    ctx.getString(R.string.downloads_filter_video) -> completed.filter { it.format == Config.FORMAT_MP4 || it.format == Config.FORMAT_WEBM }
+                    ctx.getString(R.string.downloads_filter_music) -> completed.filter { 
+                        it.format.equals(Config.FORMAT_MP3, true) || 
+                        it.format.equals(Config.FORMAT_M4A, true) || 
+                        it.format.equals(Config.FORMAT_OGG, true) || 
+                        it.format.equals(Config.FORMAT_WAV, true) 
+                    }
+                    ctx.getString(R.string.downloads_filter_video) -> completed.filter { 
+                        it.format.equals(Config.FORMAT_MP4, true) || 
+                        it.format.equals(Config.FORMAT_WEBM, true) || 
+                        it.format.equals("MKV", true) 
+                    }
                     ctx.getString(R.string.downloads_filter_image) -> completed.filter { 
-                        it.format.equals(Config.FORMAT_JPG, ignoreCase = true) || 
-                        it.format.equals(Config.FORMAT_PNG, ignoreCase = true) || 
-                        it.format.equals(Config.FORMAT_WEBP, ignoreCase = true) || 
-                        it.format.equals("JPEG", ignoreCase = true) 
+                        it.format.equals(Config.FORMAT_JPG, true) || 
+                        it.format.equals(Config.FORMAT_PNG, true) || 
+                        it.format.equals(Config.FORMAT_WEBP, true) || 
+                        it.format.equals("JPEG", true) 
                     }
                     else -> completed
                 }
             }
             val filteredDownloading = remember(downloading, filterType) {
                 when (filterType) {
-                    ctx.getString(R.string.downloads_filter_music) -> downloading.filter { it.format == Config.FORMAT_MP3 || it.format == Config.FORMAT_M4A }
-                    ctx.getString(R.string.downloads_filter_video) -> downloading.filter { it.format == Config.FORMAT_MP4 || it.format == Config.FORMAT_WEBM }
+                    ctx.getString(R.string.downloads_filter_music) -> downloading.filter { 
+                        it.format.equals(Config.FORMAT_MP3, true) || 
+                        it.format.equals(Config.FORMAT_M4A, true) || 
+                        it.format.equals(Config.FORMAT_OGG, true) || 
+                        it.format.equals(Config.FORMAT_WAV, true) 
+                    }
+                    ctx.getString(R.string.downloads_filter_video) -> downloading.filter { 
+                        it.format.equals(Config.FORMAT_MP4, true) || 
+                        it.format.equals(Config.FORMAT_WEBM, true) || 
+                        it.format.equals("MKV", true) 
+                    }
                     ctx.getString(R.string.downloads_filter_image) -> downloading.filter { 
-                        it.format.equals(Config.FORMAT_JPG, ignoreCase = true) || 
-                        it.format.equals(Config.FORMAT_PNG, ignoreCase = true) || 
-                        it.format.equals(Config.FORMAT_WEBP, ignoreCase = true) || 
-                        it.format.equals("JPEG", ignoreCase = true) 
+                        it.format.equals(Config.FORMAT_JPG, true) || 
+                        it.format.equals(Config.FORMAT_PNG, true) || 
+                        it.format.equals(Config.FORMAT_WEBP, true) || 
+                        it.format.equals("JPEG", true) 
                     }
                     else -> downloading
                 }

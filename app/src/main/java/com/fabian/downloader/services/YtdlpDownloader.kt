@@ -428,7 +428,7 @@ class YtdlpDownloader {
                         }
                     }
                     return true
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
                     val lowerMsg = (e.message ?: "").lowercase()
                     val lowerLast = lastLine.lowercase()
                     val isCancelledBySystem = e is kotlinx.coroutines.CancellationException || !isActive ||
@@ -458,7 +458,7 @@ class YtdlpDownloader {
                     }
 
                     val hasInternet = connService.checkConnection()
-                    val isNetworkError = !hasInternet || isNetworkOrTemporaryError(e, lastLine)
+                    val isNetworkError = !hasInternet || isNetworkOrTemporaryError(Exception(e), lastLine)
 
                     if (isNetworkError && attempt < maxAttempts) {
                         Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido por inestabilidad de red. Esperando hasta 15 segundos para recuperación...")
@@ -477,7 +477,7 @@ class YtdlpDownloader {
                     }
 
                     if (attempt >= maxAttempts) {
-                        onFailAction(e)
+                        onFailAction(Exception(e))
                     } else {
                         // For non-network errors or if network didn't recover, wait 2s and retry or fallback
                         Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido. Reintentando en 2 segundos...")

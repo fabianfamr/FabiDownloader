@@ -7,4 +7,6 @@
     <string name="downloads_active_count">%1$d en vivo</string>
     <string name="downloads_pause_all">Pausar todo</string>
     <string name="downloads_resume_all">Reanudar todo</string>
+    <string name="downloads_force_download_title">Forzar descarga</string>
+    <string name="downloads_force_download_desc">Iniciar de inmediato ignorando el límite de concurrencia</string>
 </resources>

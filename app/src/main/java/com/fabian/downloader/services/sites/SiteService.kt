@@ -12,14 +12,14 @@ interface SiteService {
 
     fun canHandle(url: String): Boolean {
         try {
-            val host = java.net.URI(url).host?.lowercase() ?: return false
+            val uri = android.net.Uri.parse(url)
+            val host = uri.host?.lowercase() ?: return false
             return supportedUrlPatterns.any { pattern ->
-                host == pattern.lowercase() || host.endsWith(".$pattern", ignoreCase = true)
+                val lowerPattern = pattern.lowercase()
+                host == lowerPattern || host.endsWith(".$lowerPattern")
             }
         } catch (e: Exception) {
-            return supportedUrlPatterns.any { pattern ->
-                url.contains(pattern, ignoreCase = true)
-            }
+            return false
         }
     }
 

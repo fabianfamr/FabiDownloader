@@ -385,7 +385,7 @@ class ExtractionService {
         }
 
         val ytId = extractYoutubeVideoId(cleanUrl)
-        val fallbackThumbnail = if (ytId != null) Config.YT_THUMBNAIL_URL.format(ytId) else null
+        val fallbackThumbnail = if (ytId != null) Config.YT_THUMBNAIL_URL.replace("{ytId}", ytId) else null
 
         // 3. Try super fast oEmbed
         val oEmbed = getOEmbedInfo(cleanUrl, downloadId)

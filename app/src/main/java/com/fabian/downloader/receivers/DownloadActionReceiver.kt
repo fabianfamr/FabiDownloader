@@ -71,11 +71,16 @@ class DownloadActionReceiver : BroadcastReceiver() {
         val storageService = StorageService.getInstance(context)
         val record = storageService.getDownloadById(downloadId) ?: return
         
+        var cleanTitle = record.title
+        while (cleanTitle.startsWith(Config.STATUS_FAILED_PREFIX)) {
+            cleanTitle = cleanTitle.removePrefix(Config.STATUS_FAILED_PREFIX).trim()
+        }
+        
         DownloadManagerService.getInstance(context).startDownload(
             rawUrl = record.url,
             quality = record.quality,
             format = record.format,
-            passedTitle = record.title.removePrefix(Config.STATUS_FAILED_PREFIX),
+            passedTitle = cleanTitle,
             passedThumbnailUrl = record.thumbnailUrl,
             existingId = record.id
         )
@@ -85,11 +90,16 @@ class DownloadActionReceiver : BroadcastReceiver() {
         val storageService = StorageService.getInstance(context)
         val record = storageService.getDownloadById(downloadId) ?: return
         
+        var cleanTitle = record.title
+        while (cleanTitle.startsWith(Config.STATUS_FAILED_PREFIX)) {
+            cleanTitle = cleanTitle.removePrefix(Config.STATUS_FAILED_PREFIX).trim()
+        }
+        
         DownloadManagerService.getInstance(context).startDownload(
             rawUrl = record.url,
             quality = record.quality,
             format = record.format,
-            passedTitle = record.title,
+            passedTitle = cleanTitle,
             passedThumbnailUrl = record.thumbnailUrl,
             existingId = record.id
         )

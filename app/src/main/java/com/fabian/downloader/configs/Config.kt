@@ -28,7 +28,7 @@ object Config {
     const val TIKTOK_OEMBED_URL = "https://www.tiktok.com/oembed?url=%s"
     const val YT_OEMBED_BASE_URL = "https://www.youtube.com/oembed?url="
     const val TIKTOK_OEMBED_BASE_URL = "https://www.tiktok.com/oembed?url="
-    const val YT_THUMBNAIL_URL = "https://img.youtube.com/vi/%s/hqdefault.jpg"
+    const val YT_THUMBNAIL_URL = "https://img.youtube.com/vi/{ytId}/hqdefault.jpg"
 
     // Files
     const val COOKIES_FILE_NAME = "cookies.txt"

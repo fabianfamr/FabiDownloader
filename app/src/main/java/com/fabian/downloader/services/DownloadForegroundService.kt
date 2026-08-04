@@ -57,7 +57,7 @@ class DownloadForegroundService : Service() {
             return START_NOT_STICKY
         }
         promoteToForeground()
-        return START_NOT_STICKY
+        return START_STICKY
     }
 
     private fun promoteToForeground() {
