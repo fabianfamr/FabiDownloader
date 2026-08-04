@@ -116,6 +116,7 @@ fun SharePopupScreen(
                         extractedPlaylist = playlist
                     }
                 } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) throw e
                     Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error extracting playlist", e)
                 }
             }
@@ -129,6 +130,7 @@ fun SharePopupScreen(
                 title = extractedTitle
                 thumbnailUrl = extractedThumb
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error extracting title/icon", e)
             }
         }
@@ -140,6 +142,7 @@ fun SharePopupScreen(
                 }
                 formatSizes = extractedSizes ?: emptyMap()
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error extracting sizes", e)
                 formatSizes = emptyMap()
             }

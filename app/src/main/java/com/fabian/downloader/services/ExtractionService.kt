@@ -296,6 +296,7 @@ class ExtractionService {
                 return@withContext updatedPlaylist
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             Log.e(Config.TAG_EXTRACTION_SERVICE, "Error extracting playlist for $cleanUrl", e)
         }
         return@withContext null
@@ -349,6 +350,7 @@ class ExtractionService {
                 }
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             Log.e(Config.TAG_EXTRACTION_SERVICE, "Failed to extract title with yt-dlp for $cleanUrl", e)
         }
 
@@ -411,6 +413,7 @@ class ExtractionService {
                 }
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             Log.e(Config.TAG_EXTRACTION_SERVICE, "Failed to extract thumbnail with yt-dlp for $cleanUrl", e)
         }
 
@@ -449,6 +452,7 @@ class ExtractionService {
                 return@withContext sizes
             }
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             Log.e(Config.TAG_EXTRACTION_SERVICE, "Failed to extract format sizes with yt-dlp for $cleanUrl", e)
         }
 
