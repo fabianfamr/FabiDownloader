@@ -45,17 +45,20 @@ class CacheCleanupWorker(
         }
     }
 
-    private fun cleanDirectory(dir: File?) {
+    private fun cleanDirectory(dir: File?, maxAgeMs: Long = 3_600_000L) {
         if (dir == null || !dir.exists() || !dir.isDirectory) return
         try {
+            val now = System.currentTimeMillis()
             dir.listFiles()?.forEach { file ->
                 if (file.isDirectory) {
-                    cleanDirectory(file)
+                    cleanDirectory(file, maxAgeMs)
                     if (file.listFiles()?.isEmpty() == true) {
                         file.delete()
                     }
                 } else {
-                    file.delete()
+                    if (now - file.lastModified() > maxAgeMs) {
+                        file.delete()
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -109,8 +112,8 @@ class CacheCleanupWorker(
 
         fun performDirectCleanup(context: Context) {
             try {
-                cleanDirectoryDirect(context.cacheDir)
-                context.externalCacheDir?.let { cleanDirectoryDirect(it) }
+                cleanDirectoryDirect(context.cacheDir, maxAgeMs = 1_800_000L)
+                context.externalCacheDir?.let { cleanDirectoryDirect(it, maxAgeMs = 1_800_000L) }
                 ExtractionService.clearCaches()
                 System.gc()
             } catch (e: Exception) {
@@ -118,14 +121,19 @@ class CacheCleanupWorker(
             }
         }
 
-        private fun cleanDirectoryDirect(dir: File?) {
+        private fun cleanDirectoryDirect(dir: File?, maxAgeMs: Long = 1_800_000L) {
             if (dir == null || !dir.exists() || !dir.isDirectory) return
+            val now = System.currentTimeMillis()
             dir.listFiles()?.forEach { file ->
                 if (file.isDirectory) {
-                    cleanDirectoryDirect(file)
-                    file.delete()
+                    cleanDirectoryDirect(file, maxAgeMs)
+                    if (file.listFiles()?.isEmpty() == true) {
+                        file.delete()
+                    }
                 } else {
-                    file.delete()
+                    if (now - file.lastModified() > maxAgeMs) {
+                        file.delete()
+                    }
                 }
             }
         }

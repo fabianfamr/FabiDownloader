@@ -8,7 +8,7 @@ class YouTubeService : BaseSiteService() {
     override val displayName: String = "YouTube"
     override val brandColorHex: String = "#FF0000"
     override val iconName: String = "youtube"
-    override val supportedUrlPatterns: List<String> = listOf("youtube.com", "youtu.be", "shorts")
+    override val supportedUrlPatterns: List<String> = listOf("youtube.com", "youtu.be", "music.youtube.com")
 
     override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         super.customizeExtractorRequest(request, url)
@@ -21,7 +21,9 @@ class YouTubeService : BaseSiteService() {
             request.addOption("--user-agent", Config.UA_DEFAULT_CHROME_WINDOWS)
         }
         
-        request.addOption("--no-check-certificate")
+        if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
+            request.addOption("--no-check-certificate")
+        }
         request.addOption("--no-check-formats")
     }
 
@@ -36,7 +38,9 @@ class YouTubeService : BaseSiteService() {
             request.addOption("--user-agent", Config.UA_DEFAULT_CHROME_WINDOWS)
         }
         
-        request.addOption("--no-check-certificate")
+        if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
+            request.addOption("--no-check-certificate")
+        }
         request.addOption("--no-check-formats")
     }
 }

@@ -33,14 +33,21 @@ class StorageService(private val database: AppDatabase) {
     private val flushMutex = Mutex()
 
     init {
-        // Bucle de escritura en segundo plano: guarda de forma agrupada (batching/debouncing) los progresos en SQLite
-        // evitando escrituras continuas e innecesarias en disco durante las descargas activas.
+        // Bucle de escritura en segundo plano: guarda de forma agrupada los progresos en SQLite
         serviceScope.launch {
             while (true) {
-                delay(3000L) // Guarda en la BD cada 3 segundos los progresos acumulados
+                delay(1500L) // Guarda en la BD cada 1.5 segundos los progresos acumulados
                 flushPendingWrites()
             }
         }
+    }
+
+    fun shutdownAndFlush() {
+        try {
+            kotlinx.coroutines.runBlocking(Dispatchers.IO) {
+                flushPendingWrites()
+            }
+        } catch (_: Exception) {}
     }
 
     suspend fun flushPendingWrites() {

@@ -27,7 +27,8 @@ class YtdlpDownloader {
         fallbackLevel: Int,
         customizeRequest: ((YoutubeDLRequest) -> Unit)? = null
     ): YoutubeDLRequest {
-        val isYoutube = videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be") || videoUrl.contains("shorts") || videoUrl.contains("music.youtube.com")
+        val lowerUrl = videoUrl.lowercase()
+        val isYoutube = lowerUrl.contains("youtube.com") || lowerUrl.contains("youtu.be") || lowerUrl.contains("music.youtube.com")
         val settings = com.fabian.downloader.ui.AppSettings
 
         return YoutubeDLRequest(videoUrl).apply {

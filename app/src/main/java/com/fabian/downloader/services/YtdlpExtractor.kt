@@ -24,8 +24,9 @@ class YtdlpExtractor {
     suspend fun obtenerDetallesVideo(rawVideoUrl: String, quality: String? = null, format: String? = null): InfoMedia? = withContext(Dispatchers.IO) {
         com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
         val videoUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawVideoUrl)
-        val isYoutube = videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be") || videoUrl.contains("shorts") || videoUrl.contains("music.youtube.com")
-        val isInstagram = videoUrl.contains("instagram.com")
+        val lowerUrl = videoUrl.lowercase()
+        val isYoutube = lowerUrl.contains("youtube.com") || lowerUrl.contains("youtu.be") || lowerUrl.contains("music.youtube.com")
+        val isInstagram = lowerUrl.contains("instagram.com")
 
         fun createExtractorRequest(playerClient: String?): YoutubeDLRequest {
             return YoutubeDLRequest(videoUrl).apply {
@@ -51,7 +52,9 @@ class YtdlpExtractor {
                 addOption("--no-check-formats")
                 addOption("--referer", Config.REFERER_DEFAULT)
                 addOption("--force-ipv4")
-                addOption("--no-check-certificate")
+                if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
+                    addOption("--no-check-certificate")
+                }
                 addOption("--no-call-home")
                 addOption("--geo-bypass")
                 addOption("--quiet")

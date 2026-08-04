@@ -741,10 +741,6 @@ class DownloadManagerService private constructor(
             val completed = storageService.getAllDownloadsDirect().filter { it.isCompleted }
             val thumbnailsDir = java.io.File(application.filesDir, "thumbnails")
             completed.forEach { record ->
-                val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(application, record.title, record.id, record.format)
-                if (file.exists()) {
-                    file.delete()
-                }
                 val thumbFile = java.io.File(thumbnailsDir, "thumb_${record.id}.jpg")
                 if (thumbFile.exists()) thumbFile.delete()
             }
@@ -906,15 +902,20 @@ class DownloadManagerService private constructor(
             }
         }
         
-        serviceScope.launch {
-            activeIdsList.forEach { id ->
-                try {
-                    storageService.updatePausedState(id, true)
-                    storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, "Pausado", "PAUSED")
-                } catch (e: Exception) {
-                    Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al restablecer el estado de la descarga $id", e)
+        try {
+            kotlinx.coroutines.runBlocking(Dispatchers.IO) {
+                activeIdsList.forEach { id ->
+                    try {
+                        storageService.updatePausedState(id, true)
+                        storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, "Pausado", "PAUSED")
+                    } catch (e: Exception) {
+                        Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al restablecer el estado de la descarga $id", e)
+                    }
                 }
+                storageService.flushPendingWrites()
             }
+        } catch (e: Exception) {
+            Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error flushing state on app closed", e)
         }
     }
 
@@ -935,8 +936,8 @@ class DownloadManagerService private constructor(
             if (destFolder.exists() && destFolder.isDirectory) {
                 destFolder.listFiles()?.forEach { file ->
                     val name = file.name
-                    if ((name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp")) &&
-                        (name.contains(id.toString()) || (title != null && name.contains(title.take(15))))) {
+                    if ((name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp") || name.endsWith(".tmp")) &&
+                        name.contains(id.toString())) {
                         file.delete()
                     }
                 }

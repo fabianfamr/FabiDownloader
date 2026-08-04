@@ -9,6 +9,11 @@ import com.fabian.downloader.MyApplication
 
 class ConnectionService {
     
+    @Volatile
+    private var lastSocketCheckTime = 0L
+    @Volatile
+    private var lastSocketCheckResult = false
+
     suspend fun checkConnection(): Boolean = withContext(Dispatchers.IO) {
         try {
             val context = MyApplication.getInstance()
@@ -20,15 +25,23 @@ class ConnectionService {
             if (!hasInternet) return@withContext false
             if (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) return@withContext true
 
+            val now = System.currentTimeMillis()
+            if (now - lastSocketCheckTime < 3000L) {
+                return@withContext lastSocketCheckResult
+            }
+
             // Fallback: comprobación directa de socket para redes sin validación inmediata o detrás de VPN
-            try {
+            val res = try {
                 java.net.Socket().use { socket ->
-                    socket.connect(java.net.InetSocketAddress("8.8.8.8", 53), 1500)
+                    socket.connect(java.net.InetSocketAddress("8.8.8.8", 53), 1000)
                 }
                 true
             } catch (_: Exception) {
                 false
             }
+            lastSocketCheckTime = now
+            lastSocketCheckResult = res
+            res
         } catch (e: Exception) {
             false
         }

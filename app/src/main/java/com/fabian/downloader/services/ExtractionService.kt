@@ -197,16 +197,15 @@ class ExtractionService {
 
     private fun extractMetaTagContent(html: String, identifier: String): String? {
         try {
-            // Buscamos todas las etiquetas <meta ...>
+            val key = identifier.split("=").lastOrNull()?.replace("\"", "")?.replace("'", "") ?: identifier
             val metaRegex = Regex("<meta\\s+[^>]*>", RegexOption.IGNORE_CASE)
             val matches = metaRegex.findAll(html)
             for (match in matches) {
                 val metaTag = match.value
-                // Limpiar comillas para buscar el identificador sin importar si tiene simples o dobles
-                val cleanIdentifier = identifier.replace("\"", "").replace("'", "")
-                val cleanMetaTag = metaTag.replace("\"", "").replace("'", "")
-                if (cleanMetaTag.contains(cleanIdentifier, ignoreCase = true)) {
-                    // Ahora extraigamos el valor de 'content' con soporte para comillas simples y dobles
+                val isMatch = metaTag.contains("\"$key\"", ignoreCase = true) || 
+                              metaTag.contains("'$key'", ignoreCase = true) || 
+                              metaTag.contains("=$key", ignoreCase = true)
+                if (isMatch) {
                     val contentRegex = Regex("content\\s*=\\s*\"([^\"]*)\"|content\\s*=\\s*'([^']*)'", RegexOption.IGNORE_CASE)
                     val contentMatch = contentRegex.find(metaTag)
                     val contentValue = contentMatch?.groupValues?.getOrNull(1)?.takeIf { it.isNotEmpty() }
