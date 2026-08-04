@@ -25,8 +25,8 @@ class YtdlpExtractor {
         com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
         val videoUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawVideoUrl)
         val lowerUrl = videoUrl.lowercase()
-        val isYoutube = lowerUrl.contains("youtube.com") || lowerUrl.contains("youtu.be") || lowerUrl.contains("music.youtube.com")
-        val isInstagram = lowerUrl.contains("instagram.com")
+        val isYoutube = com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(videoUrl)
+        val isInstagram = com.fabian.downloader.utils.UrlUtils.isInstagramUrl(videoUrl)
 
         fun createExtractorRequest(playerClient: String?): YoutubeDLRequest {
             return YoutubeDLRequest(videoUrl).apply {
@@ -93,7 +93,7 @@ class YtdlpExtractor {
     suspend fun obtenerDetallesPlaylist(rawPlaylistUrl: String): JSONObject? = withContext(Dispatchers.IO) {
         com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
         val playlistUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawPlaylistUrl)
-        val isYoutube = playlistUrl.contains("youtube.com") || playlistUrl.contains("youtu.be")
+        val isYoutube = com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(playlistUrl)
         
         val request = YoutubeDLRequest(playlistUrl).apply {
             addOption("--dump-single-json")

@@ -400,14 +400,14 @@ class NotificationService(private val context: Context) {
 
         try {
             val bitmap = if (url.startsWith("http://") || url.startsWith("https://")) {
-                val conn = (URL(url).openConnection() as java.net.HttpURLConnection).apply {
-                    connectTimeout = 4000
-                    readTimeout = 4000
-                    instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", Config.UA_DESKTOP)
-                }
-                conn.inputStream.use { input ->
-                    val bytes = input.readBytes()
+                val request = okhttp3.Request.Builder()
+                    .url(url)
+                    .header("User-Agent", Config.UA_DESKTOP)
+                    .build()
+                
+                com.fabian.downloader.network.NetworkClient.okHttpClient.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) return@withContext null
+                    val bytes = response.body?.bytes() ?: return@withContext null
                     val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                     BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
                     opts.inSampleSize = calculateInSampleSize(opts, 256, 256)

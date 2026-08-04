@@ -127,7 +127,7 @@ class CacheCleanupWorker(
             dir.listFiles()?.forEach { file ->
                 if (file.isDirectory) {
                     cleanDirectoryDirect(file, maxAgeMs)
-                    if (file.listFiles()?.isEmpty() == true) {
+                    if (file.listFiles()?.isEmpty() == true && (now - file.lastModified() > maxAgeMs)) {
                         file.delete()
                     }
                 } else {

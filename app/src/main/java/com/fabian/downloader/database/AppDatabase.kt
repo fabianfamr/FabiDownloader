@@ -53,7 +53,9 @@ abstract class AppDatabase : RoomDatabase() {
                         }
                     }
                     cursor.close()
-                } catch (_: Exception) {}
+                } catch (e: Exception) {
+                    android.util.Log.e("AppDatabase", "Error checking existing columns in MIGRATION_1_6", e)
+                }
 
                 val columns = listOf(
                     "quality" to "TEXT NOT NULL DEFAULT '720p'",

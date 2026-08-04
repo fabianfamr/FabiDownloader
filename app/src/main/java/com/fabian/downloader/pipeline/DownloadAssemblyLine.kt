@@ -32,7 +32,7 @@ object DownloadAssemblyLine {
             val uri = android.net.Uri.parse(clean)
             if (uri.isHierarchical && uri.queryParameterNames.isNotEmpty()) {
                 val trackingParams = setOf("utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "si", "fbclid", "igshid", "feature")
-                val isYoutube = uri.host?.lowercase()?.contains("youtube.com") == true || uri.host?.lowercase()?.contains("youtu.be") == true
+                val isYoutube = com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(clean)
                 val ytParams = if (isYoutube && !com.fabian.downloader.ui.AppSettings.playlistEnabled) setOf("t", "time_continue", "list", "index") else if (isYoutube) setOf("t", "time_continue") else emptySet()
                 
                 val builder = uri.buildUpon().clearQuery()

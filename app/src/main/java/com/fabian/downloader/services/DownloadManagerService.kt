@@ -903,7 +903,8 @@ class DownloadManagerService private constructor(
         }
         
         try {
-            kotlinx.coroutines.runBlocking(Dispatchers.IO) {
+            @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
+            kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
                 activeIdsList.forEach { id ->
                     try {
                         storageService.updatePausedState(id, true)
@@ -912,7 +913,7 @@ class DownloadManagerService private constructor(
                         Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al restablecer el estado de la descarga $id", e)
                     }
                 }
-                storageService.flushPendingWrites()
+                storageService.shutdownAndFlush()
             }
         } catch (e: Exception) {
             Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error flushing state on app closed", e)

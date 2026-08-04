@@ -28,7 +28,7 @@ class YtdlpDownloader {
         customizeRequest: ((YoutubeDLRequest) -> Unit)? = null
     ): YoutubeDLRequest {
         val lowerUrl = videoUrl.lowercase()
-        val isYoutube = lowerUrl.contains("youtube.com") || lowerUrl.contains("youtu.be") || lowerUrl.contains("music.youtube.com")
+        val isYoutube = com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(videoUrl)
         val settings = com.fabian.downloader.ui.AppSettings
 
         return YoutubeDLRequest(videoUrl).apply {
@@ -65,16 +65,16 @@ class YtdlpDownloader {
                 val height = quality.filter { it.isDigit() }.ifEmpty { "720" }
                 when (fallbackLevel) {
                     0 -> {
-                        addOption("-f", "bv*[height<=$height]+ba/b[height<=$height]/bestvideo[height<=$height]+bestaudio/bv*+ba/b/best")
+                        addOption("-f", "bv*[height<=$height]+ba/b[height<=$height]/best")
                     }
                     1 -> {
-                        addOption("-f", "bv*+ba/b[height<=$height]/bestvideo+bestaudio/b/best")
-                    }
-                    2 -> {
                         addOption("-f", "bv*+ba/b/best")
                     }
+                    2 -> {
+                        addOption("-f", "bestvideo+bestaudio/best")
+                    }
                     else -> {
-                        addOption("-f", "best/b")
+                        addOption("-f", "best")
                     }
                 }
                 addOption("--merge-output-format", "mp4")

@@ -30,7 +30,7 @@ okhttp = "4.11.0"
 moshiKotlin = "1.15.2"
 moshiKotlinCodegen = "1.15.2"
 secretsGradlePlugin = "2.0.1"
-youtubedl = "0.17.2"
+youtubedl = "0.18.1"
 workRuntimeKtx = "2.11.2"
 roborazzi = "1.59.0"
 

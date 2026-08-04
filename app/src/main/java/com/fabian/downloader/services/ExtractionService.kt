@@ -54,9 +54,9 @@ class ExtractionService {
         try {
             val encodedUrl = java.net.URLEncoder.encode(videoUrl, "UTF-8")
             val oEmbedUrl = when {
-                videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be") -> 
+                com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(videoUrl) -> 
                     Config.YT_OEMBED_BASE_URL + encodedUrl + "&format=json"
-                videoUrl.contains("tiktok.com") -> 
+                com.fabian.downloader.utils.UrlUtils.isTiktokUrl(videoUrl) -> 
                     Config.TIKTOK_OEMBED_BASE_URL + encodedUrl
                 else -> null
             } ?: return null
