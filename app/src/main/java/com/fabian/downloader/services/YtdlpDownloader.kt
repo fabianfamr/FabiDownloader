@@ -440,7 +440,10 @@ class YtdlpDownloader {
                     
                     attempt++
                     val isCorruptBinary = lowerMsg.contains("zipimport") || lowerLast.contains("zipimport") ||
-                                          lowerMsg.contains("bad local file header") || lowerLast.contains("bad local file header")
+                                          lowerMsg.contains("bad local file header") || lowerLast.contains("bad local file header") ||
+                                          lowerMsg.contains("cannot link executable") || lowerLast.contains("cannot link executable") ||
+                                          lowerMsg.contains("libandroid-support") || lowerLast.contains("libandroid-support") ||
+                                          lowerMsg.contains("cannot link") || lowerLast.contains("cannot link")
                     if (isCorruptBinary) {
                         Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectado binario yt-dlp corrupto durante descarga. Ejecutando reset de emergencia desde APK assets...")
                         val appCtx = com.fabian.downloader.MyApplication.getInstance()
