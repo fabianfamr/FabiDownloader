@@ -899,8 +899,7 @@ class DownloadManagerService private constructor(
             }
         }
         
-        val dbScope = kotlinx.coroutines.CoroutineScope(Dispatchers.IO)
-        dbScope.launch {
+        serviceScope.launch {
             activeIdsList.forEach { id ->
                 try {
                     storageService.updatePausedState(id, true)
