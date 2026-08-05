@@ -71,7 +71,9 @@ abstract class AppDatabase : RoomDatabase() {
                     if (!existingCols.contains(colName)) {
                         try {
                             db.execSQL("ALTER TABLE `download_records` ADD COLUMN `$colName` $colDef")
-                        } catch (_: Exception) {}
+                        } catch (e: Exception) {
+                            android.util.Log.e("AppDatabase", "Error adding column $colName", e)
+                        }
                     }
                 }
             }

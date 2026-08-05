@@ -63,6 +63,7 @@ object Config {
 
     // Media Formats
     const val FORMAT_MP4 = "MP4"
+    const val FORMAT_MKV = "MKV"
     const val FORMAT_MP3 = "MP3"
     const val FORMAT_M4A = "M4A"
     const val FORMAT_WEBM = "WEBM"

@@ -36,7 +36,17 @@ object ErrorLogManager {
             Log.e(tag, message, throwable)
             val logFile = File(context.filesDir, LOG_FILE_NAME)
             if (logFile.exists() && logFile.length() > MAX_LOG_SIZE_BYTES) {
-                logFile.delete()
+                try {
+                    val lines = logFile.readLines()
+                    if (lines.size > 500) {
+                        val trimmedLines = lines.takeLast(250)
+                        logFile.writeText(trimmedLines.joinToString("\n") + "\n")
+                    } else {
+                        logFile.delete()
+                    }
+                } catch (e: Exception) {
+                    logFile.delete()
+                }
             }
 
             val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())

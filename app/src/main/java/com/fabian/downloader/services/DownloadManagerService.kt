@@ -887,11 +887,10 @@ class DownloadManagerService private constructor(
                 Log.w(Config.TAG_DOWNLOAD_MANAGER, "Error al destruir el proceso yt-dlp $id", e)
             }
         }
+        com.fabian.downloader.services.sites.BaseSiteService.cancelAllExtractions()
         
         // 4. Actualizar estados en BD para evitar quedar congelados en 'Descargando' al reiniciar la app
         val activeIdsList = processingIds.toList()
-        processingIds.clear()
-        activeProgresses.clear()
         
         // Cancelar de inmediato las notificaciones de progreso activas para que no queden huérfanas
         activeIdsList.forEach { id ->
@@ -913,6 +912,8 @@ class DownloadManagerService private constructor(
                         Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al restablecer el estado de la descarga $id", e)
                     }
                 }
+                processingIds.clear()
+                activeProgresses.clear()
                 storageService.shutdownAndFlush()
             }
         } catch (e: Exception) {

@@ -34,8 +34,8 @@ object AppSettings {
     }
 
     val qualityOptions = listOf("Mejor disponible", "4K (2160p)", "1080p Full HD", "720p HD", "480p SD", "360p", "Solo audio (MP3)")
-    val videoFormats = listOf(Config.FORMAT_MP4, Config.FORMAT_WEBM)
-    val audioFormats = listOf(Config.FORMAT_MP3, Config.FORMAT_M4A, Config.FORMAT_OGG)
+    val videoFormats = listOf(Config.FORMAT_MP4, Config.FORMAT_MKV, Config.FORMAT_WEBM)
+    val audioFormats = listOf(Config.FORMAT_MP3, Config.FORMAT_M4A, Config.FORMAT_OGG, Config.FORMAT_WAV)
     val themeOptions = listOf("Sistema", "Claro", "Oscuro")
     val speedOptions = listOf(
         Config.SPEED_UNLIMITED,

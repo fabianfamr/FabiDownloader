@@ -123,6 +123,7 @@ class CacheCleanupWorker(
 
         private fun cleanDirectoryDirect(dir: File?, maxAgeMs: Long = 1_800_000L) {
             if (dir == null || !dir.exists() || !dir.isDirectory) return
+            if (dir.name == "no_backup" || dir.name == "youtubedl-android") return
             val now = System.currentTimeMillis()
             dir.listFiles()?.forEach { file ->
                 if (file.isDirectory) {

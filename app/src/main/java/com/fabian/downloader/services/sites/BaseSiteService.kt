@@ -15,7 +15,13 @@ abstract class BaseSiteService : SiteService {
 
     companion object {
         private val activeExtractions = java.util.concurrent.ConcurrentHashMap<String, Deferred<InfoMedia?>>()
-        private val extractionScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        private var extractionScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+        fun cancelAllExtractions() {
+            extractionScope.cancel()
+            extractionScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+            activeExtractions.clear()
+        }
     }
 
     private val downloader = YtdlpDownloader()

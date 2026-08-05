@@ -119,26 +119,15 @@ class ExtractionService {
                 try {
                     call.execute().use { response ->
                         if (response.isSuccessful) {
-                            val bodySource = response.body?.source()
-                            val html = if (bodySource != null) {
-                                bodySource.request(1024 * 1024)
-                                val buffer = bodySource.buffer.clone()
-                                buffer.readString(Charsets.UTF_8)
-                            } else ""
+                            val html = response.peekBody(1024 * 1024).string()
                             if (html.isNotEmpty()) {
                                 // Intentar buscar og:title o twitter:title o name="title"
-                                var title = extractMetaTagContent(html, "property=\"og:title\"")
+                                var title = extractMetaTagContent(html, "og:title")
                                 if (title.isNullOrEmpty()) {
-                                    title = extractMetaTagContent(html, "property='og:title'")
+                                    title = extractMetaTagContent(html, "twitter:title")
                                 }
                                 if (title.isNullOrEmpty()) {
-                                    title = extractMetaTagContent(html, "name=\"twitter:title\"")
-                                }
-                                if (title.isNullOrEmpty()) {
-                                    title = extractMetaTagContent(html, "property=\"twitter:title\"")
-                                }
-                                if (title.isNullOrEmpty()) {
-                                    title = extractMetaTagContent(html, "name=\"title\"")
+                                    title = extractMetaTagContent(html, "title")
                                 }
                                 // Fallback al tag <title>
                                 if (title.isNullOrEmpty()) {
@@ -158,15 +147,9 @@ class ExtractionService {
                                 }
 
                                 // Intentar buscar og:image para la miniatura
-                                var thumbnail = extractMetaTagContent(html, "property=\"og:image\"")
+                                var thumbnail = extractMetaTagContent(html, "og:image")
                                 if (thumbnail.isNullOrEmpty()) {
-                                    thumbnail = extractMetaTagContent(html, "property='og:image'")
-                                }
-                                if (thumbnail.isNullOrEmpty()) {
-                                    thumbnail = extractMetaTagContent(html, "name=\"twitter:image\"")
-                                }
-                                if (thumbnail.isNullOrEmpty()) {
-                                    thumbnail = extractMetaTagContent(html, "property=\"twitter:image\"")
+                                    thumbnail = extractMetaTagContent(html, "twitter:image")
                                 }
 
                                 val lowerTitle = title?.lowercase() ?: ""
@@ -197,7 +180,7 @@ class ExtractionService {
 
     private fun extractMetaTagContent(html: String, identifier: String): String? {
         try {
-            val key = identifier.split("=").lastOrNull()?.replace("\"", "")?.replace("'", "") ?: identifier
+            val key = identifier.split("=").lastOrNull() ?: identifier
             val metaRegex = Regex("<meta\\s+[^>]*>", RegexOption.IGNORE_CASE)
             val matches = metaRegex.findAll(html)
             for (match in matches) {
@@ -368,8 +351,10 @@ class ExtractionService {
         val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
 
         // 1. Check thumbnail cache
-        if (thumbnailCache.containsKey(cleanUrl)) {
-            return@withContext thumbnailCache[cleanUrl]
+        synchronized(thumbnailCache) {
+            if (thumbnailCache.containsKey(cleanUrl)) {
+                return@withContext thumbnailCache[cleanUrl]
+            }
         }
 
         // 2. Check full video or metadata caches

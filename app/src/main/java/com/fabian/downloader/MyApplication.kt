@@ -57,6 +57,18 @@ class MyApplication : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            if (throwable is OutOfMemoryError) {
+                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Out of Memory Error detected! Cleaning up...", throwable)
+                com.fabian.downloader.services.ExtractionService.clearCaches()
+                System.gc()
+            }
+            com.fabian.downloader.managers.ErrorLogManager.logError(this, "UncaughtException", "Uncaught exception", throwable)
+            defaultHandler?.uncaughtException(thread, throwable)
+        }
+        
         com.fabian.downloader.managers.ErrorLogManager.init(this)
         com.fabian.downloader.ui.AppSettings.init(this)
         

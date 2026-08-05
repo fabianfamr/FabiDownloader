@@ -173,6 +173,7 @@ class StorageService(private val database: AppDatabase) {
         }
         database.downloadDao().markAsCompleted(id)
         memoryCache.remove(id)
+        flushPendingWrites()
     }
 
     suspend fun updatePausedState(id: Long, isPaused: Boolean) {
