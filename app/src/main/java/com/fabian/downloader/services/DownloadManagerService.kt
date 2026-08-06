@@ -493,7 +493,6 @@ class DownloadManagerService private constructor(
                 
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error downloading id $id", e)
                 com.fabian.downloader.managers.ErrorLogManager.logError(application, Config.TAG_DOWNLOAD_MANAGER, "Error downloading id $id (Title: $videoTitle)", e)
                 val isCurrentlyPaused = storageService.getDownloadById(id)?.isPaused ?: false
                 if (isCurrentlyPaused) {

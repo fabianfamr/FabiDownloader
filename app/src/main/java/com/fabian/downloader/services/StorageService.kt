@@ -146,6 +146,17 @@ class StorageService(private val database: AppDatabase) {
         val cached = memoryCache[id]
         if (cached?.isCompleted == true) return
 
+        if (speed == "FAILED" || size.startsWith(Config.STATUS_FAILED_PREFIX)) {
+            database.downloadDao().updateDownloadProgressSizeAndSpeed(id, progress, size, speed)
+            activeProgressUpdates.update { current -> current - id }
+            dirtyIds.remove(id)
+            if (cached != null) {
+                memoryCache[id] = cached.copy(progress = progress, size = size, speed = speed)
+            }
+            flushPendingWrites()
+            return
+        }
+
         // Actualización de alta frecuencia durante la descarga.
         // Se actualiza la memoria de inmediato (60fps en la UI) y se marca como "sucia" para volcado periódico a disco.
         val update = ProgressUpdate(progress, size, speed)
