@@ -332,11 +332,10 @@ fun DownloadSettingsContent(
             )
         }
         if (showSpeedDialog) {
-            SelectionDialog(stringResource(R.string.settings_max_speed), speedOptions, maxSpeed,
-                onSelection = {
-                    onSpeedChange(it)
-                    showSpeedDialog = false
-                },
+            SpeedSliderDialog(
+                initialSpeed = maxSpeed,
+                speedOptions = speedOptions,
+                onSpeedSelected = { onSpeedChange(it) },
                 onDismiss = { showSpeedDialog = false }
             )
         }

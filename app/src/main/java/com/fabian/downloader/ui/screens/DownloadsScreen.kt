@@ -2,7 +2,7 @@ package com.fabian.downloader.ui.screens
 
 import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.ui.viewmodels.DownloadsViewModel
-import com.fabian.downloader.ui.components.getPlatformIconAndColor
+import com.fabian.downloader.ui.components.*
 
 import com.fabian.downloader.configs.Config
 import androidx.compose.animation.*
@@ -109,6 +109,7 @@ fun DownloadsScreen(
     var itemToDelete by remember { mutableStateOf<Long?>(null) }
     var menuRecord by remember { mutableStateOf<DownloadRecord?>(null) }
     var errorToShow by remember { mutableStateOf<String?>(null) }
+    var showSpeedSliderDialog by remember { mutableStateOf(false) }
     @Suppress("DEPRECATION")
     val clipboardManager = LocalClipboardManager.current
 
@@ -770,6 +771,20 @@ fun DownloadsScreen(
                     }
                 } else {
                     // En progreso
+                    if (AppSettings.showRealtimeSpeedCard) {
+                        item {
+                            RealtimeSpeedCardBanner(
+                                activeDownloads = downloading,
+                                accentColor = C_accent,
+                                cardBg = C_card,
+                                card2Bg = C_card2,
+                                borderColor = C_border,
+                                textColor = C_white,
+                                grayColor = C_gray1,
+                                onClick = { showSpeedSliderDialog = true }
+                            )
+                        }
+                    }
                     if (filteredDownloading.isNotEmpty()) {
                         @OptIn(ExperimentalFoundationApi::class)
                         stickyHeader {
@@ -876,6 +891,15 @@ fun DownloadsScreen(
                 }
             }
         }
+    }
+
+    if (showSpeedSliderDialog) {
+        SpeedSliderDialog(
+            initialSpeed = AppSettings.maxSpeed,
+            speedOptions = AppSettings.speedOptions,
+            onSpeedSelected = { newSpeed -> AppSettings.maxSpeed = newSpeed },
+            onDismiss = { showSpeedSliderDialog = false }
+        )
     }
 }
 
@@ -1372,7 +1396,8 @@ fun RealtimeSpeedCardBanner(
     card2Bg: Color,
     borderColor: Color,
     textColor: Color,
-    grayColor: Color
+    grayColor: Color,
+    onClick: () -> Unit = {}
 ) {
     val activeCount = activeDownloads.count { !it.isPaused && it.speed != "FAILED" }
     val currentSpeeds = activeDownloads
@@ -1384,7 +1409,9 @@ fun RealtimeSpeedCardBanner(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 6.dp),
+            .padding(bottom = 6.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         color = cardBg,
         border = BorderStroke(1.dp, borderColor)
@@ -1425,18 +1452,30 @@ fun RealtimeSpeedCardBanner(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+            Spacer(modifier = Modifier.width(8.dp))
             Surface(
-                color = card2Bg,
+                color = accentColor.copy(alpha = 0.15f),
                 shape = RoundedCornerShape(20.dp),
-                border = BorderStroke(1.dp, borderColor)
+                border = BorderStroke(1.dp, accentColor.copy(alpha = 0.3f))
             ) {
-                Text(
-                    text = stringResource(R.string.downloads_active_count, activeCount),
-                    color = accentColor,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Tune,
+                        contentDescription = "Ajustar límite",
+                        tint = accentColor,
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Text(
+                        text = AppSettings.maxSpeed,
+                        color = accentColor,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

@@ -318,14 +318,12 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     }
 
     if (showSpeedDialog) {
-        SelectionDialog(
-            title = stringResource(R.string.settings_speed_limit),
-            options = AppSettings.speedOptions,
-            selectedOption = maxSpeedState,
-            onSelection = {
+        SpeedSliderDialog(
+            initialSpeed = maxSpeedState,
+            speedOptions = AppSettings.speedOptions,
+            onSpeedSelected = {
                 AppSettings.maxSpeed = it
                 maxSpeedState = it
-                showSpeedDialog = false
             },
             onDismiss = { showSpeedDialog = false }
         )
