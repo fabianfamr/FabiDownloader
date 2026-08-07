@@ -83,10 +83,10 @@ class YtdlpDownloader {
 
             if (isYoutube) {
                 when (fallbackLevel) {
-                    0 -> addOption("--extractor-args", "youtube:player-client=android,mweb,ios,web")
-                    1 -> addOption("--extractor-args", "youtube:player-client=android,ios,mweb")
+                    0 -> addOption("--extractor-args", "youtube:player-client=android,mweb,web")
+                    1 -> addOption("--extractor-args", "youtube:player-client=android,mweb")
                     2 -> addOption("--extractor-args", "youtube:player-client=tv,android,web")
-                    3 -> addOption("--extractor-args", "youtube:player-client=ios,web")
+                    3 -> addOption("--extractor-args", "youtube:player-client=mweb,web")
                     else -> { /* omit player-client for raw yt-dlp fallback */ }
                 }
             }
@@ -497,12 +497,6 @@ class YtdlpDownloader {
         try {
             // Nivel 0: Intentar con la calidad / formato solicitados (y fallback interno de calidad)
             val success0 = executeWithRetry(0) { e ->
-                if (!autoRetry) {
-                    // If autoRetry is disabled, fail immediately without fallbacks
-                    Log.w(Config.TAG_YTDLP_DOWNLOADER, "Descarga fallida (autoRetry desactivado): $videoUrl - ${e.message}")
-                    val errorMessage = lastLine.ifEmpty { e.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
-                    throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
-                }
                 Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1...")
                 executionError = e
                 cleanupBeforeRetry()
