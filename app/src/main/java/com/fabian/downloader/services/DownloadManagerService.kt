@@ -779,11 +779,12 @@ class DownloadManagerService private constructor(
                 "maxConcurrentDownloads" -> {
                     handleMaxConcurrentDownloadsChanged(AppSettings.maxConcurrentDownloads)
                 }
-                "maxSpeed", "concurrentFragments", "embedSubtitles", "customArguments", "cookies", "customUserAgent", "sponsorBlockEnabled", "embedThumbnail", "embedMetadata", "bypassGeo", "autoRetry" -> {
-                    handleDownloadConfigChanged()
+                "maxSpeed", "concurrentFragments", "embedSubtitles", "customArguments", "cookies", "customUserAgent", "sponsorBlockEnabled", "embedThumbnail", "embedMetadata", "bypassGeo", "bypassSslVerification", "autoRetry", "selectedStorageMargin" -> {
+                    handleDownloadConfigChanged(key)
                 }
                 "batteryOptimizationEnabled", "selectedBatteryLowThreshold", "selectedBatteryLowAction" -> {
                     BatteryOptimizerManager.getInstance(application).evaluateBatteryStatus()
+                    handleDownloadConfigChanged(key)
                 }
             }
         }
@@ -849,10 +850,43 @@ class DownloadManagerService private constructor(
         }
     }
 
-    private fun handleDownloadConfigChanged() {
-        // Optimización: No reiniciamos las descargas activas al cambiar de pantalla o configuraciones.
-        // Se aplicará la nueva configuración automáticamente a las descargas futuras.
-        Log.i(Config.TAG_DOWNLOAD_MANAGER, "Configuración cambiada. Se aplicará a las nuevas descargas.")
+    private fun handleDownloadConfigChanged(key: String) {
+        Log.i(Config.TAG_DOWNLOAD_MANAGER, "Configuración cambiada ($key). Aplicando dinámicamente a descargas en curso...")
+        serviceScope.launch {
+            if (key == "selectedStorageMargin") {
+                val activeIdsList = processingIds.filter { activeJobs.containsKey(it) }
+                activeIdsList.forEach { id ->
+                    val record = storageService.getDownloadById(id)
+                    if (record != null) {
+                        val destFolder = com.fabian.downloader.utils.PathUtils.getDownloadFolder(application, record.format)
+                        try {
+                            checkStorageSpace(destFolder, id)
+                        } catch (e: Exception) {
+                            Log.w(Config.TAG_DOWNLOAD_MANAGER, "Pausando descarga $id por ajuste del margen de almacenamiento libre", e)
+                            pauseDownload(id)
+                        }
+                    }
+                }
+                return@launch
+            }
+
+            val dynamicDownloadKeys = listOf(
+                "maxSpeed", "concurrentFragments", "embedSubtitles", "customArguments",
+                "cookies", "customUserAgent", "sponsorBlockEnabled", "embedThumbnail",
+                "embedMetadata", "bypassGeo", "bypassSslVerification", "autoRetry",
+                "batteryOptimizationEnabled", "selectedBatteryLowThreshold", "selectedBatteryLowAction"
+            )
+
+            if (key in dynamicDownloadKeys) {
+                val runningIds = processingIds.filter { activeJobs.containsKey(it) }
+                if (runningIds.isNotEmpty()) {
+                    Log.i(Config.TAG_DOWNLOAD_MANAGER, "Reaplicando nueva configuración ($key) dinámicamente a descargas activas $runningIds sin perder progreso...")
+                    runningIds.forEach { id ->
+                        requeueDownload(id)
+                    }
+                }
+            }
+        }
     }
 
     fun onAppClosed() {
