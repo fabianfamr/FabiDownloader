@@ -22,7 +22,6 @@ import com.fabian.downloader.R
 import com.fabian.downloader.configs.Config
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SpeedSliderDialog(
     initialSpeed: String,
@@ -157,58 +156,6 @@ fun SpeedSliderDialog(
                             inactiveTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                         )
                     )
-                }
-
-                // Presets rápidos (Chips)
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = "Accesos rápidos:",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    val presetList = listOf(
-                        Config.SPEED_UNLIMITED,
-                        Config.SPEED_1M,
-                        Config.SPEED_5M,
-                        Config.SPEED_10M,
-                        Config.SPEED_50M
-                    )
-
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        presetList.forEach { preset ->
-                            val isSelected = preset == currentSpeedStr
-                            val presetIdx = speedOptions.indexOf(preset)
-                            Surface(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .clickable {
-                                        if (presetIdx >= 0) {
-                                            currentIdx = presetIdx.toFloat()
-                                            onSpeedSelected(preset)
-                                        }
-                                    },
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(20.dp)
-                            ) {
-                                Text(
-                                    text = preset,
-                                    fontSize = 12.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                                )
-                            }
-                        }
-                    }
                 }
 
                 // Subtítulo informativo de control en tiempo real
