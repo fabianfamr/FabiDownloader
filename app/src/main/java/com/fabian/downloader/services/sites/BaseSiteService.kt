@@ -36,7 +36,6 @@ abstract class BaseSiteService : SiteService {
         if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
             request.addOption("--no-check-certificate")
         }
-        request.addOption("--no-call-home")
         request.addOption("--no-check-formats")
     }
 
@@ -50,7 +49,6 @@ abstract class BaseSiteService : SiteService {
         if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
             request.addOption("--no-check-certificate")
         }
-        request.addOption("--no-call-home")
         request.addOption("--no-check-formats")
     }
 
@@ -85,6 +83,8 @@ abstract class BaseSiteService : SiteService {
                     Log.e(Config.TAG_BASE_SITE_SERVICE, "Error extracting info for $cleanUrl in service $siteId: ${e.message}", e)
                     val lowerMsg = (e.message ?: "").lowercase()
                     if (lowerMsg.contains("zipimport") || lowerMsg.contains("bad local file header") ||
+                        lowerMsg.contains("cannot link") || lowerMsg.contains("libandroid-support") ||
+                        lowerMsg.contains("libpython") || lowerMsg.contains("not found") ||
                         lowerMsg.contains("player api") || lowerMsg.contains("player-client")) {
                         Log.w(Config.TAG_BASE_SITE_SERVICE, "Detectada corrupción de binario o error de API player. Re-inicializando binario limpio y reintentando...")
                         val appCtx = com.fabian.downloader.MyApplication.getInstance()

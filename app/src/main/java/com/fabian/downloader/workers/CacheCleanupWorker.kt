@@ -47,10 +47,16 @@ class CacheCleanupWorker(
 
     private fun cleanDirectory(dir: File?, maxAgeMs: Long = 3_600_000L) {
         if (dir == null || !dir.exists() || !dir.isDirectory) return
+        val name = dir.name.lowercase()
+        if (name == "no_backup" || name == "youtubedl-android" || name == "yt-dlp" ||
+            name.contains("youtubedl") || name.contains("python") || name.contains("ffmpeg")) return
         try {
             val now = System.currentTimeMillis()
             dir.listFiles()?.forEach { file ->
                 if (file.isDirectory) {
+                    val childName = file.name.lowercase()
+                    if (childName == "no_backup" || childName == "youtubedl-android" || childName == "yt-dlp" ||
+                        childName.contains("youtubedl") || childName.contains("python") || childName.contains("ffmpeg")) return@forEach
                     cleanDirectory(file, maxAgeMs)
                     if (file.listFiles()?.isEmpty() == true) {
                         file.delete()

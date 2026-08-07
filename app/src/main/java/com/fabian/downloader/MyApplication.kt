@@ -152,9 +152,9 @@ class MyApplication : Application(), ImageLoaderFactory {
     fun resetAndReinitYtdlp(context: android.content.Context): Boolean {
         return try {
             Log.w(Config.TAG_YT_DLP, "Resetting corrupt yt-dlp directory and re-initializing from APK assets...")
-            val noBackupDir = context.noBackupFilesDir
-            if (noBackupDir != null) {
-                val ytdlDir = java.io.File(noBackupDir, "youtubedl-android")
+            val dirsToClean = listOfNotNull(context.noBackupFilesDir, context.filesDir, context.cacheDir)
+            for (parentDir in dirsToClean) {
+                val ytdlDir = java.io.File(parentDir, "youtubedl-android")
                 if (ytdlDir.exists()) {
                     ytdlDir.deleteRecursively()
                 }

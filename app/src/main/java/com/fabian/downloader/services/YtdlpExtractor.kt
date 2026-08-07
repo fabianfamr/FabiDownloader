@@ -55,7 +55,6 @@ class YtdlpExtractor {
                 if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
                     addOption("--no-check-certificate")
                 }
-                addOption("--no-call-home")
                 addOption("--geo-bypass")
                 addOption("--quiet")
                 addOption("--no-warnings")
@@ -78,7 +77,9 @@ class YtdlpExtractor {
             } catch (e: Exception) {
                 Log.w(Config.TAG_YTDLP_EXTRACTOR, "Error extrayendo con client=$client: ${e.message}")
                 val msg = (e.message ?: "").lowercase()
-                if (msg.contains("zipimport") || msg.contains("bad local file header")) {
+                if (msg.contains("zipimport") || msg.contains("bad local file header") ||
+                    msg.contains("cannot link") || msg.contains("libandroid-support") ||
+                    msg.contains("libpython") || msg.contains("not found")) {
                     Log.w(Config.TAG_YTDLP_EXTRACTOR, "Binario de yt-dlp corrupto. Reseteando desde APK assets...")
                     val appCtx = com.fabian.downloader.MyApplication.getInstance()
                     appCtx.resetAndReinitYtdlp(appCtx)
@@ -114,7 +115,6 @@ class YtdlpExtractor {
             addOption("--referer", Config.REFERER_DEFAULT)
             addOption("--force-ipv4")
             addOption("--no-check-certificate")
-            addOption("--no-call-home")
             addOption("--geo-bypass")
             addOption("--quiet")
             addOption("--no-warnings")
