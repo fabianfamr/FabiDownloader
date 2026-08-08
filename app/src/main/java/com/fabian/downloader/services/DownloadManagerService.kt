@@ -500,8 +500,11 @@ class DownloadManagerService private constructor(
                 }
                 val rawMsg = e.message ?: application.getString(R.string.downloads_error_generic)
                 val normalizedMsg = rawMsg.replace("\u2019", "'").replace("\u2018", "'")
+                val lowerMsg = normalizedMsg.lowercase()
                 val errorMsg = if (normalizedMsg.contains(Config.BOT_DETECTION_PATTERN, ignoreCase = true) || normalizedMsg.contains(Config.BOT_DETECTION_LOGIN, ignoreCase = true)) {
                     application.getString(R.string.downloads_error_requires_login)
+                } else if (lowerMsg.contains("no space left") || lowerMsg.contains("enospc") || lowerMsg.contains("disk full") || lowerMsg.contains("espacio en disco") || lowerMsg.contains("almacenamiento casi lleno") || lowerMsg.contains("espacio insuficiente")) {
+                    "Espacio en disco insuficiente. Libera almacenamiento en tu teléfono para descargar."
                 } else {
                     rawMsg
                 }
@@ -792,7 +795,9 @@ class DownloadManagerService private constructor(
 
     private fun checkStorageSpace(destFolder: File, id: Long) {
         val minimumRequiredBytes = AppSettings.storageMarginBytes
-        if (minimumRequiredBytes <= 0L) return // Comprobación desactivada por el usuario
+        val isMarginDisabled = minimumRequiredBytes <= 0L
+        // Si la verificación de margen está desactivada por el usuario, se mantiene una reserva mínima de seguridad (50 MB) para no agotar por completo el espacio físico del teléfono
+        val effectiveRequiredBytes = if (isMarginDisabled) 50L * 1024L * 1024L else minimumRequiredBytes
 
         try {
             var targetDir = destFolder
@@ -808,7 +813,7 @@ class DownloadManagerService private constructor(
 
             val stat = android.os.StatFs(targetDir.absolutePath)
             val availableBytes = stat.availableBytes
-            if (availableBytes < minimumRequiredBytes) {
+            if (availableBytes < effectiveRequiredBytes) {
                 if (id > 0) {
                     try {
                         com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
@@ -821,12 +826,17 @@ class DownloadManagerService private constructor(
                         Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo cancelar la llamada $id durante la parada por espacio", e)
                     }
                 }
-                val marginText = AppSettings.selectedStorageMargin
                 val availableMb = availableBytes / (1024 * 1024)
-                throw Exception("Almacenamiento casi lleno (quedan $availableMb MB, requiere min $marginText libres). Libera espacio para descargar.")
+                val errorMessage = if (isMarginDisabled) {
+                    "Espacio en disco insuficiente: almacenamiento del teléfono agotado (quedan $availableMb MB). Libera espacio para descargar."
+                } else {
+                    val marginText = AppSettings.selectedStorageMargin
+                    "Espacio en disco insuficiente: límite de almacenamiento alcanzado (quedan $availableMb MB, requiere min $marginText libres). Libera almacenamiento para continuar."
+                }
+                throw Exception(errorMessage)
             }
         } catch (e: Exception) {
-            if (e.message?.contains("Almacenamiento casi lleno") == true) {
+            if (e.message?.contains("Espacio en disco insuficiente") == true || e.message?.contains("Almacenamiento casi lleno") == true) {
                 throw e
             }
             Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error comprobando espacio en ${destFolder.absolutePath}", e)
