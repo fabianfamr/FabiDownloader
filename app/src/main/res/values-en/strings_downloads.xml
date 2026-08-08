@@ -110,4 +110,6 @@
     <!-- Fallback titles -->
     <string name="downloads_default_title">Download</string>
     <string name="downloads_default_domain">Internet</string>
+
+    <string name="downloads_toast_wifi_only">\'Wi-Fi Only\' mode is active: Connect to Wi-Fi to download</string>
 </resources>

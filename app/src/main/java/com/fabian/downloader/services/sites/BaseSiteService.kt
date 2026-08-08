@@ -85,7 +85,7 @@ abstract class BaseSiteService : SiteService {
                     if (lowerMsg.contains("zipimport") || lowerMsg.contains("bad local file header") ||
                         lowerMsg.contains("cannot link") || lowerMsg.contains("libandroid-support") ||
                         lowerMsg.contains("libpython") || lowerMsg.contains("not found") ||
-                        lowerMsg.contains("player api") || lowerMsg.contains("player-client")) {
+                        lowerMsg.contains("player api") || lowerMsg.contains("player_client")) {
                         Log.w(Config.TAG_BASE_SITE_SERVICE, "Detectada corrupción de binario o error de API player. Re-inicializando binario limpio y reintentando...")
                         val appCtx = com.fabian.downloader.MyApplication.getInstance()
                         appCtx.resetAndReinitYtdlp(appCtx)

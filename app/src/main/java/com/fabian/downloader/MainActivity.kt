@@ -58,22 +58,41 @@ class MainActivity : ComponentActivity() {
             val dynamicColor by com.fabian.downloader.ui.AppSettings.dynamicColorState
             val accentColorName by com.fabian.downloader.ui.AppSettings.accentColorNameState
             val amoledMode by com.fabian.downloader.ui.AppSettings.amoledModeState
-            
-            MyApplicationTheme(
-                themePreference = themePreference,
-                dynamicColor = dynamicColor,
-                accentColorName = accentColorName,
-                amoledMode = amoledMode
+            val language by com.fabian.downloader.ui.AppSettings.languageState
+
+            val currentContext = androidx.compose.ui.platform.LocalContext.current
+            val localizedContext = androidx.compose.runtime.remember(language, currentContext) {
+                val locale = when {
+                    language.contains("English", ignoreCase = true) -> java.util.Locale("en")
+                    language.contains("Español", ignoreCase = true) -> java.util.Locale("es")
+                    else -> java.util.Locale.getDefault()
+                }
+                java.util.Locale.setDefault(locale)
+                val config = android.content.res.Configuration(currentContext.resources.configuration)
+                config.setLocale(locale)
+                currentContext.createConfigurationContext(config)
+            }
+
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.ui.platform.LocalContext provides localizedContext,
+                androidx.compose.ui.platform.LocalConfiguration provides localizedContext.resources.configuration
             ) {
-                FabiDownloaderApp(
-                    database = database,
-                    startOnDownloads = startOnDownloadsState.value,
-                    initialPage = initialPageState.value,
-                    onConsumedStartOnDownloads = {
-                        startOnDownloadsState.value = false
-                        initialPageState.value = 0
-                    }
-                )
+                MyApplicationTheme(
+                    themePreference = themePreference,
+                    dynamicColor = dynamicColor,
+                    accentColorName = accentColorName,
+                    amoledMode = amoledMode
+                ) {
+                    FabiDownloaderApp(
+                        database = database,
+                        startOnDownloads = startOnDownloadsState.value,
+                        initialPage = initialPageState.value,
+                        onConsumedStartOnDownloads = {
+                            startOnDownloadsState.value = false
+                            initialPageState.value = 0
+                        }
+                    )
+                }
             }
         }
     }

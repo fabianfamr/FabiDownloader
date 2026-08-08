@@ -194,4 +194,8 @@
     <string name="settings_amoled_mode_desc">Pure black background for AMOLED displays</string>
     <string name="settings_user_agent_title">Custom User-Agent</string>
     <string name="settings_user_agent_desc">Custom browser header for downloads</string>
+
+    <string name="settings_update_ytdlp_success">yt-dlp binary updated successfully</string>
+    <string name="settings_update_ytdlp_error">Error updating yt-dlp binary</string>
+    <string name="settings_logs_copied">Error logs copied to clipboard</string>
 </resources>

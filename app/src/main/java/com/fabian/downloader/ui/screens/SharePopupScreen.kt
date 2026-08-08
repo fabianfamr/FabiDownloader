@@ -196,36 +196,12 @@ fun SharePopupScreen(
         )
     }
     
-    val isImageLink = remember(cleanUrl) {
-        val urlLower = cleanUrl.lowercase()
-        val isDirectImg = urlLower.endsWith(".jpg") || urlLower.endsWith(".jpeg") || 
-                          urlLower.endsWith(".png") || urlLower.endsWith(".webp") || 
-                          urlLower.endsWith(".gif") || urlLower.contains(".jpg?") || 
-                          urlLower.contains(".jpeg?") || urlLower.contains(".png?") || 
-                          urlLower.contains(".webp?") || urlLower.contains("i.imgur.com") || 
-                          urlLower.contains("pbs.twimg.com") || urlLower.contains("pinterest.com/pin") || 
-                          urlLower.contains("pin.it/") || urlLower.contains("/photo/") ||
-                          urlLower.contains("format=jpg") || urlLower.contains("format=png") ||
-                          urlLower.contains("format=webp")
-        isDirectImg || com.fabian.downloader.services.sites.SiteServiceProvider.getServiceForUrl(cleanUrl).siteId == "pinterest"
-    }
-
-    val imageOptions = remember(formatSizes) {
-        listOf(
-            DownloadOption("image_jpg", ctx.getString(R.string.share_format_jpg), Config.FORMAT_JPG, "HD", ctx.getString(R.string.share_category_image)),
-            DownloadOption("image_png", ctx.getString(R.string.share_format_png), Config.FORMAT_PNG, "HD", ctx.getString(R.string.share_category_image)),
-            DownloadOption("image_webp", ctx.getString(R.string.share_format_webp), Config.FORMAT_WEBP, "HD", ctx.getString(R.string.share_category_image))
-        ).map { option ->
-            option.copy(sizeStr = getOptionSize(ctx, option, formatSizes))
-        }
-    }
-    
     val musicOptions = remember(formatSizes) {
         listOf(
-            DownloadOption("music_320", ctx.getString(R.string.share_quality_320kbps), Config.FORMAT_MP3, "320", ctx.getString(R.string.share_category_music)),
-            DownloadOption("music_192", ctx.getString(R.string.share_quality_192kbps), Config.FORMAT_MP3, "192", ctx.getString(R.string.share_category_music)),
-            DownloadOption("music_128", ctx.getString(R.string.share_quality_128kbps), Config.FORMAT_MP3, "128", ctx.getString(R.string.share_category_music)),
-            DownloadOption("music_64", ctx.getString(R.string.share_quality_64kbps), Config.FORMAT_M4A, "64", ctx.getString(R.string.share_category_music))
+            DownloadOption("music_320", ctx.getString(R.string.share_quality_classic_mp3), Config.FORMAT_MP3, "320", ctx.getString(R.string.share_category_music)),
+            DownloadOption("music_192", ctx.getString(R.string.share_quality_mp3_192), Config.FORMAT_MP3, "192", ctx.getString(R.string.share_category_music)),
+            DownloadOption("music_128", ctx.getString(R.string.share_quality_mp3_128), Config.FORMAT_MP3, "128", ctx.getString(R.string.share_category_music)),
+            DownloadOption("music_64", ctx.getString(R.string.share_quality_fast_m4a), Config.FORMAT_M4A, "64", ctx.getString(R.string.share_category_music))
         ).map { option ->
             option.copy(sizeStr = getOptionSize(ctx, option, formatSizes))
         }
@@ -233,20 +209,18 @@ fun SharePopupScreen(
     
     val videoOptions = remember(formatSizes) {
         listOf(
-            DownloadOption("video_1080", ctx.getString(R.string.share_quality_1080p), Config.FORMAT_MP4, "1080p", ctx.getString(R.string.share_category_video)),
-            DownloadOption("video_720", ctx.getString(R.string.share_quality_720p), Config.FORMAT_MP4, "720p", ctx.getString(R.string.share_category_video)),
-            DownloadOption("video_480", ctx.getString(R.string.share_quality_480p), Config.FORMAT_MP4, "480p", ctx.getString(R.string.share_category_video)),
-            DownloadOption("video_360", ctx.getString(R.string.share_quality_360p), Config.FORMAT_MP4, "360p", ctx.getString(R.string.share_category_video))
+            DownloadOption("video_1080", ctx.getString(R.string.share_quality_fhd_1080), Config.FORMAT_MP4, "1080p", ctx.getString(R.string.share_category_video)),
+            DownloadOption("video_720", ctx.getString(R.string.share_quality_hq_720), Config.FORMAT_MP4, "720p", ctx.getString(R.string.share_category_video)),
+            DownloadOption("video_480", ctx.getString(R.string.share_quality_std_480), Config.FORMAT_MP4, "480p", ctx.getString(R.string.share_category_video)),
+            DownloadOption("video_360", ctx.getString(R.string.share_quality_fast_360), Config.FORMAT_MP4, "360p", ctx.getString(R.string.share_category_video))
         ).map { option ->
             option.copy(sizeStr = getOptionSize(ctx, option, formatSizes))
         }
     }
     
-    var selectedOptionId by remember(isImageLink) {
+    var selectedOptionId by remember {
         mutableStateOf(
-            if (isImageLink) {
-                "image_jpg"
-            } else if (cleanUrl.contains("music.youtube.com") || cleanUrl.contains("spotify") || cleanUrl.contains("soundcloud") || AppSettings.selectedQuality.contains("Solo Audio")) {
+            if (cleanUrl.contains("music.youtube.com") || cleanUrl.contains("spotify") || cleanUrl.contains("soundcloud") || AppSettings.selectedQuality.contains("Solo Audio")) {
                 when (AppSettings.defaultAudioBitrate) {
                     "320 kbps (Máxima)", "320 kbps" -> "music_320"
                     "256 kbps", "192 kbps" -> "music_192"
@@ -378,171 +352,64 @@ fun SharePopupScreen(
                     video != null -> {
                         Column {
                             // Video Metadata Header Card
-                            VideoMetadataHeader(video, platformIcon, platformColor)
+                            VideoMetadataHeader(video, platformIcon, platformColor, cleanUrl)
                             
                             Spacer(modifier = Modifier.height(16.dp))
                             
-                            if (isImageLink) {
-                                // --- IMAGEN SECTION ---
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 14.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = ctx.getString(R.string.share_image_section),
-                                        color = Color(0xFFAAAAAA),
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        letterSpacing = 1.2.sp
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    HorizontalDivider(
-                                        modifier = Modifier.weight(1f),
-                                        color = Color(0xFF242428),
-                                        thickness = 1.dp
-                                    )
-                                }
-                                
-                                // Grid of Image Options (2 columns)
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    imageOptions.chunked(2).forEach { chunk ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                        ) {
-                                            chunk.forEach { option ->
-                                                Box(modifier = Modifier.weight(1f)) {
-                                                    SnaptubeFormatItem(
-                                                        option = option,
-                                                        isSelected = selectedOptionId == option.id,
-                                                        accentColor = MaterialTheme.colorScheme.primary,
-                                                        onClick = {
-                                                            selectedOptionId = option.id
-                                                        }
-                                                    )
-                                                }
-                                            }
-                                            if (chunk.size < 2) {
-                                                Spacer(modifier = Modifier.weight(1f))
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                // --- MUSIC SECTION ---
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 14.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = ctx.getString(R.string.share_music_section),
-                                        color = Color(0xFFAAAAAA),
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        letterSpacing = 1.2.sp
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    HorizontalDivider(
-                                        modifier = Modifier.weight(1f),
-                                        color = Color(0xFF242428),
-                                        thickness = 1.dp
+                            // --- MUSIC SECTION ---
+                            Text(
+                                text = ctx.getString(R.string.share_music_section),
+                                color = Color(0xFF888888),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(top = 12.dp, bottom = 6.dp)
+                            )
+                            
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                musicOptions.forEach { option ->
+                                    OptionListItem(
+                                        option = option,
+                                        icon = Icons.Default.MusicNote,
+                                        isSelected = selectedOptionId == option.id,
+                                        accentColor = MaterialTheme.colorScheme.primary,
+                                        onClick = { selectedOptionId = option.id }
                                     )
                                 }
-                                
-                                // Grid of Music Options (2 columns)
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    musicOptions.chunked(2).forEach { chunk ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                        ) {
-                                            chunk.forEach { option ->
-                                                Box(modifier = Modifier.weight(1f)) {
-                                                    SnaptubeFormatItem(
-                                                        option = option,
-                                                        isSelected = selectedOptionId == option.id,
-                                                        accentColor = MaterialTheme.colorScheme.primary,
-                                                        onClick = {
-                                                            selectedOptionId = option.id
-                                                        }
-                                                    )
-                                                }
-                                            }
-                                            if (chunk.size < 2) {
-                                                Spacer(modifier = Modifier.weight(1f))
-                                            }
-                                        }
-                                    }
-                                }
-                                
-                                Spacer(modifier = Modifier.height(28.dp))
-                                
-                                // --- VIDEO SECTION ---
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 14.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = ctx.getString(R.string.share_video_section),
-                                        color = Color(0xFFAAAAAA),
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        letterSpacing = 1.2.sp
+                            }
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            // --- VIDEO SECTION ---
+                            Text(
+                                text = ctx.getString(R.string.share_video_section),
+                                color = Color(0xFF888888),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(bottom = 6.dp)
+                            )
+                            
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                videoOptions.forEach { option ->
+                                    OptionListItem(
+                                        option = option,
+                                        icon = Icons.Default.OndemandVideo,
+                                        isSelected = selectedOptionId == option.id,
+                                        accentColor = MaterialTheme.colorScheme.primary,
+                                        onClick = { selectedOptionId = option.id }
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    HorizontalDivider(
-                                        modifier = Modifier.weight(1f),
-                                        color = Color(0xFF242428),
-                                        thickness = 1.dp
-                                    )
-                                }
-                                
-                                // Grid of Video Options (2 columns)
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    videoOptions.chunked(2).forEach { chunk ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                        ) {
-                                            chunk.forEach { option ->
-                                                Box(modifier = Modifier.weight(1f)) {
-                                                    SnaptubeFormatItem(
-                                                        option = option,
-                                                        isSelected = selectedOptionId == option.id,
-                                                        accentColor = MaterialTheme.colorScheme.primary,
-                                                        onClick = {
-                                                            selectedOptionId = option.id
-                                                        }
-                                                    )
-                                                }
-                                            }
-                                            if (chunk.size < 2) {
-                                                Spacer(modifier = Modifier.weight(1f))
-                                            }
-                                        }
-                                    }
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(32.dp))
+                            Spacer(modifier = Modifier.height(24.dp))
                             
                             // Download button
-                            val allOptions = if (isImageLink) imageOptions else (musicOptions + videoOptions)
+                            val allOptions = musicOptions + videoOptions
                             val isDownloadEnabled = allOptions.any { it.id == selectedOptionId }
                             Button(
                                 onClick = {
@@ -562,28 +429,20 @@ fun SharePopupScreen(
                                 enabled = isDownloadEnabled,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .heightIn(min = 54.dp),
-                                shape = RoundedCornerShape(27.dp),
+                                    .height(52.dp),
+                                shape = CircleShape,
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = Color.Black,
-                                    disabledContainerColor = Color(0xFF161619),
+                                    disabledContainerColor = Color(0xFF222226),
                                     disabledContentColor = Color.Gray
                                 ),
-                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.CloudDownload,
-                                    contentDescription = null,
-                                    tint = if (isDownloadEnabled) Color.Black else Color.Gray,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = if (isDownloadEnabled) ctx.getString(R.string.share_download_button) else ctx.getString(R.string.share_select_option),
                                     fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 0.2.sp
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
@@ -653,57 +512,44 @@ fun SectionDivider(
 fun VideoMetadataHeader(
     video: ExtractionService.ExtractedVideo,
     platformIcon: ImageVector,
-    platformColor: Color
+    platformColor: Color,
+    cleanUrl: String = ""
 ) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
+    val domainName = remember(cleanUrl, video.platformName) {
+        try {
+            val host = java.net.URI(cleanUrl).host
+            if (!host.isNullOrEmpty()) {
+                host.removePrefix("www.").lowercase()
+            } else {
+                video.platformName.lowercase()
+            }
+        } catch (e: Exception) {
+            video.platformName.lowercase()
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF161619))
-            .border(1.5.dp, Color(0xFF242428), RoundedCornerShape(12.dp))
-            .padding(10.dp),
+            .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Thumbnail image or placeholder
+        // Thumbnail image
         Box(
             modifier = Modifier
                 .size(width = 96.dp, height = 58.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(10.dp))
                 .background(Color(0xFF1E1E22)),
             contentAlignment = Alignment.Center
         ) {
             if (!video.thumbnailUrl.isNullOrEmpty()) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    AsyncImage(
-                        model = video.thumbnailUrl,
-                        contentDescription = ctx.getString(R.string.share_thumbnail),
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    // Decorative semi-transparent overlay with a small play icon
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.35f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(22.dp)
-                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
-                                .border(1.dp, Color.White.copy(alpha = 0.25f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(10.dp)
-                            )
-                        }
-                    }
-                }
+                AsyncImage(
+                    model = video.thumbnailUrl,
+                    contentDescription = ctx.getString(R.string.share_thumbnail),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
             } else {
                 Icon(
                     imageVector = platformIcon,
@@ -716,7 +562,7 @@ fun VideoMetadataHeader(
         
         Spacer(modifier = Modifier.width(12.dp))
         
-        // Title & Source Info
+        // Title & Domain
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Center
@@ -731,23 +577,92 @@ fun VideoMetadataHeader(
                 lineHeight = 18.sp
             )
             
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Icon(
-                    imageVector = platformIcon,
-                    contentDescription = null,
-                    tint = if (video.platformName.lowercase().contains("youtube")) Color(0xFFFF0000) else platformColor,
-                    modifier = Modifier.size(14.dp)
+            Text(
+                text = domainName,
+                color = Color(0xFF888888),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+fun OptionListItem(
+    option: DownloadOption,
+    icon: ImageVector,
+    isSelected: Boolean,
+    accentColor: Color,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = if (isSelected) accentColor else Color(0xFFA0A0A0),
+            modifier = Modifier.size(22.dp)
+        )
+        
+        Spacer(modifier = Modifier.width(16.dp))
+        
+        Text(
+            text = option.title,
+            color = Color.White,
+            fontSize = 15.sp,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        
+        if (option.sizeStr.isNotEmpty()) {
+            if (option.sizeStr == "...") {
+                CircularProgressIndicator(
+                    color = accentColor,
+                    strokeWidth = 1.5.dp,
+                    modifier = Modifier.size(12.dp)
                 )
+            } else {
                 Text(
-                    text = video.platformName,
-                    color = Color(0xFF8A8A96),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium
+                    text = option.sizeStr,
+                    color = Color(0xFF888888),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal
+                )
+            }
+            Spacer(modifier = Modifier.width(14.dp))
+        }
+        
+        // Custom Radio Circle
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .background(
+                    color = if (isSelected) accentColor else Color.Transparent,
+                    shape = CircleShape
+                )
+                .then(
+                    if (!isSelected) Modifier.border(1.5.dp, Color(0xFF555555), CircleShape) else Modifier
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color.Black,
+                    modifier = Modifier.size(14.dp)
                 )
             }
         }
@@ -1169,102 +1084,6 @@ fun DownloadStartedDialog(
     }
 }
 
-@Composable
-fun SnaptubeFormatItem(
-    option: DownloadOption,
-    isSelected: Boolean,
-    accentColor: Color,
-    onClick: () -> Unit
-) {
-    val ctx = androidx.compose.ui.platform.LocalContext.current
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(68.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
-    ) {
-        Card(
-            modifier = Modifier.fillMaxSize(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = if (isSelected) Color(0x1400E5FF) else Color(0xFF161619)
-            ),
-            border = BorderStroke(
-                width = 1.5.dp,
-                color = if (isSelected) accentColor else Color(0xFF242428)
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 12.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = option.title,
-                    color = if (isSelected) accentColor else Color.White,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.2.sp
-                )
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                val sizeLabel = if (option.sizeStr.isEmpty()) "X" else option.sizeStr
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = option.format,
-                        color = Color(0xFF8A8A96),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "•",
-                        color = Color(0xFF4A4A56),
-                        fontSize = 10.sp
-                    )
-                    if (sizeLabel == "...") {
-                        CircularProgressIndicator(
-                            color = accentColor,
-                            strokeWidth = 1.2f.dp,
-                            modifier = Modifier.size(10.dp)
-                        )
-                    } else {
-                        Text(
-                            text = sizeLabel,
-                            color = if (sizeLabel == "X") Color(0xFFEF5350) else Color(0xFF8A8A96),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
-            }
-        }
 
-        // Selected checkmark badge in top-right corner
-        if (isSelected) {
-            Box(
-                modifier = Modifier
-                    .padding(top = 6.dp, end = 6.dp)
-                    .size(18.dp)
-                    .background(accentColor, CircleShape)
-                    .align(Alignment.TopEnd),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = Color(0xFF0A0A0C),
-                    modifier = Modifier.size(12.dp)
-                )
-            }
-        }
-    }
-}
 
 

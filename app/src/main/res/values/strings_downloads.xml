@@ -111,4 +111,7 @@
     <!-- Fallback titles -->
     <string name="downloads_default_title">Descarga</string>
     <string name="downloads_default_domain">Internet</string>
+
+    <string name="downloads_toast_wifi_only">Modo \'Solo Wi-Fi\' activo: Conéctate a Wi-Fi para descargar</string>
+
 </resources>

@@ -485,16 +485,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             selectedOption = selectedOption,
             onSelection = {
                 AppSettings.language = it
+                languageState = it
                 showLanguageDialog = false
-                // Recrear la actividad para aplicar la configuración regional
-                var currentContext = ctx
-                while (currentContext is android.content.ContextWrapper) {
-                    if (currentContext is android.app.Activity) {
-                        currentContext.recreate()
-                        break
-                    }
-                    currentContext = currentContext.baseContext
-                }
             },
             onDismiss = { showLanguageDialog = false }
         )
@@ -1047,7 +1039,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 }
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.Language, stringResource(R.string.settings_language), AppSettings.language, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.Language, stringResource(R.string.settings_language), languageState, C_accent, C_white, C_gray1, C_card2) {
                                 showLanguageDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
@@ -1078,9 +1070,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                         isUpdatingYtdlp = false
                                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                                             if (success) {
-                                                Toast.makeText(ctx, "Binario yt-dlp actualizado correctamente", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(ctx, ctx.getString(R.string.settings_update_ytdlp_success), Toast.LENGTH_SHORT).show()
                                             } else {
-                                                Toast.makeText(ctx, "Error al actualizar binario yt-dlp", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(ctx, ctx.getString(R.string.settings_update_ytdlp_error), Toast.LENGTH_SHORT).show()
                                             }
                                         }
                                     }
@@ -1106,7 +1098,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                         isCopyingErrors = true
                                         com.fabian.downloader.managers.ErrorLogManager.copyErrorsToClipboard(ctx)
                                         isCopyingErrors = false
-                                        Toast.makeText(ctx, "Registros de errores copiados al portapapeles", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(ctx, ctx.getString(R.string.settings_logs_copied), Toast.LENGTH_LONG).show()
                                     }
                                 }
                             }

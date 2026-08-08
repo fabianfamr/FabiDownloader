@@ -216,7 +216,7 @@ class DownloadManagerService private constructor(
 
                 if (AppSettings.dataSaverEnabled && isCellularNetwork()) {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(application, "Modo 'Solo Wi-Fi' activo: Conéctate a Wi-Fi para descargar", Toast.LENGTH_LONG).show()
+                        Toast.makeText(application, application.getString(R.string.downloads_toast_wifi_only), Toast.LENGTH_LONG).show()
                     }
                     return@launch
                 }
@@ -224,12 +224,7 @@ class DownloadManagerService private constructor(
                 val batteryManager = BatteryOptimizerManager.getInstance(application)
                 if (!isForced && AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
                     withContext(Dispatchers.Main) {
-                        val message = if (AppSettings.batteryLowAction == "Optimizar recursos") {
-                            "Descarga iniciada en modo optimizado de recursos (batería baja)"
-                        } else {
-                            "Descarga iniciada con prioridad baja (concurrencia limitada por batería)"
-                        }
-                        Toast.makeText(application, message, Toast.LENGTH_LONG).show()
+                        Toast.makeText(application, application.getString(R.string.share_started_title), Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -504,7 +499,7 @@ class DownloadManagerService private constructor(
                 val errorMsg = if (normalizedMsg.contains(Config.BOT_DETECTION_PATTERN, ignoreCase = true) || normalizedMsg.contains(Config.BOT_DETECTION_LOGIN, ignoreCase = true)) {
                     application.getString(R.string.downloads_error_requires_login)
                 } else if (lowerMsg.contains("no space left") || lowerMsg.contains("enospc") || lowerMsg.contains("disk full") || lowerMsg.contains("espacio en disco") || lowerMsg.contains("almacenamiento casi lleno") || lowerMsg.contains("espacio insuficiente")) {
-                    "Espacio en disco insuficiente. Libera almacenamiento en tu teléfono para descargar."
+                    "Espacio insuficiente"
                 } else {
                     rawMsg
                 }
@@ -826,17 +821,11 @@ class DownloadManagerService private constructor(
                         Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo cancelar la llamada $id durante la parada por espacio", e)
                     }
                 }
-                val availableMb = availableBytes / (1024 * 1024)
-                val errorMessage = if (isMarginDisabled) {
-                    "Espacio en disco insuficiente: almacenamiento del teléfono agotado (quedan $availableMb MB). Libera espacio para descargar."
-                } else {
-                    val marginText = AppSettings.selectedStorageMargin
-                    "Espacio en disco insuficiente: límite de almacenamiento alcanzado (quedan $availableMb MB, requiere min $marginText libres). Libera almacenamiento para continuar."
-                }
+                val errorMessage = "Espacio insuficiente"
                 throw Exception(errorMessage)
             }
         } catch (e: Exception) {
-            if (e.message?.contains("Espacio en disco insuficiente") == true || e.message?.contains("Almacenamiento casi lleno") == true) {
+            if (e.message?.contains("Espacio insuficiente") == true || e.message?.contains("Espacio en disco insuficiente") == true || e.message?.contains("Almacenamiento casi lleno") == true) {
                 throw e
             }
             Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error comprobando espacio en ${destFolder.absolutePath}", e)

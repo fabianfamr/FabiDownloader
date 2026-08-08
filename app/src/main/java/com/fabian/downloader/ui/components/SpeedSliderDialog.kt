@@ -72,49 +72,18 @@ fun SpeedSliderDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
+                    .padding(top = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Banner del valor actual
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = "Límite de velocidad en tiempo real",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            if (isUnlimited) {
-                                Icon(
-                                    imageVector = Icons.Default.Bolt,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                            Text(
-                                text = if (isUnlimited) "Ilimitada (Máxima)" else currentSpeedStr,
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 22.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
+                // Indicador simple del valor seleccionado
+                Text(
+                    text = if (isUnlimited) "Ilimitada" else currentSpeedStr,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center
+                )
 
                 // Slider
                 Column(
@@ -127,13 +96,13 @@ fun SpeedSliderDialog(
                     ) {
                         Text(
                             text = speedOptions.firstOrNull() ?: "",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = speedOptions.lastOrNull() ?: "",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -157,16 +126,6 @@ fun SpeedSliderDialog(
                         )
                     )
                 }
-
-                // Subtítulo informativo de control en tiempo real
-                Text(
-                    text = "⚡ Aplicación en tiempo real: Se ajusta dinámicamente en las descargas activas.",
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
-                    textAlign = TextAlign.Center,
-                    lineHeight = 15.sp,
-                    modifier = Modifier.padding(horizontal = 4.dp)
-                )
             }
         },
         confirmButton = {

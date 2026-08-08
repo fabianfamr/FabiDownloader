@@ -83,11 +83,11 @@ class YtdlpDownloader {
 
             if (isYoutube) {
                 when (fallbackLevel) {
-                    0 -> addOption("--extractor-args", "youtube:player-client=android,mweb,web")
-                    1 -> addOption("--extractor-args", "youtube:player-client=android,mweb")
-                    2 -> addOption("--extractor-args", "youtube:player-client=tv,android,web")
-                    3 -> addOption("--extractor-args", "youtube:player-client=mweb,web")
-                    else -> { /* omit player-client for raw yt-dlp fallback */ }
+                    0 -> addOption("--extractor-args", "youtube:player_client=android,web")
+                    1 -> addOption("--extractor-args", "youtube:player_client=android,web")
+                    2 -> addOption("--extractor-args", "youtube:player_client=tv,android,web")
+                    3 -> addOption("--extractor-args", "youtube:player_client=ios,web")
+                    else -> { /* omit player_client for raw yt-dlp fallback */ }
                 }
             }
 

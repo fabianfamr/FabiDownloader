@@ -429,7 +429,6 @@ fun DownloadSettingsContent(
                 onDismiss = { showStorageMarginDialog = false }
             )
         }
-        val ctx = androidx.compose.ui.platform.LocalContext.current
         if (showLanguageDialog) {
             val languageOptions = listOf("🌐 Sistema", "🇪🇸 Español", "🇺🇸 English")
             val currentLang = AppSettings.language
@@ -438,15 +437,6 @@ fun DownloadSettingsContent(
                 onSelection = {
                     AppSettings.language = it
                     showLanguageDialog = false
-                    // Apply locale recreando la actividad de forma segura
-                    var currentContext = ctx
-                    while (currentContext is android.content.ContextWrapper) {
-                        if (currentContext is android.app.Activity) {
-                            currentContext.recreate()
-                            break
-                        }
-                        currentContext = currentContext.baseContext
-                    }
                 },
                 onDismiss = { showLanguageDialog = false }
             )

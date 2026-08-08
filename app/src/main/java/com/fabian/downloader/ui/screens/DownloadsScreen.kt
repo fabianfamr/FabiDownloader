@@ -631,8 +631,7 @@ fun DownloadsScreen(
             listOf(
                 stringResource(R.string.downloads_filter_all),
                 stringResource(R.string.downloads_filter_music),
-                stringResource(R.string.downloads_filter_video),
-                stringResource(R.string.downloads_filter_image)
+                stringResource(R.string.downloads_filter_video)
             ).forEach { type ->
                 val isSelected = filterType == type
                 Surface(
@@ -674,12 +673,6 @@ fun DownloadsScreen(
                         it.format.equals(Config.FORMAT_WEBM, true) || 
                         it.format.equals("MKV", true) 
                     }
-                    ctx.getString(R.string.downloads_filter_image) -> completed.filter { 
-                        it.format.equals(Config.FORMAT_JPG, true) || 
-                        it.format.equals(Config.FORMAT_PNG, true) || 
-                        it.format.equals(Config.FORMAT_WEBP, true) || 
-                        it.format.equals("JPEG", true) 
-                    }
                     else -> completed
                 }
             }
@@ -695,12 +688,6 @@ fun DownloadsScreen(
                         it.format.equals(Config.FORMAT_MP4, true) || 
                         it.format.equals(Config.FORMAT_WEBM, true) || 
                         it.format.equals("MKV", true) 
-                    }
-                    ctx.getString(R.string.downloads_filter_image) -> downloading.filter { 
-                        it.format.equals(Config.FORMAT_JPG, true) || 
-                        it.format.equals(Config.FORMAT_PNG, true) || 
-                        it.format.equals(Config.FORMAT_WEBP, true) || 
-                        it.format.equals("JPEG", true) 
                     }
                     else -> downloading
                 }

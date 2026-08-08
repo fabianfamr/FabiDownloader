@@ -196,4 +196,8 @@
     <string name="settings_amoled_mode_desc">Fondo negro absoluto para pantallas AMOLED</string>
     <string name="settings_user_agent_title">User-Agent personalizado</string>
     <string name="settings_user_agent_desc">Cabecera de navegador personalizada para descargas</string>
+
+    <string name="settings_update_ytdlp_success">Binario yt-dlp actualizado correctamente</string>
+    <string name="settings_update_ytdlp_error">Error al actualizar binario yt-dlp</string>
+    <string name="settings_logs_copied">Registros de errores copiados al portapapeles</string>
 </resources>

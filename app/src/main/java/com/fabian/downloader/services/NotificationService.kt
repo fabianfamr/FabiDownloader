@@ -106,9 +106,15 @@ class NotificationService(private val context: Context) {
         cancelPendingDismiss(id)
 
         val text = buildString {
-            append("$progress%")
+            if (progress >= 0) {
+                append("$progress%")
+            }
             if (!size.isNullOrEmpty() && size != Config.STATUS_UNKNOWN) {
-                append(" • $size")
+                if (progress >= 0) {
+                    append(" • $size")
+                } else {
+                    append(size)
+                }
             }
         }
 
@@ -156,7 +162,7 @@ class NotificationService(private val context: Context) {
             .setContentText(text)
             .setSmallIcon(R.drawable.ic_cloud_download)
             .setLargeIcon(largeIcon)
-            .setProgress(100, progress, false)
+            .setProgress(100, if (progress < 0) 0 else progress, progress < 0)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .setOnlyAlertOnce(true)

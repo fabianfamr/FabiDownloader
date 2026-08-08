@@ -52,17 +52,17 @@ class DownloadForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent == null) {
-            val hasActive = DownloadManagerService.getInstance(applicationContext).hasActiveDownloads()
-            if (hasActive) {
-                promoteToForeground()
-                return START_STICKY
-            } else {
-                stopSelf()
-                return START_NOT_STICKY
-            }
-        }
         promoteToForeground()
+        
+        if (intent == null) {
+            Thread {
+                val hasActive = DownloadManagerService.getInstance(applicationContext).hasActiveDownloads()
+                if (!hasActive) {
+                    stopSelf()
+                }
+            }.start()
+            return START_STICKY
+        }
         return START_STICKY
     }
 
