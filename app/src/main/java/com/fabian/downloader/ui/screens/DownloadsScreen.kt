@@ -67,7 +67,8 @@ import kotlinx.coroutines.launch
 fun DownloadsScreen(
     database: AppDatabase,
     modifier: Modifier = Modifier,
-    initialPage: Int = 0
+    initialPage: Int = 0,
+    onNavigateToSettings: () -> Unit = {}
 ) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val viewModel: DownloadsViewModel = viewModel(
@@ -567,6 +568,7 @@ fun DownloadsScreen(
                         }
                     }
                 }
+
             }
         }
 
@@ -1397,8 +1399,7 @@ fun RealtimeSpeedCardBanner(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 6.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .clickable { onClick() },
+            .clip(RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
         color = cardBg,
         border = BorderStroke(1.dp, borderColor)
@@ -1438,31 +1439,6 @@ fun RealtimeSpeedCardBanner(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Surface(
-                color = accentColor.copy(alpha = 0.15f),
-                shape = RoundedCornerShape(20.dp),
-                border = BorderStroke(1.dp, accentColor.copy(alpha = 0.3f))
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Tune,
-                        contentDescription = "Ajustar límite",
-                        tint = accentColor,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Text(
-                        text = AppSettings.maxSpeed,
-                        color = accentColor,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
             }
         }
     }

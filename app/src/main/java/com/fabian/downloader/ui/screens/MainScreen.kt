@@ -66,12 +66,21 @@ import java.io.File
 
 enum class AnalyzeState { Idle, Loading, Success }
 
+data class PlatformData(
+    val id: String,
+    val label: String,
+    val color: Color,
+    val domain: String,
+    val icon: ImageVector
+)
+
 @Composable
 fun MainScreen(
     database: AppDatabase, 
     modifier: Modifier = Modifier,
     snackbarHostState: SnackbarHostState? = null,
-    onNavigateToDownloads: () -> Unit = {}
+    onNavigateToDownloads: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {}
 ) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     var query by remember { mutableStateOf("") }
@@ -302,6 +311,7 @@ fun MainScreen(
                             }
                         }
                     }
+
 
                 }
             }
@@ -810,11 +820,3 @@ fun MainScreen(
         }
     }
 }
-
-data class PlatformData(
-    val id: String,
-    val label: String,
-    val color: Color,
-    val domain: String,
-    val icon: ImageVector
-)

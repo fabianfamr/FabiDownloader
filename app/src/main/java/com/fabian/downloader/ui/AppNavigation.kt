@@ -228,6 +228,9 @@ fun FabiDownloaderApp(
                         snackbarHostState = snackbarHostState,
                         onNavigateToDownloads = {
                             navController.navigate(Screen.Downloads.route + "?initialPage=1")
+                        },
+                        onNavigateToSettings = {
+                            navController.navigate(Screen.Settings.route)
                         }
                     )
                 }
@@ -241,7 +244,13 @@ fun FabiDownloaderApp(
                     )
                 ) { backStackEntry ->
                     val page = backStackEntry.arguments?.getInt("initialPage") ?: 0
-                    DownloadsScreen(database = database, initialPage = page)
+                    DownloadsScreen(
+                        database = database,
+                        initialPage = page,
+                        onNavigateToSettings = {
+                            navController.navigate(Screen.Settings.route)
+                        }
+                    )
                 }
                 composable(Screen.Settings.route) {
                     SettingsScreen()

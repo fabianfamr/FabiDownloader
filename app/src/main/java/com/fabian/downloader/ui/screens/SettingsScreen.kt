@@ -174,11 +174,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     LaunchedEffect(amoledMode) { AppSettings.amoledMode = amoledMode }
     LaunchedEffect(markAsMV) { AppSettings.markAsMV = markAsMV }
 
-    var contentVisible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        delay(100)
-        contentVisible = true
-    }
+    var contentVisible by remember { mutableStateOf(true) }
 
     var showVideoFormatDialog by remember { mutableStateOf(false) }
     var showQualityDialog by remember { mutableStateOf(false) }
