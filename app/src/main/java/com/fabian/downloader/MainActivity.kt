@@ -73,9 +73,15 @@ class MainActivity : ComponentActivity() {
                 currentContext.createConfigurationContext(config)
             }
 
+            val activityRegistryOwner = (currentContext as? androidx.activity.result.ActivityResultRegistryOwner)
+                ?: (this@MainActivity as? androidx.activity.result.ActivityResultRegistryOwner)
+
             androidx.compose.runtime.CompositionLocalProvider(
                 androidx.compose.ui.platform.LocalContext provides localizedContext,
-                androidx.compose.ui.platform.LocalConfiguration provides localizedContext.resources.configuration
+                androidx.compose.ui.platform.LocalConfiguration provides localizedContext.resources.configuration,
+                *(if (activityRegistryOwner != null) arrayOf(
+                    androidx.activity.compose.LocalActivityResultRegistryOwner provides activityRegistryOwner
+                ) else emptyArray())
             ) {
                 MyApplicationTheme(
                     themePreference = themePreference,

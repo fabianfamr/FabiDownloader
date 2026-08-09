@@ -486,7 +486,7 @@ object AppSettings {
             }
         }
 
-    private val _showRealtimeSpeedCard = mutableStateOf(true)
+    private val _showRealtimeSpeedCard = mutableStateOf(false)
     var showRealtimeSpeedCard: Boolean
         get() = _showRealtimeSpeedCard.value
         set(value) {
@@ -620,7 +620,7 @@ object AppSettings {
         _selectedStorageMargin.value = if (savedMargin in storageMarginOptions) savedMargin else "500 MB"
         _cardStyle.value = prefs.getString("cardStyle", "Detallado con miniatura") ?: "Detallado con miniatura"
         _showQualityBadge.value = prefs.getBoolean("showQualityBadge", true)
-        _showRealtimeSpeedCard.value = prefs.getBoolean("showRealtimeSpeedCard", true)
+        _showRealtimeSpeedCard.value = prefs.getBoolean("showRealtimeSpeedCard", false)
         _defaultAudioBitrate.value = prefs.getString("defaultAudioBitrate", "192 kbps (Estándar)") ?: "192 kbps (Estándar)"
         _notifyBatchComplete.value = prefs.getBoolean("notifyBatchComplete", true)
         _cleanTempOnCancel.value = prefs.getBoolean("cleanTempOnCancel", true)

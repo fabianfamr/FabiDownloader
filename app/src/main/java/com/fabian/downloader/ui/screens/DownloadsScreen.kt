@@ -1036,30 +1036,6 @@ fun MobileDownloadingItem(
                     )
                 }
 
-                // Circular Progress Indicator overlay frame when downloading
-                if (!record.isPaused && !isFailed) {
-                    if (record.progress < 0) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(2.dp),
-                            color = statusColor,
-                            strokeWidth = 2.5.dp,
-                            trackColor = statusColor.copy(alpha = 0.15f)
-                        )
-                    } else {
-                        CircularProgressIndicator(
-                            progress = { animatedProgress },
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(2.dp),
-                            color = statusColor,
-                            strokeWidth = 2.5.dp,
-                            trackColor = statusColor.copy(alpha = 0.15f),
-                            strokeCap = StrokeCap.Round
-                        )
-                    }
-                }
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -1081,7 +1057,7 @@ fun MobileDownloadingItem(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Progress Line directly below title with smooth animation
+                // Progress Line directly below title
                 LinearProgressIndicator(
                     progress = { animatedProgress },
                     modifier = Modifier
@@ -1118,45 +1094,21 @@ fun MobileDownloadingItem(
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        if (!record.isPaused && !isFailed) {
-                            if (record.progress < 0) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(10.dp),
-                                    color = statusColor,
-                                    strokeWidth = 1.5.dp
-                                )
-                            } else {
-                                CircularProgressIndicator(
-                                    progress = { animatedProgress },
-                                    modifier = Modifier.size(10.dp),
-                                    color = statusColor,
-                                    strokeWidth = 1.5.dp,
-                                    trackColor = statusColor.copy(alpha = 0.2f),
-                                    strokeCap = StrokeCap.Round
-                                )
-                            }
-                        }
-
-                        val percentText = if (record.isPaused) {
-                            "${if (record.progress < 0) 0 else record.progress}%"
-                        } else if (record.progress < 0) {
-                            "0%"
-                        } else {
-                            "${record.progress}%"
-                        }
-
-                        Text(
-                            text = percentText,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = C_gray1,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 11.sp
-                        )
+                    val percentText = if (record.isPaused) {
+                        "${if (record.progress < 0) 0 else record.progress}%"
+                    } else if (record.progress < 0) {
+                        "0%"
+                    } else {
+                        "${record.progress}%"
                     }
+
+                    Text(
+                        text = percentText,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = C_gray1,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 11.sp
+                    )
                 }
             }
 
