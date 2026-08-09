@@ -750,22 +750,136 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     // 1. Tema y Colores
                     SettingsHeader("Tema y Colores", C_gray2)
                     Surface(
-                        color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
+                        color = C_card, shape = RoundedCornerShape(20.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
-                        Column {
-                            SettingsRow(Icons.Default.DarkMode, stringResource(R.string.settings_theme_visual), themePreferenceState, C_accent, C_white, C_gray1, C_card2) {
-                                showThemeDialog = true
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            // Theme Toggle Buttons
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(
+                                    text = "Modo de Tema",
+                                    color = C_white,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(C_card2, RoundedCornerShape(12.dp))
+                                        .border(1.dp, C_border, RoundedCornerShape(12.dp))
+                                        .padding(4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    val modes = listOf(
+                                        Triple("Sistema", Icons.Default.SettingsSuggest, "Sistema"),
+                                        Triple("Claro", Icons.Default.LightMode, "Claro"),
+                                        Triple("Oscuro", Icons.Default.DarkMode, "Oscuro")
+                                    )
+                                    modes.forEach { (modeKey, icon, label) ->
+                                        val isSelected = themePreferenceState == modeKey
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .background(if (isSelected) C_accent else Color.Transparent)
+                                                .clickable {
+                                                    AppSettings.themePreference = modeKey
+                                                    themePreferenceState = modeKey
+                                                }
+                                                .padding(vertical = 10.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = icon,
+                                                    contentDescription = label,
+                                                    tint = if (isSelected) Color.Black else C_gray1,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                                Text(
+                                                    text = label,
+                                                    color = if (isSelected) Color.Black else C_white,
+                                                    fontSize = 12.sp,
+                                                    fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
+
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.Palette, stringResource(R.string.settings_dynamic_color), stringResource(R.string.settings_dynamic_color_desc), dynamicColor, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { dynamicColor = it }
+
+                            // Dynamic Colors Material 3 Card
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .background(C_card2, RoundedCornerShape(10.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Palette, contentDescription = null, tint = C_accent, modifier = Modifier.size(18.dp))
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Text(
+                                            text = stringResource(R.string.settings_dynamic_color),
+                                            color = C_white,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                                            Surface(
+                                                color = C_accent.copy(alpha = 0.2f),
+                                                shape = RoundedCornerShape(6.dp)
+                                            ) {
+                                                Text(
+                                                    text = "Material 3",
+                                                    color = C_accent,
+                                                    fontSize = 9.sp,
+                                                    fontWeight = FontWeight.ExtraBold,
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Text(
+                                        text = stringResource(R.string.settings_dynamic_color_desc),
+                                        color = C_gray1,
+                                        fontSize = 11.sp
+                                    )
+                                }
+                                Switch(
+                                    checked = dynamicColor,
+                                    onCheckedChange = { dynamicColor = it },
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = C_bg,
+                                        checkedTrackColor = C_accent,
+                                        uncheckedThumbColor = C_gray1,
+                                        uncheckedTrackColor = C_card2,
+                                        uncheckedBorderColor = C_border
+                                    ),
+                                    modifier = Modifier.scale(0.85f)
+                                )
+                            }
+
                             if (!dynamicColor) {
                                 HorizontalDivider(color = C_border, thickness = 1.dp)
                                 SettingsRow(Icons.Default.ColorLens, stringResource(R.string.settings_accent_color), accentColorNameState, C_accent, C_white, C_gray1, C_card2) {
                                     showAccentDialog = true
                                 }
                             }
+
                             HorizontalDivider(color = C_border, thickness = 1.dp)
+
+                            // AMOLED Mode
                             SettingsToggleRow(Icons.Default.Brightness1, stringResource(R.string.settings_amoled_mode), stringResource(R.string.settings_amoled_mode_desc), amoledMode, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { amoledMode = it }
                         }
                     }

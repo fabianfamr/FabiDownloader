@@ -188,7 +188,35 @@ fun MyApplicationTheme(
         selectedAccent ?: AccentBlue
     }
 
-    val baseFabiColors = if (darkTheme) {
+    val baseFabiColors = if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (darkTheme) {
+            DarkFabiColors.copy(
+                background = colorScheme.background,
+                card = colorScheme.surface,
+                cardSecondary = colorScheme.surfaceVariant,
+                border = colorScheme.outline.copy(alpha = 0.3f),
+                accent = effectiveAccent,
+                accentDim = effectiveAccent.copy(alpha = 0.15f),
+                accentGlow = effectiveAccent.copy(alpha = 0.25f),
+                textPrimary = colorScheme.onBackground,
+                textSecondary = colorScheme.onSurfaceVariant,
+                sheet = colorScheme.surface
+            )
+        } else {
+            LightFabiColors.copy(
+                background = colorScheme.background,
+                card = colorScheme.surface,
+                cardSecondary = colorScheme.surfaceVariant,
+                border = colorScheme.outline.copy(alpha = 0.3f),
+                accent = effectiveAccent,
+                accentDim = effectiveAccent.copy(alpha = 0.15f),
+                accentGlow = effectiveAccent.copy(alpha = 0.25f),
+                textPrimary = colorScheme.onBackground,
+                textSecondary = colorScheme.onSurfaceVariant,
+                sheet = colorScheme.surface
+            )
+        }
+    } else if (darkTheme) {
         DarkFabiColors.copy(
             accent = effectiveAccent,
             accentDim = effectiveAccent.copy(alpha = 0.12f),
