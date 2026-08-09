@@ -39,6 +39,12 @@
     <string name="settings_save_button">Save</string>
     <string name="settings_cancel_button">Cancel</string>
     <string name="settings_section_appearance">Appearance &amp; Aesthetics</string>
+    <string name="settings_section_theme_colors">Theme &amp; Colors</string>
+    <string name="settings_theme_mode">Theme Mode</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_material3">Material 3</string>
     <string name="settings_section_notifications">Notifications &amp; Alerts</string>
     <string name="settings_section_behavior">Behavior &amp; Playback</string>
     <string name="settings_section_network">Network &amp; Downloads</string>

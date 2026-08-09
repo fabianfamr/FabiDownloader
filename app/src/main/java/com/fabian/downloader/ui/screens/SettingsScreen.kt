@@ -748,7 +748,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
                 if (selectedCategory == "Apariencia") {
                     // 1. Tema y Colores
-                    SettingsHeader("Tema y Colores", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_section_theme_colors), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(20.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -757,7 +757,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             // Theme Toggle Buttons
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(
-                                    text = "Modo de Tema",
+                                    text = stringResource(R.string.settings_theme_mode),
                                     color = C_white,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold
@@ -771,9 +771,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
                                     val modes = listOf(
-                                        Triple("Sistema", Icons.Default.SettingsSuggest, "Sistema"),
-                                        Triple("Claro", Icons.Default.LightMode, "Claro"),
-                                        Triple("Oscuro", Icons.Default.DarkMode, "Oscuro")
+                                        Triple("Sistema", Icons.Default.SettingsSuggest, stringResource(R.string.settings_theme_system)),
+                                        Triple("Claro", Icons.Default.LightMode, stringResource(R.string.settings_theme_light)),
+                                        Triple("Oscuro", Icons.Default.DarkMode, stringResource(R.string.settings_theme_dark))
                                     )
                                     modes.forEach { (modeKey, icon, label) ->
                                         val isSelected = themePreferenceState == modeKey
@@ -841,7 +841,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                                 shape = RoundedCornerShape(6.dp)
                                             ) {
                                                 Text(
-                                                    text = "Material 3",
+                                                    text = stringResource(R.string.settings_material3),
                                                     color = C_accent,
                                                     fontSize = 9.sp,
                                                     fontWeight = FontWeight.ExtraBold,

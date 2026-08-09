@@ -39,6 +39,12 @@
     <string name="settings_save_button">Guardar</string>
     <string name="settings_cancel_button">Cancelar</string>
     <string name="settings_section_appearance">Apariencia y Estética</string>
+    <string name="settings_section_theme_colors">Tema y Colores</string>
+    <string name="settings_theme_mode">Modo de Tema</string>
+    <string name="settings_theme_system">Sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+    <string name="settings_material3">Material 3</string>
     <string name="settings_section_notifications">Notificaciones y Alertas</string>
     <string name="settings_section_behavior">Comportamiento y Reproducción</string>
     <string name="settings_section_network">Red y Descargas</string>
