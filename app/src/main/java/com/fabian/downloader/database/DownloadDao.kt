@@ -37,6 +37,9 @@ interface DownloadDao {
     @Query("UPDATE download_records SET format = :format WHERE id = :id")
     suspend fun updateDownloadFormat(id: Long, format: String)
 
+    @Query("UPDATE download_records SET format = :format, size = :size WHERE id = :id")
+    suspend fun updateDownloadFormatAndSize(id: Long, format: String, size: String)
+
     @Query("SELECT * FROM download_records WHERE id = :id")
     suspend fun getDownloadById(id: Long): DownloadRecord?
 

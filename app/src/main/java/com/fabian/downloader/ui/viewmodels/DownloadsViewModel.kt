@@ -75,4 +75,19 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
             DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).clearCompletedDownloads()
         }
     }
+
+    fun convertDownloadFormat(
+        record: DownloadRecord,
+        targetFormat: String,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        viewModelScope.launch {
+            val converter = com.fabian.downloader.services.MediaConverterService(com.fabian.downloader.MyApplication.getInstance())
+            val result = converter.convertRecord(record, targetFormat, database)
+            result.fold(
+                onSuccess = { onResult(true, null) },
+                onFailure = { onResult(false, it.localizedMessage) }
+            )
+        }
+    }
 }

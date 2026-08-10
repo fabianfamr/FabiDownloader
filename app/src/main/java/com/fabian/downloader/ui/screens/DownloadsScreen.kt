@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -109,6 +112,8 @@ fun DownloadsScreen(
     val isSelectionMode = selectedIds.isNotEmpty()
     var itemToDelete by remember { mutableStateOf<Long?>(null) }
     var menuRecord by remember { mutableStateOf<DownloadRecord?>(null) }
+    var recordToConvert by remember { mutableStateOf<DownloadRecord?>(null) }
+    var isConverting by remember { mutableStateOf(false) }
     var errorToShow by remember { mutableStateOf<String?>(null) }
     var showSpeedSliderDialog by remember { mutableStateOf(false) }
     @Suppress("DEPRECATION")
@@ -267,6 +272,23 @@ fun DownloadsScreen(
                     HorizontalDivider(color = C_border)
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable {
+                            recordToConvert = menuRecord
+                            menuRecord = null
+                        }.padding(20.dp, 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.size(32.dp).background(C_accentDim, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.Transform, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(stringResource(R.string.downloads_convert_format), color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.downloads_convert_format_desc), color = C_gray1, fontSize = 12.sp)
+                        }
+                    }
+                    HorizontalDivider(color = C_border)
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable {
                             itemToDelete = menuRecord!!.id
                             menuRecord = null
                         }.padding(20.dp, 16.dp),
@@ -379,6 +401,131 @@ fun DownloadsScreen(
             dismissButton = {
                 TextButton(onClick = { itemToDelete = null }) {
                     Text(stringResource(R.string.downloads_cancel_button), color = C_accent)
+                }
+            }
+        )
+    }
+
+    if (recordToConvert != null) {
+        val formats = listOf("MP4", "MKV", "MP3", "M4A", "AAC", "FLAC", "OPUS")
+        var selectedFormat by remember(recordToConvert) { 
+            mutableStateOf(formats.firstOrNull { !it.equals(recordToConvert!!.format, ignoreCase = true) } ?: "MP3") 
+        }
+
+        AlertDialog(
+            onDismissRequest = { 
+                if (!isConverting) recordToConvert = null 
+            },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Transform, contentDescription = null, tint = C_accent)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.downloads_convert_dialog_title), fontWeight = FontWeight.Bold, color = C_white)
+                }
+            },
+            containerColor = C_card,
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = recordToConvert!!.title,
+                        color = C_white,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.downloads_convert_dialog_subtitle),
+                        color = C_gray1,
+                        fontSize = 13.sp
+                    )
+                    Spacer(Modifier.height(12.dp))
+
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(3),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.heightIn(max = 160.dp)
+                    ) {
+                        items(formats) { fmt ->
+                            val isSelected = selectedFormat.equals(fmt, ignoreCase = true)
+                            val isCurrent = recordToConvert!!.format.equals(fmt, ignoreCase = true)
+                            Surface(
+                                onClick = { if (!isConverting) selectedFormat = fmt },
+                                shape = RoundedCornerShape(12.dp),
+                                color = when {
+                                    isSelected -> C_accentDim
+                                    isCurrent -> C_card2.copy(alpha = 0.5f)
+                                    else -> C_card2
+                                },
+                                border = when {
+                                    isSelected -> BorderStroke(1.5.dp, C_accent)
+                                    else -> BorderStroke(1.dp, C_border)
+                                },
+                                modifier = Modifier.height(40.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                                    Text(
+                                        text = fmt,
+                                        color = if (isSelected) C_accent else if (isCurrent) C_gray2 else C_white,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        fontSize = 13.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (isConverting) {
+                        Spacer(Modifier.height(16.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth().padding(8.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = C_accent,
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                text = stringResource(R.string.downloads_converting),
+                                color = C_accent,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    enabled = !isConverting,
+                    onClick = {
+                        val targetRec = recordToConvert ?: return@Button
+                        isConverting = true
+                        viewModel.convertDownloadFormat(targetRec, selectedFormat) { success, errorMsg ->
+                            isConverting = false
+                            recordToConvert = null
+                            if (success) {
+                                ToastUtils.showShort(ctx, ctx.getString(R.string.downloads_convert_success, selectedFormat))
+                            } else {
+                                ToastUtils.showShort(ctx, ctx.getString(R.string.downloads_convert_error, errorMsg ?: ""))
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = C_accent, contentColor = Color(0xFF0A0A0C))
+                ) {
+                    Text(stringResource(R.string.downloads_convert_button), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                if (!isConverting) {
+                    TextButton(onClick = { recordToConvert = null }) {
+                        Text(stringResource(R.string.downloads_cancel_button), color = C_gray1)
+                    }
                 }
             }
         )

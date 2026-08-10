@@ -46,6 +46,14 @@
     <string name="downloads_copy_link">Copy link</string>
     <string name="downloads_clear_history_item">Clear from history</string>
     <string name="downloads_clear_history_desc">File remains on device memory</string>
+    <string name="downloads_convert_format">Convert format</string>
+    <string name="downloads_convert_format_desc">Convert between MP4, MKV, MP3, M4A, AAC, FLAC, OPUS</string>
+    <string name="downloads_convert_dialog_title">Format Converter</string>
+    <string name="downloads_convert_dialog_subtitle">Select target output format:</string>
+    <string name="downloads_convert_button">Convert</string>
+    <string name="downloads_converting">Converting file...</string>
+    <string name="downloads_convert_success">File successfully converted to %s</string>
+    <string name="downloads_convert_error">Error converting file: %s</string>
     <string name="downloads_delete_permanent">Delete download</string>
     <string name="downloads_delete_permanent_desc">Clear from history and delete file permanently</string>
     <string name="downloads_resume">Resume download</string>
