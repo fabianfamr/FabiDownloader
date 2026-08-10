@@ -9,4 +9,10 @@
     <string name="downloads_resume_all">Reanudar todo</string>
     <string name="downloads_force_download_title">Forzar descarga</string>
     <string name="downloads_force_download_desc">Iniciar de inmediato ignorando el límite de concurrencia</string>
+    <string name="playlist_badge">LISTA (%1$d VÍDEOS)</string>
+    <string name="playlist_options_header">OPCIONES DE DESCARGA PARA EL LOTE</string>
+    <string name="playlist_unselect_all">Desmarcar todos</string>
+    <string name="playlist_select_all">Seleccionar todos</string>
+    <string name="playlist_selected_count">%1$d de %2$d seleccionados</string>
+    <string name="playlist_download_batch_button">DESCARGAR LOTE (%1$d)</string>
 </resources>

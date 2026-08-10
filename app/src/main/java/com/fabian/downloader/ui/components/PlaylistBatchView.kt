@@ -25,8 +25,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.fabian.downloader.R
 import com.fabian.downloader.configs.Config
 import com.fabian.downloader.ui.theme.*
 import com.fabian.downloader.services.ExtractionService.ExtractedPlaylist
@@ -101,7 +103,7 @@ fun PlaylistBatchView(
                             color = Color(0xFF7B61FF).copy(alpha = 0.15f)
                         ) {
                             Text(
-                                text = "LISTA (${playlist.items.size} VÍDEOS)",
+                                text = stringResource(R.string.playlist_badge, playlist.items.size),
                                 color = Color(0xFF9E8BFF),
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
@@ -133,7 +135,7 @@ fun PlaylistBatchView(
 
         // FORMAT & QUALITY SELECTORS
         Text(
-            text = "OPCIONES DE DESCARGA PARA EL LOTE",
+            text = stringResource(R.string.playlist_options_header),
             color = fColors.textMuted,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
@@ -257,7 +259,7 @@ fun PlaylistBatchView(
                     )
                 )
                 Text(
-                    text = if (isAllSelected) "Desmarcar todos" else "Seleccionar todos",
+                    text = if (isAllSelected) stringResource(R.string.playlist_unselect_all) else stringResource(R.string.playlist_select_all),
                     color = fColors.textPrimary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
@@ -270,7 +272,7 @@ fun PlaylistBatchView(
                 border = BorderStroke(1.dp, fColors.border)
             ) {
                 Text(
-                    text = "${selectedItemIds.size} de ${playlist.items.size} seleccionados",
+                    text = stringResource(R.string.playlist_selected_count, selectedItemIds.size, playlist.items.size),
                     color = fColors.accent,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -431,7 +433,7 @@ fun PlaylistBatchView(
                     modifier = Modifier.size(20.dp)
                 )
                 Text(
-                    text = "DESCARGAR LOTE (${selectedItemIds.size})",
+                    text = stringResource(R.string.playlist_download_batch_button, selectedItemIds.size),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
