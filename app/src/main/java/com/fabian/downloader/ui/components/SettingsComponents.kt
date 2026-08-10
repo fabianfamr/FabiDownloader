@@ -59,7 +59,7 @@ fun DownloadSettingsContent(
     var showBatteryLowActionDialog by remember { mutableStateOf(false) }
 
     val threadOptions = listOf("1", "3", "5", "8", "10", "12", "16", "20")
-    val simultaneousOptions = listOf("1", "2", "3", "4", "5", "6", "7", "8")
+    val simultaneousOptions = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")
     val clipboardOptions = listOf("banner", "auto", "disabled")
 
     Column(
@@ -238,33 +238,45 @@ fun DownloadSettingsContent(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         IconButton(
                             onClick = { if (AppSettings.maxConcurrentDownloads > 1) AppSettings.maxConcurrentDownloads-- },
                             modifier = Modifier
-                                .size(32.dp)
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                         ) {
-                            Text("−", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Icon(
+                                imageVector = Icons.Default.Remove,
+                                contentDescription = "-",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
                         
                         Text(
                             text = AppSettings.maxConcurrentDownloads.toString(),
                             color = MaterialTheme.colorScheme.primary,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Black,
-                            modifier = Modifier.widthIn(min = 20.dp),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            modifier = Modifier.width(28.dp),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                         
                         IconButton(
-                            onClick = { if (AppSettings.maxConcurrentDownloads < 8) AppSettings.maxConcurrentDownloads++ },
+                            onClick = { if (AppSettings.maxConcurrentDownloads < 12) AppSettings.maxConcurrentDownloads++ },
                             modifier = Modifier
-                                .size(32.dp)
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                         ) {
-                            Text("+", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "+",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
                     }
                 }

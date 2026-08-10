@@ -265,7 +265,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     }
 
     if (showEarlyStartThresholdDialog) {
-        val options = listOf(stringResource(R.string.settings_disabled), "95%", "96%", "97%", "98%", "99%")
+        val options = listOf(stringResource(R.string.settings_disabled), "90%", "91%", "92%", "93%", "94%", "95%", "96%", "97%")
         val currentLabel = when(val currentVal = AppSettings.earlyStartThreshold) {
             0 -> stringResource(R.string.settings_disabled)
             else -> "$currentVal%"
@@ -662,24 +662,71 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
-                                        Text(stringResource(R.string.settings_simultaneous), color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                                        Text(stringResource(R.string.settings_simultaneous_desc), color = C_gray1, fontSize = 11.sp)
+                                    Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                                        Text(
+                                            text = stringResource(R.string.settings_simultaneous),
+                                            color = C_white,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.settings_simultaneous_desc),
+                                            color = C_gray1,
+                                            fontSize = 11.sp,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
                                     }
-                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
                                         Box(
-                                            modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(8.dp)).border(1.dp, C_border, RoundedCornerShape(8.dp)).clickable { maxConcurrent = maxOf(1, maxConcurrent - 1) },
+                                            modifier = Modifier
+                                                .size(34.dp)
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(C_card2)
+                                                .border(1.dp, C_border, RoundedCornerShape(10.dp))
+                                                .clickable { maxConcurrent = maxOf(1, maxConcurrent - 1) },
                                             contentAlignment = Alignment.Center
-                                        ) { Text("-", color = C_white, fontSize = 18.sp, fontWeight = FontWeight.Medium) }
-                                        Text("$maxConcurrent", color = C_accent, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Remove,
+                                                contentDescription = "-",
+                                                tint = C_white,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                        Text(
+                                            text = "$maxConcurrent",
+                                            color = C_accent,
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            modifier = Modifier.width(28.dp),
+                                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                        )
                                         Box(
-                                            modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(8.dp)).border(1.dp, C_border, RoundedCornerShape(8.dp)).clickable { maxConcurrent = minOf(8, maxConcurrent + 1) },
+                                            modifier = Modifier
+                                                .size(34.dp)
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(C_card2)
+                                                .border(1.dp, C_border, RoundedCornerShape(10.dp))
+                                                .clickable { maxConcurrent = minOf(12, maxConcurrent + 1) },
                                             contentAlignment = Alignment.Center
-                                        ) { Text("+", color = C_white, fontSize = 18.sp, fontWeight = FontWeight.Medium) }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Add,
+                                                contentDescription = "+",
+                                                tint = C_white,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
                                     }
                                 }
-                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                                    (1..8).forEach { n ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
+                                    (1..12).forEach { n ->
                                         val isActive = n <= maxConcurrent
                                         Box(modifier = Modifier.weight(1f).height(4.dp).background(if (isActive) C_accent else C_card2, RoundedCornerShape(4.dp)))
                                     }
