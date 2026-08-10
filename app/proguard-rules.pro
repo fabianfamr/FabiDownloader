@@ -1,70 +1,39 @@
 # Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
-
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
+# Preserve source file and line numbers for stack traces
 -keepattributes SourceFile,LineNumberTable
+-keepattributes Signature, InnerClasses, EnclosingMethod
+-keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations, RuntimeVisibleTypeAnnotations, *Annotation*
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
-
-# Rule to keep native libraries and JNI bindings for YoutubeDL and FFmpeg
--keep class com.yausername.youtubedl_android.** { *; }
--keep class com.yausername.ffmpeg.** { *; }
-
-# Keep native methods
+# JNI & Native methods
 -keepclasseswithmembernames class * {
     native <methods>;
 }
 
-# Retrofit and OkHttp rules
--keepattributes Signature, InnerClasses, EnclosingMethod
--keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations, RuntimeVisibleTypeAnnotations
+# YoutubeDL-Android & FFmpeg
+-keep class com.yausername.youtubedl_android.** { *; }
+-keep interface com.yausername.youtubedl_android.** { *; }
+-dontwarn com.yausername.youtubedl_android.**
+
+-keep class com.yausername.ffmpeg.** { *; }
+-keep interface com.yausername.ffmpeg.** { *; }
+-dontwarn com.yausername.ffmpeg.**
+
+# Apache Commons Compress (used by YoutubeDL-Android)
+-keep class org.apache.commons.compress.** { *; }
+-dontwarn org.apache.commons.compress.**
+
+# Retrofit 2
+-keep class retrofit2.** { *; }
+-keep interface retrofit2.** { *; }
+-dontwarn retrofit2.**
 -keepclassmembers,allowshrinking,allowobfuscation interface * {
     @retrofit2.http.* <methods>;
 }
 
-# Moshi rules to prevent breaking JSON serialization/deserialization
--keep class com.squareup.moshi.** { *; }
--keepclassmembers class * {
-    @com.squareup.moshi.Json <fields>;
-}
--keep class * {
-    @com.squareup.moshi.JsonClass public <init>(...);
-}
-
-# kotlinx.serialization rules
--keepattributes *Annotation*, InnerClasses
--dontnote kotlinx.serialization.AnnotationsKt
-
-# Keep serializable classes and their fields
--keepclassmembers class * {
-    @kotlinx.serialization.Serializable <fields>;
-}
-
--keepnames class kotlinx.serialization.internal.**
--keepclassmembers class kotlinx.serialization.internal.** {
-    *** Companion;
-}
-
--keepclasseswithmembers class * {
-    @kotlinx.serialization.Serializable <init>(...);
-}
-
-# OkHttp rules
--keepattributes Signature, InnerClasses, EnclosingMethod
+# OkHttp 3 & Okio
 -keep class okhttp3.** { *; }
 -keep interface okhttp3.** { *; }
 -dontwarn okhttp3.**
@@ -74,14 +43,48 @@
 -dontwarn java.beans.**
 -dontwarn org.tukaani.xz.**
 
-# Keep our Room entities and ViewModel fields to prevent DB column name mismatch
--keep class com.fabian.downloader.database.** { *; }
--keep class com.fabian.downloader.ui.**ViewModel { *; }
--keep class com.fabian.downloader.services.sites.SiteResult { *; }
--keep class com.fabian.downloader.services.sites.DownloadFormat { *; }
+# Moshi rules to prevent breaking JSON serialization/deserialization
+-keep class com.squareup.moshi.** { *; }
+-dontwarn com.squareup.moshi.**
+-keepclassmembers class * {
+    @com.squareup.moshi.Json <fields>;
+}
+-keep class * {
+    @com.squareup.moshi.JsonClass public <init>(...);
+}
 
-# Apache Commons Compress rules for YoutubeDL-Android
--keep class org.apache.commons.compress.archivers.zip.** { *; }
--dontwarn org.apache.commons.compress.**
+# kotlinx.serialization rules
+-dontnote kotlinx.serialization.AnnotationsKt
+-keep class kotlinx.serialization.** { *; }
+-keepclassmembers class * {
+    @kotlinx.serialization.Serializable <fields>;
+}
+-keepnames class kotlinx.serialization.internal.**
+-keepclassmembers class kotlinx.serialization.internal.** {
+    *** Companion;
+}
+-keepclasseswithmembers class * {
+    @kotlinx.serialization.Serializable <init>(...);
+}
+
+# Room Database
+-keep class * extends androidx.room.RoomDatabase
+-keep class com.fabian.downloader.database.** { *; }
+-dontwarn androidx.room.**
+
+# Coil Image & Video Loader
+-keep class coil.** { *; }
+-dontwarn coil.**
+
+# Kotlin Coroutines
+-keepclassmembers class kotlinx.coroutines.** { *; }
+-dontwarn kotlinx.coroutines.**
+
+# Application specific classes, models & pipelines to preserve JSON/reflection integrity
+-keep class com.fabian.downloader.ui.**ViewModel { *; }
+-keep class com.fabian.downloader.services.sites.** { *; }
+-keep class com.fabian.downloader.pipeline.** { *; }
+-keep class com.fabian.downloader.configs.** { *; }
+-keep class com.fabian.downloader.managers.** { *; }
 
 
