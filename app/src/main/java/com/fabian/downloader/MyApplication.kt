@@ -117,28 +117,7 @@ class MyApplication : Application(), ImageLoaderFactory {
                 
                 isInitialized = true
                 initLatch.countDown()
-                Log.d(Config.TAG_YT_DLP, "Inicialización exitosa de componentes nativos")
-                
-                try {
-                    val connectivityManager = getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
-                    val network = connectivityManager.activeNetwork
-                    val capabilities = connectivityManager.getNetworkCapabilities(network)
-                    val isConnected = capabilities != null && (
-                        capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) ||
-                        capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) ||
-                        capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET)
-                    )
-                    
-                    if (isConnected) {
-                        Log.d(Config.TAG_YT_DLP, "Iniciando actualización de yt-dlp al arranque...")
-                        YoutubeDL.getInstance().updateYoutubeDL(this@MyApplication)
-                        Log.d(Config.TAG_YT_DLP, "Actualización de yt-dlp exitosa")
-                    } else {
-                        Log.d(Config.TAG_YT_DLP, "Sin conexión de red, se omite la actualización de yt-dlp al inicio")
-                    }
-                } catch (e: Exception) {
-                    Log.e(Config.TAG_YT_DLP, "Fallo al actualizar yt-dlp (normal si no hay red o ya está actualizado)", e)
-                }
+                Log.d(Config.TAG_YT_DLP, "Inicialización exitosa de componentes nativos desde APK assets")
             } catch (e: Exception) {
                 Log.e(Config.TAG_YT_DLP, "Error crítico al inicializar binarios nativos", e)
                 isInitialized = true

@@ -53,6 +53,7 @@ abstract class BaseSiteService : SiteService {
     }
 
     override suspend fun extractMetadata(url: String): InfoMedia? {
+        com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
         val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
         
         val deferred = activeExtractions.computeIfAbsent(cleanUrl) { _ ->

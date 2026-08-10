@@ -54,6 +54,8 @@
     <string name="downloads_converting">Convirtiendo archivo...</string>
     <string name="downloads_convert_success">Archivo convertido exitosamente a %s</string>
     <string name="downloads_convert_error">Error al convertir archivo: %s</string>
+    <string name="downloads_convert_file_not_found">El archivo de origen no existe en el almacenamiento.</string>
+    <string name="downloads_convert_failed">Fallo al convertir el archivo al formato %s.</string>
     <string name="downloads_delete_permanent">Eliminar descarga</string>
     <string name="downloads_delete_permanent_desc">Borrar del historial y eliminar archivo permanentemente</string>
     <string name="downloads_resume">Reanudar descarga</string>

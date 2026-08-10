@@ -22,7 +22,7 @@ class MediaConverterService(private val context: Context) {
         try {
             val inputFile = PathUtils.getDownloadFile(context, record.title, record.id, record.format)
             if (!inputFile.exists()) {
-                return@withContext Result.failure(Exception("El archivo de origen no existe en el almacenamiento."))
+                return@withContext Result.failure(Exception(context.getString(com.fabian.downloader.R.string.downloads_convert_file_not_found)))
             }
 
             val targetExt = targetFormat.lowercase().trim()
@@ -92,7 +92,7 @@ class MediaConverterService(private val context: Context) {
             }
 
             if (!finalOutputFile.exists() || finalOutputFile.length() <= 0L) {
-                return@withContext Result.failure(Exception("Fallo al convertir el archivo a formato $targetFormat."))
+                return@withContext Result.failure(Exception(context.getString(com.fabian.downloader.R.string.downloads_convert_failed, targetFormat)))
             }
 
             val sizeInBytes = finalOutputFile.length()
