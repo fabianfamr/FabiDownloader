@@ -84,7 +84,7 @@ fun MainScreen(
     onNavigateToSettings: () -> Unit = {}
 ) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
-    var query by remember { mutableStateOf("") }
+    var query by rememberSaveable { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val application = ctx.applicationContext as Application
     
@@ -310,33 +310,48 @@ fun MainScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Floating App Logo
+                    // Floating App Logo (With edge glow aura, larger icon, no harsh outer border)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 28.dp)
+                            .padding(vertical = 24.dp)
                             .graphicsLayer { translationY = floatY },
                         contentAlignment = Alignment.Center
                     ) {
+                        // Edge glow aura ("brillito por los bordes")
                         Box(
                             modifier = Modifier
-                                .size(80.dp)
-                                .clip(RoundedCornerShape(24.dp))
+                                .size(96.dp)
+                                .clip(RoundedCornerShape(30.dp))
                                 .background(
-                                    Brush.linearGradient(
+                                    Brush.radialGradient(
                                         colors = listOf(
-                                            C_accentDim,
-                                            C_card2
+                                            C_accentGlow.copy(alpha = 0.6f),
+                                            C_accent.copy(alpha = 0.25f),
+                                            Color.Transparent
                                         )
                                     )
                                 )
-                                .border(1.5.dp, C_accentGlow, RoundedCornerShape(24.dp)),
+                        )
+                        // Inner container
+                        Box(
+                            modifier = Modifier
+                                .size(86.dp)
+                                .clip(RoundedCornerShape(26.dp))
+                                .background(
+                                    Brush.linearGradient(
+                                        colors = listOf(
+                                            C_accentDim.copy(alpha = 0.85f),
+                                            C_card2.copy(alpha = 0.95f)
+                                        )
+                                    )
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
                                 painter = painterResource(id = R.drawable.ic_app_logo),
                                 contentDescription = stringResource(R.string.main_app_title),
-                                modifier = Modifier.size(52.dp)
+                                modifier = Modifier.size(72.dp)
                             )
                         }
                     }
@@ -437,18 +452,20 @@ fun MainScreen(
                         singleLine = true,
                         cursorBrush = SolidColor(C_accent),
                         decorationBox = { innerTextField ->
-                            Row(
+                            Box(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .padding(start = 40.dp, end = if (query.isNotEmpty()) 90.dp else 78.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                contentAlignment = Alignment.CenterStart
                             ) {
                                 if (query.isEmpty()) {
                                     Text(
                                         text = stringResource(R.string.main_input_placeholder),
                                         color = C_gray1,
                                         fontSize = 13.sp,
-                                        fontWeight = FontWeight.Normal
+                                        fontWeight = FontWeight.Normal,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                                 innerTextField()
