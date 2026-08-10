@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.text.font.FontWeight
 import com.fabian.downloader.R
@@ -292,23 +293,6 @@ fun MainScreen(
                                 fontWeight = FontWeight.ExtraBold,
                                 lineHeight = 1.2.sp
                             )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(5.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(6.dp)
-                                        .clip(CircleShape)
-                                        .background(C_green)
-                                )
-                                Text(
-                                    text = stringResource(R.string.main_ready_to_download),
-                                    color = C_gray1,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
                         }
                     }
 
@@ -325,38 +309,34 @@ fun MainScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Static Platform Icons Grid
-                    Row(
+                    // Floating App Logo
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 32.dp)
+                            .padding(vertical = 28.dp)
                             .graphicsLayer { translationY = floatY },
-                        horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically
+                        contentAlignment = Alignment.Center
                     ) {
-                        platforms.forEach { platform ->
-                            Box(
-                                modifier = Modifier
-                                    .size(56.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(
-                                        Brush.linearGradient(
-                                            colors = listOf(
-                                                platform.color.copy(alpha = 0.2f),
-                                                platform.color.copy(alpha = 0.05f)
-                                            )
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(
+                                    Brush.linearGradient(
+                                        colors = listOf(
+                                            C_accentDim,
+                                            C_card2
                                         )
                                     )
-                                    .border(1.dp, platform.color.copy(alpha = 0.3f), RoundedCornerShape(16.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = platform.icon,
-                                    contentDescription = platform.label,
-                                    tint = platform.color,
-                                    modifier = Modifier.size(28.dp)
                                 )
-                            }
+                                .border(1.5.dp, C_accentGlow, RoundedCornerShape(24.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_app_logo),
+                                contentDescription = stringResource(R.string.main_app_title),
+                                modifier = Modifier.size(52.dp)
+                            )
                         }
                     }
 
