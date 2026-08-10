@@ -18,4 +18,8 @@
     <string name="playlist_select_all">Seleccionar todos</string>
     <string name="playlist_selected_count">%1$d de %2$d seleccionados</string>
     <string name="playlist_download_batch_button">DESCARGAR LOTE (%1$d)</string>
+    <string name="storage_permission_title">Permiso de Almacenamiento</string>
+    <string name="storage_permission_desc">Se requieren permisos de almacenamiento para guardar tus descargas de vídeo y audio.</string>
+    <string name="storage_permission_grant">Conceder Permiso</string>
+    <string name="scoped_storage_active">Almacenamiento Seguro Activo (Scoped Storage)</string>
 </resources>

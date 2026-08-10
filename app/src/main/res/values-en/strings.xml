@@ -7,4 +7,8 @@
     <string name="playlist_format_video">Video (MP4)</string>
     <string name="playlist_format_mp3">Audio (MP3)</string>
     <string name="playlist_format_m4a">Audio (M4A)</string>
+    <string name="storage_permission_title">Storage Permission</string>
+    <string name="storage_permission_desc">Storage permissions are required to save your video and audio downloads.</string>
+    <string name="storage_permission_grant">Grant Permission</string>
+    <string name="scoped_storage_active">Scoped Storage Active</string>
 </resources>
