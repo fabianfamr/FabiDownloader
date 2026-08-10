@@ -91,3 +91,43 @@ jobs:
         with:
           name: unit-test-results
           path: app/build/reports/tests/testDebugUnitTest/
+
+  build-verification:
+    name: Build Verification & APK Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Prepare build environment (.env & Keystore)
+        run: |
+          touch .env
+          if [ -f "debug.keystore.base64" ]; then
+            tr -d '\n\r' < debug.keystore.base64 | base64 -d > debug.keystore
+          else
+            keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Verify APK Generated & Calculate Size
+        run: |
+          APK_PATH=$(ls app/build/outputs/apk/debug/*.apk | head -n 1)
+          if [ -f "$APK_PATH" ]; then
+            SIZE=$(du -h "$APK_PATH" | cut -f1)
+            echo "APK Verificada correctamente: $APK_PATH (Tamaño: $SIZE)"
+          else
+            echo "Error: No se encontró el APK de debug generado."
+            exit 1
+          fi
