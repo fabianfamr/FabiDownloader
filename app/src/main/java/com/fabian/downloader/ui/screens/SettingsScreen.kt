@@ -189,7 +189,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     if (updateFound != null) {
         AlertDialog(
             onDismissRequest = { updateFound = null },
-            containerColor = Color(0xFF161619),
+            containerColor = C_card,
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Icon(Icons.Default.NewReleases, contentDescription = null, tint = C_accent)
@@ -980,9 +980,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     SettingsHeader("Limpieza y Caché", C_gray2)
 
                     val cacheBg = when(cacheState) {
-                        2 -> Color(0xFF0E1F0E)
-                        1 -> Color(0xFF1A1A1E)
-                        else -> Color(0xFF18110A)
+                        2 -> C_green.copy(alpha = 0.12f)
+                        1 -> C_card
+                        else -> C_amber.copy(alpha = 0.12f)
                     }
                     val cacheBorder = when(cacheState) {
                         2 -> C_green.copy(alpha = 0.33f)

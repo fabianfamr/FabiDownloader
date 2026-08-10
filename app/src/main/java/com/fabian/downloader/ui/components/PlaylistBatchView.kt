@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.fabian.downloader.configs.Config
+import com.fabian.downloader.ui.theme.*
 import com.fabian.downloader.services.ExtractionService.ExtractedPlaylist
 import com.fabian.downloader.services.ExtractionService.PlaylistItem
 
@@ -49,6 +50,8 @@ fun PlaylistBatchView(
         listOf("320k", "192k", "128k")
     }
 
+    val fColors = MaterialTheme.fabiColors
+
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
@@ -56,8 +59,8 @@ fun PlaylistBatchView(
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF161619)),
-            border = BorderStroke(1.dp, Color(0xFF242428))
+            colors = CardDefaults.cardColors(containerColor = fColors.card),
+            border = BorderStroke(1.dp, fColors.border)
         ) {
             Row(
                 modifier = Modifier
@@ -109,7 +112,7 @@ fun PlaylistBatchView(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = playlist.title,
-                        color = Color.White,
+                        color = fColors.textPrimary,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 2,
@@ -117,7 +120,7 @@ fun PlaylistBatchView(
                     )
                     Text(
                         text = playlist.author,
-                        color = Color.Gray,
+                        color = fColors.textSecondary,
                         fontSize = 12.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -131,7 +134,7 @@ fun PlaylistBatchView(
         // FORMAT & QUALITY SELECTORS
         Text(
             text = "OPCIONES DE DESCARGA PARA EL LOTE",
-            color = Color.Gray,
+            color = fColors.textMuted,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp
@@ -154,10 +157,10 @@ fun PlaylistBatchView(
                         .weight(1f)
                         .height(40.dp)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(if (isSelected) Color(0xFF7B61FF) else Color(0xFF161619))
+                        .background(if (isSelected) fColors.accent else fColors.card)
                         .border(
                             1.dp,
-                            if (isSelected) Color(0xFF9E8BFF) else Color(0xFF242428),
+                            if (isSelected) fColors.accent else fColors.border,
                             RoundedCornerShape(10.dp)
                         )
                         .clickable {
@@ -177,12 +180,12 @@ fun PlaylistBatchView(
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
-                            tint = if (isSelected) Color.White else Color.Gray,
+                            tint = if (isSelected) fColors.background else fColors.textSecondary,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
                             text = label,
-                            color = if (isSelected) Color.White else Color.LightGray,
+                            color = if (isSelected) fColors.background else fColors.textPrimary,
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                         )
@@ -204,16 +207,16 @@ fun PlaylistBatchView(
                     onClick = { selectedQuality = q },
                     label = { Text(q, fontSize = 12.sp) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color(0xFF2B215E),
-                        selectedLabelColor = Color(0xFFBCAEFF),
-                        containerColor = Color(0xFF161619),
-                        labelColor = Color.Gray
+                        selectedContainerColor = fColors.accentDim,
+                        selectedLabelColor = fColors.accent,
+                        containerColor = fColors.card,
+                        labelColor = fColors.textSecondary
                     ),
                     border = FilterChipDefaults.filterChipBorder(
                         enabled = true,
                         selected = isSelected,
-                        borderColor = Color(0xFF242428),
-                        selectedBorderColor = Color(0xFF7B61FF)
+                        borderColor = fColors.border,
+                        selectedBorderColor = fColors.accent
                     )
                 )
             }
@@ -249,13 +252,13 @@ fun PlaylistBatchView(
                         }
                     },
                     colors = CheckboxDefaults.colors(
-                        checkedColor = Color(0xFF7B61FF),
-                        uncheckedColor = Color.Gray
+                        checkedColor = fColors.accent,
+                        uncheckedColor = fColors.textMuted
                     )
                 )
                 Text(
                     text = if (isAllSelected) "Desmarcar todos" else "Seleccionar todos",
-                    color = Color.White,
+                    color = fColors.textPrimary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -263,12 +266,12 @@ fun PlaylistBatchView(
 
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = Color(0xFF161619),
-                border = BorderStroke(1.dp, Color(0xFF242428))
+                color = fColors.card,
+                border = BorderStroke(1.dp, fColors.border)
             ) {
                 Text(
                     text = "${selectedItemIds.size} de ${playlist.items.size} seleccionados",
-                    color = Color(0xFF9E8BFF),
+                    color = fColors.accent,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
@@ -302,11 +305,11 @@ fun PlaylistBatchView(
                         },
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (isChecked) Color(0xFF1A1829) else Color(0xFF121215)
+                        containerColor = if (isChecked) fColors.accentDim else fColors.cardSecondary
                     ),
                     border = BorderStroke(
                         1.dp,
-                        if (isChecked) Color(0xFF7B61FF).copy(alpha = 0.5f) else Color(0xFF1E1E22)
+                        if (isChecked) fColors.accent.copy(alpha = 0.5f) else fColors.border
                     )
                 ) {
                     Row(
@@ -322,8 +325,8 @@ fun PlaylistBatchView(
                                 if (checked) selectedItemIds.add(item.id) else selectedItemIds.remove(item.id)
                             },
                             colors = CheckboxDefaults.colors(
-                                checkedColor = Color(0xFF7B61FF),
-                                uncheckedColor = Color.Gray
+                                checkedColor = fColors.accent,
+                                uncheckedColor = fColors.textMuted
                             )
                         )
 
@@ -331,7 +334,7 @@ fun PlaylistBatchView(
                             modifier = Modifier
                                 .size(width = 64.dp, height = 40.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color.DarkGray)
+                                .background(fColors.border)
                         ) {
                             if (item.thumbnailUrl.isNotEmpty()) {
                                 AsyncImage(
@@ -347,7 +350,7 @@ fun PlaylistBatchView(
                                 Icon(
                                     imageVector = Icons.Default.PlayCircle,
                                     contentDescription = null,
-                                    tint = Color.White.copy(alpha = 0.6f),
+                                    tint = fColors.textSecondary,
                                     modifier = Modifier
                                         .size(20.dp)
                                         .align(Alignment.Center)
@@ -375,7 +378,7 @@ fun PlaylistBatchView(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "${index + 1}. ${item.title}",
-                                color = Color.White,
+                                color = fColors.textPrimary,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 maxLines = 1,
@@ -384,7 +387,7 @@ fun PlaylistBatchView(
                             if (item.uploader.isNotEmpty()) {
                                 Text(
                                     text = item.uploader,
-                                    color = Color.Gray,
+                                    color = fColors.textSecondary,
                                     fontSize = 11.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -412,10 +415,10 @@ fun PlaylistBatchView(
                 .height(52.dp),
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF7B61FF),
-                disabledContainerColor = Color(0xFF242428),
-                contentColor = Color.White,
-                disabledContentColor = Color.Gray
+                containerColor = fColors.accent,
+                disabledContainerColor = fColors.border,
+                contentColor = fColors.background,
+                disabledContentColor = fColors.textDisabled
             )
         ) {
             Row(

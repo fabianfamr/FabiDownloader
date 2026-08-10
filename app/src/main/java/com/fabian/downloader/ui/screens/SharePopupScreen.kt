@@ -42,6 +42,7 @@ import com.fabian.downloader.R
 import androidx.compose.ui.res.painterResource
 import com.fabian.downloader.services.ExtractionService
 import com.fabian.downloader.configs.Config
+import com.fabian.downloader.ui.theme.*
 import kotlinx.coroutines.launch
 
 data class DownloadOption(
@@ -248,14 +249,16 @@ fun SharePopupScreen(
     val platformColor = platformInfo.second
     val platformIcon = platformInfo.first
     
+    val fColors = MaterialTheme.fabiColors
+    
     ModalBottomSheet(
         onDismissRequest = onClose,
         sheetState = sheetState,
-        containerColor = Color(0xFF0C0C0E), // Match app's pitch black/very dark charcoal surface
+        containerColor = fColors.sheet,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         dragHandle = {
             BottomSheetDefaults.DragHandle(
-                color = Color(0xFF242428),
+                color = fColors.border,
                 modifier = Modifier.padding(top = 12.dp)
             )
         }
@@ -279,7 +282,7 @@ fun SharePopupScreen(
             ) {
                 Text(
                     text = ctx.getString(R.string.share_options_title),
-                    color = Color.White,
+                    color = fColors.textPrimary,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = (-0.5).sp
@@ -289,12 +292,12 @@ fun SharePopupScreen(
                     onClick = onClose,
                     modifier = Modifier
                         .size(36.dp)
-                        .background(Color(0xFF161619), CircleShape)
+                        .background(fColors.cardSecondary, CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = ctx.getString(R.string.share_close),
-                        tint = Color.LightGray,
+                        tint = fColors.textSecondary,
                         modifier = Modifier.size(18.dp)
                     )
                 }

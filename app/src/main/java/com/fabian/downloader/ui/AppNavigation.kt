@@ -36,6 +36,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.fabian.downloader.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,10 +96,11 @@ fun FabiDownloaderApp(
             } 
         },
         bottomBar = {
-            val C_sheet = Color(0xFF161619) // Matching React C.sheet
-            val C_border = Color(0xFF242428)
-            val C_accent = Color(0xFF00E5FF)
-            val C_gray1 = Color(0xFF8A8A96)
+            val fColors = MaterialTheme.fabiColors
+            val C_sheet = fColors.sheet
+            val C_border = fColors.border
+            val C_accent = fColors.accent
+            val C_gray1 = fColors.textSecondary
             
             Surface(
                 modifier = Modifier
