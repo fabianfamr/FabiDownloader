@@ -137,8 +137,12 @@ fun DownloadsScreen(
                     putExtra(Intent.EXTRA_STREAM, uri)
                     type = mimeType
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
-                ctx.startActivity(Intent.createChooser(intent, ctx.getString(R.string.downloads_share_title)))
+                val chooser = Intent.createChooser(intent, ctx.getString(R.string.downloads_share_title)).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                ctx.startActivity(chooser)
             } else {
                 ToastUtils.showShort(ctx, R.string.main_error_file_not_found)
             }
@@ -165,6 +169,7 @@ fun DownloadsScreen(
                 val intent = Intent(Intent.ACTION_VIEW).apply {
                     setDataAndType(uri, mimeType)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 ctx.startActivity(intent)
             } else {
@@ -199,8 +204,12 @@ fun DownloadsScreen(
                     putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
                     type = "*/*"
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
-                ctx.startActivity(Intent.createChooser(intent, ctx.getString(R.string.downloads_share_title)))
+                val chooser = Intent.createChooser(intent, ctx.getString(R.string.downloads_share_title)).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                ctx.startActivity(chooser)
             } else {
                 ToastUtils.showShort(ctx, R.string.downloads_share_empty)
             }

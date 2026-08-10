@@ -230,7 +230,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             confirmButton = {
                 Button(
                     onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateFound!!.downloadUrl))
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateFound!!.downloadUrl)).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
                         ctx.startActivity(intent)
                         updateFound = null
                     },
@@ -1190,7 +1192,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsRow(Icons.Default.Code, stringResource(R.string.settings_github_repo), stringResource(R.string.settings_view_code), C_accent, C_white, C_gray1, C_card2) {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Config.GITHUB_URL))
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Config.GITHUB_URL)).apply {
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
                                 ctx.startActivity(intent)
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
