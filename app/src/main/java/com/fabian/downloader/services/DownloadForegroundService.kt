@@ -77,12 +77,16 @@ class DownloadForegroundService : Service() {
                         android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
                     )
                 } catch (e: Exception) {
-                    startForeground(NOTIFICATION_ID, notification)
+                    try {
+                        startForeground(NOTIFICATION_ID, notification)
+                    } catch (e2: Exception) {
+                        android.util.Log.w("DownloadService", "ForegroundServiceStartNotAllowedException at startForeground", e2)
+                    }
                 }
             } else {
                 startForeground(NOTIFICATION_ID, notification)
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             android.util.Log.e("DownloadService", "Error calling startForeground in DownloadForegroundService", e)
             try {
                 stopSelf()
