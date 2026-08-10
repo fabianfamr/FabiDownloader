@@ -149,9 +149,9 @@ fun PlaylistBatchView(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             listOf(
-                Triple(Config.FORMAT_MP4, "Vídeo (MP4)", Icons.Default.Videocam),
-                Triple(Config.FORMAT_MP3, "Audio (MP3)", Icons.Default.Audiotrack),
-                Triple(Config.FORMAT_M4A, "Audio (M4A)", Icons.Default.MusicNote)
+                Triple(Config.FORMAT_MP4, stringResource(R.string.playlist_format_video), Icons.Default.Videocam),
+                Triple(Config.FORMAT_MP3, stringResource(R.string.playlist_format_mp3), Icons.Default.Audiotrack),
+                Triple(Config.FORMAT_M4A, stringResource(R.string.playlist_format_m4a), Icons.Default.MusicNote)
             ).forEach { (fmt, label, icon) ->
                 val isSelected = selectedFormat == fmt
                 Box(

@@ -352,8 +352,9 @@ fun SharePopupScreen(
                             }
                         )
                     }
-                    video != null -> {
-                        Column {
+                    else -> {
+                        extractedVideo?.let { video ->
+                            Column {
                             // Video Metadata Header Card
                             VideoMetadataHeader(video, platformIcon, platformColor, cleanUrl)
                             
@@ -451,6 +452,7 @@ fun SharePopupScreen(
                         }
                     }
                 }
+            }
             }
         }
     }

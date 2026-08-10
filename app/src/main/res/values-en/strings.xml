@@ -4,4 +4,7 @@
     <string name="shortcut_download">Download</string>
     <string name="downloads_force_download_title">Force download</string>
     <string name="downloads_force_download_desc">Start immediately ignoring concurrency limit</string>
+    <string name="playlist_format_video">Video (MP4)</string>
+    <string name="playlist_format_mp3">Audio (MP3)</string>
+    <string name="playlist_format_m4a">Audio (M4A)</string>
 </resources>

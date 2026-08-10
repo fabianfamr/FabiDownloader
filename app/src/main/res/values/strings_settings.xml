@@ -142,6 +142,7 @@
     <string name="settings_section_storage_speed">Almacenamiento y Velocidad</string>
     <string name="settings_location">Ubicación</string>
     <string name="settings_max_speed">Velocidad máxima</string>
+    <string name="settings_unlimited">Ilimitada</string>
     <string name="settings_storage_margin">Límite mínimo de almacenamiento</string>
     <string name="settings_select_storage_margin">Margen de almacenamiento de seguridad</string>
     <string name="settings_section_postprocessing">Post-Procesamiento y Metadatos</string>

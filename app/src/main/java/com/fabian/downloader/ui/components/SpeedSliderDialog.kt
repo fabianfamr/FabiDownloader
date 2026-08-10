@@ -78,7 +78,7 @@ fun SpeedSliderDialog(
             ) {
                 // Indicador simple del valor seleccionado
                 Text(
-                    text = if (isUnlimited) "Ilimitada" else currentSpeedStr,
+                    text = if (isUnlimited) stringResource(R.string.settings_unlimited) else currentSpeedStr,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     color = MaterialTheme.colorScheme.primary,
