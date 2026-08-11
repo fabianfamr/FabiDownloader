@@ -231,6 +231,13 @@ fun MainScreen(
 
     var analyzeState by remember { mutableStateOf(AnalyzeState.Idle) }
 
+    DisposableEffect(Unit) {
+        onDispose {
+            query = ""
+            analyzeState = AnalyzeState.Idle
+        }
+    }
+
     val infiniteTransition = rememberInfiniteTransition(label = "orbit")
     val floatY by infiniteTransition.animateFloat(
         initialValue  = -6f,

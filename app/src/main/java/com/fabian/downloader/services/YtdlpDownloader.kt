@@ -350,7 +350,9 @@ class YtdlpDownloader {
         // Respect autoRetry setting: if disabled, only attempt level 0 (no fallbacks)
         val autoRetry = com.fabian.downloader.ui.AppSettings.autoRetry
 
-        val connService = com.fabian.downloader.network.ConnectionSe        fun isNetworkOrTemporaryError(e: Throwable, line: String): Boolean {
+        val connService = com.fabian.downloader.network.ConnectionService()
+
+        fun isNetworkOrTemporaryError(e: Throwable, line: String): Boolean {
             if (e is java.io.InterruptedIOException) return true
             val lowerMsg = (e.message ?: "").lowercase()
             val lowerLine = line.lowercase()
@@ -537,7 +539,7 @@ class YtdlpDownloader {
                 val errorMessage = lastLine.ifEmpty { e.message ?: executionError?.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
                 throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
             }
-            return@withContext success3hContext success3
+            return@withContext success3
         } finally {
             try {
                 YoutubeDL.getInstance().destroyProcessById(processId)
