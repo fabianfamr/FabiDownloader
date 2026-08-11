@@ -168,7 +168,7 @@ class YtdlpDownloader {
                 addOption("--no-playlist")
             }
 
-            addOption("--no-overwrites")
+            addOption("--force-overwrites")
             addOption("--no-mtime")
             addOption("--continue")  // Resume partial downloads
             if (settings.bypassGeo) {
@@ -329,21 +329,24 @@ class YtdlpDownloader {
             }
         }
 
-        // Helper: destroy any previous yt-dlp process and clean partial files before retrying
-        suspend fun cleanupBeforeRetry() {
+        // Helper: destroy any previous yt-dlp process
+        suspend fun cleanupBeforeRetry(isNetworkRetry: Boolean = false) {
             try {
                 YoutubeDL.getInstance().destroyProcessById(processId)
             } catch (e: Exception) {
                 Log.w(Config.TAG_YTDLP_DOWNLOADER, "Could not destroy previous process before retry", e)
             }
-            // Remove partial files left by previous attempt so --no-overwrites doesn't skip
-            try {
-                destFolder.listFiles { _, name ->
-                    name.startsWith("${fileNameWithoutExt}.") &&
-                    (name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp"))
-                }?.forEach { it.delete() }
-            } catch (e: Exception) {
-                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Could not clean partial files before retry", e)
+            
+            // If it's a network retry, we want to KEEP the .part files so yt-dlp can resume!
+            // If it's a fallback (format change), we must delete them to avoid conflicts.
+            if (!isNetworkRetry) {
+                try {
+                    destFolder.listFiles { _, name ->
+                        name.startsWith("${fileNameWithoutExt}.") 
+                    }?.forEach { it.delete() }
+                } catch (e: Exception) {
+                    Log.w(Config.TAG_YTDLP_DOWNLOADER, "Could not clean files before fallback retry", e)
+                }
             }
         }
 
@@ -481,7 +484,7 @@ class YtdlpDownloader {
                         
                         if (connService.checkConnection()) {
                             Log.i(Config.TAG_YTDLP_DOWNLOADER, "Reintentando el mismo nivel $level (intento ${attempt + 1})...")
-                            cleanupBeforeRetry()
+                            cleanupBeforeRetry(isNetworkRetry = true)
                             kotlinx.coroutines.delay(1000)
                             continue
                         }
@@ -491,7 +494,7 @@ class YtdlpDownloader {
                         onFailAction(Exception(e))
                     } else {
                         Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido. Reintentando en 2 segundos...")
-                        cleanupBeforeRetry()
+                        cleanupBeforeRetry(isNetworkRetry = true)
                         kotlinx.coroutines.delay(2000)
                     }
                 } finally {

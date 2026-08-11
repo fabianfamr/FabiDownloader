@@ -203,9 +203,34 @@ object PathUtils {
         return fallbackFolder
     }
 
+    fun sanitizeFileName(title: String): String {
+        var sanitized = title.replace(Regex("[\\\\/:*?\"<>|]"), "_").trim()
+        // Remove control characters and leading/trailing dots/spaces (Windows doesn't like them)
+        sanitized = sanitized.replace(Regex("[\\x00-\\x1f]"), "").trim().trim('.')
+        if (sanitized.isEmpty()) {
+            sanitized = "download"
+        }
+        // Avoid Windows-reserved names (in case of cloud sync to Windows)
+        val nameWithoutExt = sanitized.substringBeforeLast('.')
+        if (Config.RESERVED_FILENAMES.contains(nameWithoutExt.uppercase())) {
+            sanitized = "_" + sanitized
+        }
+        // Limit total length to avoid filesystem issues
+        if (sanitized.length > Config.MAX_FILENAME_LENGTH) {
+            val ext = sanitized.substringAfterLast('.', "")
+            val namePart = sanitized.substringBeforeLast('.')
+            sanitized = if (ext.isNotEmpty()) {
+                namePart.take(Config.MAX_FILENAME_LENGTH - ext.length - 1) + "." + ext
+            } else {
+                namePart.take(Config.MAX_FILENAME_LENGTH)
+            }
+        }
+        return sanitized
+    }
+
     fun getDownloadFile(context: Context, title: String, id: Long, format: String): File {
         val baseFolder = getDownloadFolder(context, format)
-        val sanitizedTitle = title.replace(Regex("[\\\\/:*?\"<>|]"), "_").trim()
+        val sanitizedTitle = sanitizeFileName(title)
         
         // 1. Try new path with ID
         var file = File(baseFolder, "${sanitizedTitle}_$id.${format.lowercase()}")

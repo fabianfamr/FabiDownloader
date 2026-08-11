@@ -20,6 +20,7 @@ import org.json.JSONObject
 import java.io.File
 import android.content.Context
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.CancellationException
 import com.fabian.downloader.R
 import com.fabian.downloader.configs.Config
@@ -77,8 +78,9 @@ class DownloadManagerService private constructor(
     private val processingIds = java.util.concurrent.ConcurrentSkipListSet<Long>()
     private val forcedDownloadIds = java.util.concurrent.ConcurrentHashMap.newKeySet<Long>()
     private val activeProgresses = java.util.concurrent.ConcurrentHashMap<Long, Int>()
-    private var isQueueProcessorRunning = false
+    private val isQueueProcessorRunning = java.util.concurrent.atomic.AtomicBoolean(false)
     private val queueTrigger = MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
+    private val startDownloadMutex = kotlinx.coroutines.sync.Mutex()
 
     fun triggerQueue() {
         queueTrigger.tryEmit(Unit)
@@ -104,8 +106,7 @@ class DownloadManagerService private constructor(
     }
 
     private fun startQueueProcessor() {
-        if (isQueueProcessorRunning) return
-        isQueueProcessorRunning = true
+        if (!isQueueProcessorRunning.compareAndSet(false, true)) return
         serviceScope.launch {
             try {
                 // Trigger immediately on start
@@ -157,7 +158,7 @@ class DownloadManagerService private constructor(
                         
                         val threshold = AppSettings.earlyStartThreshold
                         val almostFinishedCount = if (threshold in 90..99) {
-                            processingIds.count { id -> (activeProgresses[id] ?: 0) in threshold..99 }
+                            processingIds.filter { it !in forcedDownloadIds }.count { id -> (activeProgresses[id] ?: 0) in threshold..99 }
                         } else {
                             0
                         }
@@ -193,7 +194,7 @@ class DownloadManagerService private constructor(
                     }
                 }
             } finally {
-                isQueueProcessorRunning = false
+                isQueueProcessorRunning.set(false)
             }
         }
     }
@@ -228,57 +229,65 @@ class DownloadManagerService private constructor(
                     }
                 }
 
-                if (existingId == null) {
-                    val existing = storageService.getDownloadsByUrl(url)
-                    val inProgress = existing.find { !it.isCompleted && !it.isPaused && it.speed != "FAILED" && !it.title.startsWith(Config.STATUS_FAILED_PREFIX) }
-                    if (inProgress != null) {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(application, application.getString(R.string.downloads_toast_already_in_progress), Toast.LENGTH_SHORT).show()
+                var provisionalTitle: String = ""
+                
+                startDownloadMutex.withLock {
+                    if (existingId == null) {
+                        val existing = storageService.getDownloadsByUrl(url)
+                        val inProgress = existing.find { !it.isCompleted && !it.isPaused && it.speed != "FAILED" && !it.title.startsWith(Config.STATUS_FAILED_PREFIX) }
+                        if (inProgress != null) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(application, application.getString(R.string.downloads_toast_already_in_progress), Toast.LENGTH_SHORT).show()
+                            }
+                            return@launch
                         }
-                        return@launch
-                    }
 
-                    if (!AppSettings.allowDuplicateDownloads) {
-                        val completed = existing.find { it.isCompleted }
-                        if (completed != null) {
-                            val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(application, completed.title, completed.id, completed.format)
-                            if (file.exists()) {
-                                withContext(Dispatchers.Main) {
-                                    Toast.makeText(application, application.getString(R.string.downloads_toast_already_downloaded), Toast.LENGTH_SHORT).show()
+                        if (!AppSettings.allowDuplicateDownloads) {
+                            val completed = existing.find { it.isCompleted }
+                            if (completed != null) {
+                                val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(application, completed.title, completed.id, completed.format)
+                                if (file.exists()) {
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(application, application.getString(R.string.downloads_toast_already_downloaded), Toast.LENGTH_SHORT).show()
+                                    }
+                                    return@launch
                                 }
-                                return@launch
                             }
                         }
+
+                        var resolvedTitle = passedTitle
+                        var resolvedThumbnail = passedThumbnailUrl
+
+                        // FAST PATH: Insert the download IMMEDIATELY with a provisional title
+                        // so the user sees it in the queue right away. Title/thumbnail are
+                        // resolved in the BACKGROUND while the download may already start.
+                        provisionalTitle = passedTitle?.takeIf { it.isNotEmpty() && it != Config.TITLE_PROCESSING_LINK && it != Config.TITLE_ANALYZING_SHARED }
+                            ?: generateProvisionalTitle(url)
+
+                        val record = DownloadRecord(
+                            title = provisionalTitle,
+                            url = url,
+                            isCompleted = false,
+                            format = format,
+                            quality = quality,
+                            progress = 0,
+                            size = Config.STATUS_QUEUED,
+                            thumbnailUrl = passedThumbnailUrl,
+                            speed = Config.STATUS_WAITING
+                        )
+                        newId = storageService.insertDownload(record)
+                        if (isForced) {
+                            forcedDownloadIds.add(newId!!)
+                        }
                     }
+                } // end withLock
 
-                    var resolvedTitle = passedTitle
-                    var resolvedThumbnail = passedThumbnailUrl
-
-                    // FAST PATH: Insert the download IMMEDIATELY with a provisional title
-                    // so the user sees it in the queue right away. Title/thumbnail are
-                    // resolved in the BACKGROUND while the download may already start.
-                    val provisionalTitle = passedTitle?.takeIf { it.isNotEmpty() && it != Config.TITLE_PROCESSING_LINK && it != Config.TITLE_ANALYZING_SHARED }
-                        ?: generateProvisionalTitle(url)
-
-                    val record = DownloadRecord(
-                        title = provisionalTitle,
-                        url = url,
-                        isCompleted = false,
-                        format = format,
-                        quality = quality,
-                        progress = 0,
-                        size = Config.STATUS_QUEUED,
-                        thumbnailUrl = passedThumbnailUrl,
-                        speed = Config.STATUS_WAITING
-                    )
-                    newId = storageService.insertDownload(record)
-                    if (isForced) {
-                        forcedDownloadIds.add(newId)
-                    }
-
+                if (existingId == null) {
                     // Trigger queue IMMEDIATELY so download can start while we resolve title
                     triggerQueue()
 
+                    val capturedProvisionalTitle = provisionalTitle
+                    val safeNewId = newId!!
                     // Background title/thumbnail resolution and caching (non-blocking, short timeout)
                     serviceScope.launch {
                         var resolvedTitleBg: String? = null
@@ -294,15 +303,15 @@ class DownloadManagerService private constructor(
                             }
                         }
 
-                        val localThumb = com.fabian.downloader.utils.PathUtils.saveThumbnail(application, resolvedThumbnailBg, newId)
+                        val localThumb = com.fabian.downloader.utils.PathUtils.saveThumbnail(application, resolvedThumbnailBg, safeNewId)
                         val finalTitle = if (!resolvedTitleBg.isNullOrEmpty() && resolvedTitleBg != Config.TITLE_PROCESSING_LINK && resolvedTitleBg != Config.TITLE_ANALYZING_SHARED) {
                             resolvedTitleBg
                         } else {
-                            provisionalTitle
+                            capturedProvisionalTitle
                         }
 
-                        if (finalTitle != provisionalTitle || localThumb != passedThumbnailUrl) {
-                            storageService.updateDownloadInfoWithThumbnail(newId, finalTitle, Config.STATUS_QUEUED, localThumb)
+                        if (finalTitle != capturedProvisionalTitle || localThumb != passedThumbnailUrl) {
+                            storageService.updateDownloadInfoWithThumbnail(safeNewId, finalTitle, Config.STATUS_QUEUED, localThumb)
                         }
                     }
                 } else {
@@ -746,28 +755,7 @@ class DownloadManagerService private constructor(
     }
 
     private fun sanitizeFileName(title: String): String {
-        var sanitized = title.replace(Regex("[\\\\/:*?\"<>|]"), "_").trim()
-        // Remove control characters and leading/trailing dots/spaces (Windows doesn't like them)
-        sanitized = sanitized.replace(Regex("[\\x00-\\x1f]"), "").trim().trim('.')
-        if (sanitized.isEmpty()) {
-            sanitized = "download"
-        }
-        // Avoid Windows-reserved names (in case of cloud sync to Windows)
-        val nameWithoutExt = sanitized.substringBeforeLast('.')
-        if (Config.RESERVED_FILENAMES.contains(nameWithoutExt.uppercase())) {
-            sanitized = "_" + sanitized
-        }
-        // Limit total length to avoid filesystem issues
-        if (sanitized.length > Config.MAX_FILENAME_LENGTH) {
-            val ext = sanitized.substringAfterLast('.', "")
-            val namePart = sanitized.substringBeforeLast('.')
-            sanitized = if (ext.isNotEmpty()) {
-                namePart.take(Config.MAX_FILENAME_LENGTH - ext.length - 1) + "." + ext
-            } else {
-                namePart.take(Config.MAX_FILENAME_LENGTH)
-            }
-        }
-        return sanitized
+        return com.fabian.downloader.utils.PathUtils.sanitizeFileName(title)
     }
 
     private fun registerSettingsListener() {

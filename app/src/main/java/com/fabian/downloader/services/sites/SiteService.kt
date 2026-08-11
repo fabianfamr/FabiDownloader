@@ -9,6 +9,8 @@ interface SiteService {
     val brandColorHex: String
     val iconName: String
     val supportedUrlPatterns: List<String>
+    val supportedFormats: List<String> 
+        get() = listOf(com.fabian.downloader.configs.Config.FORMAT_MP4, com.fabian.downloader.configs.Config.FORMAT_MP3, com.fabian.downloader.configs.Config.FORMAT_M4A)
 
     fun canHandle(url: String): Boolean {
         try {

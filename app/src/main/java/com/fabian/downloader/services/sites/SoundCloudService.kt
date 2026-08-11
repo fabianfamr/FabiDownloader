@@ -9,6 +9,7 @@ class SoundCloudService : BaseSiteService() {
     override val brandColorHex: String = "#FF5500"
     override val iconName: String = "soundcloud"
     override val supportedUrlPatterns: List<String> = listOf("soundcloud.com")
+    override val supportedFormats: List<String> = listOf(Config.FORMAT_MP3, Config.FORMAT_M4A)
 
     override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         super.customizeExtractorRequest(request, url)

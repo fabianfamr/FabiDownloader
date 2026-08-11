@@ -41,15 +41,7 @@ abstract class BaseSiteService : SiteService {
 
     open fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
         // Downloader-only options (not needed for extraction)
-        // Note: socket-timeout, retries, fragment-retries are already set by YtdlpDownloader.createRequest()
-        // We only add site-specific overrides here to avoid duplicate options
-        request.addOption("--no-overwrites")
-        request.addOption("--no-mtime")
-        request.addOption("--referer", Config.REFERER_DEFAULT)
-        if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
-            request.addOption("--no-check-certificate")
-        }
-        request.addOption("--no-check-formats")
+        // Site-specific overrides can be added here by subclasses.
     }
 
     override suspend fun extractMetadata(url: String): InfoMedia? {

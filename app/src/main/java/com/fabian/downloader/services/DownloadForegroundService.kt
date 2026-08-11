@@ -11,6 +11,7 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.fabian.downloader.configs.Config
 import com.fabian.downloader.R
+import kotlinx.coroutines.launch
 
 class DownloadForegroundService : Service() {
 
@@ -55,12 +56,12 @@ class DownloadForegroundService : Service() {
         promoteToForeground()
         
         if (intent == null) {
-            Thread {
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                 val hasActive = DownloadManagerService.getInstance(applicationContext).hasActiveDownloads()
                 if (!hasActive) {
                     stopSelf()
                 }
-            }.start()
+            }
             return START_STICKY
         }
         return START_STICKY

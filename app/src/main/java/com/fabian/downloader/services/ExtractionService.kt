@@ -465,7 +465,7 @@ class ExtractionService {
 
         val res = ExtractedVideo(
             title = title,
-            availableFormats = listOf(Config.FORMAT_MP4, Config.FORMAT_MP3, Config.FORMAT_M4A),
+            availableFormats = service.supportedFormats,
             size = sizeStr,
             thumbnailUrl = thumbnailUrl,
             formatSizes = formatSizes,
