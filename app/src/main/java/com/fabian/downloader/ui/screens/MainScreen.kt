@@ -259,55 +259,6 @@ fun MainScreen(
                 .padding(horizontal = 20.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header (exactly as React App.tsx)
-            AnimatedVisibility(
-                visible = headerVisible,
-                enter = fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing)) + slideInVertically(
-                    initialOffsetY = { -20 },
-                    animationSpec = tween(300, easing = FastOutSlowInEasing)
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp, bottom = 32.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(34.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(C_accentDim)
-                                .border(1.dp, C_accentGlow, RoundedCornerShape(10.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Download,
-                                contentDescription = null,
-                                tint = C_accent,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                        Column {
-                            Text(
-                                text = stringResource(R.string.main_app_title),
-                                color = C_white,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                lineHeight = 1.2.sp
-                            )
-                        }
-                    }
-
-
-                }
-            }
-
             // Hero Text Section
             AnimatedVisibility(
                 visible = searchBarVisible,
@@ -325,42 +276,11 @@ fun MainScreen(
                             .graphicsLayer { translationY = floatY },
                         contentAlignment = Alignment.Center
                     ) {
-                        // Edge glow aura ("brillito por los bordes")
-                        Box(
-                            modifier = Modifier
-                                .size(96.dp)
-                                .clip(RoundedCornerShape(30.dp))
-                                .background(
-                                    Brush.radialGradient(
-                                        colors = listOf(
-                                            C_accentGlow.copy(alpha = 0.6f),
-                                            C_accent.copy(alpha = 0.25f),
-                                            Color.Transparent
-                                        )
-                                    )
-                                )
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_app_logo),
+                            contentDescription = stringResource(R.string.main_app_title),
+                            modifier = Modifier.size(120.dp)
                         )
-                        // Inner container
-                        Box(
-                            modifier = Modifier
-                                .size(86.dp)
-                                .clip(RoundedCornerShape(26.dp))
-                                .background(
-                                    Brush.linearGradient(
-                                        colors = listOf(
-                                            C_accentDim.copy(alpha = 0.85f),
-                                            C_card2.copy(alpha = 0.95f)
-                                        )
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_app_logo),
-                                contentDescription = stringResource(R.string.main_app_title),
-                                modifier = Modifier.size(72.dp)
-                            )
-                        }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -373,52 +293,9 @@ fun MainScreen(
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
                         textAlign = TextAlign.Center,
-                        lineHeight = 1.3.sp
+                        lineHeight = 1.3.sp,
+                        modifier = Modifier.padding(bottom = 24.dp)
                     )
-                    Text(
-                        text = stringResource(R.string.main_paste_link_subtitle),
-                        color = C_gray1,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
-                    )
-
-                    // Platform badges (mini inline indicators)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 28.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.main_detecting_prefix),
-                            color = C_gray1,
-                            fontSize = 14.sp
-                        )
-                        platforms.forEach { p ->
-                            Box(
-                                modifier = Modifier
-                                    .size(18.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(p.color.copy(alpha = 0.3f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = p.icon,
-                                    contentDescription = null,
-                                    tint = C_white,
-                                    modifier = Modifier.size(10.dp)
-                                )
-                            }
-                        }
-                        Text(
-                            text = stringResource(R.string.main_detecting_suffix),
-                            color = C_gray1,
-                            fontSize = 14.sp
-                        )
-                    }
                 }
             }
 
@@ -597,9 +474,9 @@ fun MainScreen(
                             AnalyzeState.Loading -> C_accent.copy(alpha = 0.5f)
                             else -> if (isQueryValid) C_accent else C_card2
                         },
-                        contentColor = if (isQueryValid || analyzeState != AnalyzeState.Idle) Color(0xFF0A0A0C) else C_gray2,
+                        contentColor = if (isQueryValid || analyzeState != AnalyzeState.Idle) Color(0xFF0A0A0C) else C_white.copy(alpha = 0.45f),
                         disabledContainerColor = C_card2,
-                        disabledContentColor = C_gray2
+                        disabledContentColor = C_white.copy(alpha = 0.35f)
                     ),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
                     contentPadding = PaddingValues(0.dp)
