@@ -350,15 +350,15 @@ class YtdlpDownloader {
         // Respect autoRetry setting: if disabled, only attempt level 0 (no fallbacks)
         val autoRetry = com.fabian.downloader.ui.AppSettings.autoRetry
 
-        val connService = com.fabian.downloader.network.ConnectionService()
-
-        fun isNetworkOrTemporaryError(e: Exception, line: String): Boolean {
+        val connService = com.fabian.downloader.network.ConnectionSe        fun isNetworkOrTemporaryError(e: Throwable, line: String): Boolean {
+            if (e is java.io.InterruptedIOException) return true
             val lowerMsg = (e.message ?: "").lowercase()
             val lowerLine = line.lowercase()
             val keywords = listOf(
                 "timeout", "time out", "connection", "unable to resolve host", 
                 "network is unreachable", "502", "503", "504", "429", 
-                "read error", "connection reset", "ssl", "socket", "try again"
+                "read error", "connection reset", "ssl", "socket", "try again",
+                "interrupted", "quickjs", "solving js challenges", "streamgobbler"
             )
             return keywords.any { lowerMsg.contains(it) || lowerLine.contains(it) }
         }
@@ -379,15 +379,15 @@ class YtdlpDownloader {
                         lastLine = line
                         val lowerLine = line.lowercase()
                         val isPostProcLine = lowerLine.contains("[extractaudio]") ||
-                                lowerLine.contains("[merger]") ||
-                                lowerLine.contains("[videoconvertor]") ||
-                                lowerLine.contains("[ffmpeg]") ||
-                                lowerLine.contains("[fixup") ||
-                                lowerLine.contains("[postprocessor]") ||
-                                lowerLine.contains("[embed") ||
-                                lowerLine.contains("[sponsorblock]") ||
-                                lowerLine.contains("deleting original file") ||
-                                progreso >= 100f
+                                 lowerLine.contains("[merger]") ||
+                                 lowerLine.contains("[videoconvertor]") ||
+                                 lowerLine.contains("[ffmpeg]") ||
+                                 lowerLine.contains("[fixup") ||
+                                 lowerLine.contains("[postprocessor]") ||
+                                 lowerLine.contains("[embed") ||
+                                 lowerLine.contains("[sponsorblock]") ||
+                                 lowerLine.contains("deleting original file") ||
+                                 progreso >= 100f
 
                         if (isPostProcLine && !holdsPostProcLock) {
                             try {
@@ -430,15 +430,23 @@ class YtdlpDownloader {
                 } catch (e: Throwable) {
                     val lowerMsg = (e.message ?: "").lowercase()
                     val lowerLast = lastLine.lowercase()
-                    val isCancelledBySystem = e is kotlinx.coroutines.CancellationException || !isActive ||
-                            lowerMsg.contains("destroy") || lowerMsg.contains("interrupted") || lowerMsg.contains("killed") ||
-                            lowerMsg.contains("cancel") || lowerLast.contains("interrupted") || lowerLast.contains("killed")
+                    
+                    // Solo tratar como cancelación explícita del usuario si la corrutina no está activa
+                    // o e es CancellationException o la acción fue 'cancel'/'destroy'.
+                    // InterruptedIOException cuando isActive es true es una interrupción I/O recuperable.
+                    val isExplicitCancel = (e is kotlinx.coroutines.CancellationException) || !isActive ||
+                            lowerMsg.contains("destroy") || lowerMsg.contains("cancel")
 
-                    if (isCancelledBySystem) {
+                    if (isExplicitCancel) {
                         throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
                     }
                     
                     attempt++
+                    Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt/$maxAttempts fallido para nivel $level (${e.javaClass.simpleName}: ${e.message}). Notificando reintento...")
+                    
+                    // Notificar a la UI y a Room DB que estamos reintentando
+                    alProgresar(-1f, Config.STATUS_DOWNLOADING, Config.STATUS_RETRYING)
+                    
                     val isCorruptBinary = lowerMsg.contains("zipimport") || lowerLast.contains("zipimport") ||
                                           lowerMsg.contains("bad local file header") || lowerLast.contains("bad local file header") ||
                                           lowerMsg.contains("cannot link executable") || lowerLast.contains("cannot link executable") ||
@@ -451,16 +459,17 @@ class YtdlpDownloader {
                     } else if (lowerMsg.contains("player api") || lowerLast.contains("player api") ||
                         lowerMsg.contains("ios") || lowerLast.contains("ios") ||
                         lowerMsg.contains("requested format") || lowerLast.contains("requested format") ||
-                        lowerMsg.contains("format is not available") || lowerLast.contains("format is not available")) {
-                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectada incompatibilidad de API/formato en YouTube. Intentando refrescar binario yt-dlp...")
+                        lowerMsg.contains("format is not available") || lowerLast.contains("format is not available") ||
+                        lowerMsg.contains("quickjs") || lowerLast.contains("quickjs")) {
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectada incompatibilidad de API/extractor en YouTube. Intentando refrescar binario yt-dlp...")
                         com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(com.fabian.downloader.MyApplication.getInstance())
                     }
 
                     val hasInternet = connService.checkConnection()
-                    val isNetworkError = !hasInternet || isNetworkOrTemporaryError(Exception(e), lastLine)
+                    val isNetworkOrIoError = !hasInternet || isNetworkOrTemporaryError(e, lastLine)
 
-                    if (isNetworkError && attempt < maxAttempts) {
-                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido por inestabilidad de red. Esperando hasta 15 segundos para recuperación...")
+                    if (isNetworkOrIoError && attempt < maxAttempts) {
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido por error de red/I/O. Esperando recuperación de red...")
                         var secondsWaited = 0
                         while (secondsWaited < 15 && !connService.checkConnection()) {
                             if (!isActive) throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
@@ -469,8 +478,9 @@ class YtdlpDownloader {
                         }
                         
                         if (connService.checkConnection()) {
-                            Log.i(Config.TAG_YTDLP_DOWNLOADER, "¡Red restablecida tras $secondsWaited segundos! Reintentando el mismo nivel $level (intento ${attempt + 1})...")
+                            Log.i(Config.TAG_YTDLP_DOWNLOADER, "Reintentando el mismo nivel $level (intento ${attempt + 1})...")
                             cleanupBeforeRetry()
+                            kotlinx.coroutines.delay(1000)
                             continue
                         }
                     }
@@ -478,10 +488,9 @@ class YtdlpDownloader {
                     if (attempt >= maxAttempts) {
                         onFailAction(Exception(e))
                     } else {
-                        // For non-network errors or if network didn't recover, wait 2s and retry or fallback
                         Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido. Reintentando en 2 segundos...")
-                        kotlinx.coroutines.delay(2000)
                         cleanupBeforeRetry()
+                        kotlinx.coroutines.delay(2000)
                     }
                 } finally {
                     if (holdsPostProcLock) {
@@ -499,6 +508,7 @@ class YtdlpDownloader {
             val success0 = executeWithRetry(0) { e ->
                 Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1...")
                 executionError = e
+                alProgresar(-1f, Config.STATUS_DOWNLOADING, Config.STATUS_RETRYING)
                 cleanupBeforeRetry()
             }
             if (success0) return@withContext true
@@ -507,6 +517,7 @@ class YtdlpDownloader {
             val success1 = executeWithRetry(1) { e ->
                 Log.w(Config.TAG_YTDLP_DOWNLOADER, "Segundo nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 2...")
                 executionError = e
+                alProgresar(-1f, Config.STATUS_DOWNLOADING, Config.STATUS_RETRYING)
                 cleanupBeforeRetry()
             }
             if (success1) return@withContext true
@@ -515,6 +526,7 @@ class YtdlpDownloader {
             val success2 = executeWithRetry(2) { e ->
                 Log.w(Config.TAG_YTDLP_DOWNLOADER, "Tercer nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 3 (best/b)...")
                 executionError = e
+                alProgresar(-1f, Config.STATUS_DOWNLOADING, Config.STATUS_RETRYING)
                 cleanupBeforeRetry()
             }
             if (success2) return@withContext true
@@ -525,7 +537,7 @@ class YtdlpDownloader {
                 val errorMessage = lastLine.ifEmpty { e.message ?: executionError?.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
                 throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
             }
-            return@withContext success3
+            return@withContext success3hContext success3
         } finally {
             try {
                 YoutubeDL.getInstance().destroyProcessById(processId)

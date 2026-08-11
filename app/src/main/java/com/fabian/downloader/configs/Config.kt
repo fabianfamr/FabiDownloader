@@ -51,6 +51,7 @@ object Config {
     const val STATUS_WAITING = "Esperando..."
     const val STATUS_CONNECTING = "Conectando..."
     const val STATUS_DOWNLOADING = "Descargando..."
+    const val STATUS_RETRYING = "Reintentando..."
     const val STATUS_COMPLETED = "Completado"
     const val STATUS_CALCULATING = "Calculando..."
     const val STATUS_FINALIZING = "Finalizando..."
