@@ -83,9 +83,9 @@ class YtdlpDownloader {
 
             if (isYoutube) {
                 when (fallbackLevel) {
-                    0 -> addOption("--extractor-args", "youtube:player_client=android,mweb")
-                    1 -> addOption("--extractor-args", "youtube:player_client=mweb,tv")
-                    2 -> addOption("--extractor-args", "youtube:player_client=ios,web")
+                    0 -> addOption("--extractor-args", "youtube:player_client=tv,mweb")
+                    1 -> addOption("--extractor-args", "youtube:player_client=ios,web")
+                    2 -> addOption("--extractor-args", "youtube:player_client=mweb,default")
                     3 -> addOption("--extractor-args", "youtube:player_client=android_creator,mweb")
                     else -> { /* omit player_client for raw yt-dlp fallback */ }
                 }
@@ -363,7 +363,8 @@ class YtdlpDownloader {
                 "timeout", "time out", "connection", "unable to resolve host", 
                 "network is unreachable", "502", "503", "504", "429", 
                 "read error", "connection reset", "ssl", "socket", "try again",
-                "interrupted", "quickjs", "solving js challenges", "streamgobbler"
+                "interrupted", "quickjs", "solving js challenges", "streamgobbler",
+                "process id already exists"
             )
             return keywords.any { lowerMsg.contains(it) || lowerLine.contains(it) }
         }
