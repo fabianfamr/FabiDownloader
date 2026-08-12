@@ -358,15 +358,16 @@ class YtdlpDownloader {
         fun isNetworkOrTemporaryError(e: Throwable, line: String): Boolean {
             if (e is java.io.InterruptedIOException) return true
             val lowerMsg = (e.message ?: "").lowercase()
+            val lowerClass = e.javaClass.name.lowercase()
             val lowerLine = line.lowercase()
             val keywords = listOf(
                 "timeout", "time out", "connection", "unable to resolve host", 
                 "network is unreachable", "502", "503", "504", "429", 
                 "read error", "connection reset", "ssl", "socket", "try again",
                 "interrupted", "quickjs", "solving js challenges", "streamgobbler",
-                "process id already exists"
+                "process id already exists", "canceledexception", "canceled"
             )
-            return keywords.any { lowerMsg.contains(it) || lowerLine.contains(it) }
+            return keywords.any { lowerMsg.contains(it) || lowerClass.contains(it) || lowerLine.contains(it) }
         }
 
         suspend fun executeWithRetry(
@@ -438,10 +439,8 @@ class YtdlpDownloader {
                     val lowerLast = lastLine.lowercase()
                     
                     // Solo tratar como cancelación explícita del usuario si la corrutina no está activa
-                    // o e es CancellationException o la acción fue 'cancel'/'destroy'.
-                    // InterruptedIOException cuando isActive es true es una interrupción I/O recuperable.
-                    val isExplicitCancel = (e is kotlinx.coroutines.CancellationException) || !isActive ||
-                            lowerMsg.contains("destroy") || lowerMsg.contains("cancel")
+                    // o e es CancellationException.
+                    val isExplicitCancel = (e is kotlinx.coroutines.CancellationException) || !isActive
 
                     if (isExplicitCancel) {
                         throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
