@@ -62,9 +62,9 @@ class DownloadForegroundService : Service() {
                     stopSelf()
                 }
             }
-            return START_STICKY
+            return START_NOT_STICKY
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     private fun promoteToForeground() {
@@ -82,6 +82,9 @@ class DownloadForegroundService : Service() {
                         startForeground(NOTIFICATION_ID, notification)
                     } catch (e2: Exception) {
                         android.util.Log.w("DownloadService", "ForegroundServiceStartNotAllowedException at startForeground", e2)
+                        @Suppress("DEPRECATION")
+                        stopForeground(true)
+                        stopSelf()
                     }
                 }
             } else {
@@ -90,6 +93,8 @@ class DownloadForegroundService : Service() {
         } catch (e: Throwable) {
             android.util.Log.e("DownloadService", "Error calling startForeground in DownloadForegroundService", e)
             try {
+                @Suppress("DEPRECATION")
+                stopForeground(true)
                 stopSelf()
             } catch (_: Exception) {}
         }

@@ -33,6 +33,7 @@ abstract class BaseSiteService : SiteService {
         request.addOption("--no-warnings")
         request.addOption("--socket-timeout", "10")
         request.addOption("--retries", "5")
+        request.addOption("--extractor-args", "youtube:player_client=android")
         if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
             request.addOption("--no-check-certificate")
         }
@@ -41,6 +42,7 @@ abstract class BaseSiteService : SiteService {
 
     open fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
         // Downloader-only options (not needed for extraction)
+        request.addOption("--extractor-args", "youtube:player_client=android")
         // Site-specific overrides can be added here by subclasses.
     }
 
