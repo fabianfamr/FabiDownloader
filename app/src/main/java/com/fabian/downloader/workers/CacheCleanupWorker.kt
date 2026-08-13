@@ -69,7 +69,7 @@ class CacheCleanupWorker(
         }
     }
 
-    private fun cleanTempDownloadFiles(context: Context) {
+    private suspend fun cleanTempDownloadFiles(context: Context) {
         val formats = listOf("MP4", "MP3", "M4A", "WEBM")
         val folders = formats.mapNotNull {
             try {

@@ -76,6 +76,7 @@ fun SharePopupScreen(
     onNavigateToDownloads: (() -> Unit)? = null
 ) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
+    val fColors = LocalFabiColors.current
     val cleanUrl = remember(url) { extractUrl(url) }
     
     // Extraction states

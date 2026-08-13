@@ -117,7 +117,8 @@ object PathUtils {
                 configuredDir
             } else {
                 File(configuredDir, subfolderName)
-            }            if (isWritableDir(finalFolder)) {
+            }
+            if (isWritableDir(finalFolder)) {
                 android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified configured folder: ${finalFolder.absolutePath}")
                 cachedFolders[relativeSubfolder] = finalFolder
                 return finalFolder
@@ -158,7 +159,7 @@ object PathUtils {
                 cachedFolders[relativeSubfolder] = targetFolder
                 return targetFolder
             }
-        }      }
+        }
  
         val appExternalDownloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
         if (appExternalDownloadDir != null) {

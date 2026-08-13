@@ -18,12 +18,13 @@ class YtdlpDownloader {
         private val postProcessingSemaphore = java.util.concurrent.Semaphore(1, true)
 
         fun resolveUserFacingError(e: Throwable, lastLine: String): String {
-            val msg = e.message ?: ""
+            val actualException = if (e is Exception && e.cause != null && e.message?.contains(e.cause!!.javaClass.name) == true) e.cause!! else e
+            val msg = actualException.message ?: e.message ?: ""
             val lowerMsg = msg.lowercase()
-            val lowerClass = e.javaClass.name.lowercase()
+            val lowerClass = actualException.javaClass.name.lowercase()
             val lowerLine = lastLine.lowercase()
 
-            if (lowerClass.contains("youtubedlexception") || lowerClass.contains("youtubedl")) {
+            if (lowerClass.contains("youtubedlexception") || lowerClass.contains("youtubedl") || lowerMsg.contains("youtubedl")) {
                 if (lowerMsg.contains("process id already exists")) {
                     return "Proceso atascado. Por favor, reintente la descarga."
                 }
@@ -42,7 +43,7 @@ class YtdlpDownloader {
                 return "Error de YT-DLP: ${msg.take(40)}..."
             }
             
-            if (e is java.io.InterruptedIOException || lowerClass.contains("interruptedioexception")) {
+            if (actualException is java.io.InterruptedIOException || lowerClass.contains("interruptedioexception") || lowerMsg.contains("interrupted")) {
                 return "Conexión interrumpida inesperadamente. Pulse reintentar."
             }
             
@@ -534,7 +535,7 @@ class YtdlpDownloader {
                     }
 
                     if (attempt >= maxAttempts) {
-                        onFailAction(Exception(e))
+                        onFailAction(if (e is Exception) e else Exception(e))
                     } else {
                         Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido. Reintentando en 2 segundos...")
                         cleanupBeforeRetry(isNetworkRetry = true)

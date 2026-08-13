@@ -6,6 +6,7 @@ import com.yausername.youtubedl_android.YoutubeDLRequest
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.isActive
 import org.json.JSONObject
 
 data class InfoMedia(
@@ -87,7 +88,7 @@ class YtdlpExtractor {
                     com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(com.fabian.downloader.MyApplication.getInstance())
                 }
             } finally {
-                if (!kotlinx.coroutines.isActive) {
+                if (!isActive) {
                     try { YoutubeDL.getInstance().destroyProcessById(processId) } catch (_: Exception) {}
                 }
             }
@@ -134,7 +135,7 @@ class YtdlpExtractor {
             Log.e(Config.TAG_YTDLP_EXTRACTOR, "Error extracting playlist info: ${e.message}", e)
             null
         } finally {
-            if (!kotlinx.coroutines.isActive) {
+            if (!isActive) {
                 try { YoutubeDL.getInstance().destroyProcessById(processId) } catch (_: Exception) {}
             }
         }
