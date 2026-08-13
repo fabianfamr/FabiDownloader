@@ -51,7 +51,7 @@ jobs:
           keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
 
       - name: Build Debug App for CodeQL
-        run: ./gradlew assembleDebug -x test
+        run: ./gradlew clean assembleDebug -x test --no-daemon --no-build-cache --no-configuration-cache --max-workers=1
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
