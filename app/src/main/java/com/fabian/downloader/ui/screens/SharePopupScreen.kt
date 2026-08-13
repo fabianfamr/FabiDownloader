@@ -88,9 +88,10 @@ fun SharePopupScreen(
     var isLoading by remember { mutableStateOf(true) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
     var showDownloadStartedDialog by remember { mutableStateOf(false) }
+    var retryTrigger by remember { mutableStateOf(0) }
     
     // Trigger metadata extraction when dialog opens
-    LaunchedEffect(cleanUrl) {
+    LaunchedEffect(cleanUrl, retryTrigger) {
         if (cleanUrl.isEmpty()) {
             errorMsg = ctx.getString(R.string.share_error_empty)
             isLoading = false
@@ -249,10 +250,15 @@ fun SharePopupScreen(
     val platformColor = platformInfo.second
     val platformIcon = platformInfo.first
     
-    val fColors = MaterialTheme.fabiColors
-    
+    val handleClose: () -> Unit = remember(onClose) {
+        {
+            com.fabian.downloader.services.sites.BaseSiteService.cancelAllExtractions()
+            onClose()
+        }
+    }
+
     ModalBottomSheet(
-        onDismissRequest = onClose,
+        onDismissRequest = handleClose,
         sheetState = sheetState,
         containerColor = fColors.sheet,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
@@ -289,7 +295,7 @@ fun SharePopupScreen(
                 )
                 
                 IconButton(
-                    onClick = onClose,
+                    onClick = handleClose,
                     modifier = Modifier
                         .size(36.dp)
                         .background(fColors.cardSecondary, CircleShape)
@@ -322,11 +328,7 @@ fun SharePopupScreen(
                             onRetry = {
                                 isLoading = true
                                 errorMsg = null
-                                kotlin.concurrent.thread {
-                                    try {
-                                        errorMsg = null
-                                    } catch(e: Exception) {}
-                                }
+                                retryTrigger++
                             },
                             onQuickDownload = {
                                 val allOptions = musicOptions + videoOptions

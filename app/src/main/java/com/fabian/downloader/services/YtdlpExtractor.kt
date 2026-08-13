@@ -51,7 +51,6 @@ class YtdlpExtractor {
                 
                 addOption("--no-check-formats")
                 addOption("--referer", Config.REFERER_DEFAULT)
-                addOption("--force-ipv4")
                 if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
                     addOption("--no-check-certificate")
                 }
@@ -66,9 +65,10 @@ class YtdlpExtractor {
         val clientOptions: List<String?> = listOf("android,mweb,ios", "ios,mweb", "tv,android_creator,mweb", "android_creator,ios,tv,web", null)
 
         for (client in clientOptions) {
+            val processId = java.util.UUID.randomUUID().toString()
             try {
                 val request = createExtractorRequest(client)
-                val response = YoutubeDL.getInstance().execute(request)
+                val response = YoutubeDL.getInstance().execute(request, processId)
                 val jsonRaw = response.out ?: continue
                 val json = JSONObject(jsonRaw)
 
@@ -86,6 +86,10 @@ class YtdlpExtractor {
                 } else if (msg.contains("player api") || msg.contains("web player api") || msg.contains("ios") || msg.contains("format") || msg.contains("bot")) {
                     com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(com.fabian.downloader.MyApplication.getInstance())
                 }
+            } finally {
+                if (!kotlinx.coroutines.isActive) {
+                    try { YoutubeDL.getInstance().destroyProcessById(processId) } catch (_: Exception) {}
+                }
             }
         }
         return@withContext null
@@ -93,7 +97,7 @@ class YtdlpExtractor {
 
     suspend fun obtenerDetallesPlaylist(rawPlaylistUrl: String): JSONObject? = withContext(Dispatchers.IO) {
         com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
-        val playlistUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawPlaylistUrl)
+        val playlistUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawPlaylistUrl, keepPlaylistParams = true)
         val isYoutube = com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(playlistUrl)
         
         val request = YoutubeDLRequest(playlistUrl).apply {
@@ -113,7 +117,6 @@ class YtdlpExtractor {
             }
             
             addOption("--referer", Config.REFERER_DEFAULT)
-            addOption("--force-ipv4")
             addOption("--no-check-certificate")
             addOption("--geo-bypass")
             addOption("--quiet")
@@ -122,13 +125,18 @@ class YtdlpExtractor {
             addOption("--no-mtime")
         }
 
+        val processId = java.util.UUID.randomUUID().toString()
         try {
-            val response = YoutubeDL.getInstance().execute(request)
+            val response = YoutubeDL.getInstance().execute(request, processId)
             val jsonRaw = response.out ?: return@withContext null
             JSONObject(jsonRaw)
         } catch (e: Exception) {
             Log.e(Config.TAG_YTDLP_EXTRACTOR, "Error extracting playlist info: ${e.message}", e)
             null
+        } finally {
+            if (!kotlinx.coroutines.isActive) {
+                try { YoutubeDL.getInstance().destroyProcessById(processId) } catch (_: Exception) {}
+            }
         }
     }
 }

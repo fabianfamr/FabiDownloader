@@ -23,7 +23,7 @@ object DownloadAssemblyLine {
      * ESTACIÓN 1: RECEPCIÓN Y LIMPIEZA DEL ENLACE
      * Extrae la URL válida de cualquier texto o enlace compartido recibido por la app.
      */
-    fun station1_cleanUrl(rawUrl: String): String {
+    fun station1_cleanUrl(rawUrl: String, keepPlaylistParams: Boolean = false): String {
         val trimmed = rawUrl.trim()
         val regex = Regex("""https?://[^\s]+""")
         var clean = regex.find(trimmed)?.value ?: trimmed
@@ -33,7 +33,7 @@ object DownloadAssemblyLine {
             if (uri.isHierarchical && uri.queryParameterNames.isNotEmpty()) {
                 val trackingParams = setOf("utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "si", "fbclid", "igshid", "feature")
                 val isYoutube = com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(clean)
-                val ytParams = if (isYoutube && !com.fabian.downloader.ui.AppSettings.playlistEnabled) setOf("t", "time_continue", "list", "index") else if (isYoutube) setOf("t", "time_continue") else emptySet()
+                val ytParams = if (isYoutube && !keepPlaylistParams && !com.fabian.downloader.ui.AppSettings.playlistEnabled) setOf("t", "time_continue", "list", "index") else if (isYoutube) setOf("t", "time_continue") else emptySet()
                 
                 val builder = uri.buildUpon().clearQuery()
                 for (param in uri.queryParameterNames) {

@@ -105,6 +105,7 @@ class NotificationService(private val context: Context) {
 
         cancelPendingDismiss(id)
 
+        val showSpeed = com.fabian.downloader.ui.AppSettings.showDownloadSpeedInNotification
         val text = buildString {
             if (progress >= 0) {
                 append("$progress%")
@@ -115,6 +116,9 @@ class NotificationService(private val context: Context) {
                 } else {
                     append(size)
                 }
+            }
+            if (showSpeed && !speed.isNullOrEmpty() && speed != Config.STATUS_WAITING) {
+                append(" • $speed")
             }
         }
 
@@ -311,6 +315,40 @@ class NotificationService(private val context: Context) {
             .build()
 
         notificationManager.notify(id + 300000, notification) // ID diferente para no solapar con el progreso ya cancelado
+    }
+
+    fun showBatchCompleteNotification(count: Int) {
+        if (!com.fabian.downloader.ui.AppSettings.notifyBatchComplete) return
+        if (count <= 0) return
+
+        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+
+        val appIntent = Intent(context, com.fabian.downloader.MainActivity::class.java).apply {
+            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
+            putExtra(Config.EXTRA_INITIAL_PAGE, 0)
+        }
+        val appPendingIntent = PendingIntent.getActivity(
+            context,
+            9998,
+            appIntent,
+            flags
+        )
+
+        val notification = NotificationCompat.Builder(context, channelStatusId)
+            .setContentTitle(context.getString(R.string.notif_title_completed))
+            .setContentText("Lote completado: $count descargas finalizadas")
+            .setSmallIcon(R.drawable.ic_cloud_download)
+            .setAutoCancel(true)
+            .setOngoing(false)
+            .setContentIntent(appPendingIntent)
+            .build()
+
+        notificationManager.notify(9998, notification)
     }
 
     suspend fun showDownloadFailed(id: Int, title: String, errorMsg: String, thumbnailUrl: String? = null) {

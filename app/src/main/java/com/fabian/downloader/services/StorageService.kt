@@ -37,7 +37,9 @@ class StorageService(private val database: AppDatabase) {
         serviceScope.launch {
             while (true) {
                 delay(1500L) // Guarda en la BD cada 1.5 segundos los progresos acumulados
-                flushPendingWrites()
+                if (dirtyIds.isNotEmpty()) {
+                    flushPendingWrites()
+                }
             }
         }
     }
@@ -78,13 +80,14 @@ class StorageService(private val database: AppDatabase) {
         return database.downloadDao().getAllDownloads()
             .combine(activeProgressUpdates) { dbList, updates ->
                 dbList.map { record ->
-                    if (!record.isCompleted) {
+                    val isActiveOrQueued = !record.isCompleted && !record.isPaused && !record.size.startsWith(Config.STATUS_FAILED_PREFIX)
+                    if (isActiveOrQueued) {
                         memoryCache[record.id] = record
                     } else {
                         memoryCache.remove(record.id)
                     }
                     val update = updates[record.id]
-                    if (update != null && !record.isCompleted) {
+                    if (update != null && isActiveOrQueued) {
                         val merged = record.copy(
                             progress = update.progress,
                             size = update.size,

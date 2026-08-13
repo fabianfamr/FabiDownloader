@@ -11,7 +11,7 @@ object NetworkClient {
             .readTimeout(30, TimeUnit.SECONDS)      // Increased from 15s for slow servers
             .writeTimeout(30, TimeUnit.SECONDS)
             .addInterceptor(okhttp3.logging.HttpLoggingInterceptor().apply {
-                level = okhttp3.logging.HttpLoggingInterceptor.Level.BASIC
+                level = okhttp3.logging.HttpLoggingInterceptor.Level.NONE
             })
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()

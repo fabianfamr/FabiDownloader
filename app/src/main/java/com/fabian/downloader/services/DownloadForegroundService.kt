@@ -143,8 +143,9 @@ class DownloadForegroundService : Service() {
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
         try {
-            val hasActive = DownloadManagerService.getInstance(applicationContext).hasActiveDownloads()
-            if (!hasActive) {
+            val manager = DownloadManagerService.getInstance(applicationContext)
+            if (!manager.hasActiveDownloads()) {
+                manager.onAppClosed()
                 stopSelf()
             } else {
                 android.util.Log.i("DownloadService", "La app se cerró de recientes pero hay descargas activas. El servicio en segundo plano continúa en ejecución.")

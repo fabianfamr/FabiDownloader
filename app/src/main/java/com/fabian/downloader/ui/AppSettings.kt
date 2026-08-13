@@ -18,7 +18,9 @@ object AppSettings {
 
     fun addListener(listener: (String) -> Unit) {
         synchronized(listeners) {
-            listeners.add(listener)
+            if (!listeners.contains(listener)) {
+                listeners.add(listener)
+            }
         }
     }
 
@@ -30,7 +32,13 @@ object AppSettings {
 
     private fun notifyChanged(key: String) {
         val targets = synchronized(listeners) { listeners.toList() }
-        targets.forEach { it(key) }
+        targets.forEach { listener ->
+            try {
+                listener(key)
+            } catch (e: Exception) {
+                android.util.Log.e("AppSettings", "Error en listener para clave $key", e)
+            }
+        }
     }
 
     val qualityOptions = listOf("Mejor disponible", "4K (2160p)", "1080p Full HD", "720p HD", "480p SD", "360p", "Solo audio (MP3)")
@@ -249,9 +257,25 @@ object AppSettings {
             if (_cookies.value != value) {
                 _cookies.value = value
                 saveString("cookies", value)
+                syncCookiesFile(com.fabian.downloader.MyApplication.getInstance(), value)
                 notifyChanged("cookies")
             }
         }
+
+    private fun syncCookiesFile(context: Context, cookieContent: String) {
+        try {
+            val cookiesFile = java.io.File(context.filesDir, Config.COOKIES_FILE_NAME)
+            if (cookieContent.trim().isEmpty()) {
+                if (cookiesFile.exists()) {
+                    cookiesFile.delete()
+                }
+            } else {
+                cookiesFile.writeText(cookieContent)
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("AppSettings", "Error syncing cookies.txt: ${e.message}", e)
+        }
+    }
 
     private val _customUserAgent = mutableStateOf("")
     var customUserAgent: String
@@ -599,6 +623,7 @@ object AppSettings {
         
         _customArguments.value = prefs.getString("customArguments", "") ?: ""
         _cookies.value = prefs.getString("cookies", "") ?: ""
+        syncCookiesFile(context, _cookies.value)
         _customUserAgent.value = prefs.getString("customUserAgent", "") ?: ""
         _sponsorBlockEnabled.value = prefs.getBoolean("sponsorBlockEnabled", false)
         _embedThumbnail.value = prefs.getBoolean("embedThumbnail", true)

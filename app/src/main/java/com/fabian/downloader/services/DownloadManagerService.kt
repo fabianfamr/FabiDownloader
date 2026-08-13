@@ -311,7 +311,9 @@ class DownloadManagerService private constructor(
                         }
 
                         if (finalTitle != capturedProvisionalTitle || localThumb != passedThumbnailUrl) {
-                            storageService.updateDownloadInfoWithThumbnail(safeNewId, finalTitle, Config.STATUS_QUEUED, localThumb)
+                            val isAlreadyDownloading = processingIds.contains(safeNewId) || activeJobs.containsKey(safeNewId)
+                            val titleToSave = if (isAlreadyDownloading) capturedProvisionalTitle else finalTitle
+                            storageService.updateDownloadInfoWithThumbnail(safeNewId, titleToSave, Config.STATUS_QUEUED, localThumb)
                         }
                     }
                 } else {
@@ -326,11 +328,10 @@ class DownloadManagerService private constructor(
                             cleanTitle = cleanTitle.substringAfter(Config.STATUS_FAILED_PREFIX)
                         }
                         
-                        serviceScope.launch {
-                            val localThumb = com.fabian.downloader.utils.PathUtils.saveThumbnail(application, existingRecord.thumbnailUrl, existingId)
-                            storageService.updateDownloadInfoWithThumbnail(existingId, cleanTitle, Config.STATUS_QUEUED, localThumb ?: existingRecord.thumbnailUrl)
-                        }
-                        storageService.updateDownloadProgressAndSizeAndSpeed(existingId, existingRecord.progress, Config.STATUS_QUEUED, Config.STATUS_WAITING)
+                        val localThumb = com.fabian.downloader.utils.PathUtils.saveThumbnail(application, existingRecord.thumbnailUrl, existingId)
+                        val cleanProgress = if (existingRecord.progress < 0) 0 else existingRecord.progress
+                        storageService.updateDownloadInfoWithThumbnail(existingId, cleanTitle, Config.STATUS_QUEUED, localThumb ?: existingRecord.thumbnailUrl)
+                        storageService.updateDownloadProgressAndSizeAndSpeed(existingId, cleanProgress, Config.STATUS_QUEUED, Config.STATUS_WAITING)
                     }
                     triggerQueue()
                 }
@@ -779,8 +780,8 @@ class DownloadManagerService private constructor(
     private fun checkStorageSpace(destFolder: File, id: Long) {
         val minimumRequiredBytes = AppSettings.storageMarginBytes
         val isMarginDisabled = minimumRequiredBytes <= 0L
-        // Si la verificación de margen está desactivada por el usuario, se mantiene una reserva mínima de seguridad (50 MB) para no agotar por completo el espacio físico del teléfono
-        val effectiveRequiredBytes = if (isMarginDisabled) 50L * 1024L * 1024L else minimumRequiredBytes
+        if (isMarginDisabled) return
+        val effectiveRequiredBytes = minimumRequiredBytes
 
         try {
             var targetDir = destFolder

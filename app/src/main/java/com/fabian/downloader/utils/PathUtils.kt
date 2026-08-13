@@ -9,6 +9,24 @@ import java.io.File
 object PathUtils {
     private val cachedFolders = mutableMapOf<String, File>()
 
+    private fun isWritableDir(dir: File): Boolean {
+        return try {
+            if (!dir.exists()) {
+                dir.mkdirs()
+            }
+            if (!dir.exists()) return false
+            val testFile = File(dir, ".test_write_${System.currentTimeMillis()}.tmp")
+            if (testFile.createNewFile()) {
+                testFile.delete()
+                true
+            } else {
+                false
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     suspend fun saveThumbnail(context: Context, url: String?, id: Long): String? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
         if (url.isNullOrEmpty()) return@withContext null
         if (url.startsWith("file://") || url.startsWith("/")) return@withContext url
@@ -99,29 +117,12 @@ object PathUtils {
                 configuredDir
             } else {
                 File(configuredDir, subfolderName)
-            }
-            try {
-                if (!finalFolder.exists()) {
-                    finalFolder.mkdirs()
-                }
-                if (finalFolder.exists()) {
-                    val testFile = File(finalFolder, "test_write_${System.currentTimeMillis()}.tmp")
-                    val isWritable = try {
-                        if (testFile.createNewFile()) {
-                            testFile.delete()
-                            true
-                        } else finalFolder.canWrite() || finalFolder.exists()
-                    } catch (_: Exception) {
-                        finalFolder.exists()
-                    }
-                    if (isWritable) {
-                        android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified configured folder: ${finalFolder.absolutePath}")
-                        cachedFolders[relativeSubfolder] = finalFolder
-                        return finalFolder
-                    }
-                }
-            } catch (e: Exception) {
-                android.util.Log.e(Config.TAG_PATH_UTILS, "Configured folder ${finalFolder.absolutePath} is NOT writable: ${e.message}")
+            }            if (isWritableDir(finalFolder)) {
+                android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified configured folder: ${finalFolder.absolutePath}")
+                cachedFolders[relativeSubfolder] = finalFolder
+                return finalFolder
+            } else {
+                android.util.Log.e(Config.TAG_PATH_UTILS, "Configured folder ${finalFolder.absolutePath} is NOT writable")
             }
         }
 
@@ -129,51 +130,35 @@ object PathUtils {
         val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         if (publicDownloads != null) {
             val downloadFabiFolder = File(publicDownloads, relativeSubfolder)
-            try {
-                if (!downloadFabiFolder.exists()) {
-                    downloadFabiFolder.mkdirs()
-                }
-                if (downloadFabiFolder.exists()) {
-                    android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified public Download folder: ${downloadFabiFolder.absolutePath}")
-                    cachedFolders[relativeSubfolder] = downloadFabiFolder
-                    return downloadFabiFolder
-                }
-            } catch (e: Exception) {
-                android.util.Log.e(Config.TAG_PATH_UTILS, "Public Download folder is NOT writable: ${e.message}")
+            if (isWritableDir(downloadFabiFolder)) {
+                android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified public Download folder: ${downloadFabiFolder.absolutePath}")
+                cachedFolders[relativeSubfolder] = downloadFabiFolder
+                return downloadFabiFolder
+            } else {
+                android.util.Log.e(Config.TAG_PATH_UTILS, "Public Download folder is NOT writable: ${downloadFabiFolder.absolutePath}")
             }
 
             // Fallback 2: Usar directamente la carpeta raíz pública Downloads (sin subcarpetas com.fabian.downloader)
-            try {
-                if (publicDownloads.exists()) {
-                    android.util.Log.d(Config.TAG_PATH_UTILS, "Using raw public Downloads directory: ${publicDownloads.absolutePath}")
-                    cachedFolders[relativeSubfolder] = publicDownloads
-                    return publicDownloads
-                }
-            } catch (e: Exception) {
-                android.util.Log.e(Config.TAG_PATH_UTILS, "Raw public Downloads directory is NOT writable: ${e.message}")
+            if (isWritableDir(publicDownloads)) {
+                android.util.Log.d(Config.TAG_PATH_UTILS, "Using raw public Downloads directory: ${publicDownloads.absolutePath}")
+                cachedFolders[relativeSubfolder] = publicDownloads
+                return publicDownloads
+            } else {
+                android.util.Log.e(Config.TAG_PATH_UTILS, "Raw public Downloads directory is NOT writable: ${publicDownloads.absolutePath}")
             }
         }
- 
+
         // 3. Recursos de última y absoluta emergencia (contienen el paquete de la app, pero evitan crasheos)
         val mediaDirs = context.externalMediaDirs
         for (mediaDir in mediaDirs) {
             if (mediaDir == null) continue
             val targetFolder = File(mediaDir, relativeSubfolder)
-            try {
-                if (!targetFolder.exists()) {
-                    targetFolder.mkdirs()
-                }
-                val testFile = File(targetFolder, ".test_write_${System.currentTimeMillis()}")
-                if (testFile.createNewFile()) {
-                    testFile.delete()
-                    android.util.Log.w(Config.TAG_PATH_UTILS, "FALLBACK to externalMediaDirs: ${targetFolder.absolutePath}")
-                    cachedFolders[relativeSubfolder] = targetFolder
-                    return targetFolder
-                }
-            } catch (e: Exception) {
-                // ignore and try next
+            if (isWritableDir(targetFolder)) {
+                android.util.Log.w(Config.TAG_PATH_UTILS, "FALLBACK to externalMediaDirs: ${targetFolder.absolutePath}")
+                cachedFolders[relativeSubfolder] = targetFolder
+                return targetFolder
             }
-        }
+        }      }
  
         val appExternalDownloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
         if (appExternalDownloadDir != null) {

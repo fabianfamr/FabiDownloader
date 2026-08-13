@@ -33,11 +33,18 @@ class ConnectionService {
             // Fallback: comprobación directa de socket para redes sin validación inmediata o detrás de VPN
             val res = try {
                 java.net.Socket().use { socket ->
-                    socket.connect(java.net.InetSocketAddress("8.8.8.8", 53), 1000)
+                    socket.connect(java.net.InetSocketAddress("1.1.1.1", 80), 1000)
                 }
                 true
             } catch (_: Exception) {
-                false
+                try {
+                    java.net.Socket().use { socket ->
+                        socket.connect(java.net.InetSocketAddress("8.8.8.8", 53), 1000)
+                    }
+                    true
+                } catch (_: Exception) {
+                    hasInternet
+                }
             }
             lastSocketCheckTime = now
             lastSocketCheckResult = res

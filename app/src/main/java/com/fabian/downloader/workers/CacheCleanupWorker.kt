@@ -34,9 +34,6 @@ class CacheCleanupWorker(
             // Limpiar cachés en memoria
             ExtractionService.clearCaches()
 
-            // Solicitar al Recolector de Basura (GC) la liberación de memoria RAM no utilizada
-            System.gc()
-
             Log.i(Config.TAG_DOWNLOAD_MANAGER, "CacheCleanupWorker completado con éxito.")
             Result.success()
         } catch (e: Exception) {
@@ -82,14 +79,24 @@ class CacheCleanupWorker(
             }
         }.distinctBy { it.absolutePath }
 
+        val activeOrPausedIds = try {
+            com.fabian.downloader.database.AppDatabase.getInstance(context).downloadDao()
+                .getAllDownloadsDirect()
+                .filter { !it.isCompleted }
+                .map { it.id.toString() }
+                .toSet()
+        } catch (_: Exception) {
+            emptySet()
+        }
+
         folders.forEach { folder ->
             if (folder.exists() && folder.isDirectory) {
                 folder.listFiles()?.forEach { file ->
                     val name = file.name.lowercase()
                     if (name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp") || name.endsWith(".tmp")) {
                         val age = System.currentTimeMillis() - file.lastModified()
-                        // Evitar borrar archivos temporales creados hace menos de 2 minutos (por si están activos)
-                        if (age > 120_000) {
+                        val isProtected = activeOrPausedIds.any { id -> name.contains("_$id.") || name.contains("_$id") }
+                        if (!isProtected && age > 120_000) {
                             file.delete()
                         }
                     }
@@ -121,7 +128,6 @@ class CacheCleanupWorker(
                 cleanDirectoryDirect(context.cacheDir, maxAgeMs = 1_800_000L)
                 context.externalCacheDir?.let { cleanDirectoryDirect(it, maxAgeMs = 1_800_000L) }
                 ExtractionService.clearCaches()
-                System.gc()
             } catch (e: Exception) {
                 Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al realizar la limpieza directa de caché", e)
             }

@@ -13,8 +13,6 @@ import com.fabian.downloader.services.NotificationService
 import com.fabian.downloader.services.StorageService
 import kotlinx.coroutines.launch
 
-import kotlinx.coroutines.launch
-
 class MainViewModel(application: Application, private val database: AppDatabase) : AndroidViewModel(application) {
 
     private val storageService = StorageService.getInstance(application)

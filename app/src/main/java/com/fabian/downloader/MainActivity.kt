@@ -132,4 +132,11 @@ class MainActivity : ComponentActivity() {
             requestPermissionsLauncher.launch(permissionsToRequest.toTypedArray())
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            com.fabian.downloader.services.DownloadManagerService.getInstance(application).onAppClosed()
+        } catch (_: Exception) {}
+    }
 }

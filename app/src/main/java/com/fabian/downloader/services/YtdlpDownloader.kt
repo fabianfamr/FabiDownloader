@@ -117,16 +117,19 @@ class YtdlpDownloader {
                         addOption("-f", "best")
                     }
                 }
-                addOption("--merge-output-format", "mp4")
-                addOption("--remux-video", "mp4")
+                val targetFormat = format.lowercase()
+                val supportedVideoFormats = listOf("mp4", "mkv", "webm")
+                val finalVideoFormat = if (supportedVideoFormats.contains(targetFormat)) targetFormat else "mp4"
+                addOption("--merge-output-format", finalVideoFormat)
+                addOption("--remux-video", finalVideoFormat)
             }
 
             if (isYoutube) {
                 when (fallbackLevel) {
-                    0 -> addOption("--extractor-args", "youtube:player_client=tv,mweb")
-                    1 -> addOption("--extractor-args", "youtube:player_client=ios,web")
-                    2 -> addOption("--extractor-args", "youtube:player_client=mweb,default")
-                    3 -> addOption("--extractor-args", "youtube:player_client=android_creator,mweb")
+                    0 -> addOption("--extractor-args", "youtube:player_client=android,mweb,ios")
+                    1 -> addOption("--extractor-args", "youtube:player_client=ios,mweb")
+                    2 -> addOption("--extractor-args", "youtube:player_client=mweb,web")
+                    3 -> addOption("--extractor-args", "youtube:player_client=android_creator,ios")
                     else -> { /* omit player_client for raw yt-dlp fallback */ }
                 }
             }
@@ -415,7 +418,7 @@ class YtdlpDownloader {
             onFailAction: suspend (Exception) -> Unit
         ): Boolean {
             var attempt = 0
-            val maxAttempts = 3
+            val maxAttempts = if (autoRetry) 3 else 1
             while (attempt < maxAttempts) {
                 if (!isActive) throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
                 var holdsPostProcLock = false
@@ -538,6 +541,11 @@ class YtdlpDownloader {
                         kotlinx.coroutines.delay(2000)
                     }
                 } finally {
+                    if (!coroutineContext.isActive) {
+                        try {
+                            com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(processId)
+                        } catch (_: Exception) {}
+                    }
                     if (holdsPostProcLock) {
                         holdsPostProcLock = false
                         postProcessingSemaphore.release()
@@ -551,12 +559,14 @@ class YtdlpDownloader {
         try {
             // Nivel 0: Intentar con la calidad / formato solicitados (y fallback interno de calidad)
             val success0 = executeWithRetry(0) { e ->
-                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1...")
                 executionError = e
-                alProgresar(-1f, Config.STATUS_DOWNLOADING, Config.STATUS_RETRYING)
-                cleanupBeforeRetry()
+                if (autoRetry) {
+                    Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1...")
+                    alProgresar(-1f, Config.STATUS_DOWNLOADING, Config.STATUS_RETRYING)
+                    cleanupBeforeRetry()
+                }
             }
-            if (success0) return@withContext true
+            if (success0 || !autoRetry) return@withContext success0
 
             // Nivel 1: Intentar con mejor formato disponible sin limitación estricta de altura
             val success1 = executeWithRetry(1) { e ->

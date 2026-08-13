@@ -119,7 +119,7 @@ fun DownloadsScreen(
     @Suppress("DEPRECATION")
     val clipboardManager = LocalClipboardManager.current
 
-    val toggleSelection: (Long) -> Unit = remember { { id ->
+    val toggleSelection: (Long) -> Unit = remember(selectedIds) { { id ->
         selectedIds = if (selectedIds.contains(id)) selectedIds - id else selectedIds + id
     } }
 
