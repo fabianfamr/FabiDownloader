@@ -16,6 +16,46 @@ class YtdlpDownloader {
         private val SIZE_REGEX = Regex("""of\s+([~]?[0-9.]+[a-zA-Z]+)""")
         // Garantizar que el post-procesado / conversión FFmpeg de varias descargas ocurra de uno en uno
         private val postProcessingSemaphore = java.util.concurrent.Semaphore(1, true)
+
+        fun resolveUserFacingError(e: Throwable, lastLine: String): String {
+            val msg = e.message ?: ""
+            val lowerMsg = msg.lowercase()
+            val lowerClass = e.javaClass.name.lowercase()
+            val lowerLine = lastLine.lowercase()
+
+            if (lowerClass.contains("youtubedlexception") || lowerClass.contains("youtubedl")) {
+                if (lowerMsg.contains("process id already exists")) {
+                    return "Proceso atascado. Por favor, reintente la descarga."
+                }
+                if (lowerMsg.contains("sign in") || lowerMsg.contains("private video") || lowerMsg.contains("login")) {
+                    return "Requiere inicio de sesión (Video privado o con restricciones)."
+                }
+                if (lowerMsg.contains("unavailable") || lowerLine.contains("unavailable")) {
+                    return "Video o formato no disponible."
+                }
+                if (lowerMsg.contains("canceled") || lowerClass.contains("canceled")) {
+                    return "Descarga interrumpida de forma inesperada. Pulse reintentar."
+                }
+                if (lowerMsg.contains("http error 403")) {
+                    return "Error de acceso (403). Intente reiniciar la descarga."
+                }
+                return "Error de YT-DLP: ${msg.take(40)}..."
+            }
+            
+            if (e is java.io.InterruptedIOException || lowerClass.contains("interruptedioexception")) {
+                return "Conexión interrumpida inesperadamente. Pulse reintentar."
+            }
+            
+            if (lowerMsg.contains("no space left") || lowerMsg.contains("enospc") || lowerMsg.contains("disk full")) {
+                return "Espacio en disco insuficiente. Libere espacio."
+            }
+            if (lowerMsg.contains("timeout") || lowerMsg.contains("connection") || lowerMsg.contains("network")) {
+                return "Error de conexión o tiempo de espera agotado."
+            }
+            
+            val fallBackMsg = lastLine.ifEmpty { msg }
+            return fallBackMsg.ifEmpty { com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
+        }
     }
 
     private fun createRequest(
@@ -539,7 +579,8 @@ class YtdlpDownloader {
             // Nivel 3: Descargar formato absoluto básico 'best/b'
             val success3 = executeWithRetry(3) { e ->
                 Log.e(Config.TAG_YTDLP_DOWNLOADER, "Todos los niveles e intentos de descarga fallaron para $videoUrl. Última línea: $lastLine", e)
-                val errorMessage = lastLine.ifEmpty { e.message ?: executionError?.message ?: com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
+                val finalError = executionError ?: e
+                val errorMessage = resolveUserFacingError(finalError, lastLine)
                 throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
             }
             return@withContext success3
