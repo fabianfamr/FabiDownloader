@@ -467,9 +467,9 @@ fun MainScreen(
                             AnalyzeState.Loading -> C_accent.copy(alpha = 0.5f)
                             else -> if (isQueryValid) C_accent else C_card2
                         },
-                        contentColor = if (isQueryValid || analyzeState != AnalyzeState.Idle) Color(0xFF0A0A0C) else C_white.copy(alpha = 0.45f),
+                        contentColor = if (isQueryValid || analyzeState != AnalyzeState.Idle) Color(0xFF0A0A0C) else C_gray1,
                         disabledContainerColor = C_card2,
-                        disabledContentColor = C_white.copy(alpha = 0.35f)
+                        disabledContentColor = C_gray1
                     ),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
                     contentPadding = PaddingValues(0.dp)
@@ -492,7 +492,7 @@ fun MainScreen(
                                     text = stringResource(R.string.main_analyzing_state),
                                     color = Color(0xFF0A0A0C),
                                     fontSize = 15.sp,
-                                    fontWeight = FontWeight.ExtraBold
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         } else if (analyzeState == AnalyzeState.Success) {
@@ -510,7 +510,7 @@ fun MainScreen(
                                     text = stringResource(R.string.main_link_detected_state),
                                     color = Color(0xFF0A0A0C),
                                     fontSize = 15.sp,
-                                    fontWeight = FontWeight.ExtraBold
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         } else {
@@ -521,14 +521,14 @@ fun MainScreen(
                                 Icon(
                                     imageVector = Icons.Default.Download,
                                     contentDescription = null,
-                                    tint = if (isQueryValid) Color(0xFF0A0A0C) else C_gray2,
+                                    tint = if (isQueryValid) Color(0xFF0A0A0C) else C_gray1,
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Text(
                                     text = stringResource(R.string.main_analyze_button),
-                                    color = if (isQueryValid) Color(0xFF0A0A0C) else C_gray2,
+                                    color = if (isQueryValid) Color(0xFF0A0A0C) else C_gray1,
                                     fontSize = 15.sp,
-                                    fontWeight = FontWeight.ExtraBold
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
