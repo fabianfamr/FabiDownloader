@@ -111,8 +111,8 @@ fun MainScreen(
     }
     
     val lifecycleOwner = LocalLifecycleOwner.current
-    var clipboardUrl by rememberSaveable { mutableStateOf<String?>(null) }
-    var urlToDownloadInDialog by rememberSaveable { mutableStateOf<String?>(null) }
+    var clipboardUrl by remember { mutableStateOf<String?>(null) }
+    var urlToDownloadInDialog by remember { mutableStateOf<String?>(null) }
     var lastProcessedClipboardUrl by rememberSaveable { mutableStateOf("") }
     val clipboardManager = remember {
         ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
@@ -230,13 +230,6 @@ fun MainScreen(
     }
 
     var analyzeState by remember { mutableStateOf(AnalyzeState.Idle) }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            query = ""
-            analyzeState = AnalyzeState.Idle
-        }
-    }
 
     val infiniteTransition = rememberInfiniteTransition(label = "orbit")
     val floatY by infiniteTransition.animateFloat(
@@ -526,10 +519,10 @@ fun MainScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.AutoAwesome,
+                                    imageVector = Icons.Default.Download,
                                     contentDescription = null,
                                     tint = if (isQueryValid) Color(0xFF0A0A0C) else C_gray2,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(20.dp)
                                 )
                                 Text(
                                     text = stringResource(R.string.main_analyze_button),

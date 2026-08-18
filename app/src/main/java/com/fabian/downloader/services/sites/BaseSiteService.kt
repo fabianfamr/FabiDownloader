@@ -101,9 +101,7 @@ abstract class BaseSiteService : SiteService {
                                 defaultAuthor = Config.STATUS_UNKNOWN,
                                 defaultTitle = "Video de $displayName"
                             )
-                            if (parsed != null) {
-                                return@async parsed
-                            }
+                            return@async parsed
                         } catch (e: Exception) {
                             Log.e(Config.TAG_BASE_SITE_SERVICE, "Error extracting info for $cleanUrl (client=$client) in service $siteId: ${e.message}", e)
                             val lowerMsg = (e.message ?: "").lowercase()

@@ -229,10 +229,18 @@ fun FabiDownloaderApp(
                         database = database,
                         snackbarHostState = snackbarHostState,
                         onNavigateToDownloads = {
-                            navController.navigate(Screen.Downloads.route + "?initialPage=1")
+                            navController.navigate(Screen.Downloads.route + "?initialPage=1") {
+                                popUpTo(Screen.Main.route) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         },
                         onNavigateToSettings = {
-                            navController.navigate(Screen.Settings.route)
+                            navController.navigate(Screen.Settings.route) {
+                                popUpTo(Screen.Main.route) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     )
                 }
