@@ -79,6 +79,7 @@ abstract class BaseSiteService : SiteService {
                                 addOption("--no-playlist")
                             }
                             addOption("--no-cache-dir")
+                            addOption("--no-update")
 
                             if (isYoutube && !playerClient.isNullOrEmpty()) {
                                 addOption("--extractor-args", "youtube:player_client=$playerClient")

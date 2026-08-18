@@ -114,6 +114,7 @@ class YtdlpExtractor {
             }
             
             addOption("--no-cache-dir")
+            addOption("--no-update")
             
             if (isYoutube) {
                 addOption("--extractor-args", "youtube:player_client=android,mweb,ios")

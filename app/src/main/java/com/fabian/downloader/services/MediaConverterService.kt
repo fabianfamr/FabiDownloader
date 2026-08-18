@@ -37,6 +37,9 @@ class MediaConverterService(private val context: Context) {
 
             // Usar yt-dlp con su FFmpeg integrado para convertir el archivo local
             val request = YoutubeDLRequest("file://${inputFile.absolutePath}").apply {
+                addOption("--enable-file-urls")
+                addOption("--no-update")
+                addOption("--no-warnings")
                 when (targetExt) {
                     "mp3" -> {
                         addOption("-x")

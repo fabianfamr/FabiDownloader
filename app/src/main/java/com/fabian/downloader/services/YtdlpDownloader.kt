@@ -220,6 +220,7 @@ class YtdlpDownloader {
             addOption("--retries", "15")
             addOption("--fragment-retries", "15")
             addOption("--no-cache-dir")
+            addOption("--no-update")
 
             // ============================================================
             // YOUTUBE-SPECIFIC OPTIMIZATIONS
