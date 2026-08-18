@@ -8,11 +8,15 @@ import android.net.NetworkCapabilities
 import com.fabian.downloader.MyApplication
 
 class ConnectionService {
-    
-    @Volatile
-    private var lastSocketCheckTime = 0L
-    @Volatile
-    private var lastSocketCheckResult = false
+
+    companion object {
+        // Caché estática compartida entre TODAS las instancias (se crean varias por descarga).
+        // Antes era por-instancia y nunca acertaba, ejecutando un socket check por cada llamada.
+        @Volatile
+        private var lastSocketCheckTime = 0L
+        @Volatile
+        private var lastSocketCheckResult = false
+    }
 
     suspend fun checkConnection(): Boolean = withContext(Dispatchers.IO) {
         try {

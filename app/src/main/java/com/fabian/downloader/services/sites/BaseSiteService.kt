@@ -16,8 +16,12 @@ abstract class BaseSiteService : SiteService {
     companion object {
         private val activeExtractions = java.util.concurrent.ConcurrentHashMap<String, Deferred<InfoMedia?>>()
         private var extractionScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        // Época (generación) del scope: cada cancelAllExtractions la incrementa.
+        // Permite descartar Deferred viejos pertenecientes a un scope ya cancelado.
+        private val extractionEpoch = java.util.concurrent.atomic.AtomicLong(0L)
 
         fun cancelAllExtractions() {
+            extractionEpoch.incrementAndGet()
             extractionScope.cancel()
             extractionScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
             activeExtractions.clear()
@@ -48,78 +52,101 @@ abstract class BaseSiteService : SiteService {
         com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
         val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
         val isYoutube = com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(cleanUrl)
-        
-        val deferred = activeExtractions.computeIfAbsent(cleanUrl) { _ ->
-            extractionScope.async {
-                val clientOptions: List<String?> = if (isYoutube) {
-                    listOf("android,mweb,ios", "ios,mweb", "tv,android_creator,mweb", "android_creator,ios,tv,web", null)
-                } else {
-                    listOf(null)
-                }
 
-                fun createRequest(playerClient: String?): YoutubeDLRequest {
-                    return YoutubeDLRequest(cleanUrl).apply {
-                        addOption("--dump-json")
-                        
-                        val cookiesFile = File(com.fabian.downloader.MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
-                        if (cookiesFile.exists() && cookiesFile.length() > 0) {
-                            addOption("--cookies", cookiesFile.absolutePath)
-                        }
-                        
-                        if (!com.fabian.downloader.ui.AppSettings.playlistEnabled) {
-                            addOption("--no-playlist")
-                        }
-                        addOption("--no-cache-dir")
-                        
-                        if (isYoutube && !playerClient.isNullOrEmpty()) {
-                            addOption("--extractor-args", "youtube:player_client=$playerClient")
-                        }
-                        
-                        customizeExtractorRequest(this, cleanUrl)
+        // Reintentar en bucle si el Deferred obtenido pertenece a un scope
+        // cancelado por cancelAllExtractions (época distinta), para no devolver
+        // un resultado "stale" ni reintentar sobre un Deferred muerto.
+        while (true) {
+            val epochAtCall = extractionEpoch.get()
+            val deferred = activeExtractions.computeIfAbsent(cleanUrl) { _ ->
+                extractionScope.async {
+                    val clientOptions: List<String?> = if (isYoutube) {
+                        listOf("android,mweb,ios", "ios,mweb", "tv,android_creator,mweb", "android_creator,ios,tv,web", null)
+                    } else {
+                        listOf(null)
                     }
-                }
 
-                for (client in clientOptions) {
-                    val request = createRequest(client)
-                    try {
-                        val response = YoutubeDL.getInstance().execute(request)
-                        val jsonRaw = response.out ?: continue
-                        val json = JSONObject(jsonRaw)
+                    fun createRequest(playerClient: String?): YoutubeDLRequest {
+                        return YoutubeDLRequest(cleanUrl).apply {
+                            addOption("--dump-json")
 
-                        val parsed = com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, Config.STATUS_UNKNOWN, "Video de $displayName")
-                        if (parsed != null) {
-                            return@async parsed
-                        }
-                    } catch (e: Exception) {
-                        Log.e(Config.TAG_BASE_SITE_SERVICE, "Error extracting info for $cleanUrl (client=$client) in service $siteId: ${e.message}", e)
-                        val lowerMsg = (e.message ?: "").lowercase()
-                        if (lowerMsg.contains("zipimport") || lowerMsg.contains("bad local file header") ||
-                            lowerMsg.contains("cannot link") || lowerMsg.contains("libandroid-support") ||
-                            lowerMsg.contains("libpython") || lowerMsg.contains("not found")) {
-                            Log.w(Config.TAG_BASE_SITE_SERVICE, "Detectada corrupción de binario. Re-inicializando binario limpio y reintentando...")
-                            val appCtx = com.fabian.downloader.MyApplication.getInstance()
-                            appCtx.resetAndReinitYtdlp(appCtx)
-                        } else if (lowerMsg.contains("player api") || lowerMsg.contains("bot") || lowerMsg.contains("sign in") || lowerMsg.contains("confirm you're not a bot")) {
-                            Log.w(Config.TAG_BASE_SITE_SERVICE, "Error de autenticación/player api en YouTube. Intentando siguiente cliente o actualizando motor...")
-                            val appCtx = com.fabian.downloader.MyApplication.getInstance()
-                            appCtx.forceUpdateYtdlpBinary(appCtx)
+                            val cookiesFile = File(com.fabian.downloader.MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
+                            if (cookiesFile.exists() && cookiesFile.length() > 0) {
+                                addOption("--cookies", cookiesFile.absolutePath)
+                            }
+
+                            if (!com.fabian.downloader.ui.AppSettings.playlistEnabled) {
+                                addOption("--no-playlist")
+                            }
+                            addOption("--no-cache-dir")
+
+                            if (isYoutube && !playerClient.isNullOrEmpty()) {
+                                addOption("--extractor-args", "youtube:player_client=$playerClient")
+                            }
+
+                            customizeExtractorRequest(this, cleanUrl)
                         }
                     }
-                }
-                null
-            }
-        }
 
-        try {
-            return deferred.await()
-        } catch (e: Exception) {
-            deferred.cancel()
-            if (e is kotlinx.coroutines.CancellationException) {
-                throw e
+                    for (client in clientOptions) {
+                        val request = createRequest(client)
+                        try {
+                            val response = YoutubeDL.getInstance().execute(request)
+                            val jsonRaw = response.out ?: continue
+                            val json = JSONObject(jsonRaw)
+
+                            val parsed = com.fabian.downloader.utils.YtdlpParser.parseMetadata(
+                                json,
+                                defaultAuthor = Config.STATUS_UNKNOWN,
+                                defaultTitle = "Video de $displayName"
+                            )
+                            if (parsed != null) {
+                                return@async parsed
+                            }
+                        } catch (e: Exception) {
+                            Log.e(Config.TAG_BASE_SITE_SERVICE, "Error extracting info for $cleanUrl (client=$client) in service $siteId: ${e.message}", e)
+                            val lowerMsg = (e.message ?: "").lowercase()
+                            if (lowerMsg.contains("zipimport") || lowerMsg.contains("bad local file header") ||
+                                lowerMsg.contains("cannot link") || lowerMsg.contains("libandroid-support") ||
+                                lowerMsg.contains("libpython") || lowerMsg.contains("not found")) {
+                                Log.w(Config.TAG_BASE_SITE_SERVICE, "Detectada corrupción de binario. Re-inicializando binario limpio y reintentando...")
+                                val appCtx = com.fabian.downloader.MyApplication.getInstance()
+                                appCtx.resetAndReinitYtdlp(appCtx)
+                            } else if (lowerMsg.contains("player api") || lowerMsg.contains("bot") || lowerMsg.contains("sign in") || lowerMsg.contains("confirm you're not a bot")) {
+                                Log.w(Config.TAG_BASE_SITE_SERVICE, "Error de autenticación/player api en YouTube. Intentando siguiente cliente o actualizando motor...")
+                                val appCtx = com.fabian.downloader.MyApplication.getInstance()
+                                appCtx.forceUpdateYtdlpBinary(appCtx)
+                            }
+                        }
+                    }
+                    Log.w(Config.TAG_BASE_SITE_SERVICE, "Todas las extracciones fallaron para $cleanUrl (servicio $siteId)")
+                    null
+                }
             }
-            return null
-        } finally {
-            activeExtractions.remove(cleanUrl, deferred)
+
+            if (epochAtCall != extractionEpoch.get()) {
+                // El scope fue reiniciado mientras se creaba/reutilizaba el Deferred:
+                // descartarlo y reintentar con el scope nuevo.
+                activeExtractions.remove(cleanUrl, deferred)
+                deferred.cancel()
+                continue
+            }
+
+            try {
+                return deferred.await()
+            } catch (e: Exception) {
+                deferred.cancel()
+                if (e is kotlinx.coroutines.CancellationException && epochAtCall == extractionEpoch.get()) {
+                    throw e
+                }
+                if (e is kotlinx.coroutines.CancellationException) {
+                    // Deferred cancelado por reinicio del scope: reintentar.
+                    continue
+                }
+                return null
+            } finally {
+                activeExtractions.remove(cleanUrl, deferred)
+            }
         }
     }
 

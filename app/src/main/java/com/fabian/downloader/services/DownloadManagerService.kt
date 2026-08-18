@@ -225,7 +225,7 @@ class DownloadManagerService private constructor(
                 val batteryManager = BatteryOptimizerManager.getInstance(application)
                 if (!isForced && AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(application, application.getString(R.string.share_started_title), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(application, application.getString(R.string.downloads_toast_battery_low), Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -363,7 +363,9 @@ class DownloadManagerService private constructor(
         val preRecord = storageService.getDownloadById(id)
         var videoTitle = preRecord?.title ?: application.getString(R.string.downloads_default_title)
         var passedThumbnailUrl: String? = preRecord?.thumbnailUrl
-        val job = serviceScope.launch {
+        // Lazy start: registrar el job en activeJobs ANTES de que comience a ejecutarse,
+        // para que pause/delete/requeue puedan encontrarlo sin race condition.
+        val job = serviceScope.launch(start = kotlinx.coroutines.CoroutineStart.LAZY) {
             val oldPriority = try {
                 android.os.Process.getThreadPriority(android.os.Process.myTid())
             } catch (e: Exception) {
@@ -417,12 +419,19 @@ class DownloadManagerService private constructor(
                 checkStorageSpace(destFolder, id)
 
                 var lastSpaceCheck = 0L
+                // Flag compartido entre el callback nativo (hilo StreamGobbler) y la corrutina:
+                // nunca se lanzan excepciones desde el callback; se marca el flag y se detiene
+                // el proceso aquí, luego la corrutina lanza el error tras volver del download.
+                val storageSpaceExceeded = java.util.concurrent.atomic.AtomicBoolean(false)
                 service.download(url, quality, format, destFolder, fileNameWithoutExt, processId = id.toString()) { progress, sizeText, speedText ->
                     val currentTime = System.currentTimeMillis()
                     // Comprobar espacio de forma ultra eficiente cada 5 segundos para priorizar rendimiento y velocidad
                     if (currentTime - lastSpaceCheck > 5000) {
                         lastSpaceCheck = currentTime
-                        checkStorageSpace(destFolder, id)
+                        if (!hasEnoughStorageSpace(destFolder)) {
+                            storageSpaceExceeded.set(true)
+                            stopDownloadForStorage(id)
+                        }
                     }
 
                     val currentProgressInt = progress.toInt()
@@ -467,11 +476,10 @@ class DownloadManagerService private constructor(
                     }
                 }
 
-                if (AppSettings.keepHistory) {
-                    storageService.updateDownloadProgressAndSizeAndSpeed(id, 100, Config.STATUS_COMPLETED, Config.STATUS_COMPLETED)
-                    storageService.markAsCompleted(id)
-                } else {
-                    storageService.deleteDownload(id)
+                // Si el callback nativo detectó falta de espacio, lanzar el error aquí,
+                // dentro de la corrutina, para que llegue al bloque catch y marque FAILED.
+                if (storageSpaceExceeded.get()) {
+                    throw Exception("Espacio insuficiente")
                 }
 
                 val actualFile = destFolder.listFiles { _, name ->
@@ -479,12 +487,23 @@ class DownloadManagerService private constructor(
                     Config.VALID_EXTENSIONS.any { ext -> name.endsWith(".$ext", ignoreCase = true) }
                 }?.firstOrNull()
 
-                if (actualFile != null) {
-                    val ext = actualFile.extension.uppercase()
-                    storageService.updateDownloadFormat(id, ext)
-                    
-                    // Estación 5: Control de Calidad y Escaneo en MediaStore (Entrega Final)
-                    com.fabian.downloader.pipeline.DownloadAssemblyLine.station5_verifyAndDeliver(application, actualFile)
+                // Estación 5: Control de Calidad y Escaneo en MediaStore (Entrega Final)
+                // Si yt-dlp terminó con código 0 pero no generó ningún archivo válido,
+                // se trata como fallo: no notificar éxito ni marcar como completado.
+                if (actualFile == null) {
+                    throw Exception(application.getString(R.string.downloads_error_generic))
+                }
+
+                val ext = actualFile.extension.uppercase()
+                storageService.updateDownloadFormat(id, ext)
+
+                com.fabian.downloader.pipeline.DownloadAssemblyLine.station5_verifyAndDeliver(application, actualFile)
+
+                if (AppSettings.keepHistory) {
+                    storageService.updateDownloadProgressAndSizeAndSpeed(id, 100, Config.STATUS_COMPLETED, Config.STATUS_COMPLETED)
+                    storageService.markAsCompleted(id)
+                } else {
+                    storageService.deleteDownload(id)
                 }
                 
                 // Mostrar notificación de éxito REAL solo cuando ya se tiene el archivo y terminó el post-procesado
@@ -554,73 +573,78 @@ class DownloadManagerService private constructor(
         }
         
         activeJobs[id] = job
+        job.start()
         job.join()
     }
 
     fun pauseDownload(id: Long) {
         serviceScope.launch {
-            forcedDownloadIds.remove(id)
-            storageService.updatePausedState(id, true)
-            
-            // Forzar actualización de progreso y velocidad en la base de datos para evitar estados residuales de carga
-            try {
-                val currentRecord = storageService.getDownloadById(id)
-                if (currentRecord != null) {
-                    val currentProgress = if (currentRecord.progress < 0) 0 else currentRecord.progress
-                    val currentSize = if (currentRecord.size == Config.STATUS_QUEUED || currentRecord.size == Config.STATUS_CONNECTING) Config.STATUS_ZERO_MB else currentRecord.size
-                    storageService.updateDownloadProgressAndSizeAndSpeed(
-                        id,
-                        currentProgress,
-                        currentSize,
-                        Config.STATUS_WAITING
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al actualizar estado durante pausa", e)
-            }
+            pauseDownloadInternal(id)
+        }
+    }
 
-            activeCalls[id]?.cancel()
-            val job = activeJobs[id]
-            job?.cancel()
-            activeCalls.remove(id)
-            activeJobs.remove(id)
-            processingIds.remove(id)
-            activeProgresses.remove(id)
-            
-            // Mostrar la notificación de pausa si están activadas las notificaciones
-            if (AppSettings.notificationsEnabled) {
-                val currentRecord = storageService.getDownloadById(id)
-                if (currentRecord != null) {
-                    notificationService.showDownloadPaused(
-                        id = id.toInt(),
-                        title = currentRecord.title,
-                        thumbnailUrl = currentRecord.thumbnailUrl
-                    )
-                } else {
-                    notificationService.cancelProgressNotification(id.toInt())
-                }
+    private suspend fun pauseDownloadInternal(id: Long) {
+        forcedDownloadIds.remove(id)
+        storageService.updatePausedState(id, true)
+        
+        // Forzar actualización de progreso y velocidad en la base de datos para evitar estados residuales de carga
+        try {
+            val currentRecord = storageService.getDownloadById(id)
+            if (currentRecord != null) {
+                val currentProgress = if (currentRecord.progress < 0) 0 else currentRecord.progress
+                val currentSize = if (currentRecord.size == Config.STATUS_QUEUED || currentRecord.size == Config.STATUS_CONNECTING) Config.STATUS_ZERO_MB else currentRecord.size
+                storageService.updateDownloadProgressAndSizeAndSpeed(
+                    id,
+                    currentProgress,
+                    currentSize,
+                    Config.STATUS_WAITING
+                )
+            }
+        } catch (e: Exception) {
+            Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al actualizar estado durante pausa", e)
+        }
+
+        activeCalls[id]?.cancel()
+        val job = activeJobs[id]
+        job?.cancel()
+        activeCalls.remove(id)
+        activeJobs.remove(id)
+        processingIds.remove(id)
+        activeProgresses.remove(id)
+        
+        // Mostrar la notificación de pausa si están activadas las notificaciones
+        if (AppSettings.notificationsEnabled) {
+            val currentRecord = storageService.getDownloadById(id)
+            if (currentRecord != null) {
+                notificationService.showDownloadPaused(
+                    id = id.toInt(),
+                    title = currentRecord.title,
+                    thumbnailUrl = currentRecord.thumbnailUrl
+                )
             } else {
                 notificationService.cancelProgressNotification(id.toInt())
             }
-            
+        } else {
+            notificationService.cancelProgressNotification(id.toInt())
+        }
+        
+        try {
+            com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
+        } catch (e: Exception) {
+            Log.e(Config.TAG_DOWNLOAD_MANAGER, "Failed to destroy process", e)
+        }
+        
+        // Wait for the job to actually complete cancellation before proceeding
+        if (job != null) {
             try {
-                com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
+                job.join()
             } catch (e: Exception) {
-                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Failed to destroy process", e)
+                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Job join interrupted during pause", e)
             }
-            
-            // Wait for the job to actually complete cancellation before proceeding
-            if (job != null) {
-                try {
-                    job.join()
-                } catch (e: Exception) {
-                    Log.w(Config.TAG_DOWNLOAD_MANAGER, "Job join interrupted during pause", e)
-                }
-            }
-            
-            withContext(Dispatchers.Main) {
-                Toast.makeText(application, application.getString(R.string.downloads_toast_paused), Toast.LENGTH_SHORT).show()
-            }
+        }
+        
+        withContext(Dispatchers.Main) {
+            Toast.makeText(application, application.getString(R.string.downloads_toast_paused), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -669,7 +693,7 @@ class DownloadManagerService private constructor(
             coroutineScope {
                 activeIds.map { id ->
                     launch {
-                        pauseDownload(id)
+                        pauseDownloadInternal(id)
                     }
                 }
             }
@@ -777,13 +801,11 @@ class DownloadManagerService private constructor(
         }
     }
 
-    private fun checkStorageSpace(destFolder: File, id: Long) {
+    private fun hasEnoughStorageSpace(destFolder: File): Boolean {
         val minimumRequiredBytes = AppSettings.storageMarginBytes
-        val isMarginDisabled = minimumRequiredBytes <= 0L
-        if (isMarginDisabled) return
-        val effectiveRequiredBytes = minimumRequiredBytes
+        if (minimumRequiredBytes <= 0L) return true
 
-        try {
+        return try {
             var targetDir = destFolder
             if (!targetDir.exists()) {
                 targetDir.mkdirs()
@@ -796,28 +818,31 @@ class DownloadManagerService private constructor(
             }
 
             val stat = android.os.StatFs(targetDir.absolutePath)
-            val availableBytes = stat.availableBytes
-            if (availableBytes < effectiveRequiredBytes) {
-                if (id > 0) {
-                    try {
-                        com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
-                    } catch (e: Exception) {
-                        Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo destruir el proceso $id durante la parada por espacio", e)
-                    }
-                    try {
-                        activeCalls[id]?.cancel()
-                    } catch (e: Exception) {
-                        Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo cancelar la llamada $id durante la parada por espacio", e)
-                    }
-                }
-                val errorMessage = "Espacio insuficiente"
-                throw Exception(errorMessage)
-            }
+            stat.availableBytes >= minimumRequiredBytes
         } catch (e: Exception) {
-            if (e.message?.contains("Espacio insuficiente") == true || e.message?.contains("Espacio en disco insuficiente") == true || e.message?.contains("Almacenamiento casi lleno") == true) {
-                throw e
-            }
             Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error comprobando espacio en ${destFolder.absolutePath}", e)
+            true
+        }
+    }
+
+    private fun stopDownloadForStorage(id: Long) {
+        if (id <= 0) return
+        try {
+            com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
+        } catch (e: Exception) {
+            Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo destruir el proceso $id durante la parada por espacio", e)
+        }
+        try {
+            activeCalls[id]?.cancel()
+        } catch (e: Exception) {
+            Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo cancelar la llamada $id durante la parada por espacio", e)
+        }
+    }
+
+    private fun checkStorageSpace(destFolder: File, id: Long) {
+        if (!hasEnoughStorageSpace(destFolder)) {
+            stopDownloadForStorage(id)
+            throw Exception("Espacio insuficiente")
         }
     }
 
@@ -880,12 +905,16 @@ class DownloadManagerService private constructor(
     fun onAppClosed() {
         Log.i(Config.TAG_DOWNLOAD_MANAGER, "onAppClosed llamado. Limpiando descargas activas para evitar procesos huérfanos nativos.")
         
-        // 1. Cancelar todos los trabajos activos
-        activeJobs.forEach { (id, job) ->
+        val jobsToCancel = activeJobs.values.toList()
+        val idsToReset = processingIds.toList()
+
+        // 1. Cancelar todos los trabajos activos y esperar a que terminen sus bloques finally
+        //    (que destruyen los procesos nativos de yt-dlp). Sin join() los procesos quedan huérfanos.
+        jobsToCancel.forEach { job ->
             try {
                 job.cancel()
             } catch (e: Exception) {
-                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Error al cancelar trabajo $id", e)
+                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Error al cancelar trabajo", e)
             }
         }
         activeJobs.clear()
@@ -901,7 +930,7 @@ class DownloadManagerService private constructor(
         activeCalls.clear()
 
         // 3. Destruir todos los procesos nativos de yt-dlp para no laguear el teléfono
-        processingIds.forEach { id ->
+        idsToReset.forEach { id ->
             try {
                 com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
             } catch (e: Exception) {
@@ -910,11 +939,8 @@ class DownloadManagerService private constructor(
         }
         com.fabian.downloader.services.sites.BaseSiteService.cancelAllExtractions()
         
-        // 4. Actualizar estados en BD para evitar quedar congelados en 'Descargando' al reiniciar la app
-        val activeIdsList = processingIds.toList()
-        
         // Cancelar de inmediato las notificaciones de progreso activas para que no queden huérfanas
-        activeIdsList.forEach { id ->
+        idsToReset.forEach { id ->
             try {
                 notificationService.cancelProgressNotification(id.toInt())
             } catch (e: Exception) {
@@ -922,10 +948,14 @@ class DownloadManagerService private constructor(
             }
         }
         
+        // 4. Esperar a que los jobs terminen y persistir el estado en la BD de forma síncrona
+        //    (bounded con timeout) para garantizar que la escritura ocurre antes de que muera el proceso.
         try {
-            @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
-            kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
-                activeIdsList.forEach { id ->
+            kotlinx.coroutines.runBlocking(Dispatchers.IO) {
+                withTimeoutOrNull(3000) {
+                    jobsToCancel.forEach { it.join() }
+                }
+                idsToReset.forEach { id ->
                     try {
                         storageService.updatePausedState(id, true)
                         storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, "Pausado", "PAUSED")
@@ -935,7 +965,7 @@ class DownloadManagerService private constructor(
                 }
                 processingIds.clear()
                 activeProgresses.clear()
-                storageService.shutdownAndFlush()
+                storageService.flushPendingWrites()
             }
         } catch (e: Exception) {
             Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error flushing state on app closed", e)

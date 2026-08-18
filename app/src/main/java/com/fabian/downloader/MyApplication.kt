@@ -127,8 +127,16 @@ class MyApplication : Application(), ImageLoaderFactory {
     }
 
     private var lastForceUpdateTimestamp = 0L
+    // Lock para impedir actualizaciones concurrentes del binario (varias extracciones en paralelo)
+    private val ytdlpUpdateLock = java.util.concurrent.atomic.AtomicBoolean(false)
+    // Lock para impedir resets concurrentes del directorio de yt-dlp
+    private val ytdlpResetLock = java.util.concurrent.atomic.AtomicBoolean(false)
 
     fun resetAndReinitYtdlp(context: android.content.Context): Boolean {
+        if (!ytdlpResetLock.compareAndSet(false, true)) {
+            Log.d(Config.TAG_YT_DLP, "Reset de yt-dlp omitido (ya en curso)")
+            return false
+        }
         return try {
             Log.w(Config.TAG_YT_DLP, "Resetting corrupt yt-dlp directory and re-initializing from APK assets...")
             val dirsToClean = listOfNotNull(context.noBackupFilesDir, context.filesDir, context.cacheDir)
@@ -145,6 +153,8 @@ class MyApplication : Application(), ImageLoaderFactory {
         } catch (e: Exception) {
             Log.e(Config.TAG_YT_DLP, "Error resetting and re-initializing yt-dlp", e)
             false
+        } finally {
+            ytdlpResetLock.set(false)
         }
     }
 
@@ -152,6 +162,11 @@ class MyApplication : Application(), ImageLoaderFactory {
         val now = System.currentTimeMillis()
         if (!ignoreThrottle && now - lastForceUpdateTimestamp < 60_000) {
             Log.d(Config.TAG_YT_DLP, "Actualización de yt-dlp omitida (solicitada recientemente)")
+            return false
+        }
+        // Si otra corrutina ya está actualizando, no duplicar el trabajo
+        if (!ytdlpUpdateLock.compareAndSet(false, true)) {
+            Log.d(Config.TAG_YT_DLP, "Actualización de yt-dlp omitida (ya en curso)")
             return false
         }
         lastForceUpdateTimestamp = now
@@ -164,6 +179,8 @@ class MyApplication : Application(), ImageLoaderFactory {
             Log.e(Config.TAG_YT_DLP, "Error al forzar la actualización de binario yt-dlp. Ejecutando reset limpio...", e)
             resetAndReinitYtdlp(context)
             false
+        } finally {
+            ytdlpUpdateLock.set(false)
         }
     }
 

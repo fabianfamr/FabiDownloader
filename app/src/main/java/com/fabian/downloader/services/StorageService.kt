@@ -6,6 +6,7 @@ import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.database.DownloadRecord
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -31,11 +33,13 @@ class StorageService(private val database: AppDatabase) {
     private val activeProgressUpdates = MutableStateFlow<Map<Long, ProgressUpdate>>(emptyMap())
     private val dirtyIds = ConcurrentHashMap.newKeySet<Long>()
     private val flushMutex = Mutex()
+    private var flushJob: Job? = null
 
     init {
         // Bucle de escritura en segundo plano: guarda de forma agrupada los progresos en SQLite
-        serviceScope.launch {
-            while (true) {
+        // Job cancelable: mientras(isActive) permite terminarlo limpiamente en shutdown.
+        flushJob = serviceScope.launch {
+            while (isActive) {
                 delay(1500L) // Guarda en la BD cada 1.5 segundos los progresos acumulados
                 if (dirtyIds.isNotEmpty()) {
                     flushPendingWrites()
@@ -45,6 +49,7 @@ class StorageService(private val database: AppDatabase) {
     }
 
     fun shutdownAndFlush() {
+        flushJob?.cancel()
         try {
             kotlinx.coroutines.runBlocking(Dispatchers.IO) {
                 flushPendingWrites()
@@ -81,20 +86,13 @@ class StorageService(private val database: AppDatabase) {
             .combine(activeProgressUpdates) { dbList, updates ->
                 dbList.map { record ->
                     val isActiveOrQueued = !record.isCompleted && !record.isPaused && !record.size.startsWith(Config.STATUS_FAILED_PREFIX)
-                    if (isActiveOrQueued) {
-                        memoryCache[record.id] = record
-                    } else {
-                        memoryCache.remove(record.id)
-                    }
                     val update = updates[record.id]
                     if (update != null && isActiveOrQueued) {
-                        val merged = record.copy(
+                        record.copy(
                             progress = update.progress,
                             size = update.size,
                             speed = update.speed
                         )
-                        memoryCache[record.id] = merged
-                        merged
                     } else {
                         record
                     }
@@ -177,17 +175,19 @@ class StorageService(private val database: AppDatabase) {
     }
 
     suspend fun markAsCompleted(id: Long) {
-        val lastUpdate = activeProgressUpdates.value[id]
-        activeProgressUpdates.update { current -> current - id }
-        dirtyIds.remove(id)
+        // Proteger con el mismo mutex del flush: si el bucle de 1.5s está escribiendo
+        // una actualización vieja (ej. 97%), el orden de escritura podría pisar el 100%.
+        flushMutex.withLock {
+            activeProgressUpdates.update { current -> current - id }
+            dirtyIds.remove(id)
 
-        // Guardar estado final garantizado en la base de datos SQLite
-        if (lastUpdate != null) {
+            // Guardar estado final garantizado en la base de datos SQLite.
+            // Se escribe 100% siempre (no solo si lastUpdate != null) para no
+            // perder la escritura final si el flush ya consumió la actualización.
             database.downloadDao().updateDownloadProgressSizeAndSpeed(id, 100, Config.STATUS_COMPLETED, Config.STATUS_COMPLETED)
+            database.downloadDao().markAsCompleted(id)
+            memoryCache.remove(id)
         }
-        database.downloadDao().markAsCompleted(id)
-        memoryCache.remove(id)
-        flushPendingWrites()
     }
 
     suspend fun updatePausedState(id: Long, isPaused: Boolean) {

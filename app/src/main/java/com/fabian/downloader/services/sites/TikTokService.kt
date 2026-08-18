@@ -8,7 +8,7 @@ class TikTokService : BaseSiteService() {
     override val displayName: String = "TikTok"
     override val brandColorHex: String = "#00F2FE"
     override val iconName: String = "tiktok"
-    override val supportedUrlPatterns: List<String> = listOf("tiktok.com")
+    override val supportedUrlPatterns: List<String> = listOf("tiktok.com", "vm.tiktok.com", "vt.tiktok.com")
 
     override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         super.customizeExtractorRequest(request, url)

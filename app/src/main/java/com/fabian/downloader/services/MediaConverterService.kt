@@ -75,9 +75,19 @@ class MediaConverterService(private val context: Context) {
 
             val processId = UUID.randomUUID().toString()
             Log.d("MediaConverter", "Iniciando conversión con yt-dlp/FFmpeg para $targetExt...")
-            
-            YoutubeDL.getInstance().execute(request, processId) { progress, eta, line ->
-                Log.d("MediaConverter", "Progreso de conversión: $progress% - $line")
+
+            try {
+                YoutubeDL.getInstance().execute(request, processId) { progress, eta, line ->
+                    Log.d("MediaConverter", "Progreso de conversión: $progress% - $line")
+                }
+            } finally {
+                // Siempre destruir el proceso nativo (también en cancelación/excepción)
+                // para evitar procesos FFmpeg huérfanos consumiendo CPU.
+                try {
+                    YoutubeDL.getInstance().destroyProcessById(processId)
+                } catch (e: Exception) {
+                    Log.w("MediaConverter", "Error al destruir el proceso de conversión $processId", e)
+                }
             }
 
             var finalOutputFile = expectedOutputFile

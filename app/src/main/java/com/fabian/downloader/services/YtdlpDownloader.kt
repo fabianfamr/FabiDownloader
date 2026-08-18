@@ -334,6 +334,7 @@ class YtdlpDownloader {
         customizeRequest: ((YoutubeDLRequest) -> Unit)? = null,
         alProgresar: (Float, String, String) -> Unit
     ): Boolean = withContext(Dispatchers.IO) {
+        val coroutineScope = this
         val videoUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawVideoUrl)
         com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
         var lastLine = ""
@@ -354,19 +355,31 @@ class YtdlpDownloader {
                 try {
                     alProgresar(15f, Config.STATUS_DOWNLOADING, Config.STATUS_DOWNLOADING)
                     val imgFile = java.io.File(destFolder, "$fileNameWithoutExt.${format.lowercase()}")
+                    // Escribir primero a un archivo temporal: si copyTo falla a mitad,
+                    // no queda un .jpg corrupto en disco.
+                    val tmpFile = java.io.File(destFolder, "$fileNameWithoutExt.${format.lowercase()}.part")
                     val request = okhttp3.Request.Builder()
                         .url(videoUrl)
                         .addHeader("User-Agent", Config.UA_DESKTOP)
                         .build()
                     com.fabian.downloader.network.NetworkClient.okHttpClient.newCall(request).execute().use { response ->
                         if (response.isSuccessful && response.body != null) {
-                            imgFile.outputStream().use { out ->
+                            tmpFile.outputStream().use { out ->
                                 response.body!!.byteStream().copyTo(out)
+                            }
+                            if (!tmpFile.renameTo(imgFile)) {
+                                // Fallback si el rename falla (ej. sistemas de archivos diferentes)
+                                imgFile.outputStream().use { out ->
+                                    tmpFile.inputStream().copyTo(out)
+                                }
+                                tmpFile.delete()
                             }
                             alProgresar(100f, Config.STATUS_COMPLETED, Config.STATUS_COMPLETED)
                             return@withContext true
                         }
                     }
+                    // Respuesta no exitosa o sin cuerpo: limpiar el temporal
+                    tmpFile.delete()
                 } catch (e: Exception) {
                     Log.w(Config.TAG_YTDLP_DOWNLOADER, "Direct image download failed, falling back to yt-dlp", e)
                 }
@@ -441,8 +454,14 @@ class YtdlpDownloader {
                                  progreso >= 100f
 
                         if (isPostProcLine && !holdsPostProcLock) {
+                            // Adquisición bloqueante: esperar de verdad a que el post-procesado
+                            // FFmpeg de otra descarga termine, en lugar de seguir best-effort.
+                            // Se respeta la cancelación de la corrutina para no quedar colgado.
                             try {
-                                if (postProcessingSemaphore.tryAcquire(50, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                                while (!postProcessingSemaphore.tryAcquire(200, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                                    if (!coroutineScope.isActive) break
+                                }
+                                if (coroutineScope.isActive) {
                                     holdsPostProcLock = true
                                     Log.i(Config.TAG_YTDLP_DOWNLOADER, "Turno de post-procesado/conversión asignado a $processId")
                                 }
@@ -506,9 +525,11 @@ class YtdlpDownloader {
                         val appCtx = com.fabian.downloader.MyApplication.getInstance()
                         appCtx.resetAndReinitYtdlp(appCtx)
                     } else if (lowerMsg.contains("player api") || lowerLast.contains("player api") ||
-                        lowerMsg.contains("ios") || lowerLast.contains("ios") ||
+                        lowerMsg.contains("player client") || lowerLast.contains("player client") ||
+                        lowerMsg.contains("web player api") || lowerLast.contains("web player api") ||
                         lowerMsg.contains("requested format") || lowerLast.contains("requested format") ||
                         lowerMsg.contains("format is not available") || lowerLast.contains("format is not available") ||
+                        lowerMsg.contains("no video formats found") || lowerLast.contains("no video formats found") ||
                         lowerMsg.contains("quickjs") || lowerLast.contains("quickjs")) {
                         Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectada incompatibilidad de API/extractor en YouTube. Intentando refrescar binario yt-dlp...")
                         com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(com.fabian.downloader.MyApplication.getInstance())

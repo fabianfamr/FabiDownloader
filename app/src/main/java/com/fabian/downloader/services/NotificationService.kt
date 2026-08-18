@@ -416,6 +416,7 @@ class NotificationService(private val context: Context) {
         val notification = NotificationCompat.Builder(context, channelIdToUse)
             .setContentTitle(context.getString(R.string.notif_title_failed))
             .setContentText("$cleanTitle\n$errorMsg")
+            .setStyle(NotificationCompat.BigTextStyle().bigText("$cleanTitle\n$errorMsg"))
             .setSmallIcon(R.drawable.ic_cloud_download)
             .setLargeIcon(largeIcon)
             .setAutoCancel(true)

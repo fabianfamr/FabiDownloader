@@ -124,5 +124,6 @@
     <string name="downloads_default_domain">Internet</string>
 
     <string name="downloads_toast_wifi_only">Modo \'Solo Wi-Fi\' activo: Conéctate a Wi-Fi para descargar</string>
+    <string name="downloads_toast_battery_low">Batería baja: la descarga se pausará o limitará</string>
 
 </resources>
