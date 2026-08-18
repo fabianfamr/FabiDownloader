@@ -423,7 +423,7 @@ class DownloadManagerService private constructor(
                 // nunca se lanzan excepciones desde el callback; se marca el flag y se detiene
                 // el proceso aquí, luego la corrutina lanza el error tras volver del download.
                 val storageSpaceExceeded = java.util.concurrent.atomic.AtomicBoolean(false)
-                service.download(url, quality, format, destFolder, fileNameWithoutExt, processId = id.toString()) { progress, sizeText, speedText ->
+                val downloadSuccess = service.download(url, quality, format, destFolder, fileNameWithoutExt, processId = id.toString()) { progress, sizeText, speedText ->
                     val currentTime = System.currentTimeMillis()
                     // Comprobar espacio de forma ultra eficiente cada 5 segundos para priorizar rendimiento y velocidad
                     if (currentTime - lastSpaceCheck > 5000) {
@@ -480,6 +480,10 @@ class DownloadManagerService private constructor(
                 // dentro de la corrutina, para que llegue al bloque catch y marque FAILED.
                 if (storageSpaceExceeded.get()) {
                     throw Exception("Espacio insuficiente")
+                }
+
+                if (!downloadSuccess) {
+                    throw Exception(application.getString(R.string.downloads_error_generic))
                 }
 
                 val actualFile = destFolder.listFiles { _, name ->

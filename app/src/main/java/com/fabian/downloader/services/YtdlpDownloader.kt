@@ -122,15 +122,13 @@ class YtdlpDownloader {
                 val supportedVideoFormats = listOf("mp4", "mkv", "webm")
                 val finalVideoFormat = if (supportedVideoFormats.contains(targetFormat)) targetFormat else "mp4"
                 addOption("--merge-output-format", finalVideoFormat)
-                addOption("--remux-video", finalVideoFormat)
             }
 
             if (isYoutube) {
                 when (fallbackLevel) {
                     0 -> addOption("--extractor-args", "youtube:player_client=android,mweb,ios")
                     1 -> addOption("--extractor-args", "youtube:player_client=ios,mweb")
-                    2 -> addOption("--extractor-args", "youtube:player_client=mweb,web")
-                    3 -> addOption("--extractor-args", "youtube:player_client=android_creator,ios")
+                    2 -> addOption("--extractor-args", "youtube:player_client=android,web")
                     else -> { /* omit player_client for raw yt-dlp fallback */ }
                 }
             }
@@ -164,10 +162,6 @@ class YtdlpDownloader {
 
             // HTTP chunk size: improves speed on large downloads (10MB chunks)
             addOption("--http-chunk-size", "10M")
-
-            // Allow retries on throttled rates or fragments instead of failing immediately
-            // addOption("--throttled-rate", "100K")
-            // addOption("--abort-on-unavailable-fragment")
 
             // ============================================================
             // LIMITACIÓN DE VELOCIDAD (respetar maxSpeed o limitar por batería baja)
@@ -222,9 +216,7 @@ class YtdlpDownloader {
             // ============================================================
             // TIMEOUTS Y RETRIES OPTIMIZADOS PARA VELOCIDAD
             // ============================================================
-            // Shorter socket timeout = fail fast and retry (was 30s)
             addOption("--socket-timeout", "15")
-            // More retries for resilience (was 10)
             addOption("--retries", "15")
             addOption("--fragment-retries", "15")
             addOption("--no-cache-dir")
@@ -243,31 +235,12 @@ class YtdlpDownloader {
             if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
                 addOption("--no-check-certificate")
             }
-            addOption("--no-check-formats")
-            // Note: removed --force-ipv4 by default (was slowing down on IPv6-capable networks)
             addOption("--no-warnings")
 
             // Miniaturas y Metadatos globales
             if (settings.embedMetadata) {
                 addOption("--embed-metadata")
-
-                // Limpiar sufijos no deseados (- video, - audio, - Topic, etc.) directamente en las etiquetas incrustadas
-                val metaFields = "title,uploader,artist,channel,album,album_artist"
-                addOption("--replace-in-metadata", "$metaFields (?i)\\s*-\\s*(video|audio|topic)$ ")
-                addOption("--replace-in-metadata", "$metaFields (?i)\\s*\\(video|audio\\)$ ")
-                addOption("--replace-in-metadata", "$metaFields (?i)\\s*\\[video|audio\\]$ ")
-
-                // Parsear álbum para que solo sea el artista/subidor
                 addOption("--parse-metadata", "%(uploader,artist)s:%(album)s")
-
-                if (settings.markAsMV) {
-                    addOption("--parse-metadata", "MV:%(genre)s")
-                    addOption("--postprocessor-args", "FFmpegMetadata:-metadata media_type=6 -metadata stik=6 -metadata genre=\"MV\"")
-                } else {
-                    // Si el usuario no activó "Marcar como MV", establecer género como "Music" y media_type=0 para evitar que reproductores añadan la etiqueta [MV]
-                    addOption("--parse-metadata", "Music:%(genre)s")
-                    addOption("--postprocessor-args", "FFmpegMetadata:-metadata media_type=0 -metadata stik=0 -metadata genre=\"Music\"")
-                }
             }
             if (settings.embedThumbnail) {
                 addOption("--embed-thumbnail")
@@ -586,9 +559,18 @@ class YtdlpDownloader {
                     Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1...")
                     alProgresar(-1f, Config.STATUS_DOWNLOADING, Config.STATUS_RETRYING)
                     cleanupBeforeRetry()
+                } else {
+                    val finalError = executionError ?: e
+                    val errorMessage = resolveUserFacingError(finalError, lastLine)
+                    throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
                 }
             }
-            if (success0 || !autoRetry) return@withContext success0
+            if (success0) return@withContext true
+            if (!autoRetry) {
+                val finalError = executionError ?: Exception(lastLine.ifEmpty { "Error en la descarga" })
+                val errorMessage = resolveUserFacingError(finalError, lastLine)
+                throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
+            }
 
             // Nivel 1: Intentar con mejor formato disponible sin limitación estricta de altura
             val success1 = executeWithRetry(1) { e ->
@@ -611,11 +593,13 @@ class YtdlpDownloader {
             // Nivel 3: Descargar formato absoluto básico 'best/b'
             val success3 = executeWithRetry(3) { e ->
                 Log.e(Config.TAG_YTDLP_DOWNLOADER, "Todos los niveles e intentos de descarga fallaron para $videoUrl. Última línea: $lastLine", e)
-                val finalError = executionError ?: e
-                val errorMessage = resolveUserFacingError(finalError, lastLine)
-                throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
+                executionError = e
             }
-            return@withContext success3
+            if (success3) return@withContext true
+
+            val finalError = executionError ?: Exception(lastLine.ifEmpty { "Error en la descarga" })
+            val errorMessage = resolveUserFacingError(finalError, lastLine)
+            throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
         } finally {
             try {
                 YoutubeDL.getInstance().destroyProcessById(processId)
