@@ -1,18 +1,20 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
+# ProGuard / R8 Configuration for FabiDownloader
+# Optimized for performance, code shrinking and strict obfuscation
 
-# Preserve source file and line numbers for stack traces
+# Preserve essential debugging attributes
 -keepattributes SourceFile,LineNumberTable
 -keepattributes Signature, InnerClasses, EnclosingMethod
--keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations, RuntimeVisibleTypeAnnotations, *Annotation*
+-keepattributes *Annotation*
 
-# JNI & Native methods
+# JNI & Native Methods (Essential for C/C++ libraries and Python bridge)
 -keepclasseswithmembernames class * {
     native <methods>;
 }
 
-# YoutubeDL-Android & FFmpeg
+# ============================================================================
+# Video Downloader Engine (YoutubeDL-Android & FFmpeg)
+# Essential keep rules for native execution, process management and callbacks
+# ============================================================================
 -keep class com.yausername.youtubedl_android.** { *; }
 -keep interface com.yausername.youtubedl_android.** { *; }
 -dontwarn com.yausername.youtubedl_android.**
@@ -21,30 +23,28 @@
 -keep interface com.yausername.ffmpeg.** { *; }
 -dontwarn com.yausername.ffmpeg.**
 
-# Apache Commons Compress (used by YoutubeDL-Android)
--keep class org.apache.commons.compress.** { *; }
+# Archive decompression used by native extractor
 -dontwarn org.apache.commons.compress.**
+-dontwarn org.tukaani.xz.**
 
-# Retrofit 2
--keep class retrofit2.** { *; }
--keep interface retrofit2.** { *; }
+# ============================================================================
+# Networking & HTTP Clients (OkHttp & Retrofit)
+# ============================================================================
 -dontwarn retrofit2.**
 -keepclassmembers,allowshrinking,allowobfuscation interface * {
     @retrofit2.http.* <methods>;
 }
 
-# OkHttp 3 & Okio
--keep class okhttp3.** { *; }
--keep interface okhttp3.** { *; }
 -dontwarn okhttp3.**
 -dontwarn okio.**
 -dontwarn javax.annotation.**
 -dontwarn org.conscrypt.**
 -dontwarn java.beans.**
--dontwarn org.tukaani.xz.**
 
-# Moshi rules to prevent breaking JSON serialization/deserialization
--keep class com.squareup.moshi.** { *; }
+# ============================================================================
+# JSON Serialization (Moshi & Kotlinx.serialization)
+# Keeps only annotated fields/constructors to allow maximum class obfuscation
+# ============================================================================
 -dontwarn com.squareup.moshi.**
 -keepclassmembers class * {
     @com.squareup.moshi.Json <fields>;
@@ -52,39 +52,33 @@
 -keep class * {
     @com.squareup.moshi.JsonClass public <init>(...);
 }
+-keep class * extends com.squareup.moshi.JsonAdapter {
+    public <init>(com.squareup.moshi.Moshi, ...);
+    public <init>(com.squareup.moshi.Moshi);
+}
 
-# kotlinx.serialization rules
 -dontnote kotlinx.serialization.AnnotationsKt
--keep class kotlinx.serialization.** { *; }
 -keepclassmembers class * {
     @kotlinx.serialization.Serializable <fields>;
-}
--keepnames class kotlinx.serialization.internal.**
--keepclassmembers class kotlinx.serialization.internal.** {
-    *** Companion;
 }
 -keepclasseswithmembers class * {
     @kotlinx.serialization.Serializable <init>(...);
 }
+-keepclassmembers class * {
+    *** Companion;
+}
 
-# Room Database
+# ============================================================================
+# Room Database & Image Loader (Coil)
+# ============================================================================
 -keep class * extends androidx.room.RoomDatabase
--keep class com.fabian.downloader.database.** { *; }
 -dontwarn androidx.room.**
-
-# Coil Image & Video Loader
--keep class coil.** { *; }
 -dontwarn coil.**
 
+# ============================================================================
 # Kotlin Coroutines
--keepclassmembers class kotlinx.coroutines.** { *; }
+# ============================================================================
 -dontwarn kotlinx.coroutines.**
 
-# Application specific classes, models & pipelines to preserve JSON/reflection integrity
--keep class com.fabian.downloader.ui.**ViewModel { *; }
--keep class com.fabian.downloader.services.sites.** { *; }
--keep class com.fabian.downloader.pipeline.** { *; }
--keep class com.fabian.downloader.configs.** { *; }
--keep class com.fabian.downloader.managers.** { *; }
 
 
