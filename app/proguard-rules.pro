@@ -14,15 +14,14 @@
 # ============================================================================
 # Video Downloader Engine (YoutubeDL-Android & FFmpeg)
 # ============================================================================
--keep class com.yausername.youtubedl_android.** { *; }
--keep interface com.yausername.youtubedl_android.** { *; }
--dontwarn com.yausername.youtubedl_android.**
+-keep class com.yausername.** { *; }
+-keep interface com.yausername.** { *; }
+-dontwarn com.yausername.**
 
--keep class com.yausername.ffmpeg.** { *; }
--keep interface com.yausername.ffmpeg.** { *; }
--dontwarn com.yausername.ffmpeg.**
-
+# Apache Commons Compress & XZ (Essential for unpacking native Python & yt-dlp assets)
+-keep class org.apache.commons.compress.** { *; }
 -dontwarn org.apache.commons.compress.**
+-keep class org.tukaani.xz.** { *; }
 -dontwarn org.tukaani.xz.**
 
 # ============================================================================
