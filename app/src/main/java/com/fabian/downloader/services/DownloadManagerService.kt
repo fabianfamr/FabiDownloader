@@ -660,7 +660,12 @@ class DownloadManagerService private constructor(
             try {
                 val currentRecord = storageService.getDownloadById(id)
                 if (currentRecord != null) {
+                    var cleanTitle = currentRecord.title
+                    while (cleanTitle.startsWith(Config.STATUS_FAILED_PREFIX)) {
+                        cleanTitle = cleanTitle.substringAfter(Config.STATUS_FAILED_PREFIX)
+                    }
                     val currentProgress = if (currentRecord.progress < 0) 0 else currentRecord.progress
+                    storageService.updateDownloadInfo(id, cleanTitle, Config.STATUS_QUEUED)
                     storageService.updateDownloadProgressAndSizeAndSpeed(
                         id,
                         currentProgress,

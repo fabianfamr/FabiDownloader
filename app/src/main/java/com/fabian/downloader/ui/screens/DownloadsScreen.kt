@@ -1166,33 +1166,14 @@ fun MobileDownloadingItem(
                 getPlatformIconAndColor(record.url, record.format)
             }
             
-            // Thumbnail / Icon with Circular Progress Indicator Overlay
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(
-                        color = if (isFailed) C_red.copy(alpha = 0.15f) else platformColor.copy(alpha = 0.12f)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                if (!record.thumbnailUrl.isNullOrEmpty()) {
-                    coil.compose.AsyncImage(
-                        model = record.thumbnailUrl,
-                        contentDescription = stringResource(R.string.downloads_thumbnail),
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                    )
-                } else {
-                    Icon(
-                        imageVector = if (isFailed) Icons.Default.Error else platformIcon,
-                        contentDescription = null, 
-                        modifier = Modifier.size(24.dp),
-                        tint = if (isFailed) C_red else platformColor
-                    )
-                }
-
-            }
+            // Thumbnail con soporte de disco de vinilo para música y rectángulo para videos
+            MediaThumbnail(
+                record = record,
+                isFailed = isFailed,
+                size = 56.dp,
+                fallbackIcon = if (isFailed) Icons.Default.Error else platformIcon,
+                fallbackColor = if (isFailed) C_red else platformColor
+            )
 
             Spacer(modifier = Modifier.width(12.dp))
 
@@ -1371,45 +1352,17 @@ fun MobileDownloadedItem(
                 ),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(platformColor.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
-                if (!record.thumbnailUrl.isNullOrEmpty()) {
-                    coil.compose.AsyncImage(
-                        model = record.thumbnailUrl,
-                        contentDescription = stringResource(R.string.downloads_thumbnail),
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                    )
-                } else if (record.format == Config.FORMAT_MP4 || record.format.uppercase() == Config.FORMAT_JPG || record.format.uppercase() == Config.FORMAT_PNG || record.format.uppercase() == Config.FORMAT_WEBP) {
-                    val localFile = remember(record.id) {
-                        com.fabian.downloader.utils.PathUtils.getDownloadFile(
-                            ctx,
-                            record.title,
-                            record.id,
-                            record.format
-                        )
-                    }
-                    coil.compose.AsyncImage(
-                        model = localFile,
-                        contentDescription = stringResource(R.string.downloads_thumbnail),
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                    )
-                } else {
-                    Icon(
-                        imageVector = platformIcon,
-                        contentDescription = null, 
-                        modifier = Modifier.size(20.dp),
-                        tint = platformColor
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.width(8.dp))
+            val isAudio = remember(record.format) { isAudioFormat(record.format) }
+
+            // Thumbnail con soporte de disco de vinilo para música y rectángulo para videos
+            MediaThumbnail(
+                record = record,
+                size = 52.dp,
+                fallbackIcon = platformIcon,
+                fallbackColor = platformColor
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = cleanTitle, 
@@ -1419,11 +1372,18 @@ fun MobileDownloadedItem(
                     maxLines = 1, 
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(3.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically, 
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
+                    Icon(
+                        imageVector = if (isAudio) Icons.Default.MusicNote else Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        tint = if (isAudio) C_accent else platformColor,
+                        modifier = Modifier.size(13.dp)
+                    )
+
                     if (AppSettings.showQualityBadge) {
                         Surface(
                             color = platformColor.copy(alpha = 0.12f),

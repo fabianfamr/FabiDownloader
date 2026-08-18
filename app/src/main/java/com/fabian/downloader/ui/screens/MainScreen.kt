@@ -3,6 +3,8 @@ package com.fabian.downloader.ui.screens
 import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.ui.viewmodels.MainViewModel
 import com.fabian.downloader.ui.components.getPlatformIconAndColor
+import com.fabian.downloader.ui.components.MediaThumbnail
+import com.fabian.downloader.ui.components.isAudioFormat
 import com.fabian.downloader.utils.ToastUtils
 
 import android.app.Application
@@ -574,6 +576,7 @@ fun MainScreen(
                     
                     recentDownloads.forEach { record ->
                         val (platformIcon, platformColor) = getPlatformIconAndColor(record.url, record.format)
+                        val isAudio = isAudioFormat(record.format)
                         
                         Surface(
                             modifier = Modifier
@@ -593,45 +596,13 @@ fun MainScreen(
                                 modifier = Modifier.padding(14.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(46.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(platformColor.copy(alpha = 0.12f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    if (!record.thumbnailUrl.isNullOrEmpty()) {
-                                        coil.compose.AsyncImage(
-                                            model = record.thumbnailUrl,
-                                            contentDescription = null,
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                                        )
-                                    } else if (record.isCompleted && record.format == Config.FORMAT_MP4) {
-                                        val localFile = remember(record.id) {
-                                            com.fabian.downloader.utils.PathUtils.getDownloadFile(
-                                                ctx,
-                                                record.title,
-                                                record.id,
-                                                record.format
-                                            )
-                                        }
-                                        coil.compose.AsyncImage(
-                                            model = localFile,
-                                            contentDescription = null,
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                                        )
-                                    } else {
-                                        Icon(
-                                            imageVector = platformIcon,
-                                            contentDescription = null,
-                                            tint = platformColor,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.width(16.dp))
+                                MediaThumbnail(
+                                    record = record,
+                                    size = 48.dp,
+                                    fallbackIcon = platformIcon,
+                                    fallbackColor = platformColor
+                                )
+                                Spacer(modifier = Modifier.width(14.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = record.title,
@@ -643,18 +614,24 @@ fun MainScreen(
                                     )
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        modifier = Modifier.padding(top = 2.dp)
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                        modifier = Modifier.padding(top = 3.dp)
                                     ) {
+                                        Icon(
+                                            imageVector = if (isAudio) Icons.Default.MusicNote else Icons.Default.PlayArrow,
+                                            contentDescription = null,
+                                            tint = if (isAudio) C_accent else platformColor,
+                                            modifier = Modifier.size(13.dp)
+                                        )
                                         Surface(
-                                            color = if (record.format == Config.FORMAT_MP4) Color(0x112ECC71) else C_accentDim,
+                                            color = if (isAudio) C_accentDim else Color(0x112ECC71),
                                             shape = RoundedCornerShape(6.dp)
                                         ) {
                                             Text(
                                                 text = record.format,
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = FontWeight.Bold,
-                                                color = if (record.format == Config.FORMAT_MP4) C_green else C_accent,
+                                                color = if (isAudio) C_accent else C_green,
                                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                             )
                                         }

@@ -125,8 +125,8 @@ class YtdlpDownloader {
             if (isYoutube) {
                 when (fallbackLevel) {
                     0 -> addOption("--extractor-args", "youtube:player_client=android,mweb,ios")
-                    1 -> addOption("--extractor-args", "youtube:player_client=ios,mweb")
-                    2 -> addOption("--extractor-args", "youtube:player_client=android,web")
+                    1 -> addOption("--extractor-args", "youtube:player_client=ios,web,mweb")
+                    2 -> addOption("--extractor-args", "youtube:player_client=android_creator,ios,tv")
                     else -> { /* omit player_client for raw yt-dlp fallback */ }
                 }
             }
@@ -212,11 +212,14 @@ class YtdlpDownloader {
             }
 
             // ============================================================
-            // TIMEOUTS Y RETRIES OPTIMIZADOS PARA VELOCIDAD
+            // TIMEOUTS Y RETRIES OPTIMIZADOS PARA MÁXIMA ESTABILIDAD
             // ============================================================
-            addOption("--socket-timeout", "15")
+            addOption("--socket-timeout", "20")
             addOption("--retries", "15")
             addOption("--fragment-retries", "15")
+            addOption("--extractor-retries", "5")
+            addOption("--file-access-retries", "3")
+            addOption("--retry-sleep", "fragment:1")
             addOption("--no-cache-dir")
             addOption("--no-update")
 
@@ -391,12 +394,14 @@ class YtdlpDownloader {
             val lowerClass = e.javaClass.name.lowercase()
             val lowerLine = line.lowercase()
             val keywords = listOf(
-                "timeout", "time out", "connection", "unable to resolve host", 
-                "network is unreachable", "502", "503", "504", "429", 
-                "read error", "connection reset", "ssl", "socket", "try again",
+                "timeout", "time out", "timed out", "connection", "unable to resolve host", 
+                "network is unreachable", "502", "503", "504", "429", "403", "http error 403", "http error 429",
+                "read error", "connection reset", "connection refused", "broken pipe", "ssl", "socket", "try again",
                 "interrupted", "quickjs", "solving js challenges", "streamgobbler",
                 "process id already exists", "canceledexception", "canceled",
-                "read interrupted", "interruptedioexception"
+                "read interrupted", "interruptedioexception", "signature extraction",
+                "unable to extract", "temporary failure", "handshake", "end of file", "eof",
+                "connection closed", "unexpected end of stream", "software caused connection abort"
             )
             return keywords.any { lowerMsg.contains(it) || lowerClass.contains(it) || lowerLine.contains(it) }
         }
@@ -409,6 +414,16 @@ class YtdlpDownloader {
             val maxAttempts = if (autoRetry) 3 else 1
             while (attempt < maxAttempts) {
                 if (!isActive) throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
+                
+                // Asegurarse de que no haya procesos huérfanos o archivos temporales bloqueados antes de empezar
+                if (attempt > 0) {
+                    cleanupBeforeRetry(isNetworkRetry = true)
+                } else {
+                    try {
+                        YoutubeDL.getInstance().destroyProcessById(processId)
+                    } catch (_: Exception) {}
+                }
+
                 try {
                     val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, level, customizeRequest)
                     var lastUiUpdate = 0L
