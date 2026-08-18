@@ -70,12 +70,14 @@ class NotificationService(private val context: Context) {
     }
 
     private val thumbnailCache = android.util.LruCache<String, Bitmap>(20)
-    private val shownSuccessIds = java.util.Collections.synchronizedSet(
-        object : java.util.LinkedHashMap<Int, Boolean>(100, 0.75f, true) {
-            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, Boolean>?): Boolean {
-                return size > 100
+    private val shownSuccessIds: MutableSet<Int> = java.util.Collections.synchronizedSet(
+        java.util.Collections.newSetFromMap(
+            object : java.util.LinkedHashMap<Int, Boolean>(100, 0.75f, true) {
+                override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, Boolean>?): Boolean {
+                    return size > 100
+                }
             }
-        }.keys
+        )
     )
     private var foregroundDownloadId: Int? = null
 
@@ -341,7 +343,7 @@ class NotificationService(private val context: Context) {
 
         val notification = NotificationCompat.Builder(context, channelStatusId)
             .setContentTitle(context.getString(R.string.notif_title_completed))
-            .setContentText("Lote completado: $count descargas finalizadas")
+            .setContentText(context.getString(R.string.notif_batch_completed, count))
             .setSmallIcon(R.drawable.ic_cloud_download)
             .setAutoCancel(true)
             .setOngoing(false)

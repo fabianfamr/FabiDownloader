@@ -33,9 +33,6 @@ abstract class BaseSiteService : SiteService {
         request.addOption("--no-warnings")
         request.addOption("--socket-timeout", "10")
         request.addOption("--retries", "5")
-        if (com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(url)) {
-            request.addOption("--extractor-args", "youtube:player_client=ios,mweb")
-        }
         if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
             request.addOption("--no-check-certificate")
         }
@@ -50,52 +47,66 @@ abstract class BaseSiteService : SiteService {
     override suspend fun extractMetadata(url: String): InfoMedia? {
         com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
         val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
+        val isYoutube = com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(cleanUrl)
         
         val deferred = activeExtractions.computeIfAbsent(cleanUrl) { _ ->
             extractionScope.async {
-                val request = YoutubeDLRequest(cleanUrl).apply {
-                    addOption("--dump-json")
-                    
-                    val cookiesFile = File(com.fabian.downloader.MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
-                    if (cookiesFile.exists() && cookiesFile.length() > 0) {
-                        addOption("--cookies", cookiesFile.absolutePath)
-                    }
-                    
-                    if (!com.fabian.downloader.ui.AppSettings.playlistEnabled) {
-                        addOption("--no-playlist")
-                    }
-                    addOption("--no-cache-dir")
-                    
-                    customizeExtractorRequest(this, cleanUrl)
+                val clientOptions: List<String?> = if (isYoutube) {
+                    listOf("android,mweb,ios", "ios,mweb", "tv,android_creator,mweb", "android_creator,ios,tv,web", null)
+                } else {
+                    listOf(null)
                 }
 
-                try {
-                    val response = YoutubeDL.getInstance().execute(request)
-                    val jsonRaw = response.out ?: return@async null
-                    val json = JSONObject(jsonRaw)
+                fun createRequest(playerClient: String?): YoutubeDLRequest {
+                    return YoutubeDLRequest(cleanUrl).apply {
+                        addOption("--dump-json")
+                        
+                        val cookiesFile = File(com.fabian.downloader.MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
+                        if (cookiesFile.exists() && cookiesFile.length() > 0) {
+                            addOption("--cookies", cookiesFile.absolutePath)
+                        }
+                        
+                        if (!com.fabian.downloader.ui.AppSettings.playlistEnabled) {
+                            addOption("--no-playlist")
+                        }
+                        addOption("--no-cache-dir")
+                        
+                        if (isYoutube && !playerClient.isNullOrEmpty()) {
+                            addOption("--extractor-args", "youtube:player_client=$playerClient")
+                        }
+                        
+                        customizeExtractorRequest(this, cleanUrl)
+                    }
+                }
 
-                    com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, Config.STATUS_UNKNOWN, "Video de $displayName")
-                } catch (e: Exception) {
-                    Log.e(Config.TAG_BASE_SITE_SERVICE, "Error extracting info for $cleanUrl in service $siteId: ${e.message}", e)
-                    val lowerMsg = (e.message ?: "").lowercase()
-                    if (lowerMsg.contains("zipimport") || lowerMsg.contains("bad local file header") ||
-                        lowerMsg.contains("cannot link") || lowerMsg.contains("libandroid-support") ||
-                        lowerMsg.contains("libpython") || lowerMsg.contains("not found") ||
-                        lowerMsg.contains("player api") || lowerMsg.contains("player_client")) {
-                        Log.w(Config.TAG_BASE_SITE_SERVICE, "Detectada corrupción de binario o error de API player. Re-inicializando binario limpio y reintentando...")
-                        val appCtx = com.fabian.downloader.MyApplication.getInstance()
-                        appCtx.resetAndReinitYtdlp(appCtx)
-                        try {
-                            val retryResponse = YoutubeDL.getInstance().execute(request)
-                            val retryJsonRaw = retryResponse.out ?: return@async null
-                            val retryJson = JSONObject(retryJsonRaw)
-                            return@async com.fabian.downloader.utils.YtdlpParser.parseMetadata(retryJson, Config.STATUS_UNKNOWN, "Video de $displayName")
-                        } catch (retryException: Exception) {
-                            Log.e(Config.TAG_BASE_SITE_SERVICE, "Reintento de extracción falló tras re-inicializar: ${retryException.message}", retryException)
+                for (client in clientOptions) {
+                    val request = createRequest(client)
+                    try {
+                        val response = YoutubeDL.getInstance().execute(request)
+                        val jsonRaw = response.out ?: continue
+                        val json = JSONObject(jsonRaw)
+
+                        val parsed = com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, Config.STATUS_UNKNOWN, "Video de $displayName")
+                        if (parsed != null) {
+                            return@async parsed
+                        }
+                    } catch (e: Exception) {
+                        Log.e(Config.TAG_BASE_SITE_SERVICE, "Error extracting info for $cleanUrl (client=$client) in service $siteId: ${e.message}", e)
+                        val lowerMsg = (e.message ?: "").lowercase()
+                        if (lowerMsg.contains("zipimport") || lowerMsg.contains("bad local file header") ||
+                            lowerMsg.contains("cannot link") || lowerMsg.contains("libandroid-support") ||
+                            lowerMsg.contains("libpython") || lowerMsg.contains("not found")) {
+                            Log.w(Config.TAG_BASE_SITE_SERVICE, "Detectada corrupción de binario. Re-inicializando binario limpio y reintentando...")
+                            val appCtx = com.fabian.downloader.MyApplication.getInstance()
+                            appCtx.resetAndReinitYtdlp(appCtx)
+                        } else if (lowerMsg.contains("player api") || lowerMsg.contains("bot") || lowerMsg.contains("sign in") || lowerMsg.contains("confirm you're not a bot")) {
+                            Log.w(Config.TAG_BASE_SITE_SERVICE, "Error de autenticación/player api en YouTube. Intentando siguiente cliente o actualizando motor...")
+                            val appCtx = com.fabian.downloader.MyApplication.getInstance()
+                            appCtx.forceUpdateYtdlpBinary(appCtx)
                         }
                     }
-                    null
                 }
+                null
             }
         }
 

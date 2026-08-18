@@ -109,6 +109,7 @@
     <string name="notif_channel_status_desc">Notifications for successfully completed or failed downloads</string>
     <string name="notif_title_completed">Download completed</string>
     <string name="notif_title_failed">Download failed</string>
+    <string name="notif_batch_completed">Batch completed: %1$d downloads finished</string>
     <string name="notif_action_open">Open</string>
     <string name="notif_action_share">Share</string>
     <string name="notif_action_retry">Retry</string>
