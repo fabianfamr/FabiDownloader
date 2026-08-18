@@ -1,5 +1,5 @@
 # ProGuard / R8 Configuration for FabiDownloader
-# Optimized for performance, code shrinking and strict obfuscation
+# Optimized for stability, performance and successful obfuscation
 
 # Preserve essential debugging attributes
 -keepattributes SourceFile,LineNumberTable
@@ -13,7 +13,6 @@
 
 # ============================================================================
 # Video Downloader Engine (YoutubeDL-Android & FFmpeg)
-# Essential keep rules for native execution, process management and callbacks
 # ============================================================================
 -keep class com.yausername.youtubedl_android.** { *; }
 -keep interface com.yausername.youtubedl_android.** { *; }
@@ -23,7 +22,6 @@
 -keep interface com.yausername.ffmpeg.** { *; }
 -dontwarn com.yausername.ffmpeg.**
 
-# Archive decompression used by native extractor
 -dontwarn org.apache.commons.compress.**
 -dontwarn org.tukaani.xz.**
 
@@ -43,7 +41,6 @@
 
 # ============================================================================
 # JSON Serialization (Moshi & Kotlinx.serialization)
-# Keeps only annotated fields/constructors to allow maximum class obfuscation
 # ============================================================================
 -dontwarn com.squareup.moshi.**
 -keepclassmembers class * {
@@ -69,16 +66,55 @@
 }
 
 # ============================================================================
-# Room Database & Image Loader (Coil)
+# Room Database (Reflection & Schema instantiation)
 # ============================================================================
--keep class * extends androidx.room.RoomDatabase
+-keep class * extends androidx.room.RoomDatabase {
+    public <init>();
+    *;
+}
+-keep class * extends androidx.room.RoomOpenHelper
+-keep class com.fabian.downloader.database.** { *; }
+-keep @androidx.room.Dao interface * { *; }
+-keep @androidx.room.Entity class * { *; }
 -dontwarn androidx.room.**
+
+# ============================================================================
+# Jetpack ViewModel & Lifecycle
+# ============================================================================
+-keep class * extends androidx.lifecycle.ViewModel {
+    public <init>(...);
+    public <init>();
+}
+-keep class * extends androidx.lifecycle.AndroidViewModel {
+    public <init>(...);
+    public <init>();
+}
+-keep class com.fabian.downloader.ui.viewmodels.** { *; }
+
+# ============================================================================
+# Coil Image Loader
+# ============================================================================
+-keep class coil.** { *; }
 -dontwarn coil.**
 
 # ============================================================================
 # Kotlin Coroutines
 # ============================================================================
+-keepclassmembers class kotlinx.coroutines.** { *; }
 -dontwarn kotlinx.coroutines.**
+
+# ============================================================================
+# Application Services, Managers, Configs & Pipelines
+# ============================================================================
+-keep class com.fabian.downloader.configs.** { *; }
+-keep class com.fabian.downloader.managers.** { *; }
+-keep class com.fabian.downloader.pipeline.** { *; }
+-keep class com.fabian.downloader.services.sites.** { *; }
+-keep class com.fabian.downloader.services.** { *; }
+-keep class com.fabian.downloader.receivers.** { *; }
+-keep class com.fabian.downloader.workers.** { *; }
+-keep class com.fabian.downloader.ui.AppSettings { *; }
+
 
 
 
