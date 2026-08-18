@@ -144,11 +144,7 @@ class NotificationService(private val context: Context) {
             }
         }
 
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
         // Al presionar la descarga en curso ir a la pantalla de descargas en proceso (página index 1)
         val appIntent = Intent(context, com.fabian.downloader.MainActivity::class.java).apply {
@@ -194,11 +190,7 @@ class NotificationService(private val context: Context) {
             } else null
         } else null
 
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
         // Al presionar la notificación ir a la pantalla de descargas en proceso (página index 1)
         val appIntent = Intent(context, com.fabian.downloader.MainActivity::class.java).apply {
@@ -270,11 +262,7 @@ class NotificationService(private val context: Context) {
             } else null
         } else null
 
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
         // Crear Acción Abrir
         val openIntent = Intent(context, DownloadActionReceiver::class.java).apply {
@@ -323,11 +311,7 @@ class NotificationService(private val context: Context) {
         if (!com.fabian.downloader.ui.AppSettings.notifyBatchComplete) return
         if (count <= 0) return
 
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
         val appIntent = Intent(context, com.fabian.downloader.MainActivity::class.java).apply {
             setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -374,11 +358,7 @@ class NotificationService(private val context: Context) {
             } else null
         } else null
 
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
         // Crear Acción Reintentar
         val retryIntent = Intent(context, DownloadActionReceiver::class.java).apply {
