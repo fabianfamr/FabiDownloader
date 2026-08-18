@@ -14,8 +14,6 @@ class YtdlpDownloader {
     companion object {
         private val SPEED_REGEX = Regex("""at\s+([0-9.]+[a-zA-Z]+/s)""")
         private val SIZE_REGEX = Regex("""of\s+([~]?[0-9.]+[a-zA-Z]+)""")
-        // Garantizar que el post-procesado / conversión FFmpeg de varias descargas ocurra de uno en uno
-        private val postProcessingSemaphore = java.util.concurrent.Semaphore(1, true)
 
         fun resolveUserFacingError(e: Throwable, lastLine: String): String {
             val actualException = if (e is Exception && e.cause != null && e.message?.contains(e.cause!!.javaClass.name) == true) e.cause!! else e
@@ -93,7 +91,7 @@ class YtdlpDownloader {
                 val defaultBitrateDigits = settings.defaultAudioBitrate.filter { it.isDigit() }.ifEmpty { "320" }
                 val selectedBitrateDigits = quality.filter { it.isDigit() }
                 val finalAudioQuality = if (selectedBitrateDigits.isNotEmpty()) selectedBitrateDigits else defaultBitrateDigits
-                addOption("--audio-quality", finalAudioQuality)
+                addOption("--audio-quality", "${finalAudioQuality}k")
             } else if (format == Config.FORMAT_M4A) {
                 when (fallbackLevel) {
                     0 -> addOption("-f", "bestaudio/best")
@@ -367,6 +365,7 @@ class YtdlpDownloader {
             } catch (e: Exception) {
                 Log.w(Config.TAG_YTDLP_DOWNLOADER, "Could not destroy previous process before retry", e)
             }
+            kotlinx.coroutines.delay(150)
             
             // If it's a network retry, we want to KEEP the .part files so yt-dlp can resume!
             // If it's a fallback (format change), we must delete them to avoid conflicts.
@@ -396,7 +395,8 @@ class YtdlpDownloader {
                 "network is unreachable", "502", "503", "504", "429", 
                 "read error", "connection reset", "ssl", "socket", "try again",
                 "interrupted", "quickjs", "solving js challenges", "streamgobbler",
-                "process id already exists", "canceledexception", "canceled"
+                "process id already exists", "canceledexception", "canceled",
+                "read interrupted", "interruptedioexception"
             )
             return keywords.any { lowerMsg.contains(it) || lowerClass.contains(it) || lowerLine.contains(it) }
         }
@@ -409,40 +409,22 @@ class YtdlpDownloader {
             val maxAttempts = if (autoRetry) 3 else 1
             while (attempt < maxAttempts) {
                 if (!isActive) throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
-                var holdsPostProcLock = false
                 try {
                     val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, level, customizeRequest)
                     var lastUiUpdate = 0L
                     YoutubeDL.getInstance().execute(request, processId) { progreso, _, line ->
                         lastLine = line
                         val lowerLine = line.lowercase()
-                        val isPostProcLine = lowerLine.contains("[extractaudio]") ||
-                                 lowerLine.contains("[merger]") ||
-                                 lowerLine.contains("[videoconvertor]") ||
-                                 lowerLine.contains("[ffmpeg]") ||
-                                 lowerLine.contains("[fixup") ||
-                                 lowerLine.contains("[postprocessor]") ||
-                                 lowerLine.contains("[embed") ||
-                                 lowerLine.contains("[sponsorblock]") ||
-                                 lowerLine.contains("deleting original file") ||
-                                 progreso >= 100f
-
-                        if (isPostProcLine && !holdsPostProcLock) {
-                            // Adquisición bloqueante: esperar de verdad a que el post-procesado
-                            // FFmpeg de otra descarga termine, en lugar de seguir best-effort.
-                            // Se respeta la cancelación de la corrutina para no quedar colgado.
-                            try {
-                                while (!postProcessingSemaphore.tryAcquire(200, java.util.concurrent.TimeUnit.MILLISECONDS)) {
-                                    if (!coroutineScope.isActive) break
-                                }
-                                if (coroutineScope.isActive) {
-                                    holdsPostProcLock = true
-                                    Log.i(Config.TAG_YTDLP_DOWNLOADER, "Turno de post-procesado/conversión asignado a $processId")
-                                }
-                            } catch (e: Exception) {
-                                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Error al obtener turno de post-procesado para $processId", e)
-                            }
-                        }
+                        val isPostProc = lowerLine.contains("[extractaudio]") ||
+                                         lowerLine.contains("[merger]") ||
+                                         lowerLine.contains("[videoconvertor]") ||
+                                         lowerLine.contains("[ffmpeg]") ||
+                                         lowerLine.contains("[fixup") ||
+                                         lowerLine.contains("[postprocessor]") ||
+                                         lowerLine.contains("[embed") ||
+                                         lowerLine.contains("[sponsorblock]") ||
+                                         lowerLine.contains("deleting original file") ||
+                                         progreso >= 100f
 
                         val now = System.currentTimeMillis()
                         // Throttle updates: process regex and notify progress only every 1000ms or on critical milestones (0%, 100%)
@@ -461,7 +443,7 @@ class YtdlpDownloader {
                                 sizeText = sizeMatch.groupValues[1].replace("~", "")
                             }
 
-                            if (progreso >= 100f || holdsPostProcLock) {
+                            if (progreso >= 100f || isPostProc) {
                                 if (speedText == Config.STATUS_CALCULATING || speedText == Config.STATUS_DOWNLOADING) {
                                     speedText = Config.STATUS_FINALIZING
                                 }
@@ -541,11 +523,6 @@ class YtdlpDownloader {
                         try {
                             com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(processId)
                         } catch (_: Exception) {}
-                    }
-                    if (holdsPostProcLock) {
-                        holdsPostProcLock = false
-                        postProcessingSemaphore.release()
-                        Log.i(Config.TAG_YTDLP_DOWNLOADER, "Turno de post-procesado/conversión liberado por $processId")
                     }
                 }
             }
