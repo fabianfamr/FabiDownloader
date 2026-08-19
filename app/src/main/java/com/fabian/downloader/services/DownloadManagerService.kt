@@ -10,6 +10,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -81,6 +85,15 @@ class DownloadManagerService private constructor(
     private val isQueueProcessorRunning = java.util.concurrent.atomic.AtomicBoolean(false)
     private val queueTrigger = MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
     private val startDownloadMutex = kotlinx.coroutines.sync.Mutex()
+
+    data class LiveProgress(
+        val progress: Int = 0,
+        val sizeText: String = "",
+        val speedText: String = ""
+    )
+
+    private val _liveProgressFlow = MutableStateFlow<Map<Long, LiveProgress>>(emptyMap())
+    val liveProgressFlow: StateFlow<Map<Long, LiveProgress>> = _liveProgressFlow.asStateFlow()
 
     fun triggerQueue() {
         queueTrigger.tryEmit(Unit)
@@ -417,7 +430,7 @@ class DownloadManagerService private constructor(
                 // Comprobar espacio antes de iniciar la descarga
                 checkStorageSpace(destFolder, id)
 
-                var lastProgressUpdate = 0L
+                var lastDbPersistTime = 0L
                 var lastNotificationUpdate = 0L
                 var lastSpaceCheck = 0L
                 val storageSpaceExceeded = java.util.concurrent.atomic.AtomicBoolean(false)
@@ -440,38 +453,51 @@ class DownloadManagerService private constructor(
                         Log.i(Config.TAG_DOWNLOAD_MANAGER, "Descarga $id alcanzó el umbral de inicio temprano ($currentProgressInt% >= $earlyThreshold%). Disparando cola.")
                         triggerQueue()
                     }
-                    // Notificación en tiempo real y precisa: actualiza cada 250ms o cuando el porcentaje entero avanza
-                    val isProgressChanged = currentProgressInt != oldProgress
-                    val isTimeThresholdMet = currentTime - lastProgressUpdate > 250
-                    if (progress >= 100f || (isProgressChanged && currentTime - lastProgressUpdate > 120) || isTimeThresholdMet) {
-                        lastProgressUpdate = currentTime
+
+                    val cappedProgress = if (progress >= 100f) 99 else progress.toInt()
+                    val displaySpeed = if (progress >= 100f) Config.STATUS_FINALIZING else speedText
+                    val displaySize = sizeText
+
+                    // 1. Actualización instantánea en memoria RAM (StateFlow a 60 FPS sin I/O de disco)
+                    _liveProgressFlow.update { currentMap ->
+                        currentMap + (id to LiveProgress(cappedProgress, displaySize, displaySpeed))
+                    }
+
+                    // 2. Persistir en base de datos SQLite cada 5 segundos para no degradar el I/O ni bloquear el hilo
+                    if (currentTime - lastDbPersistTime > 5000 || progress >= 100f) {
+                        lastDbPersistTime = currentTime
                         serviceScope.launch {
                             val currentRecord = storageService.getDownloadById(id)
                             if (currentRecord != null && !currentRecord.isPaused && !currentRecord.isCompleted) {
-                                val displaySize = if (sizeText == Config.STATUS_DOWNLOADING) {
+                                val finalSize = if (displaySize == Config.STATUS_DOWNLOADING) {
                                     currentRecord.size.takeIf { it != Config.STATUS_ZERO_MB && it.isNotEmpty() } ?: Config.STATUS_DOWNLOADING
                                 } else {
-                                    sizeText
+                                    displaySize
                                 }
-                                
-                                // Limitamos el progreso en notificaciones a 99% durante la descarga activa
-                                // para que la notificación de completada llegue solo cuando termine el postprocesado
-                                val cappedProgress = if (progress >= 100f) 99 else progress.toInt()
-                                val displaySpeed = if (progress >= 100f) Config.STATUS_FINALIZING else speedText
-                                
-                                storageService.updateDownloadProgressAndSizeAndSpeed(id, cappedProgress, displaySize, displaySpeed)
-                                
-                                if (AppSettings.notificationsEnabled && (currentTime - lastNotificationUpdate > 1000 || progress >= 100f)) {
-                                    lastNotificationUpdate = currentTime
-                                    notificationService.showDownloadProgress(
-                                        id = id.toInt(), 
-                                        title = videoTitle, 
-                                        progress = cappedProgress, 
-                                        thumbnailUrl = currentRecord.thumbnailUrl,
-                                        speed = displaySpeed,
-                                        size = displaySize
-                                    )
+                                storageService.updateDownloadProgressAndSizeAndSpeed(id, cappedProgress, finalSize, displaySpeed)
+                            }
+                        }
+                    }
+
+                    // 3. Notificación de progreso del sistema Android a un ritmo prudente (cada 1000ms)
+                    if (AppSettings.notificationsEnabled && (currentTime - lastNotificationUpdate > 1000 || progress >= 100f)) {
+                        lastNotificationUpdate = currentTime
+                        serviceScope.launch {
+                            val currentRecord = storageService.getDownloadById(id)
+                            if (currentRecord != null && !currentRecord.isPaused && !currentRecord.isCompleted) {
+                                val notifSize = if (displaySize == Config.STATUS_DOWNLOADING) {
+                                    currentRecord.size.takeIf { it != Config.STATUS_ZERO_MB && it.isNotEmpty() } ?: Config.STATUS_DOWNLOADING
+                                } else {
+                                    displaySize
                                 }
+                                notificationService.showDownloadProgress(
+                                    id = id.toInt(), 
+                                    title = videoTitle, 
+                                    progress = cappedProgress, 
+                                    thumbnailUrl = currentRecord.thumbnailUrl,
+                                    speed = displaySpeed,
+                                    size = notifSize
+                                )
                             }
                         }
                     }
@@ -533,7 +559,7 @@ class DownloadManagerService private constructor(
                 val errorMsg = if (normalizedMsg.contains(Config.BOT_DETECTION_PATTERN, ignoreCase = true) || normalizedMsg.contains(Config.BOT_DETECTION_LOGIN, ignoreCase = true)) {
                     application.getString(R.string.downloads_error_requires_login)
                 } else if (lowerMsg.contains("no space left") || lowerMsg.contains("enospc") || lowerMsg.contains("disk full") || lowerMsg.contains("espacio en disco") || lowerMsg.contains("almacenamiento casi lleno") || lowerMsg.contains("espacio insuficiente")) {
-                    "Espacio insuficiente"
+                    application.getString(R.string.downloads_error_storage)
                 } else {
                     rawMsg
                 }
@@ -554,6 +580,7 @@ class DownloadManagerService private constructor(
                     )
                 }
             } finally {
+                _liveProgressFlow.update { it - id }
                 activeJobs.remove(id)
                 activeCalls.remove(id)
                 activeProgresses.remove(id)
@@ -589,6 +616,7 @@ class DownloadManagerService private constructor(
     }
 
     private suspend fun pauseDownloadInternal(id: Long) {
+        _liveProgressFlow.update { it - id }
         forcedDownloadIds.remove(id)
         storageService.updatePausedState(id, true)
         
@@ -655,6 +683,7 @@ class DownloadManagerService private constructor(
 
     fun requeueDownload(id: Long) {
         serviceScope.launch {
+            _liveProgressFlow.update { it - id }
             forcedDownloadIds.remove(id)
             storageService.updatePausedState(id, false)
             
@@ -724,6 +753,7 @@ class DownloadManagerService private constructor(
 
     fun deleteDownload(id: Long) {
         serviceScope.launch {
+            _liveProgressFlow.update { it - id }
             activeCalls[id]?.cancel()
             activeJobs[id]?.cancel()
             activeCalls.remove(id)
@@ -757,6 +787,7 @@ class DownloadManagerService private constructor(
     
     fun deleteDownloadHistory(id: Long) {
         serviceScope.launch {
+            _liveProgressFlow.update { it - id }
             activeCalls[id]?.cancel()
             activeJobs[id]?.cancel()
             activeCalls.remove(id)
@@ -798,14 +829,10 @@ class DownloadManagerService private constructor(
             Log.i(Config.TAG_DOWNLOAD_MANAGER, "Configuración cambiada detectada: $key")
             when (key) {
                 "maxConcurrentDownloads" -> {
-                    handleMaxConcurrentDownloadsChanged(AppSettings.maxConcurrentDownloads)
-                }
-                "maxSpeed", "concurrentFragments", "embedSubtitles", "customArguments", "cookies", "customUserAgent", "sponsorBlockEnabled", "embedThumbnail", "embedMetadata", "bypassGeo", "bypassSslVerification", "autoRetry", "selectedStorageMargin" -> {
-                    handleDownloadConfigChanged(key)
+                    triggerQueue()
                 }
                 "batteryOptimizationEnabled", "selectedBatteryLowThreshold", "selectedBatteryLowAction" -> {
                     BatteryOptimizerManager.getInstance(application).evaluateBatteryStatus()
-                    handleDownloadConfigChanged(key)
                 }
             }
         }
@@ -852,63 +879,7 @@ class DownloadManagerService private constructor(
     private fun checkStorageSpace(destFolder: File, id: Long) {
         if (!hasEnoughStorageSpace(destFolder)) {
             stopDownloadForStorage(id)
-            throw Exception("Espacio insuficiente")
-        }
-    }
-
-    private fun handleMaxConcurrentDownloadsChanged(newLimit: Int) {
-        serviceScope.launch {
-            val runningIds = processingIds.filter { activeJobs.containsKey(it) }
-            if (runningIds.size > newLimit) {
-                val excessCount = runningIds.size - newLimit
-                val sortedIds = runningIds.sortedDescending()
-                val toRequeue = sortedIds.take(excessCount)
-                toRequeue.forEach { id ->
-                    Log.i(Config.TAG_DOWNLOAD_MANAGER, "Reencolando descarga $id (esperando en cola) por reducción de descargas simultáneas a $newLimit")
-                    requeueDownload(id)
-                }
-            } else {
-                triggerQueue()
-            }
-        }
-    }
-
-    private fun handleDownloadConfigChanged(key: String) {
-        Log.i(Config.TAG_DOWNLOAD_MANAGER, "Configuración cambiada ($key). Aplicando dinámicamente a descargas en curso...")
-        serviceScope.launch {
-            if (key == "selectedStorageMargin") {
-                val activeIdsList = processingIds.filter { activeJobs.containsKey(it) }
-                activeIdsList.forEach { id ->
-                    val record = storageService.getDownloadById(id)
-                    if (record != null) {
-                        val destFolder = com.fabian.downloader.utils.PathUtils.getDownloadFolder(application, record.format)
-                        try {
-                            checkStorageSpace(destFolder, id)
-                        } catch (e: Exception) {
-                            Log.w(Config.TAG_DOWNLOAD_MANAGER, "Pausando descarga $id por ajuste del margen de almacenamiento libre", e)
-                            pauseDownload(id)
-                        }
-                    }
-                }
-                return@launch
-            }
-
-            val dynamicDownloadKeys = listOf(
-                "maxSpeed", "concurrentFragments", "embedSubtitles", "customArguments",
-                "cookies", "customUserAgent", "sponsorBlockEnabled", "embedThumbnail",
-                "embedMetadata", "bypassGeo", "bypassSslVerification", "autoRetry",
-                "batteryOptimizationEnabled", "selectedBatteryLowThreshold", "selectedBatteryLowAction"
-            )
-
-            if (key in dynamicDownloadKeys) {
-                val runningIds = processingIds.filter { activeJobs.containsKey(it) }
-                if (runningIds.isNotEmpty()) {
-                    Log.i(Config.TAG_DOWNLOAD_MANAGER, "Reaplicando nueva configuración ($key) dinámicamente a descargas activas $runningIds sin perder progreso...")
-                    runningIds.forEach { id ->
-                        requeueDownload(id)
-                    }
-                }
-            }
+            throw Exception(application.getString(R.string.downloads_error_storage))
         }
     }
 

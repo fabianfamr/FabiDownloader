@@ -7,14 +7,31 @@ import com.fabian.downloader.database.DownloadRecord
 import com.fabian.downloader.services.DownloadManagerService
 import com.fabian.downloader.services.StorageService
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 
 class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
-    private val storageService = StorageService.getInstance(com.fabian.downloader.MyApplication.getInstance())
-    val downloads: Flow<List<DownloadRecord>> = storageService.getAllDownloads()
+    private val app = com.fabian.downloader.MyApplication.getInstance()
+    private val storageService = StorageService.getInstance(app)
+    private val downloadManager = DownloadManagerService.getInstance(app)
+
+    val downloads: Flow<List<DownloadRecord>> = combine(
+        storageService.getAllDownloads(),
+        downloadManager.liveProgressFlow
+    ) { records, liveMap ->
+        records.map { record ->
+            val live = liveMap[record.id]
+            if (live != null && !record.isCompleted && !record.isPaused) {
+                record.copy(
+                    progress = live.progress,
+                    size = if (live.sizeText.isNotEmpty()) live.sizeText else record.size,
+                    speed = if (live.speedText.isNotEmpty()) live.speedText else record.speed
+                )
+            } else {
+                record
+            }
+        }
+    }
 
     init {
         // No borramos silenciosamente registros de la BD al iniciar el ViewModel para evitar
@@ -22,14 +39,14 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
     }
 
     fun pauseDownload(id: Long) {
-        DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).pauseDownload(id)
+        downloadManager.pauseDownload(id)
     }
 
     fun resumeDownload(id: Long) {
         viewModelScope.launch {
             val record = storageService.getDownloadById(id)
             if (record != null) {
-                DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).startDownload(
+                downloadManager.startDownload(
                     rawUrl = record.url,
                     quality = record.quality,
                     format = record.format,
@@ -45,7 +62,7 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
         viewModelScope.launch {
             val record = storageService.getDownloadById(id)
             if (record != null) {
-                DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).startDownload(
+                downloadManager.startDownload(
                     rawUrl = record.url,
                     quality = record.quality,
                     format = record.format,
@@ -60,19 +77,19 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
 
     fun deleteDownload(id: Long) {
         viewModelScope.launch {
-            DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).deleteDownload(id)
+            downloadManager.deleteDownload(id)
         }
     }
     
     fun deleteDownloadHistory(id: Long) {
         viewModelScope.launch {
-            DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).deleteDownloadHistory(id)
+            downloadManager.deleteDownloadHistory(id)
         }
     }
 
     fun clearCompletedDownloads() {
         viewModelScope.launch {
-            DownloadManagerService.getInstance(com.fabian.downloader.MyApplication.getInstance()).clearCompletedDownloads()
+            downloadManager.clearCompletedDownloads()
         }
     }
 
