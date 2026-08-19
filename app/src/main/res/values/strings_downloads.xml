@@ -86,6 +86,7 @@
 
     <!-- Error messages -->
     <string name="downloads_error_generic">Error de descarga</string>
+    <string name="downloads_error_storage">Espacio insuficiente en el almacenamiento</string>
     <string name="downloads_error_requires_login">Requiere inicio de sesión. Configura las Cookies en Ajustes.</string>
     <string name="downloads_error_network_retry">Error de red — toca para reintentar</string>
     <string name="downloads_error_retry">Error — toca para reintentar</string>

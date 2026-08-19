@@ -394,7 +394,6 @@ class DownloadManagerService private constructor(
                 storageService.updateDownloadProgressAndSizeAndSpeed(id, record.progress, Config.STATUS_QUEUED, Config.STATUS_WAITING)
 
                 val service = com.fabian.downloader.services.sites.SiteServiceProvider.getServiceForUrl(url)
-                var lastProgressUpdate = System.currentTimeMillis()
 
                 // Estación 2: Inyección de Configuración
                 val initialSpec = com.fabian.downloader.pipeline.DownloadAssemblyLine.station2_assembleUserSettings(
@@ -418,10 +417,9 @@ class DownloadManagerService private constructor(
                 // Comprobar espacio antes de iniciar la descarga
                 checkStorageSpace(destFolder, id)
 
+                var lastProgressUpdate = 0L
+                var lastNotificationUpdate = 0L
                 var lastSpaceCheck = 0L
-                // Flag compartido entre el callback nativo (hilo StreamGobbler) y la corrutina:
-                // nunca se lanzan excepciones desde el callback; se marca el flag y se detiene
-                // el proceso aquí, luego la corrutina lanza el error tras volver del download.
                 val storageSpaceExceeded = java.util.concurrent.atomic.AtomicBoolean(false)
                 val downloadSuccess = service.download(url, quality, format, destFolder, fileNameWithoutExt, processId = id.toString()) { progress, sizeText, speedText ->
                     val currentTime = System.currentTimeMillis()
@@ -442,8 +440,10 @@ class DownloadManagerService private constructor(
                         Log.i(Config.TAG_DOWNLOAD_MANAGER, "Descarga $id alcanzó el umbral de inicio temprano ($currentProgressInt% >= $earlyThreshold%). Disparando cola.")
                         triggerQueue()
                     }
-                    // Throttling de actualizaciones de progreso a 2000ms para evitar lags de pantalla y saturación de base de datos
-                    if (currentTime - lastProgressUpdate > 2000 || progress >= 100f) {
+                    // Notificación en tiempo real y precisa: actualiza cada 250ms o cuando el porcentaje entero avanza
+                    val isProgressChanged = currentProgressInt != oldProgress
+                    val isTimeThresholdMet = currentTime - lastProgressUpdate > 250
+                    if (progress >= 100f || (isProgressChanged && currentTime - lastProgressUpdate > 120) || isTimeThresholdMet) {
                         lastProgressUpdate = currentTime
                         serviceScope.launch {
                             val currentRecord = storageService.getDownloadById(id)
@@ -461,7 +461,8 @@ class DownloadManagerService private constructor(
                                 
                                 storageService.updateDownloadProgressAndSizeAndSpeed(id, cappedProgress, displaySize, displaySpeed)
                                 
-                                if (AppSettings.notificationsEnabled) {
+                                if (AppSettings.notificationsEnabled && (currentTime - lastNotificationUpdate > 1000 || progress >= 100f)) {
+                                    lastNotificationUpdate = currentTime
                                     notificationService.showDownloadProgress(
                                         id = id.toInt(), 
                                         title = videoTitle, 
@@ -479,7 +480,7 @@ class DownloadManagerService private constructor(
                 // Si el callback nativo detectó falta de espacio, lanzar el error aquí,
                 // dentro de la corrutina, para que llegue al bloque catch y marque FAILED.
                 if (storageSpaceExceeded.get()) {
-                    throw Exception("Espacio insuficiente")
+                    throw Exception(application.getString(R.string.downloads_error_storage))
                 }
 
                 if (!downloadSuccess) {

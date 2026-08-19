@@ -1124,7 +1124,7 @@ fun MobileDownloadingItem(
     }
     val animatedProgress by animateFloatAsState(
         targetValue = targetProgress,
-        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = 200, easing = LinearOutSlowInEasing),
         label = "downloadProgressAnimation"
     )
 

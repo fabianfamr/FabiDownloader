@@ -427,6 +427,7 @@ class YtdlpDownloader {
                 try {
                     val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, level, customizeRequest)
                     var lastUiUpdate = 0L
+                    var lastReportedProgress = -1f
                     YoutubeDL.getInstance().execute(request, processId) { progreso, _, line ->
                         lastLine = line
                         val lowerLine = line.lowercase()
@@ -442,9 +443,14 @@ class YtdlpDownloader {
                                          progreso >= 100f
 
                         val now = System.currentTimeMillis()
-                        // Throttle updates: process regex and notify progress only every 1000ms or on critical milestones (0%, 100%)
-                        if (now - lastUiUpdate >= 1000 || progreso == 0f || progreso >= 100f) {
+                        val isProgressAdvanced = Math.abs(progreso - lastReportedProgress) >= 0.5f
+                        val isMilestone = progreso == 0f || progreso >= 100f || isPostProc
+                        val isTimeElapsed = now - lastUiUpdate >= 200
+
+                        // Actualizaciones precisas y en tiempo real: responde cada 200ms o ante cambios de 0.5%
+                        if (isMilestone || (isProgressAdvanced && now - lastUiUpdate >= 100) || isTimeElapsed) {
                             lastUiUpdate = now
+                            lastReportedProgress = progreso
                             var speedText = Config.STATUS_CALCULATING
                             var sizeText = Config.STATUS_DOWNLOADING
 
