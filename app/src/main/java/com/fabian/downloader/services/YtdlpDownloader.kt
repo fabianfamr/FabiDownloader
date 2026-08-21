@@ -409,13 +409,39 @@ class YtdlpDownloader {
                 "timeout", "time out", "timed out", "connection", "unable to resolve host", 
                 "network is unreachable", "502", "503", "504", "429", "403", "http error 403", "http error 429",
                 "read error", "connection reset", "connection refused", "broken pipe", "ssl", "socket", "try again",
-                "interrupted", "quickjs", "solving js challenges", "streamgobbler",
-                "process id already exists", "canceledexception", "canceled",
+                "quickjs", "solving js challenges", "streamgobbler",
                 "read interrupted", "interruptedioexception", "signature extraction",
                 "unable to extract", "temporary failure", "handshake", "end of file", "eof",
                 "connection closed", "unexpected end of stream", "software caused connection abort"
             )
             return keywords.any { lowerMsg.contains(it) || lowerClass.contains(it) || lowerLine.contains(it) }
+        }
+
+        suspend fun isExplicitCancellation(e: Throwable): Boolean {
+            if (e is kotlinx.coroutines.CancellationException) return true
+            if (!kotlinx.coroutines.currentCoroutineContext().isActive) return true
+            
+            // Verificar si en la base de datos la descarga fue pausada o eliminada
+            val isPausedOrDeleted = try {
+                val idLong = processId.toLongOrNull()
+                if (idLong != null) {
+                    val record = com.fabian.downloader.services.StorageService.getInstance(
+                        com.fabian.downloader.MyApplication.getInstance()
+                    ).getDownloadById(idLong)
+                    record == null || record.isPaused
+                } else false
+            } catch (_: Exception) {
+                false
+            }
+            if (isPausedOrDeleted) return true
+
+            val lowerMsg = (e.message ?: "").lowercase()
+            val lowerClass = e.javaClass.name.lowercase()
+            val cancelKeywords = listOf(
+                "process destroyed", "destroyed", "canceledexception", "canceled", "cancelled",
+                "exit code 143", "sigterm", "sigkill"
+            )
+            return cancelKeywords.any { lowerMsg.contains(it) || lowerClass.contains(it) }
         }
 
         suspend fun executeWithRetry(
@@ -425,7 +451,9 @@ class YtdlpDownloader {
             var attempt = 0
             val maxAttempts = if (autoRetry) 3 else 1
             while (attempt < maxAttempts) {
-                if (!isActive) throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
+                if (!coroutineContext.isActive || isExplicitCancellation(kotlinx.coroutines.CancellationException())) {
+                    throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
+                }
                 
                 // Asegurarse de que no haya procesos huérfanos o archivos temporales bloqueados antes de empezar
                 if (attempt > 0) {
@@ -525,11 +553,8 @@ class YtdlpDownloader {
                     val lowerMsg = (e.message ?: "").lowercase()
                     val lowerLast = lastLine.lowercase()
                     
-                    // Solo tratar como cancelación explícita del usuario si la corrutina no está activa
-                    // o e es CancellationException.
-                    val isExplicitCancel = (e is kotlinx.coroutines.CancellationException) || !isActive
-
-                    if (isExplicitCancel) {
+                    // Si es cancelación explícita o la descarga fue pausada/eliminada, cortar inmediatamente
+                    if (isExplicitCancellation(e)) {
                         throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
                     }
                     
@@ -566,7 +591,7 @@ class YtdlpDownloader {
                         Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido por error de red/I/O. Esperando recuperación de red...")
                         var secondsWaited = 0
                         while (secondsWaited < 15 && !connService.checkConnection()) {
-                            if (!isActive) throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
+                            if (!coroutineContext.isActive || isExplicitCancellation(e)) throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
                             kotlinx.coroutines.delay(1000)
                             secondsWaited++
                         }

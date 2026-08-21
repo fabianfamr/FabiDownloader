@@ -55,16 +55,13 @@ class DownloadForegroundService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         promoteToForeground()
         
-        if (intent == null) {
-            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-                val hasActive = DownloadManagerService.getInstance(applicationContext).hasActiveDownloads()
-                if (!hasActive) {
-                    stopSelf()
-                }
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            val hasActive = DownloadManagerService.getInstance(applicationContext).hasActiveDownloads()
+            if (!hasActive) {
+                stopSelf()
             }
-            return START_NOT_STICKY
         }
-        return START_NOT_STICKY
+        return START_STICKY
     }
 
     private fun promoteToForeground() {

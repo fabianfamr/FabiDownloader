@@ -135,8 +135,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        try {
-            com.fabian.downloader.services.DownloadManagerService.getInstance(application).onAppClosed()
-        } catch (_: Exception) {}
+        // No llamamos onAppClosed() aquí para permitir que DownloadForegroundService 
+        // mantenga las descargas ejecutándose activamente en segundo plano.
     }
 }

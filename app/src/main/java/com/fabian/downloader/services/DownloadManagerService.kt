@@ -26,6 +26,7 @@ import android.content.Context
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.isActive
 import com.fabian.downloader.R
 import com.fabian.downloader.configs.Config
 import com.fabian.downloader.managers.BatteryOptimizerManager
@@ -551,12 +552,12 @@ class DownloadManagerService private constructor(
                 }
                 
             } catch (e: Exception) {
-                if (e is CancellationException) throw e
-                com.fabian.downloader.managers.ErrorLogManager.logError(application, Config.TAG_DOWNLOAD_MANAGER, "Error downloading id $id (Title: $videoTitle)", e)
-                val isCurrentlyPaused = storageService.getDownloadById(id)?.isPaused ?: false
-                if (isCurrentlyPaused) {
+                if (e is CancellationException) return@launch
+                val currentRecord = storageService.getDownloadById(id)
+                if (currentRecord == null || currentRecord.isPaused || !kotlinx.coroutines.currentCoroutineContext().isActive) {
                     return@launch
                 }
+                com.fabian.downloader.managers.ErrorLogManager.logError(application, Config.TAG_DOWNLOAD_MANAGER, "Error downloading id $id (Title: $videoTitle)", e)
                 val rawMsg = e.message ?: application.getString(R.string.downloads_error_generic)
                 val normalizedMsg = rawMsg.replace("\u2019", "'").replace("\u2018", "'")
                 val lowerMsg = normalizedMsg.lowercase()
@@ -680,6 +681,11 @@ class DownloadManagerService private constructor(
             }
         }
         
+        if (processingIds.isEmpty()) {
+            DownloadForegroundService.stop(application)
+        }
+        triggerQueue()
+        
         withContext(Dispatchers.Main) {
             Toast.makeText(application, application.getString(R.string.downloads_toast_paused), Toast.LENGTH_SHORT).show()
         }
@@ -758,10 +764,14 @@ class DownloadManagerService private constructor(
     fun deleteDownload(id: Long) {
         serviceScope.launch {
             _liveProgressFlow.update { it - id }
+            forcedDownloadIds.remove(id)
             activeCalls[id]?.cancel()
-            activeJobs[id]?.cancel()
+            val job = activeJobs[id]
+            job?.cancel()
             activeCalls.remove(id)
             activeJobs.remove(id)
+            processingIds.remove(id)
+            activeProgresses.remove(id)
             
             try {
                 com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
@@ -786,16 +796,25 @@ class DownloadManagerService private constructor(
             
             storageService.deleteDownload(id)
             notificationService.cancelNotification(id.toInt())
+
+            if (processingIds.isEmpty()) {
+                DownloadForegroundService.stop(application)
+            }
+            triggerQueue()
         }
     }
     
     fun deleteDownloadHistory(id: Long) {
         serviceScope.launch {
             _liveProgressFlow.update { it - id }
+            forcedDownloadIds.remove(id)
             activeCalls[id]?.cancel()
-            activeJobs[id]?.cancel()
+            val job = activeJobs[id]
+            job?.cancel()
             activeCalls.remove(id)
             activeJobs.remove(id)
+            processingIds.remove(id)
+            activeProgresses.remove(id)
             
             try {
                 com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
@@ -809,6 +828,11 @@ class DownloadManagerService private constructor(
             
             storageService.deleteDownload(id)
             notificationService.cancelNotification(id.toInt())
+
+            if (processingIds.isEmpty()) {
+                DownloadForegroundService.stop(application)
+            }
+            triggerQueue()
         }
     }
     
