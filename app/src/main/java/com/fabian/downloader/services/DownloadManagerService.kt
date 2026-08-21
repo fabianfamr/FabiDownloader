@@ -111,6 +111,10 @@ class DownloadManagerService private constructor(
         return processingIds.isNotEmpty()
     }
 
+    fun getActiveDownloadsCount(): Int {
+        return processingIds.size
+    }
+
     init {
         // Inicializar el optimizador de batería para que empiece a monitorear desde el inicio del servicio
         BatteryOptimizerManager.getInstance(application)

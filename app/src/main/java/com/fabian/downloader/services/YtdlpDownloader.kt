@@ -151,9 +151,21 @@ class YtdlpDownloader {
                                    batteryManager.isBatteryLowAndNotCharging() && 
                                    settings.batteryLowAction == "Optimizar recursos"
 
-            // Concurrent fragments: user setting (default 10 for max speed) - restricted to 2 in battery saving mode
-            val fragments = if (isBatteryLowMode) "2" else settings.concurrentFragments
-            addOption("--concurrent-fragments", fragments)
+            // Concurrent fragments: limitar automáticamente según el número de descargas activas
+            // para evitar saturación de CPU, bloqueos de I/O de disco y trabas del sistema
+            val activeCount = try {
+                DownloadManagerService.getInstance(appCtx).getActiveDownloadsCount()
+            } catch (e: Exception) {
+                1
+            }
+            val userFragments = settings.concurrentFragments.toIntOrNull() ?: 4
+            val safeFragments = when {
+                isBatteryLowMode -> 2
+                activeCount > 2 -> userFragments.coerceAtMost(3)
+                activeCount > 1 -> userFragments.coerceAtMost(4)
+                else -> userFragments.coerceAtMost(6)
+            }
+            addOption("--concurrent-fragments", safeFragments.toString())
 
             // Larger buffer = better throughput on fast connections
             addOption("--buffer-size", "16K")
@@ -428,7 +440,10 @@ class YtdlpDownloader {
                     val request = createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, level, customizeRequest)
                     var lastUiUpdate = 0L
                     var lastReportedProgress = -1f
-                    YoutubeDL.getInstance().execute(request, processId) { progreso, _, line ->
+                    var maxObservedRawProgress = 0f
+                    var isSecondTrack = false
+
+                    YoutubeDL.getInstance().execute(request, processId) { rawProgress, _, line ->
                         lastLine = line
                         val lowerLine = line.lowercase()
                         val isPostProc = lowerLine.contains("[extractaudio]") ||
@@ -439,18 +454,50 @@ class YtdlpDownloader {
                                          lowerLine.contains("[postprocessor]") ||
                                          lowerLine.contains("[embed") ||
                                          lowerLine.contains("[sponsorblock]") ||
-                                         lowerLine.contains("deleting original file") ||
-                                         progreso >= 100f
+                                         lowerLine.contains("deleting original file")
+
+                        // Detectar si yt-dlp pasa a descargar la segunda pista (audio tras video)
+                        // Si el rawProgress anterior estuvo alto (>= 80%) y de repente cae bruscamente a < 20%
+                        // con un nuevo destino o flujo de descarga, activamos la fase de segunda pista
+                        if (!isSecondTrack && maxObservedRawProgress >= 80f && rawProgress < 20f && (lowerLine.contains("[download] destination") || rawProgress > 0f)) {
+                            isSecondTrack = true
+                            maxObservedRawProgress = 0f
+                        }
+
+                        if (rawProgress > maxObservedRawProgress) {
+                            maxObservedRawProgress = rawProgress
+                        }
+
+                        // Calcular progreso suave y monotónico:
+                        // Si hay dos pistas (video + audio): video = 0..85%, audio = 85..98%, postprocesado = 98..99%
+                        // Si es una sola pista: 0..98%, postprocesado = 98..99%
+                        val computedProgress: Float = when {
+                            isPostProc -> 99f
+                            isSecondTrack -> {
+                                85f + (maxObservedRawProgress * 0.13f)
+                            }
+                            else -> {
+                                maxObservedRawProgress.coerceIn(0f, 98f)
+                            }
+                        }
+
+                        // El progreso para una misma descarga NUNCA retrocede por fragmentos intercalados
+                        val smoothedProgress = if (computedProgress >= lastReportedProgress || isPostProc) {
+                            computedProgress
+                        } else {
+                            lastReportedProgress
+                        }
 
                         val now = System.currentTimeMillis()
-                        val isProgressAdvanced = Math.abs(progreso - lastReportedProgress) >= 0.5f
-                        val isMilestone = progreso == 0f || progreso >= 100f || isPostProc
-                        val isTimeElapsed = now - lastUiUpdate >= 200
+                        val isProgressAdvanced = (smoothedProgress - lastReportedProgress) >= 0.5f
+                        val isMilestone = smoothedProgress == 0f || smoothedProgress >= 99f || isPostProc
+                        val isTimeElapsed = now - lastUiUpdate >= 250
 
-                        // Actualizaciones precisas y en tiempo real: responde cada 200ms o ante cambios de 0.5%
-                        if (isMilestone || (isProgressAdvanced && now - lastUiUpdate >= 100) || isTimeElapsed) {
+                        // Actualizaciones en tiempo real optimizadas: responde ante cambios notables o cada 250ms
+                        if (isMilestone || (isProgressAdvanced && now - lastUiUpdate >= 150) || isTimeElapsed) {
                             lastUiUpdate = now
-                            lastReportedProgress = progreso
+                            lastReportedProgress = smoothedProgress
+
                             var speedText = Config.STATUS_CALCULATING
                             var sizeText = Config.STATUS_DOWNLOADING
 
@@ -464,13 +511,13 @@ class YtdlpDownloader {
                                 sizeText = sizeMatch.groupValues[1].replace("~", "")
                             }
 
-                            if (progreso >= 100f || isPostProc) {
+                            if (smoothedProgress >= 98f || isPostProc) {
                                 if (speedText == Config.STATUS_CALCULATING || speedText == Config.STATUS_DOWNLOADING) {
                                     speedText = Config.STATUS_FINALIZING
                                 }
                             }
 
-                            alProgresar(progreso, sizeText, speedText)
+                            alProgresar(smoothedProgress, sizeText, speedText)
                         }
                     }
                     return true

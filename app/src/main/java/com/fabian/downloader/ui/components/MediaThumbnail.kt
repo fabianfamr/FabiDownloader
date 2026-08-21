@@ -208,22 +208,26 @@ fun VinylRecordThumbnail(
                     if (isFailed) fColors.error.copy(alpha = 0.25f)
                     else fallbackColor.copy(alpha = 0.2f)
                 )
-                .border(1.dp, Color(0xFF1E2024), CircleShape),
+                .border(
+                    if (isFailed) 1.5.dp else 1.dp, 
+                    if (isFailed) fColors.error.copy(alpha = 0.7f) else Color(0xFF1E2024), 
+                    CircleShape
+                ),
             contentAlignment = Alignment.Center
         ) {
-            if (isFailed) {
-                Icon(
-                    imageVector = Icons.Default.Error,
-                    contentDescription = null,
-                    tint = fColors.error,
-                    modifier = Modifier.size(centerSize * 0.55f)
-                )
-            } else if (imageModel != null) {
+            if (imageModel != null) {
                 AsyncImage(
                     model = imageModel,
                     contentDescription = stringResource(R.string.downloads_thumbnail),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
+                )
+            } else if (isFailed) {
+                Icon(
+                    imageVector = Icons.Default.Error,
+                    contentDescription = null,
+                    tint = fColors.error,
+                    modifier = Modifier.size(centerSize * 0.55f)
                 )
             } else {
                 Icon(
@@ -268,22 +272,26 @@ fun VideoMediaThumbnail(
                 if (isFailed) fColors.error.copy(alpha = 0.15f)
                 else fallbackColor.copy(alpha = 0.12f)
             )
-            .border(1.dp, fColors.border.copy(alpha = 0.5f), RoundedCornerShape(10.dp)),
+            .border(
+                if (isFailed) 1.5.dp else 1.dp, 
+                if (isFailed) fColors.error.copy(alpha = 0.7f) else fColors.border.copy(alpha = 0.5f), 
+                RoundedCornerShape(10.dp)
+            ),
         contentAlignment = Alignment.Center
     ) {
-        if (isFailed) {
-            Icon(
-                imageVector = Icons.Default.Error,
-                contentDescription = null,
-                tint = fColors.error,
-                modifier = Modifier.size(size * 0.45f)
-            )
-        } else if (imageModel != null) {
+        if (imageModel != null) {
             AsyncImage(
                 model = imageModel,
                 contentDescription = stringResource(R.string.downloads_thumbnail),
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
+            )
+        } else if (isFailed) {
+            Icon(
+                imageVector = Icons.Default.Error,
+                contentDescription = null,
+                tint = fColors.error,
+                modifier = Modifier.size(size * 0.45f)
             )
         } else {
             Icon(
