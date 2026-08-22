@@ -2,13 +2,25 @@
     <string name="app_name">Fabi Downloader</string>
     <string name="shortcut_library">Library</string>
     <string name="shortcut_download">Download</string>
+    <string name="downloads_realtime_speed_title">Real-Time Speed</string>
+    <string name="downloads_active_downloads_count">%1$d active downloads</string>
+    <string name="downloads_active_count">%1$d live</string>
+    <string name="downloads_pause_all">Pause all</string>
+    <string name="downloads_resume_all">Resume all</string>
     <string name="downloads_force_download_title">Force download</string>
     <string name="downloads_force_download_desc">Start immediately ignoring concurrency limit</string>
+    <string name="playlist_badge">PLAYLIST (%1$d VIDEOS)</string>
+    <string name="playlist_options_header">BATCH DOWNLOAD OPTIONS</string>
     <string name="playlist_format_video">Video (MP4)</string>
     <string name="playlist_format_mp3">Audio (MP3)</string>
     <string name="playlist_format_m4a">Audio (M4A)</string>
+    <string name="playlist_unselect_all">Deselect all</string>
+    <string name="playlist_select_all">Select all</string>
+    <string name="playlist_selected_count">%1$d of %2$d selected</string>
+    <string name="playlist_download_batch_button">DOWNLOAD BATCH (%1$d)</string>
     <string name="storage_permission_title">Storage Permission</string>
     <string name="storage_permission_desc">Storage permissions are required to save your video and audio downloads.</string>
     <string name="storage_permission_grant">Grant Permission</string>
     <string name="scoped_storage_active">Scoped Storage Active</string>
+    <string name="status_retrying">Retrying...</string>
 </resources>

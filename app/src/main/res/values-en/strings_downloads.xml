@@ -67,6 +67,7 @@
     <string name="downloads_filter_all">All</string>
     <string name="downloads_filter_music">Music</string>
     <string name="downloads_filter_video">Video</string>
+    <string name="downloads_filter_image">Image</string>
     <string name="downloads_share_error_prefix">Error sharing: %s</string>
     <string name="downloads_url_prefix">URL: %s</string>
     <string name="downloads_failed_prefix">Failed: </string>
@@ -85,6 +86,7 @@
 
     <!-- Error messages -->
     <string name="downloads_error_generic">Download error</string>
+    <string name="downloads_error_storage">Insufficient storage space</string>
     <string name="downloads_error_requires_login">Sign-in required. Configure Cookies in Settings.</string>
     <string name="downloads_error_network_retry">Network error — tap to retry</string>
     <string name="downloads_error_retry">Error — tap to retry</string>

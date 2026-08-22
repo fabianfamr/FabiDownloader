@@ -94,6 +94,8 @@
     <string name="settings_sponsorblock_desc">Skip sponsored parts</string>
     <string name="settings_allow_duplicates">Allow Duplicate Downloads</string>
     <string name="settings_allow_duplicates_desc">Allow re-downloading previously completed content</string>
+    <string name="settings_quick_share">Quick Share Actions</string>
+    <string name="settings_quick_share_desc">Shows instant MP3, MP4 and resolution options without loading screens</string>
     <string name="settings_geo_bypass">Bypass Geo-blocks</string>
     <string name="settings_geo_bypass_desc">Use alternative nodes</string>
     <string name="settings_yt_args">yt-dlp Arguments</string>
