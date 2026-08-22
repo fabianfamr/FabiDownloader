@@ -205,4 +205,28 @@
     <string name="settings_update_ytdlp_success">yt-dlp binary updated successfully</string>
     <string name="settings_update_ytdlp_error">Error updating yt-dlp binary</string>
     <string name="settings_logs_copied">Error logs copied to clipboard</string>
+
+    <string name="settings_cat_downloads">Downloads</string>
+    <string name="settings_cat_library">Library</string>
+    <string name="settings_cat_appearance">Appearance</string>
+    <string name="settings_cat_advanced">Advanced</string>
+    <string name="settings_cat_system">System</string>
+    <string name="settings_header_storage">Location and Storage</string>
+    <string name="settings_header_network">Connection and Network</string>
+    <string name="settings_header_quality">Formats and Quality</string>
+    <string name="settings_header_performance">Performance and Chunks</string>
+    <string name="settings_header_metadata">Metadata and Tags</string>
+    <string name="settings_header_subtitles">Subtitles and Chapters</string>
+    <string name="settings_header_filters">Filters and Restrictions</string>
+
+
+    <string name="settings_header_visual_style">Visual Style</string>
+    <string name="settings_header_notifications">Notifications and Alerts</string>
+    <string name="settings_header_download_behavior">Download Behavior</string>
+    <string name="settings_header_actions">Actions and Confirmations</string>
+    <string name="settings_header_engine">Extraction Engine (yt-dlp)</string>
+    <string name="settings_header_cache">Cleanup and Cache</string>
+    <string name="settings_header_temp_files">Temporary Files</string>
+    <string name="settings_header_battery">Power and Battery</string>
+
 </resources>

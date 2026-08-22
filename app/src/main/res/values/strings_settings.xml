@@ -207,4 +207,28 @@
     <string name="settings_update_ytdlp_success">Binario yt-dlp actualizado correctamente</string>
     <string name="settings_update_ytdlp_error">Error al actualizar binario yt-dlp</string>
     <string name="settings_logs_copied">Registros de errores copiados al portapapeles</string>
+
+    <string name="settings_cat_downloads">Descargas</string>
+    <string name="settings_cat_library">Biblioteca</string>
+    <string name="settings_cat_appearance">Apariencia</string>
+    <string name="settings_cat_advanced">Avanzado</string>
+    <string name="settings_cat_system">Sistema</string>
+    <string name="settings_header_storage">Ubicación y Almacenamiento</string>
+    <string name="settings_header_network">Conexión y Red</string>
+    <string name="settings_header_quality">Formatos y Calidad</string>
+    <string name="settings_header_performance">Rendimiento y Fragmentos</string>
+    <string name="settings_header_metadata">Metadatos y Etiquetas</string>
+    <string name="settings_header_subtitles">Subtítulos y Capítulos</string>
+    <string name="settings_header_filters">Filtros y Restricciones</string>
+
+
+    <string name="settings_header_visual_style">Estilo Visual</string>
+    <string name="settings_header_notifications">Notificaciones y Alertas</string>
+    <string name="settings_header_download_behavior">Comportamiento de Descarga</string>
+    <string name="settings_header_actions">Acciones y Confirmaciones</string>
+    <string name="settings_header_engine">Motor de Extracción (yt-dlp)</string>
+    <string name="settings_header_cache">Limpieza y Caché</string>
+    <string name="settings_header_temp_files">Archivos Temporales</string>
+    <string name="settings_header_battery">Energía y Batería</string>
+
 </resources>

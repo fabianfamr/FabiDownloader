@@ -81,7 +81,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     val C_red = fColors.error
 
     var cacheState by remember { mutableStateOf(0) } // 0: Idle, 1: Clearing, 2: Done
-    var selectedCategory by remember { mutableStateOf("Descargas") }
+                var selectedCategory by remember { mutableStateOf(ctx.getString(R.string.settings_cat_downloads)) }
 
     // State bindings to AppSettings
     var maxConcurrent by remember { mutableStateOf(AppSettings.maxConcurrentDownloads) }
@@ -357,7 +357,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
     if (showPausedTimeoutDialog) {
         SelectionDialog(
-            title = "Auto-cancelar pausa",
+            title = stringResource(R.string.settings_auto_cancel_pause),
             options = AppSettings.pausedNotificationTimeoutOptions,
             selectedOption = pausedTimeoutState,
             onSelection = {
@@ -532,7 +532,13 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 )
 
                 // Categorías de Configuración
-                val categories = listOf("Descargas", "Biblioteca", "Apariencia", "Avanzado", "Sistema")
+                val categories = listOf(
+                    stringResource(R.string.settings_cat_downloads), 
+                    stringResource(R.string.settings_cat_library), 
+                    stringResource(R.string.settings_cat_appearance), 
+                    stringResource(R.string.settings_cat_advanced), 
+                    stringResource(R.string.settings_cat_system)
+                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -579,9 +585,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
                 }
 
-                if (selectedCategory == "Descargas") {
+                if (selectedCategory == stringResource(R.string.settings_cat_downloads)) {
                     // 1. Ubicación y Almacenamiento
-                    SettingsHeader("Ubicación y Almacenamiento", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_storage), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -594,7 +600,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
 
                     // 2. Conexión y Red
-                    SettingsHeader("Conexión y Red", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_network), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -624,7 +630,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
 
                     // 3. Formatos y Calidad
-                    SettingsHeader("Formatos y Calidad", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_quality), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -649,7 +655,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
 
                     // 4. Rendimiento y Fragmentos
-                    SettingsHeader("Rendimiento y Fragmentos", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_performance), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -752,9 +758,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
                 }
 
-                if (selectedCategory == "Biblioteca") {
+                if (selectedCategory == stringResource(R.string.settings_cat_library)) {
                     // 1. Metadatos y Etiquetas
-                    SettingsHeader("Metadatos y Etiquetas", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_metadata), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -769,7 +775,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
 
                     // 2. Subtítulos y Capítulos
-                    SettingsHeader("Subtítulos y Capítulos", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_subtitles), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -782,7 +788,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
 
                     // 3. Filtros y Restricciones
-                    SettingsHeader("Filtros y Restricciones", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_filters), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -795,7 +801,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
                 }
 
-                if (selectedCategory == "Apariencia") {
+                if (selectedCategory == stringResource(R.string.settings_cat_appearance)) {
                     // 1. Tema y Colores
                     SettingsHeader(stringResource(R.string.settings_section_theme_colors), C_gray2)
                     Surface(
@@ -934,7 +940,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
 
                     // 2. Estilo Visual
-                    SettingsHeader("Estilo Visual", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_visual_style), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -951,7 +957,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
 
                     // 3. Notificaciones y Alertas
-                    SettingsHeader("Notificaciones y Alertas", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_notifications), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -979,9 +985,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
                 }
 
-                if (selectedCategory == "Avanzado") {
+                if (selectedCategory == stringResource(R.string.settings_cat_advanced)) {
                     // 1. Comportamiento de Descarga
-                    SettingsHeader("Comportamiento de Descarga", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_download_behavior), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -996,7 +1002,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
 
                     // 2. Acciones y Confirmaciones
-                    SettingsHeader("Acciones y Confirmaciones", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_actions), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -1009,7 +1015,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
 
                     // 3. Motor de Extracción (yt-dlp)
-                    SettingsHeader("Motor de Extracción (yt-dlp)", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_engine), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -1024,9 +1030,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
                 }
 
-                if (selectedCategory == "Sistema") {
+                if (selectedCategory == stringResource(R.string.settings_cat_system)) {
                     // 1. Limpieza y Caché
-                    SettingsHeader("Limpieza y Caché", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_cache), C_gray2)
 
                     val cacheBg = when(cacheState) {
                         2 -> C_green.copy(alpha = 0.12f)
@@ -1105,7 +1111,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
 
                     // 2. Archivos Temporales
-                    SettingsHeader("Archivos Temporales", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_temp_files), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -1127,7 +1133,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
 
                     // 3. Energía y Batería
-                    SettingsHeader("Energía y Batería", C_gray2)
+                    SettingsHeader(stringResource(R.string.settings_header_battery), C_gray2)
                     Surface(
                         color = C_card, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.5.dp, C_border),
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
