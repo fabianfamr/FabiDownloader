@@ -34,6 +34,50 @@ fun getPlatformIconAndColor(url: String, format: String): Pair<ImageVector, Colo
             Pair(PlatformIcons.Vimeo, Color(0xFF1AB7EA))
         lowerUrl.contains("soundcloud.com") -> 
             Pair(PlatformIcons.SoundCloud, Color(0xFFFF5500))
+        lowerUrl.contains("dailymotion.com") -> 
+            Pair(PlatformIcons.Dailymotion, Color(0xFF0066DC))
+        lowerUrl.contains("bilibili.com") -> 
+            Pair(PlatformIcons.Bilibili, Color(0xFF00A1D6))
+        lowerUrl.contains("tumblr.com") -> 
+            Pair(PlatformIcons.Tumblr, Color(0xFF36465D))
+        lowerUrl.contains("vk.com") -> 
+            Pair(PlatformIcons.VK, Color(0xFF0077FF))
+        lowerUrl.contains("rumble.com") -> 
+            Pair(PlatformIcons.Rumble, Color(0xFF85C742))
+        lowerUrl.contains("snapchat.com") -> 
+            Pair(PlatformIcons.Snapchat, Color(0xFFFFFC00))
+        lowerUrl.contains("threads.net") -> 
+            Pair(PlatformIcons.Threads, Color(0xFF000000))
+        lowerUrl.contains("patreon.com") -> 
+            Pair(PlatformIcons.Patreon, Color(0xFFFF424D))
+        lowerUrl.contains("bandcamp.com") -> 
+            Pair(PlatformIcons.Bandcamp, Color(0xFF629AA9))
+        lowerUrl.contains("mixcloud.com") -> 
+            Pair(PlatformIcons.Mixcloud, Color(0xFF5000FF))
+        lowerUrl.contains("dropbox.com") -> 
+            Pair(PlatformIcons.Dropbox, Color(0xFF0061FF))
+        lowerUrl.contains("drive.google.com") -> 
+            Pair(PlatformIcons.GoogleDrive, Color(0xFF4285F4))
+        lowerUrl.contains("t.me") || lowerUrl.contains("telegram.org") -> 
+            Pair(PlatformIcons.Telegram, Color(0xFF26A5E4))
+        lowerUrl.contains("whatsapp.com") -> 
+            Pair(PlatformIcons.WhatsApp, Color(0xFF25D366))
+        lowerUrl.contains("discord.com") || lowerUrl.contains("discordapp.com") -> 
+            Pair(PlatformIcons.Discord, Color(0xFF5865F2))
+        lowerUrl.contains("imgur.com") -> 
+            Pair(PlatformIcons.Imgur, Color(0xFF1BB76E))
+        lowerUrl.contains("flickr.com") -> 
+            Pair(PlatformIcons.Flickr, Color(0xFF0063DC))
+        lowerUrl.contains("giphy.com") -> 
+            Pair(PlatformIcons.Giphy, Color(0xFF000000))
+        lowerUrl.contains("music.apple.com") -> 
+            Pair(PlatformIcons.AppleMusic, Color(0xFFFA243C))
+        lowerUrl.contains("odysee.com") -> 
+            Pair(PlatformIcons.Odysee, Color(0xFFE21B4D))
+        lowerUrl.contains("mastodon.social") || lowerUrl.contains("joinmastodon.org") -> 
+            Pair(PlatformIcons.Mastodon, Color(0xFF6364FF))
+        lowerUrl.contains("spotify.com") -> 
+            Pair(PlatformIcons.Spotify, Color(0xFF1DB954))
         else -> 
             Pair(if (isAudio) Icons.Default.Audiotrack else Icons.Default.OndemandVideo, Color(0xFF2979FF))
     }

@@ -219,7 +219,26 @@ fun MainScreen(
             PlatformData("youtube", "YouTube", Color(0xFFFF0000), "youtube.com", PlatformIcons.YouTube),
             PlatformData("tiktok", "TikTok", Color(0xFF69C9D0), "tiktok.com", PlatformIcons.TikTok),
             PlatformData("instagram", "Instagram", Color(0xFFE1306C), "instagram.com", PlatformIcons.Instagram),
-            PlatformData("twitter", "X", Color(0xFFFFFFFF), "x.com", PlatformIcons.X)
+            PlatformData("twitter", "X", Color(0xFFFFFFFF), "x.com", PlatformIcons.X),
+            PlatformData("facebook", "Facebook", Color(0xFF1877F2), "facebook.com", PlatformIcons.Facebook),
+            PlatformData("reddit", "Reddit", Color(0xFFFF4500), "reddit.com", PlatformIcons.Reddit),
+            PlatformData("pinterest", "Pinterest", Color(0xFFE60023), "pinterest.com", PlatformIcons.Pinterest),
+            PlatformData("vimeo", "Vimeo", Color(0xFF1AB7EA), "vimeo.com", PlatformIcons.Vimeo),
+            PlatformData("soundcloud", "SoundCloud", Color(0xFFFF5500), "soundcloud.com", PlatformIcons.SoundCloud),
+            PlatformData("twitch", "Twitch", Color(0xFF9146FF), "twitch.tv", PlatformIcons.Twitch),
+            PlatformData("kick", "Kick", Color(0xFF53FC18), "kick.com", PlatformIcons.Kick),
+            PlatformData("dailymotion", "Dailymotion", Color(0xFF0066DC), "dailymotion.com", PlatformIcons.Dailymotion),
+            PlatformData("bilibili", "Bilibili", Color(0xFF00A1D6), "bilibili.com", PlatformIcons.Bilibili),
+            PlatformData("tumblr", "Tumblr", Color(0xFF36465D), "tumblr.com", PlatformIcons.Tumblr),
+            PlatformData("vk", "VK", Color(0xFF0077FF), "vk.com", PlatformIcons.VK),
+            PlatformData("rumble", "Rumble", Color(0xFF85C742), "rumble.com", PlatformIcons.Rumble),
+            PlatformData("threads", "Threads", Color(0xFF000000), "threads.net", PlatformIcons.Threads),
+            PlatformData("patreon", "Patreon", Color(0xFFFF424D), "patreon.com", PlatformIcons.Patreon),
+            PlatformData("bandcamp", "Bandcamp", Color(0xFF629AA9), "bandcamp.com", PlatformIcons.Bandcamp),
+            PlatformData("mixcloud", "Mixcloud", Color(0xFF5000FF), "mixcloud.com", PlatformIcons.Mixcloud),
+            PlatformData("discord", "Discord", Color(0xFF5865F2), "discord.com", PlatformIcons.Discord),
+            PlatformData("telegram", "Telegram", Color(0xFF26A5E4), "t.me", PlatformIcons.Telegram),
+            PlatformData("spotify", "Spotify", Color(0xFF1DB954), "spotify.com", PlatformIcons.Spotify)
         )
     }
 

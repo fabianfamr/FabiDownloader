@@ -14,7 +14,29 @@ object SiteServiceProvider {
             RedditService(),
             PinterestService(),
             VimeoService(),
-            SoundCloudService()
+            SoundCloudService(),
+            DailymotionService(),
+            BilibiliService(),
+            TumblrService(),
+            VKService(),
+            RumbleService(),
+            SnapchatService(),
+            ThreadsService(),
+            PatreonService(),
+            BandcampService(),
+            MixcloudService(),
+            DropboxService(),
+            GoogleDriveService(),
+            TelegramService(),
+            WhatsAppService(),
+            DiscordService(),
+            ImgurService(),
+            FlickrService(),
+            GiphyService(),
+            AppleMusicService(),
+            OdyseeService(),
+            MastodonService(),
+            SpotifyService()
         )
     }
 
