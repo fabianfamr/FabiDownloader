@@ -1,5 +1,7 @@
 package com.fabian.downloader.ui.screens
 
+import com.fabian.downloader.ui.components.AppIcons
+
 import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.ui.components.*
 
@@ -192,7 +194,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             containerColor = C_card,
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Icon(Icons.Default.NewReleases, contentDescription = null, tint = C_accent)
+                    Icon(AppIcons.NewReleases, contentDescription = null, tint = C_accent)
                     Text(stringResource(R.string.settings_update_available_title), color = C_white)
                 }
             },
@@ -562,11 +564,11 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 val icon = when(category) {
-                                    stringResource(R.string.settings_cat_downloads) -> Icons.Default.Download
-                                    stringResource(R.string.settings_cat_library) -> Icons.Default.VideoLibrary
-                                    stringResource(R.string.settings_cat_appearance) -> Icons.Default.Palette
-                                    stringResource(R.string.settings_cat_advanced) -> Icons.Default.Build
-                                    else -> Icons.Default.Settings
+                                    stringResource(R.string.settings_cat_downloads) -> AppIcons.Download
+                                    stringResource(R.string.settings_cat_library) -> AppIcons.VideoLibrary
+                                    stringResource(R.string.settings_cat_appearance) -> AppIcons.Palette
+                                    stringResource(R.string.settings_cat_advanced) -> AppIcons.Build
+                                    else -> AppIcons.Settings
                                 }
                                 Icon(
                                     imageVector = icon,
@@ -593,7 +595,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsRow(Icons.Default.Folder, stringResource(R.string.settings_download_dir), AppSettings.downloadLocation.substringAfterLast("/"), C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(AppIcons.Folder, stringResource(R.string.settings_download_dir), AppSettings.downloadLocation.substringAfterLast("/"), C_accent, C_white, C_gray1, C_card2) {
                                 launcher.launch(null)
                             }
                         }
@@ -606,16 +608,16 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsToggleRow(Icons.Default.Wifi, stringResource(R.string.settings_wifi_only), stringResource(R.string.settings_wifi_only_desc), wifiOnly, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { wifiOnly = it }
+                            SettingsToggleRow(AppIcons.Wifi, stringResource(R.string.settings_wifi_only), stringResource(R.string.settings_wifi_only_desc), wifiOnly, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { wifiOnly = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.Speed, stringResource(R.string.settings_speed_limit), maxSpeedState, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(AppIcons.Speed, stringResource(R.string.settings_speed_limit), maxSpeedState, C_accent, C_white, C_gray1, C_card2) {
                                 showSpeedDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.Link, stringResource(R.string.settings_auto_download), stringResource(R.string.settings_auto_download_desc), autoDownload, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoDownload = it }
+                            SettingsToggleRow(AppIcons.Link, stringResource(R.string.settings_auto_download), stringResource(R.string.settings_auto_download_desc), autoDownload, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoDownload = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(
-                                icon = Icons.AutoMirrored.Filled.List,
+                                icon = AppIcons.List,
                                 title = stringResource(R.string.settings_allow_playlists),
                                 subtitle = stringResource(R.string.settings_allow_playlists_desc),
                                 checked = playlistEnabledState,
@@ -636,19 +638,19 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsRow(Icons.Default.Hd, stringResource(R.string.settings_quality_default), selectedQualityState, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(AppIcons.Hd, stringResource(R.string.settings_quality_default), selectedQualityState, C_accent, C_white, C_gray1, C_card2) {
                                 showQualityDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.VideoFile, stringResource(R.string.settings_format_video), selectedVideoFormatState, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(AppIcons.VideoFile, stringResource(R.string.settings_format_video), selectedVideoFormatState, C_accent, C_white, C_gray1, C_card2) {
                                 showVideoFormatDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.AudioFile, stringResource(R.string.settings_audio_format), selectedAudioFormatState, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(AppIcons.AudioFile, stringResource(R.string.settings_audio_format), selectedAudioFormatState, C_accent, C_white, C_gray1, C_card2) {
                                 showAudioFormatDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.GraphicEq, stringResource(R.string.settings_audio_quality), defaultAudioBitrateState, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(AppIcons.GraphicEq, stringResource(R.string.settings_audio_quality), defaultAudioBitrateState, C_accent, C_white, C_gray1, C_card2) {
                                 showAudioBitrateDialog = true
                             }
                         }
@@ -699,7 +701,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.Remove,
+                                                imageVector = AppIcons.Remove,
                                                 contentDescription = "-",
                                                 tint = C_white,
                                                 modifier = Modifier.size(16.dp)
@@ -723,7 +725,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.Add,
+                                                imageVector = AppIcons.Add,
                                                 contentDescription = "+",
                                                 tint = C_white,
                                                 modifier = Modifier.size(16.dp)
@@ -739,12 +741,12 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 }
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.Download, stringResource(R.string.settings_threads), concurrentFragmentsState, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(AppIcons.Download, stringResource(R.string.settings_threads), concurrentFragmentsState, C_accent, C_white, C_gray1, C_card2) {
                                 showThreadsDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsRow(
-                                icon = Icons.Default.FastForward,
+                                icon = AppIcons.FastForward,
                                 title = stringResource(R.string.settings_early_start),
                                 trailing = if (AppSettings.earlyStartThreshold == 0) stringResource(R.string.settings_disabled) else "${AppSettings.earlyStartThreshold}%",
                                 colorAccent = C_accent,
@@ -766,11 +768,11 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsToggleRow(Icons.Default.Image, stringResource(R.string.settings_thumbnail), stringResource(R.string.settings_thumbnail_desc), embedThumbnail, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedThumbnail = it }
+                            SettingsToggleRow(AppIcons.Image, stringResource(R.string.settings_thumbnail), stringResource(R.string.settings_thumbnail_desc), embedThumbnail, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedThumbnail = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.AutoMirrored.Filled.Label, stringResource(R.string.settings_metadata), stringResource(R.string.settings_metadata_desc), embedMetadata, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedMetadata = it }
+                            SettingsToggleRow(AppIcons.Label, stringResource(R.string.settings_metadata), stringResource(R.string.settings_metadata_desc), embedMetadata, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedMetadata = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.VideoLibrary, stringResource(R.string.settings_mark_as_mv), stringResource(R.string.settings_mark_as_mv_desc), markAsMV, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { markAsMV = it }
+                            SettingsToggleRow(AppIcons.VideoLibrary, stringResource(R.string.settings_mark_as_mv), stringResource(R.string.settings_mark_as_mv_desc), markAsMV, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { markAsMV = it }
                         }
                     }
 
@@ -781,9 +783,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsToggleRow(Icons.Default.Subtitles, stringResource(R.string.settings_subtitles), stringResource(R.string.settings_subtitles_desc), embedSubtitles, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedSubtitles = it }
+                            SettingsToggleRow(AppIcons.Subtitles, stringResource(R.string.settings_subtitles), stringResource(R.string.settings_subtitles_desc), embedSubtitles, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedSubtitles = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.Bookmark, stringResource(R.string.settings_embed_chapters), stringResource(R.string.settings_embed_chapters_desc), embedChapters, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedChapters = it }
+                            SettingsToggleRow(AppIcons.Bookmark, stringResource(R.string.settings_embed_chapters), stringResource(R.string.settings_embed_chapters_desc), embedChapters, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedChapters = it }
                         }
                     }
 
@@ -794,9 +796,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsToggleRow(Icons.Default.Block, stringResource(R.string.settings_sponsorblock), stringResource(R.string.settings_sponsorblock_desc), sponsorBlock, C_amber, C_white, C_gray1, C_card2, C_border, C_bg) { sponsorBlock = it }
+                            SettingsToggleRow(AppIcons.Block, stringResource(R.string.settings_sponsorblock), stringResource(R.string.settings_sponsorblock_desc), sponsorBlock, C_amber, C_white, C_gray1, C_card2, C_border, C_bg) { sponsorBlock = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.Public, stringResource(R.string.settings_geo_bypass), stringResource(R.string.settings_geo_bypass_desc), bypassGeo, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { bypassGeo = it }
+                            SettingsToggleRow(AppIcons.Public, stringResource(R.string.settings_geo_bypass), stringResource(R.string.settings_geo_bypass_desc), bypassGeo, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { bypassGeo = it }
                         }
                     }
                 }
@@ -826,9 +828,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
                                     val modes = listOf(
-                                        Triple("Sistema", Icons.Default.SettingsSuggest, stringResource(R.string.settings_theme_system)),
-                                        Triple("Claro", Icons.Default.LightMode, stringResource(R.string.settings_theme_light)),
-                                        Triple("Oscuro", Icons.Default.DarkMode, stringResource(R.string.settings_theme_dark))
+                                        Triple("Sistema", AppIcons.SettingsSuggest, stringResource(R.string.settings_theme_system)),
+                                        Triple("Claro", AppIcons.LightMode, stringResource(R.string.settings_theme_light)),
+                                        Triple("Oscuro", AppIcons.DarkMode, stringResource(R.string.settings_theme_dark))
                                     )
                                     modes.forEach { (modeKey, icon, label) ->
                                         val isSelected = themePreferenceState == modeKey
@@ -879,7 +881,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                         .background(C_card2, RoundedCornerShape(10.dp)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.Palette, contentDescription = null, tint = C_accent, modifier = Modifier.size(18.dp))
+                                    Icon(AppIcons.Palette, contentDescription = null, tint = C_accent, modifier = Modifier.size(18.dp))
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
@@ -927,7 +929,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
 
                             if (!dynamicColor) {
                                 HorizontalDivider(color = C_border, thickness = 1.dp)
-                                SettingsRow(Icons.Default.ColorLens, stringResource(R.string.settings_accent_color), accentColorNameState, C_accent, C_white, C_gray1, C_card2) {
+                                SettingsRow(AppIcons.ColorLens, stringResource(R.string.settings_accent_color), accentColorNameState, C_accent, C_white, C_gray1, C_card2) {
                                     showAccentDialog = true
                                 }
                             }
@@ -935,7 +937,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             HorizontalDivider(color = C_border, thickness = 1.dp)
 
                             // AMOLED Mode
-                            SettingsToggleRow(Icons.Default.Brightness1, stringResource(R.string.settings_amoled_mode), stringResource(R.string.settings_amoled_mode_desc), amoledMode, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { amoledMode = it }
+                            SettingsToggleRow(AppIcons.Brightness1, stringResource(R.string.settings_amoled_mode), stringResource(R.string.settings_amoled_mode_desc), amoledMode, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { amoledMode = it }
                         }
                     }
 
@@ -946,13 +948,13 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsRow(Icons.Default.ViewStream, stringResource(R.string.settings_card_style), cardStyleState, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(AppIcons.ViewStream, stringResource(R.string.settings_card_style), cardStyleState, C_accent, C_white, C_gray1, C_card2) {
                                 showCardStyleDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.HighQuality, stringResource(R.string.settings_quality_badge), stringResource(R.string.settings_quality_badge_desc), showQualityBadge, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showQualityBadge = it }
+                            SettingsToggleRow(AppIcons.HighQuality, stringResource(R.string.settings_quality_badge), stringResource(R.string.settings_quality_badge_desc), showQualityBadge, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showQualityBadge = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.Speed, stringResource(R.string.settings_realtime_speed), stringResource(R.string.settings_realtime_speed_desc), showRealtimeSpeedCard, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showRealtimeSpeedCard = it }
+                            SettingsToggleRow(AppIcons.Speed, stringResource(R.string.settings_realtime_speed), stringResource(R.string.settings_realtime_speed_desc), showRealtimeSpeedCard, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showRealtimeSpeedCard = it }
                         }
                     }
 
@@ -963,14 +965,14 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsToggleRow(Icons.Default.Notifications, stringResource(R.string.settings_notif_global), stringResource(R.string.settings_notif_global_desc), notificationsEnabled, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { notificationsEnabled = it }
+                            SettingsToggleRow(AppIcons.Notifications, stringResource(R.string.settings_notif_global), stringResource(R.string.settings_notif_global_desc), notificationsEnabled, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { notificationsEnabled = it }
                             if (notificationsEnabled) {
                                 HorizontalDivider(color = C_border, thickness = 1.dp)
-                                SettingsToggleRow(Icons.Default.Speed, stringResource(R.string.settings_notif_speed), stringResource(R.string.settings_notif_speed_desc), showSpeedInNotif, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showSpeedInNotif = it }
+                                SettingsToggleRow(AppIcons.Speed, stringResource(R.string.settings_notif_speed), stringResource(R.string.settings_notif_speed_desc), showSpeedInNotif, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { showSpeedInNotif = it }
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(
-                                icon = Icons.Default.CheckCircle,
+                                icon = AppIcons.CheckCircle,
                                 title = stringResource(R.string.settings_notify_batch),
                                 subtitle = stringResource(R.string.settings_notify_batch_desc),
                                 checked = notifyBatchComplete,
@@ -993,11 +995,11 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsToggleRow(Icons.Default.History, stringResource(R.string.settings_history), stringResource(R.string.settings_history_desc), keepHistory, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { keepHistory = it }
+                            SettingsToggleRow(AppIcons.History, stringResource(R.string.settings_history), stringResource(R.string.settings_history_desc), keepHistory, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { keepHistory = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.Replay, stringResource(R.string.settings_retry), stringResource(R.string.settings_retry_desc), autoRetry, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoRetry = it }
+                            SettingsToggleRow(AppIcons.Replay, stringResource(R.string.settings_retry), stringResource(R.string.settings_retry_desc), autoRetry, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { autoRetry = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.ControlPointDuplicate, stringResource(R.string.settings_allow_duplicates), stringResource(R.string.settings_allow_duplicates_desc), allowDuplicateDownloads, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { allowDuplicateDownloads = it }
+                            SettingsToggleRow(AppIcons.ControlPointDuplicate, stringResource(R.string.settings_allow_duplicates), stringResource(R.string.settings_allow_duplicates_desc), allowDuplicateDownloads, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { allowDuplicateDownloads = it }
                         }
                     }
 
@@ -1008,9 +1010,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsToggleRow(Icons.Default.DeleteForever, stringResource(R.string.settings_confirm_delete), stringResource(R.string.settings_confirm_delete_desc), confirmOnDelete, C_red, C_white, C_gray1, C_card2, C_border, C_bg) { confirmOnDelete = it }
+                            SettingsToggleRow(AppIcons.DeleteForever, stringResource(R.string.settings_confirm_delete), stringResource(R.string.settings_confirm_delete_desc), confirmOnDelete, C_red, C_white, C_gray1, C_card2, C_border, C_bg) { confirmOnDelete = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(Icons.Default.Bolt, stringResource(R.string.settings_quick_share), stringResource(R.string.settings_quick_share_desc), quickShareMode, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { quickShareMode = it }
+                            SettingsToggleRow(AppIcons.Bolt, stringResource(R.string.settings_quick_share), stringResource(R.string.settings_quick_share_desc), quickShareMode, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { quickShareMode = it }
                         }
                     }
 
@@ -1021,11 +1023,11 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsRow(Icons.Default.Person, stringResource(R.string.settings_user_agent_title), AppSettings.customUserAgent.ifEmpty { stringResource(R.string.settings_value_default) }, C_accent, C_white, C_gray1, C_card2) { showUserAgentDialog = true }
+                            SettingsRow(AppIcons.Person, stringResource(R.string.settings_user_agent_title), AppSettings.customUserAgent.ifEmpty { stringResource(R.string.settings_value_default) }, C_accent, C_white, C_gray1, C_card2) { showUserAgentDialog = true }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.Code, stringResource(R.string.settings_yt_args), AppSettings.customArguments.ifEmpty { stringResource(R.string.settings_yt_args_default) }, C_accent, C_white, C_gray1, C_card2) { showCustomArgsDialog = true }
+                            SettingsRow(AppIcons.Code, stringResource(R.string.settings_yt_args), AppSettings.customArguments.ifEmpty { stringResource(R.string.settings_yt_args_default) }, C_accent, C_white, C_gray1, C_card2) { showCustomArgsDialog = true }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.ContentPaste, stringResource(R.string.settings_clipboard_action), AppSettings.clipboardAction, C_accent, C_white, C_gray1, C_card2) { showClipboardDialog = true }
+                            SettingsRow(AppIcons.ContentPaste, stringResource(R.string.settings_clipboard_action), AppSettings.clipboardAction, C_accent, C_white, C_gray1, C_card2) { showClipboardDialog = true }
                         }
                     }
                 }
@@ -1079,7 +1081,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 if (cacheState == 1) {
                                     CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = C_accent)
                                 } else {
-                                    Icon(imageVector = if (cacheState == 2) Icons.Default.Check else Icons.Default.Delete, contentDescription = null, tint = cacheAccent, modifier = Modifier.size(16.dp))
+                                    Icon(imageVector = if (cacheState == 2) AppIcons.Check else AppIcons.Delete, contentDescription = null, tint = cacheAccent, modifier = Modifier.size(16.dp))
                                 }
                             }
                             Spacer(modifier = Modifier.width(10.dp))
@@ -1104,7 +1106,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                     ) {
                         Column {
-                            SettingsRow(Icons.Default.Storage, stringResource(R.string.settings_storage_margin), storageMarginState, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(AppIcons.Storage, stringResource(R.string.settings_storage_margin), storageMarginState, C_accent, C_white, C_gray1, C_card2) {
                                 showStorageMarginDialog = true
                             }
                         }
@@ -1118,7 +1120,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     ) {
                         Column {
                             SettingsToggleRow(
-                                icon = Icons.Default.CleaningServices,
+                                icon = AppIcons.CleaningServices,
                                 title = stringResource(R.string.settings_clean_temp),
                                 subtitle = stringResource(R.string.settings_clean_temp_desc),
                                 checked = cleanTempOnCancel,
@@ -1140,7 +1142,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     ) {
                         Column {
                             SettingsToggleRow(
-                                icon = Icons.Default.BatteryChargingFull,
+                                icon = AppIcons.BatteryChargingFull,
                                 title = stringResource(R.string.settings_battery_optimization),
                                 subtitle = stringResource(R.string.settings_battery_optimization_desc),
                                 checked = batteryOptimizationEnabled,
@@ -1155,7 +1157,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             if (batteryOptimizationEnabled) {
                                 HorizontalDivider(color = C_border, thickness = 1.dp)
                                 SettingsRow(
-                                    icon = Icons.Default.BatteryAlert,
+                                    icon = AppIcons.BatteryAlert,
                                     title = stringResource(R.string.settings_battery_threshold),
                                     trailing = batteryLowThresholdState,
                                     colorAccent = C_accent,
@@ -1167,7 +1169,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 }
                                 HorizontalDivider(color = C_border, thickness = 1.dp)
                                 SettingsRow(
-                                    icon = Icons.Default.SettingsApplications,
+                                    icon = AppIcons.SettingsApplications,
                                     title = stringResource(R.string.settings_battery_action),
                                     trailing = batteryLowActionState,
                                     colorAccent = C_accent,
@@ -1195,7 +1197,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                     Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                                        Icon(Icons.Default.Info, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                                        Icon(AppIcons.Info, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
                                     }
                                     Text(stringResource(R.string.settings_version_title), color = C_white, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                                 }
@@ -1204,11 +1206,11 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 }
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.Language, stringResource(R.string.settings_language), languageState, C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(AppIcons.Language, stringResource(R.string.settings_language), languageState, C_accent, C_white, C_gray1, C_card2) {
                                 showLanguageDialog = true
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.Update, stringResource(R.string.settings_check_updates), if (isCheckingUpdates) stringResource(R.string.settings_update_searching) else stringResource(R.string.settings_update_now_btn), C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(AppIcons.Update, stringResource(R.string.settings_check_updates), if (isCheckingUpdates) stringResource(R.string.settings_update_searching) else stringResource(R.string.settings_update_now_btn), C_accent, C_white, C_gray1, C_card2) {
                                 if (!isCheckingUpdates) {
                                     scope.launch {
                                         isCheckingUpdates = true
@@ -1227,7 +1229,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 }
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.Download, stringResource(R.string.settings_update_engine), if (isUpdatingYtdlp) stringResource(R.string.settings_updating) else stringResource(R.string.settings_update_binary), C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(AppIcons.Download, stringResource(R.string.settings_update_engine), if (isUpdatingYtdlp) stringResource(R.string.settings_updating) else stringResource(R.string.settings_update_binary), C_accent, C_white, C_gray1, C_card2) {
                                 if (!isUpdatingYtdlp) {
                                     scope.launch(kotlinx.coroutines.Dispatchers.IO) {
                                         isUpdatingYtdlp = true
@@ -1244,7 +1246,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 }
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.Code, stringResource(R.string.settings_github_repo), stringResource(R.string.settings_view_code), C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(AppIcons.Code, stringResource(R.string.settings_github_repo), stringResource(R.string.settings_view_code), C_accent, C_white, C_gray1, C_card2) {
                                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Config.GITHUB_URL)).apply {
                                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 }
@@ -1252,7 +1254,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsRow(
-                                Icons.Default.BugReport,
+                                AppIcons.BugReport,
                                 stringResource(R.string.settings_copy_errors),
                                 if (isCopyingErrors) stringResource(R.string.settings_copying) else stringResource(R.string.settings_copy_clipboard),
                                 C_amber,
@@ -1368,7 +1370,7 @@ fun SettingsRow(
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(trailing, color = grayColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            Icon(Icons.Default.ChevronRight, null, tint = grayColor, modifier = Modifier.size(16.dp))
+            Icon(AppIcons.ChevronRight, null, tint = grayColor, modifier = Modifier.size(16.dp))
         }
     }
 }

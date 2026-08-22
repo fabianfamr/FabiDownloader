@@ -1,5 +1,7 @@
 package com.fabian.downloader.ui.components
 
+import com.fabian.downloader.ui.components.AppIcons
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -224,14 +226,14 @@ fun VinylRecordThumbnail(
                 )
             } else if (isFailed) {
                 Icon(
-                    imageVector = Icons.Default.Error,
+                    imageVector = AppIcons.Error,
                     contentDescription = null,
                     tint = fColors.error,
                     modifier = Modifier.size(centerSize * 0.55f)
                 )
             } else {
                 Icon(
-                    imageVector = Icons.Default.MusicNote,
+                    imageVector = AppIcons.MusicNote,
                     contentDescription = null,
                     tint = fallbackColor,
                     modifier = Modifier.size(centerSize * 0.55f)
@@ -288,7 +290,7 @@ fun VideoMediaThumbnail(
             )
         } else if (isFailed) {
             Icon(
-                imageVector = Icons.Default.Error,
+                imageVector = AppIcons.Error,
                 contentDescription = null,
                 tint = fColors.error,
                 modifier = Modifier.size(size * 0.45f)

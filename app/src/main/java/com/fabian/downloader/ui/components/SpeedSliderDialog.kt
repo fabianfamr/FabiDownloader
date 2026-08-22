@@ -1,5 +1,7 @@
 package com.fabian.downloader.ui.components
 
+import com.fabian.downloader.ui.components.AppIcons
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -54,7 +56,7 @@ fun SpeedSliderDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Speed,
+                        imageVector = AppIcons.Speed,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(22.dp)

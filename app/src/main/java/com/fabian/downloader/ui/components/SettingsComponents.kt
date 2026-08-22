@@ -1,5 +1,7 @@
 package com.fabian.downloader.ui.components
 
+import com.fabian.downloader.ui.components.AppIcons
+
 import com.fabian.downloader.ui.AppSettings
 
 import androidx.compose.foundation.BorderStroke
@@ -73,25 +75,25 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                SettingItem(Icons.Default.Palette, stringResource(R.string.settings_app_theme), trailing = AppSettings.themePreference) {
+                SettingItem(AppIcons.Palette, stringResource(R.string.settings_app_theme), trailing = AppSettings.themePreference) {
                     showThemeDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.Language, stringResource(R.string.settings_language), trailing = AppSettings.language) {
+                SettingItem(AppIcons.Language, stringResource(R.string.settings_language), trailing = AppSettings.language) {
                     showLanguageDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                ToggleSetting(Icons.Default.Notifications, stringResource(R.string.settings_download_notifications), AppSettings.notificationsEnabled) {
+                ToggleSetting(AppIcons.Notifications, stringResource(R.string.settings_download_notifications), AppSettings.notificationsEnabled) {
                     AppSettings.notificationsEnabled = it
                 }
                 if (AppSettings.notificationsEnabled) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingItem(Icons.Default.Timer, stringResource(R.string.settings_auto_cancel_pause), trailing = AppSettings.selectedPausedNotificationTimeout) {
+                    SettingItem(AppIcons.Timer, stringResource(R.string.settings_auto_cancel_pause), trailing = AppSettings.selectedPausedNotificationTimeout) {
                         showPausedTimeoutDialog = true
                     }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                ToggleSetting(Icons.Default.DeleteSweep, stringResource(R.string.settings_confirm_on_delete), AppSettings.confirmOnDelete) {
+                ToggleSetting(AppIcons.DeleteSweep, stringResource(R.string.settings_confirm_on_delete), AppSettings.confirmOnDelete) {
                     AppSettings.confirmOnDelete = it
                 }
             }
@@ -106,11 +108,11 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                SettingItem(Icons.Default.VideoFile, stringResource(R.string.settings_video_format), trailing = selectedVideoFormat) {
+                SettingItem(AppIcons.VideoFile, stringResource(R.string.settings_video_format), trailing = selectedVideoFormat) {
                     showVideoFormatDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.AudioFile, stringResource(R.string.settings_audio_format), trailing = selectedAudioFormat) {
+                SettingItem(AppIcons.AudioFile, stringResource(R.string.settings_audio_format), trailing = selectedAudioFormat) {
                     showAudioFormatDialog = true
                 }
             }
@@ -125,15 +127,15 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                SettingItem(Icons.Default.FolderOpen, stringResource(R.string.settings_location), trailing = downloadLocation) {
+                SettingItem(AppIcons.FolderOpen, stringResource(R.string.settings_location), trailing = downloadLocation) {
                     onPickLocation()
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.Speed, stringResource(R.string.settings_max_speed), trailing = maxSpeed) {
+                SettingItem(AppIcons.Speed, stringResource(R.string.settings_max_speed), trailing = maxSpeed) {
                     showSpeedDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.Storage, stringResource(R.string.settings_storage_margin), trailing = AppSettings.selectedStorageMargin) {
+                SettingItem(AppIcons.Storage, stringResource(R.string.settings_storage_margin), trailing = AppSettings.selectedStorageMargin) {
                     showStorageMarginDialog = true
                 }
             }
@@ -148,19 +150,19 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                ToggleSetting(Icons.Default.Subtitles, stringResource(R.string.settings_embed_subtitles), AppSettings.embedSubtitles) {
+                ToggleSetting(AppIcons.Subtitles, stringResource(R.string.settings_embed_subtitles), AppSettings.embedSubtitles) {
                     AppSettings.embedSubtitles = it
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                ToggleSetting(Icons.Default.Image, stringResource(R.string.settings_embed_thumbnail), AppSettings.embedThumbnail) {
+                ToggleSetting(AppIcons.Image, stringResource(R.string.settings_embed_thumbnail), AppSettings.embedThumbnail) {
                     AppSettings.embedThumbnail = it
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                ToggleSetting(Icons.Default.Info, stringResource(R.string.settings_embed_metadata), AppSettings.embedMetadata) {
+                ToggleSetting(AppIcons.Info, stringResource(R.string.settings_embed_metadata), AppSettings.embedMetadata) {
                     AppSettings.embedMetadata = it
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                ToggleSetting(Icons.AutoMirrored.Filled.PlaylistPlay, stringResource(R.string.settings_allow_playlists), AppSettings.playlistEnabled) {
+                ToggleSetting(AppIcons.PlaylistPlay, stringResource(R.string.settings_allow_playlists), AppSettings.playlistEnabled) {
                     AppSettings.playlistEnabled = it
                 }
             }
@@ -175,19 +177,19 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                ToggleSetting(Icons.Default.Block, stringResource(R.string.settings_sponsorblock_geo), AppSettings.sponsorBlockEnabled) {
+                ToggleSetting(AppIcons.Block, stringResource(R.string.settings_sponsorblock_geo), AppSettings.sponsorBlockEnabled) {
                     AppSettings.sponsorBlockEnabled = it
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                ToggleSetting(Icons.Default.Shield, stringResource(R.string.settings_bypass_geo), AppSettings.bypassGeo) {
+                ToggleSetting(AppIcons.Shield, stringResource(R.string.settings_bypass_geo), AppSettings.bypassGeo) {
                     AppSettings.bypassGeo = it
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.Person, stringResource(R.string.settings_custom_user_agent), trailing = AppSettings.customUserAgent.ifEmpty { stringResource(R.string.settings_value_default) }) {
+                SettingItem(AppIcons.Person, stringResource(R.string.settings_custom_user_agent), trailing = AppSettings.customUserAgent.ifEmpty { stringResource(R.string.settings_value_default) }) {
                     showUserAgentDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.ContentPaste, stringResource(R.string.settings_clipboard_action_title), trailing = AppSettings.clipboardAction) {
+                SettingItem(AppIcons.ContentPaste, stringResource(R.string.settings_clipboard_action_title), trailing = AppSettings.clipboardAction) {
                     showClipboardDialog = true
                 }
             }
@@ -202,7 +204,7 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                SettingItem(Icons.Default.Download, stringResource(R.string.settings_parallel_threads), trailing = AppSettings.concurrentFragments) {
+                SettingItem(AppIcons.Download, stringResource(R.string.settings_parallel_threads), trailing = AppSettings.concurrentFragments) {
                     showThreadsDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
@@ -220,7 +222,7 @@ fun DownloadSettingsContent(
                             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.FilterNone, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                        Icon(AppIcons.FilterNone, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -248,7 +250,7 @@ fun DownloadSettingsContent(
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Remove,
+                                imageVector = AppIcons.Remove,
                                 contentDescription = "-",
                                 tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(16.dp)
@@ -272,7 +274,7 @@ fun DownloadSettingsContent(
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Add,
+                                imageVector = AppIcons.Add,
                                 contentDescription = "+",
                                 tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(16.dp)
@@ -282,7 +284,7 @@ fun DownloadSettingsContent(
                 }
                 
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(Icons.Default.Code, stringResource(R.string.settings_custom_args), trailing = AppSettings.customArguments.ifEmpty { stringResource(R.string.settings_value_none) }) {
+                SettingItem(AppIcons.Code, stringResource(R.string.settings_custom_args), trailing = AppSettings.customArguments.ifEmpty { stringResource(R.string.settings_value_none) }) {
                     showCustomArgsDialog = true
                 }
             }
@@ -298,16 +300,16 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                ToggleSetting(Icons.Default.BatteryChargingFull, stringResource(R.string.settings_battery_optimization), AppSettings.batteryOptimizationEnabled) {
+                ToggleSetting(AppIcons.BatteryChargingFull, stringResource(R.string.settings_battery_optimization), AppSettings.batteryOptimizationEnabled) {
                     AppSettings.batteryOptimizationEnabled = it
                 }
                 if (AppSettings.batteryOptimizationEnabled) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingItem(Icons.Default.BatteryAlert, stringResource(R.string.settings_battery_threshold), trailing = AppSettings.selectedBatteryLowThreshold) {
+                    SettingItem(AppIcons.BatteryAlert, stringResource(R.string.settings_battery_threshold), trailing = AppSettings.selectedBatteryLowThreshold) {
                         showBatteryLowThresholdDialog = true
                     }
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingItem(Icons.Default.SettingsApplications, stringResource(R.string.settings_battery_action), trailing = AppSettings.selectedBatteryLowAction) {
+                    SettingItem(AppIcons.SettingsApplications, stringResource(R.string.settings_battery_action), trailing = AppSettings.selectedBatteryLowAction) {
                         showBatteryLowActionDialog = true
                     }
                 }
@@ -646,7 +648,7 @@ fun SettingItem(icon: ImageVector, title: String, trailing: String? = null, onCl
                     fontWeight = FontWeight.Bold
                 )
             } else {
-                Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f), modifier = Modifier.size(18.dp))
+                Icon(AppIcons.ChevronRight, null, tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f), modifier = Modifier.size(18.dp))
             }
         }
     }

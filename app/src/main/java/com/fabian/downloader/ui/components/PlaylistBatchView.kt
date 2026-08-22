@@ -1,5 +1,7 @@
 package com.fabian.downloader.ui.components
 
+import com.fabian.downloader.ui.components.AppIcons
+
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -85,7 +87,7 @@ fun PlaylistBatchView(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.PlaylistPlay,
+                        imageVector = AppIcons.PlaylistPlay,
                         contentDescription = null,
                         tint = try {
                             Color(android.graphics.Color.parseColor(playlist.brandColorHex))
@@ -149,9 +151,9 @@ fun PlaylistBatchView(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             listOf(
-                Triple(Config.FORMAT_MP4, stringResource(R.string.playlist_format_video), Icons.Default.Videocam),
-                Triple(Config.FORMAT_MP3, stringResource(R.string.playlist_format_mp3), Icons.Default.Audiotrack),
-                Triple(Config.FORMAT_M4A, stringResource(R.string.playlist_format_m4a), Icons.Default.MusicNote)
+                Triple(Config.FORMAT_MP4, stringResource(R.string.playlist_format_video), AppIcons.Videocam),
+                Triple(Config.FORMAT_MP3, stringResource(R.string.playlist_format_mp3), AppIcons.Audiotrack),
+                Triple(Config.FORMAT_M4A, stringResource(R.string.playlist_format_m4a), AppIcons.MusicNote)
             ).forEach { (fmt, label, icon) ->
                 val isSelected = selectedFormat == fmt
                 Box(
@@ -350,7 +352,7 @@ fun PlaylistBatchView(
                                 )
                             } else {
                                 Icon(
-                                    imageVector = Icons.Default.PlayCircle,
+                                    imageVector = AppIcons.PlayCircle,
                                     contentDescription = null,
                                     tint = fColors.textSecondary,
                                     modifier = Modifier
@@ -428,7 +430,7 @@ fun PlaylistBatchView(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.DownloadForOffline,
+                    imageVector = AppIcons.DownloadForOffline,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp)
                 )

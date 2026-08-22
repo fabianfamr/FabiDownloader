@@ -1,5 +1,7 @@
 package com.fabian.downloader.ui.screens
 
+import com.fabian.downloader.ui.components.AppIcons
+
 import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.ui.viewmodels.MainViewModel
 import com.fabian.downloader.ui.components.getPlatformIconAndColor
@@ -302,7 +304,7 @@ fun SharePopupScreen(
                         .background(fColors.cardSecondary, CircleShape)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Close,
+                        imageVector = AppIcons.Close,
                         contentDescription = ctx.getString(R.string.share_close),
                         tint = fColors.textSecondary,
                         modifier = Modifier.size(18.dp)
@@ -379,7 +381,7 @@ fun SharePopupScreen(
                                 musicOptions.forEach { option ->
                                     OptionListItem(
                                         option = option,
-                                        icon = Icons.Default.MusicNote,
+                                        icon = AppIcons.MusicNote,
                                         isSelected = selectedOptionId == option.id,
                                         accentColor = MaterialTheme.colorScheme.primary,
                                         onClick = { selectedOptionId = option.id }
@@ -405,7 +407,7 @@ fun SharePopupScreen(
                                 videoOptions.forEach { option ->
                                     OptionListItem(
                                         option = option,
-                                        icon = Icons.Default.OndemandVideo,
+                                        icon = AppIcons.OndemandVideo,
                                         isSelected = selectedOptionId == option.id,
                                         accentColor = MaterialTheme.colorScheme.primary,
                                         onClick = { selectedOptionId = option.id }
@@ -667,7 +669,7 @@ fun OptionListItem(
         ) {
             if (isSelected) {
                 Icon(
-                    imageVector = Icons.Default.Check,
+                    imageVector = AppIcons.Check,
                     contentDescription = null,
                     tint = Color.Black,
                     modifier = Modifier.size(14.dp)
@@ -742,7 +744,7 @@ fun ErrorStateView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
-            imageVector = Icons.Default.ErrorOutline,
+            imageVector = AppIcons.ErrorOutline,
             contentDescription = ctx.getString(R.string.share_error),
             tint = MaterialTheme.colorScheme.error,
             modifier = Modifier.size(48.dp)
@@ -1013,7 +1015,7 @@ fun DownloadStartedDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.CloudDownload,
+                                imageVector = AppIcons.CloudDownload,
                                 contentDescription = null,
                                 tint = Color.Black,
                                 modifier = Modifier.size(32.dp)

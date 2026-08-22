@@ -79,6 +79,6 @@ fun getPlatformIconAndColor(url: String, format: String): Pair<ImageVector, Colo
         lowerUrl.contains("spotify.com") -> 
             Pair(PlatformIcons.Spotify, Color(0xFF1DB954))
         else -> 
-            Pair(if (isAudio) Icons.Default.Audiotrack else Icons.Default.OndemandVideo, Color(0xFF2979FF))
+            Pair(if (isAudio) AppIcons.Audiotrack else AppIcons.OndemandVideo, Color(0xFF2979FF))
     }
 }

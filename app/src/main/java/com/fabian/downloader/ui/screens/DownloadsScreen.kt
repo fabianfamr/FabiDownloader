@@ -1,5 +1,7 @@
 package com.fabian.downloader.ui.screens
 
+import com.fabian.downloader.ui.components.AppIcons
+
 import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.ui.viewmodels.DownloadsViewModel
 import com.fabian.downloader.ui.components.*
@@ -253,7 +255,7 @@ fun DownloadsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.ContentCopy, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                            Icon(AppIcons.Copy, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
@@ -270,7 +272,7 @@ fun DownloadsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.History, contentDescription = null, tint = C_white, modifier = Modifier.size(16.dp))
+                            Icon(AppIcons.History, contentDescription = null, tint = C_white, modifier = Modifier.size(16.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
@@ -287,7 +289,7 @@ fun DownloadsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(modifier = Modifier.size(32.dp).background(C_accentDim, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Transform, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                            Icon(AppIcons.Transform, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
@@ -304,7 +306,7 @@ fun DownloadsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(modifier = Modifier.size(32.dp).background(C_redDim, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.DeleteForever, contentDescription = null, tint = C_red, modifier = Modifier.size(16.dp))
+                            Icon(AppIcons.DeleteForever, contentDescription = null, tint = C_red, modifier = Modifier.size(16.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
@@ -323,7 +325,7 @@ fun DownloadsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(modifier = Modifier.size(32.dp).background(C_card2, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.ContentCopy, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                            Icon(AppIcons.Copy, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
@@ -341,7 +343,7 @@ fun DownloadsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(modifier = Modifier.size(32.dp).background(C_accentDim, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Bolt, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                            Icon(AppIcons.Bolt, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
@@ -360,7 +362,7 @@ fun DownloadsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(modifier = Modifier.size(32.dp).background(C_accentDim, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                            Icon(if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                            Icon(if (isPaused) AppIcons.PlayArrow else AppIcons.Pause, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
@@ -377,7 +379,7 @@ fun DownloadsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(modifier = Modifier.size(32.dp).background(C_redDim, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.DeleteForever, contentDescription = null, tint = C_red, modifier = Modifier.size(16.dp))
+                            Icon(AppIcons.DeleteForever, contentDescription = null, tint = C_red, modifier = Modifier.size(16.dp))
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
@@ -427,7 +429,7 @@ fun DownloadsScreen(
             },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Transform, contentDescription = null, tint = C_accent)
+                    Icon(AppIcons.Transform, contentDescription = null, tint = C_accent)
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.downloads_convert_dialog_title), fontWeight = FontWeight.Bold, color = C_white)
                 }
@@ -545,7 +547,7 @@ fun DownloadsScreen(
             onDismissRequest = { errorToShow = null },
             title = { 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.ErrorOutline, null, tint = C_red)
+                    Icon(AppIcons.ErrorOutline, null, tint = C_red)
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.downloads_error_details_title), fontWeight = FontWeight.Bold, color = C_white)
                 }
@@ -581,7 +583,7 @@ fun DownloadsScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = C_accent, contentColor = Color(0xFF0A0A0C))
                 ) {
-                    Icon(Icons.Default.ContentCopy, null, Modifier.size(18.dp))
+                    Icon(AppIcons.Copy, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.downloads_copy_all_button))
                 }
@@ -634,7 +636,7 @@ fun DownloadsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = { selectedIds = emptySet() }) {
-                        Icon(Icons.Default.Close, stringResource(R.string.downloads_cancel_selection), tint = C_accent)
+                        Icon(AppIcons.Close, stringResource(R.string.downloads_cancel_selection), tint = C_accent)
                     }
                     Text(
                         text = stringResource(R.string.downloads_selected_count, selectedIds.size),
@@ -646,13 +648,13 @@ fun DownloadsScreen(
                             .padding(horizontal = 12.dp)
                     )
                     IconButton(onClick = { shareSelectedFiles() }) {
-                        Icon(Icons.Default.Share, stringResource(R.string.downloads_share_icon), tint = C_accent)
+                        Icon(AppIcons.Share, stringResource(R.string.downloads_share_icon), tint = C_accent)
                     }
                     IconButton(onClick = { 
                         selectedIds.forEach { viewModel.deleteDownload(it) }
                         selectedIds = emptySet()
                     }) {
-                        Icon(Icons.Default.Delete, stringResource(R.string.downloads_delete_button), tint = C_red)
+                        Icon(AppIcons.Delete, stringResource(R.string.downloads_delete_button), tint = C_red)
                     }
                 }
             }
@@ -678,7 +680,7 @@ fun DownloadsScreen(
                             .size(40.dp)
                             .background(C_card2, CircleShape)
                     ) {
-                        Icon(Icons.Default.DeleteSweep, stringResource(R.string.downloads_clear_history), tint = C_gray1)
+                        Icon(AppIcons.DeleteSweep, stringResource(R.string.downloads_clear_history), tint = C_gray1)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                 }
@@ -691,7 +693,7 @@ fun DownloadsScreen(
                             .size(40.dp)
                             .background(C_card2, CircleShape)
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.Sort, stringResource(R.string.downloads_sort), tint = C_gray1)
+                        Icon(AppIcons.Sort, stringResource(R.string.downloads_sort), tint = C_gray1)
                     }
                     DropdownMenu(
                         expanded = expanded,
@@ -715,7 +717,7 @@ fun DownloadsScreen(
                                 },
                                 leadingIcon = {
                                     if (sortOrder == option) {
-                                        Icon(Icons.Default.Check, null, tint = C_accent, modifier = Modifier.size(16.dp))
+                                        Icon(AppIcons.Check, null, tint = C_accent, modifier = Modifier.size(16.dp))
                                     } else {
                                         Spacer(Modifier.size(16.dp))
                                     }
@@ -890,7 +892,7 @@ fun DownloadsScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.FolderOpen, 
+                                            imageVector = AppIcons.FolderOpen, 
                                             contentDescription = null, 
                                             tint = C_gray1, 
                                             modifier = Modifier.size(36.dp)
@@ -960,7 +962,7 @@ fun DownloadsScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
-                                            imageVector = if (anyActive) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                            imageVector = if (anyActive) AppIcons.Pause else AppIcons.PlayArrow,
                                             contentDescription = null,
                                             tint = C_white,
                                             modifier = Modifier.size(15.dp)
@@ -1009,7 +1011,7 @@ fun DownloadsScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.CloudQueue, 
+                                            imageVector = AppIcons.CloudQueue, 
                                             contentDescription = null, 
                                             tint = C_gray1, 
                                             modifier = Modifier.size(36.dp)
@@ -1171,7 +1173,7 @@ fun MobileDownloadingItem(
                 record = record,
                 isFailed = isFailed,
                 size = 56.dp,
-                fallbackIcon = if (isFailed) Icons.Default.Error else platformIcon,
+                fallbackIcon = if (isFailed) AppIcons.Error else platformIcon,
                 fallbackColor = if (isFailed) C_red else platformColor
             )
 
@@ -1263,7 +1265,7 @@ fun MobileDownloadingItem(
                 ) {
                     if (isSelected) {
                         Icon(
-                            imageVector = Icons.Default.Check,
+                            imageVector = AppIcons.Check,
                             contentDescription = null,
                             tint = Color(0xFF0A0A0C),
                             modifier = Modifier.size(16.dp)
@@ -1276,7 +1278,7 @@ fun MobileDownloadingItem(
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.MoreVert,
+                        imageVector = AppIcons.MoreVert,
                         contentDescription = stringResource(R.string.downloads_action_options),
                         modifier = Modifier.size(18.dp),
                         tint = C_white
@@ -1378,7 +1380,7 @@ fun MobileDownloadedItem(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Icon(
-                        imageVector = if (isAudio) Icons.Default.MusicNote else Icons.Default.PlayArrow,
+                        imageVector = if (isAudio) AppIcons.MusicNote else AppIcons.PlayArrow,
                         contentDescription = null,
                         tint = if (isAudio) C_accent else platformColor,
                         modifier = Modifier.size(13.dp)
@@ -1421,7 +1423,7 @@ fun MobileDownloadedItem(
                 ) {
                     if (isSelected) {
                         Icon(
-                            imageVector = Icons.Default.Check,
+                            imageVector = AppIcons.Check,
                             contentDescription = null,
                             tint = Color(0xFF0A0A0C),
                             modifier = Modifier.size(16.dp)
@@ -1434,7 +1436,7 @@ fun MobileDownloadedItem(
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.MoreVert, 
+                        imageVector = AppIcons.MoreVert, 
                         contentDescription = stringResource(R.string.downloads_action_options), 
                         tint = C_white,
                         modifier = Modifier.size(18.dp)
@@ -1485,7 +1487,7 @@ fun RealtimeSpeedCardBanner(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Speed,
+                    imageVector = AppIcons.Speed,
                     contentDescription = null,
                     tint = accentColor,
                     modifier = Modifier.size(22.dp)

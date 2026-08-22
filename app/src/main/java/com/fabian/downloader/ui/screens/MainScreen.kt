@@ -1,6 +1,7 @@
 package com.fabian.downloader.ui.screens
 
 import com.fabian.downloader.ui.AppSettings
+import com.fabian.downloader.ui.components.AppIcons
 import com.fabian.downloader.ui.components.PlatformIcons
 import com.fabian.downloader.ui.viewmodels.MainViewModel
 import com.fabian.downloader.ui.components.getPlatformIconAndColor
@@ -379,7 +380,7 @@ fun MainScreen(
                             .padding(start = 14.dp)
                     ) {
                         Icon(
-                            imageVector = if (detectedPlatform != null) detectedPlatform.icon else Icons.Default.Link,
+                            imageVector = if (detectedPlatform != null) detectedPlatform.icon else AppIcons.Link,
                             contentDescription = null,
                             tint = if (detectedPlatform != null) detectedPlatform.color else C_gray1,
                             modifier = Modifier.size(16.dp)
@@ -402,7 +403,7 @@ fun MainScreen(
                                     .testTag("clear_link_button")
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Clear,
+                                    imageVector = AppIcons.Clear,
                                     contentDescription = stringResource(R.string.main_clear_button),
                                     tint = C_gray1,
                                     modifier = Modifier.size(14.dp)
@@ -438,7 +439,7 @@ fun MainScreen(
                                 horizontalArrangement = Arrangement.spacedBy(5.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.ContentPaste,
+                                    imageVector = AppIcons.ContentPaste,
                                     contentDescription = stringResource(R.string.main_paste_button),
                                     tint = C_accent,
                                     modifier = Modifier.size(12.dp)
@@ -523,7 +524,7 @@ fun MainScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.CheckCircle,
+                                    imageVector = AppIcons.CheckCircle,
                                     contentDescription = null,
                                     tint = Color(0xFF0A0A0C),
                                     modifier = Modifier.size(18.dp)
@@ -541,7 +542,7 @@ fun MainScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Download,
+                                    imageVector = AppIcons.Download,
                                     contentDescription = null,
                                     tint = if (isQueryValid) Color(0xFF0A0A0C) else C_gray1,
                                     modifier = Modifier.size(20.dp)
@@ -638,7 +639,7 @@ fun MainScreen(
                                         modifier = Modifier.padding(top = 3.dp)
                                     ) {
                                         Icon(
-                                            imageVector = if (isAudio) Icons.Default.MusicNote else Icons.Default.PlayArrow,
+                                            imageVector = if (isAudio) AppIcons.MusicNote else AppIcons.PlayArrow,
                                             contentDescription = null,
                                             tint = if (isAudio) C_accent else platformColor,
                                             modifier = Modifier.size(13.dp)
@@ -663,7 +664,7 @@ fun MainScreen(
                                     }
                                 }
                                 Icon(
-                                    imageVector = Icons.Default.CheckCircle,
+                                    imageVector = AppIcons.CheckCircle,
                                     contentDescription = stringResource(R.string.main_completed),
                                     tint = C_green,
                                     modifier = Modifier.size(20.dp)
