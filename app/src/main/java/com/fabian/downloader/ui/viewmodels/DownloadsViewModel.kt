@@ -6,12 +6,13 @@ import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.database.DownloadRecord
 import com.fabian.downloader.services.DownloadManagerService
 import com.fabian.downloader.services.StorageService
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 
-import kotlinx.coroutines.flow.sample
-
+@OptIn(FlowPreview::class)
 class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
     private val app = com.fabian.downloader.MyApplication.getInstance()
     private val storageService = StorageService.getInstance(app)

@@ -6,6 +6,7 @@ import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.database.DownloadRecord
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
@@ -82,6 +83,7 @@ class StorageService(private val database: AppDatabase) {
         }
     }
 
+    @OptIn(FlowPreview::class)
     fun getAllDownloads(): Flow<List<DownloadRecord>> {
         return database.downloadDao().getAllDownloads()
             .combine(activeProgressUpdates.sample(250L)) { dbList, updates ->
