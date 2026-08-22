@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -83,7 +84,7 @@ class StorageService(private val database: AppDatabase) {
 
     fun getAllDownloads(): Flow<List<DownloadRecord>> {
         return database.downloadDao().getAllDownloads()
-            .combine(activeProgressUpdates) { dbList, updates ->
+            .combine(activeProgressUpdates.sample(250L)) { dbList, updates ->
                 dbList.map { record ->
                     val isActiveOrQueued = !record.isCompleted && !record.isPaused && !record.size.startsWith(Config.STATUS_FAILED_PREFIX)
                     val update = updates[record.id]
@@ -245,7 +246,9 @@ class StorageService(private val database: AppDatabase) {
             }
         }
         val dbRecord = database.downloadDao().getDownloadById(id) ?: return null
-        memoryCache[dbRecord.id] = dbRecord
+        if (!dbRecord.isCompleted) {
+            memoryCache[dbRecord.id] = dbRecord
+        }
         return if (update != null && !dbRecord.isCompleted) {
             dbRecord.copy(progress = update.progress, size = update.size, speed = update.speed)
         } else dbRecord

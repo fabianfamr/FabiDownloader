@@ -229,4 +229,12 @@
     <string name="settings_header_temp_files">Temporary Files</string>
     <string name="settings_header_battery">Power and Battery</string>
 
+
+    <string name="settings_update_binary">Update binary</string>
+    <string name="settings_copy_errors">Copy app errors</string>
+    <string name="settings_copying">Copying...</string>
+
+
+    <string name="settings_copy_clipboard">Copy to clipboard</string>
+
 </resources>

@@ -231,4 +231,12 @@
     <string name="settings_header_temp_files">Archivos Temporales</string>
     <string name="settings_header_battery">Energía y Batería</string>
 
+
+    <string name="settings_update_binary">Actualizar binario</string>
+    <string name="settings_copy_errors">Copiar errores de la app</string>
+    <string name="settings_copying">Copiando...</string>
+
+
+    <string name="settings_copy_clipboard">Copiar al portapapeles</string>
+
 </resources>

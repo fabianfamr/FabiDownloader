@@ -7,7 +7,11 @@ import java.io.File
 
 @Suppress("DEPRECATION")
 object PathUtils {
-    private val cachedFolders = mutableMapOf<String, File>()
+    private val cachedFolders = java.util.concurrent.ConcurrentHashMap<String, File>()
+
+    fun clearFolderCache() {
+        cachedFolders.clear()
+    }
 
     private fun isWritableDir(dir: File): Boolean {
         return try {
@@ -91,12 +95,14 @@ object PathUtils {
             else -> "audio"
         }
         
-        cachedFolders[relativeSubfolder]?.let {
+        val locationSetting = com.fabian.downloader.ui.AppSettings.downloadLocation
+        val cacheKey = "${locationSetting}_$relativeSubfolder"
+
+        cachedFolders[cacheKey]?.let {
             if (it.exists()) return it
         }
  
         // 1. Intentar usar la ubicación configurada por el usuario (SAF Uri o ruta física)
-        val locationSetting = com.fabian.downloader.ui.AppSettings.downloadLocation
         var configuredDir: File? = null
 
         if (locationSetting.startsWith("content://")) {
@@ -120,7 +126,7 @@ object PathUtils {
             }
             if (isWritableDir(finalFolder)) {
                 android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified configured folder: ${finalFolder.absolutePath}")
-                cachedFolders[relativeSubfolder] = finalFolder
+                cachedFolders[cacheKey] = finalFolder
                 return finalFolder
             } else {
                 android.util.Log.e(Config.TAG_PATH_UTILS, "Configured folder ${finalFolder.absolutePath} is NOT writable")
@@ -133,7 +139,7 @@ object PathUtils {
             val downloadFabiFolder = File(publicDownloads, relativeSubfolder)
             if (isWritableDir(downloadFabiFolder)) {
                 android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified public Download folder: ${downloadFabiFolder.absolutePath}")
-                cachedFolders[relativeSubfolder] = downloadFabiFolder
+                cachedFolders[cacheKey] = downloadFabiFolder
                 return downloadFabiFolder
             } else {
                 android.util.Log.e(Config.TAG_PATH_UTILS, "Public Download folder is NOT writable: ${downloadFabiFolder.absolutePath}")
@@ -142,7 +148,7 @@ object PathUtils {
             // Fallback 2: Usar directamente la carpeta raíz pública Downloads (sin subcarpetas com.fabian.downloader)
             if (isWritableDir(publicDownloads)) {
                 android.util.Log.d(Config.TAG_PATH_UTILS, "Using raw public Downloads directory: ${publicDownloads.absolutePath}")
-                cachedFolders[relativeSubfolder] = publicDownloads
+                cachedFolders[cacheKey] = publicDownloads
                 return publicDownloads
             } else {
                 android.util.Log.e(Config.TAG_PATH_UTILS, "Raw public Downloads directory is NOT writable: ${publicDownloads.absolutePath}")
@@ -156,7 +162,7 @@ object PathUtils {
             val targetFolder = File(mediaDir, relativeSubfolder)
             if (isWritableDir(targetFolder)) {
                 android.util.Log.w(Config.TAG_PATH_UTILS, "FALLBACK to externalMediaDirs: ${targetFolder.absolutePath}")
-                cachedFolders[relativeSubfolder] = targetFolder
+                cachedFolders[cacheKey] = targetFolder
                 return targetFolder
             }
         }
@@ -172,7 +178,7 @@ object PathUtils {
                 if (testFile.createNewFile()) {
                     testFile.delete()
                     android.util.Log.w(Config.TAG_PATH_UTILS, "FALLBACK to appExternalDownloadDir: ${targetFolder.absolutePath}")
-                    cachedFolders[relativeSubfolder] = targetFolder
+                    cachedFolders[cacheKey] = targetFolder
                     return targetFolder
                 }
             } catch (e: Exception) {
@@ -185,7 +191,7 @@ object PathUtils {
             fallbackFolder.mkdirs()
         }
         android.util.Log.w(Config.TAG_PATH_UTILS, "FALLBACK to private storage! ${fallbackFolder.absolutePath}")
-        cachedFolders[relativeSubfolder] = fallbackFolder
+        cachedFolders[cacheKey] = fallbackFolder
         return fallbackFolder
     }
 
@@ -232,10 +238,11 @@ object PathUtils {
         val isImage = format.equals(Config.FORMAT_JPG, ignoreCase = true) || format.equals(Config.FORMAT_PNG, ignoreCase = true) || format.equals(Config.FORMAT_WEBP, ignoreCase = true) || format.equals("JPEG", ignoreCase = true)
         
         // We support both FabiDownloader and Fabidownloader
+        val capitalizedAppName = Config.APP_NAME_LOWER.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
         val subFolders = when {
-            isVideo -> listOf("${Config.APP_NAME}/video", "${Config.APP_NAME_LOWER.capitalize()}/video")
-            isImage -> listOf("${Config.APP_NAME}/image", "${Config.APP_NAME_LOWER.capitalize()}/image")
-            else -> listOf("${Config.APP_NAME}/audio", "${Config.APP_NAME_LOWER.capitalize()}/audio")
+            isVideo -> listOf("${Config.APP_NAME}/video", "$capitalizedAppName/video")
+            isImage -> listOf("${Config.APP_NAME}/image", "$capitalizedAppName/image")
+            else -> listOf("${Config.APP_NAME}/audio", "$capitalizedAppName/audio")
         }
         
         val folderList = mutableListOf<File>()

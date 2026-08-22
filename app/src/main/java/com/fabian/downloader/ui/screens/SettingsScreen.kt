@@ -562,10 +562,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 val icon = when(category) {
-                                    "Descargas" -> Icons.Default.Download
-                                    "Biblioteca" -> Icons.Default.VideoLibrary
-                                    "Apariencia" -> Icons.Default.Palette
-                                    "Avanzado" -> Icons.Default.Build
+                                    stringResource(R.string.settings_cat_downloads) -> Icons.Default.Download
+                                    stringResource(R.string.settings_cat_library) -> Icons.Default.VideoLibrary
+                                    stringResource(R.string.settings_cat_appearance) -> Icons.Default.Palette
+                                    stringResource(R.string.settings_cat_advanced) -> Icons.Default.Build
                                     else -> Icons.Default.Settings
                                 }
                                 Icon(
@@ -1227,7 +1227,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 }
                             }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsRow(Icons.Default.Download, "Actualizar motor yt-dlp", if (isUpdatingYtdlp) "Actualizando..." else "Actualizar binario", C_accent, C_white, C_gray1, C_card2) {
+                            SettingsRow(Icons.Default.Download, stringResource(R.string.settings_update_engine), if (isUpdatingYtdlp) stringResource(R.string.settings_updating) else stringResource(R.string.settings_update_binary), C_accent, C_white, C_gray1, C_card2) {
                                 if (!isUpdatingYtdlp) {
                                     scope.launch(kotlinx.coroutines.Dispatchers.IO) {
                                         isUpdatingYtdlp = true
@@ -1253,8 +1253,8 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsRow(
                                 Icons.Default.BugReport,
-                                "Copiar errores de la app",
-                                if (isCopyingErrors) "Copiando..." else "Copiar al portapapeles",
+                                stringResource(R.string.settings_copy_errors),
+                                if (isCopyingErrors) stringResource(R.string.settings_copying) else stringResource(R.string.settings_copy_clipboard),
                                 C_amber,
                                 C_white,
                                 C_gray1,

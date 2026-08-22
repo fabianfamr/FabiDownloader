@@ -121,6 +121,7 @@ object AppSettings {
         set(value) {
             if (_downloadLocation.value != value) {
                 _downloadLocation.value = value
+                com.fabian.downloader.utils.PathUtils.clearFolderCache()
                 saveString("downloadLocation", value)
                 notifyChanged("downloadLocation")
             }

@@ -125,9 +125,10 @@ class CacheCleanupWorker(
 
         fun performDirectCleanup(context: Context) {
             try {
-                cleanDirectoryDirect(context.cacheDir, maxAgeMs = 1_800_000L)
-                context.externalCacheDir?.let { cleanDirectoryDirect(it, maxAgeMs = 1_800_000L) }
+                cleanDirectoryDirect(context.cacheDir, maxAgeMs = 0L)
+                context.externalCacheDir?.let { cleanDirectoryDirect(it, maxAgeMs = 0L) }
                 ExtractionService.clearCaches()
+                PathUtils.clearFolderCache()
             } catch (e: Exception) {
                 Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al realizar la limpieza directa de caché", e)
             }

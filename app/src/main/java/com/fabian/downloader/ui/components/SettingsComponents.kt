@@ -86,7 +86,7 @@ fun DownloadSettingsContent(
                 }
                 if (AppSettings.notificationsEnabled) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingItem(Icons.Default.Timer, "Auto-cancelar pausa", trailing = AppSettings.selectedPausedNotificationTimeout) {
+                    SettingItem(Icons.Default.Timer, stringResource(R.string.settings_auto_cancel_pause), trailing = AppSettings.selectedPausedNotificationTimeout) {
                         showPausedTimeoutDialog = true
                     }
                 }
@@ -290,7 +290,7 @@ fun DownloadSettingsContent(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        SettingSectionHeader("Optimización de Batería")
+        SettingSectionHeader(stringResource(R.string.settings_battery_optimization_title))
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)),
@@ -298,16 +298,16 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                ToggleSetting(Icons.Default.BatteryChargingFull, "Optimizar descargas por batería", AppSettings.batteryOptimizationEnabled) {
+                ToggleSetting(Icons.Default.BatteryChargingFull, stringResource(R.string.settings_battery_optimization), AppSettings.batteryOptimizationEnabled) {
                     AppSettings.batteryOptimizationEnabled = it
                 }
                 if (AppSettings.batteryOptimizationEnabled) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingItem(Icons.Default.BatteryAlert, "Umbral de batería baja", trailing = AppSettings.selectedBatteryLowThreshold) {
+                    SettingItem(Icons.Default.BatteryAlert, stringResource(R.string.settings_battery_threshold), trailing = AppSettings.selectedBatteryLowThreshold) {
                         showBatteryLowThresholdDialog = true
                     }
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingItem(Icons.Default.SettingsApplications, "Acción en batería baja", trailing = AppSettings.selectedBatteryLowAction) {
+                    SettingItem(Icons.Default.SettingsApplications, stringResource(R.string.settings_battery_action), trailing = AppSettings.selectedBatteryLowAction) {
                         showBatteryLowActionDialog = true
                     }
                 }
@@ -406,7 +406,7 @@ fun DownloadSettingsContent(
             )
         }
         if (showPausedTimeoutDialog) {
-            SelectionDialog("Auto-cancelar pausa", AppSettings.pausedNotificationTimeoutOptions, AppSettings.selectedPausedNotificationTimeout,
+            SelectionDialog(stringResource(R.string.settings_auto_cancel_pause), AppSettings.pausedNotificationTimeoutOptions, AppSettings.selectedPausedNotificationTimeout,
                 onSelection = {
                     AppSettings.selectedPausedNotificationTimeout = it
                     showPausedTimeoutDialog = false
@@ -415,7 +415,7 @@ fun DownloadSettingsContent(
             )
         }
         if (showBatteryLowThresholdDialog) {
-            SelectionDialog("Umbral de batería baja", AppSettings.batteryLowThresholdOptions, AppSettings.selectedBatteryLowThreshold,
+            SelectionDialog(stringResource(R.string.settings_battery_threshold), AppSettings.batteryLowThresholdOptions, AppSettings.selectedBatteryLowThreshold,
                 onSelection = {
                     AppSettings.selectedBatteryLowThreshold = it
                     showBatteryLowThresholdDialog = false
@@ -424,7 +424,7 @@ fun DownloadSettingsContent(
             )
         }
         if (showBatteryLowActionDialog) {
-            SelectionDialog("Acción en batería baja", AppSettings.batteryLowActionOptions, AppSettings.selectedBatteryLowAction,
+            SelectionDialog(stringResource(R.string.settings_battery_action), AppSettings.batteryLowActionOptions, AppSettings.selectedBatteryLowAction,
                 onSelection = {
                     AppSettings.selectedBatteryLowAction = it
                     showBatteryLowActionDialog = false
