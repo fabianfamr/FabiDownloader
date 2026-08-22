@@ -1,6 +1,7 @@
 package com.fabian.downloader.ui.screens
 
 import com.fabian.downloader.ui.AppSettings
+import com.fabian.downloader.ui.components.PlatformIcons
 import com.fabian.downloader.ui.viewmodels.MainViewModel
 import com.fabian.downloader.ui.components.getPlatformIconAndColor
 import com.fabian.downloader.ui.components.MediaThumbnail
@@ -215,10 +216,10 @@ fun MainScreen(
     // Platform definition matching React App.tsx
     val platforms = remember {
         listOf(
-            PlatformData("youtube", "YouTube", Color(0xFFFF0000), "youtube.com", Icons.Default.PlayCircle),
-            PlatformData("tiktok", "TikTok", Color(0xFF69C9D0), "tiktok.com", Icons.Default.MusicNote),
-            PlatformData("instagram", "Instagram", Color(0xFFE1306C), "instagram.com", Icons.Default.CameraAlt),
-            PlatformData("twitter", "X", Color(0xFFFFFFFF), "x.com", Icons.Default.Share)
+            PlatformData("youtube", "YouTube", Color(0xFFFF0000), "youtube.com", PlatformIcons.YouTube),
+            PlatformData("tiktok", "TikTok", Color(0xFF69C9D0), "tiktok.com", PlatformIcons.TikTok),
+            PlatformData("instagram", "Instagram", Color(0xFFE1306C), "instagram.com", PlatformIcons.Instagram),
+            PlatformData("twitter", "X", Color(0xFFFFFFFF), "x.com", PlatformIcons.X)
         )
     }
 
