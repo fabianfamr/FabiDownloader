@@ -148,6 +148,7 @@ class NotificationService(private val context: Context) {
 
         // Al presionar la descarga en curso ir a la pantalla de descargas en proceso (página index 1)
         val appIntent = Intent(context, com.fabian.downloader.MainActivity::class.java).apply {
+            setPackage(context.packageName)
             setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
             putExtra(Config.EXTRA_INITIAL_PAGE, 1)
@@ -194,6 +195,7 @@ class NotificationService(private val context: Context) {
 
         // Al presionar la notificación ir a la pantalla de descargas en proceso (página index 1)
         val appIntent = Intent(context, com.fabian.downloader.MainActivity::class.java).apply {
+            setPackage(context.packageName)
             setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
             putExtra(Config.EXTRA_INITIAL_PAGE, 1)
@@ -266,6 +268,7 @@ class NotificationService(private val context: Context) {
 
         // Crear Acción Abrir
         val openIntent = Intent(context, DownloadActionReceiver::class.java).apply {
+            setPackage(context.packageName)
             action = Config.ACTION_OPEN
             putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
         }
@@ -278,6 +281,7 @@ class NotificationService(private val context: Context) {
 
         // Crear Acción Compartir
         val shareIntent = Intent(context, DownloadActionReceiver::class.java).apply {
+            setPackage(context.packageName)
             action = Config.ACTION_SHARE
             putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
         }
@@ -314,6 +318,7 @@ class NotificationService(private val context: Context) {
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
 
         val appIntent = Intent(context, com.fabian.downloader.MainActivity::class.java).apply {
+            setPackage(context.packageName)
             setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
             putExtra(Config.EXTRA_INITIAL_PAGE, 0)
@@ -362,6 +367,7 @@ class NotificationService(private val context: Context) {
 
         // Crear Acción Reintentar
         val retryIntent = Intent(context, DownloadActionReceiver::class.java).apply {
+            setPackage(context.packageName)
             action = Config.ACTION_RETRY
             putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
         }
@@ -376,6 +382,7 @@ class NotificationService(private val context: Context) {
 
         // Crear Intent para abrir la aplicación en la pestaña de progreso
         val appIntent = Intent(context, com.fabian.downloader.MainActivity::class.java).apply {
+            setPackage(context.packageName)
             setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
             putExtra(Config.EXTRA_INITIAL_PAGE, 1)
