@@ -6,11 +6,16 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import com.fabian.downloader.configs.Config
 import com.fabian.downloader.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class DownloadForegroundService : Service() {
@@ -18,15 +23,22 @@ class DownloadForegroundService : Service() {
     companion object {
         private const val NOTIFICATION_ID = 9999
 
+        @Volatile
+        var isRunning: Boolean = false
+            private set
+
         fun start(context: Context) {
+            if (isRunning) return
             try {
                 val intent = Intent(context, DownloadForegroundService::class.java)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     try {
                         context.startForegroundService(intent)
                     } catch (e: Exception) {
-                        android.util.Log.w("DownloadService", "No se pudo iniciar startForegroundService, fallback a startService", e)
-                        context.startService(intent)
+                        android.util.Log.w("DownloadService", "Fallo startForegroundService, fallback a startService", e)
+                        try {
+                            context.startService(intent)
+                        } catch (_: Exception) {}
                     }
                 } else {
                     context.startService(intent)
@@ -42,71 +54,77 @@ class DownloadForegroundService : Service() {
                 context.stopService(intent)
             } catch (e: Exception) {
                 android.util.Log.e("DownloadService", "Error stopping DownloadForegroundService", e)
+            } finally {
+                isRunning = false
             }
         }
     }
 
     override fun onCreate() {
         super.onCreate()
+        isRunning = true
         createNotificationChannel()
         promoteToForeground()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        isRunning = true
         promoteToForeground()
         
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-            val hasActive = DownloadManagerService.getInstance(applicationContext).hasActiveDownloads()
-            if (!hasActive) {
-                stopSelf()
-            }
+        CoroutineScope(Dispatchers.IO).launch {
+            delay(1500) // Dar tiempo de sincronización a las tareas recién encoladas
+            try {
+                val hasActive = DownloadManagerService.getInstance(applicationContext).hasActiveDownloads()
+                if (!hasActive) {
+                    stopSelf()
+                }
+            } catch (_: Exception) {}
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     private fun promoteToForeground() {
         try {
+            createNotificationChannel()
             val notification = createNotification()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 try {
-                    startForeground(
+                    ServiceCompat.startForeground(
+                        this,
                         NOTIFICATION_ID,
                         notification,
-                        android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
                     )
                 } catch (e: Exception) {
-                    try {
-                        startForeground(NOTIFICATION_ID, notification)
-                    } catch (e2: Exception) {
-                        android.util.Log.w("DownloadService", "ForegroundServiceStartNotAllowedException at startForeground", e2)
-                        @Suppress("DEPRECATION")
-                        stopForeground(true)
-                        stopSelf()
-                    }
+                    android.util.Log.w("DownloadService", "Fallback startForeground standard", e)
+                    ServiceCompat.startForeground(
+                        this,
+                        NOTIFICATION_ID,
+                        notification,
+                        0
+                    )
                 }
             } else {
                 startForeground(NOTIFICATION_ID, notification)
             }
         } catch (e: Throwable) {
             android.util.Log.e("DownloadService", "Error calling startForeground in DownloadForegroundService", e)
-            try {
-                @Suppress("DEPRECATION")
-                stopForeground(true)
-                stopSelf()
-            } catch (_: Exception) {}
         }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
+        isRunning = false
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+            } else {
+                @Suppress("DEPRECATION")
+                stopForeground(true)
+            }
+        } catch (_: Exception) {}
         super.onDestroy()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        } else {
-            @Suppress("DEPRECATION")
-            stopForeground(true)
-        }
     }
 
     private fun createNotification(): Notification {
@@ -121,19 +139,19 @@ class DownloadForegroundService : Service() {
     }
 
     private fun createNotificationChannel() {
-        // En Android O y superior, los canales son requeridos. 
-        // NotificationService ya crea este canal, pero por si acaso lo creamos aquí también.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val channel = NotificationChannel(
-                Config.NOTIF_CHANNEL_PROGRESS,
-                getString(R.string.notif_channel_progress),
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = getString(R.string.notif_channel_progress_desc)
-                setShowBadge(false)
-            }
-            manager.createNotificationChannel(channel)
+            try {
+                val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                val channel = NotificationChannel(
+                    Config.NOTIF_CHANNEL_PROGRESS,
+                    getString(R.string.notif_channel_progress),
+                    NotificationManager.IMPORTANCE_LOW
+                ).apply {
+                    description = getString(R.string.notif_channel_progress_desc)
+                    setShowBadge(false)
+                }
+                manager.createNotificationChannel(channel)
+            } catch (_: Exception) {}
         }
     }
 
@@ -152,3 +170,4 @@ class DownloadForegroundService : Service() {
         }
     }
 }
+
