@@ -124,16 +124,14 @@ class DownloadForegroundService : Service() {
             createNotificationChannel()
             val notification = createNotification()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val type = ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
                 try {
-                    ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type)
+                    startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
                 } catch (e: Throwable) {
                     Log.w("DownloadService", "Fallo startForeground con DATA_SYNC, fallback a estándar", e)
                     try {
-                        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, 0)
+                        startForeground(NOTIFICATION_ID, notification)
                     } catch (e2: Throwable) {
                         Log.e("DownloadService", "Error en fallback startForeground", e2)
-                        try { stopSelf() } catch (_: Throwable) {}
                     }
                 }
             } else {
@@ -141,20 +139,18 @@ class DownloadForegroundService : Service() {
                     startForeground(NOTIFICATION_ID, notification)
                 } catch (e: Throwable) {
                     Log.e("DownloadService", "Error en startForeground pre-Q", e)
-                    try { stopSelf() } catch (_: Throwable) {}
                 }
             }
         } catch (e: Throwable) {
             Log.e("DownloadService", "Error llamando promoteToForeground", e)
-            try { stopSelf() } catch (_: Throwable) {}
         }
     }
 
     private fun scheduleStopForegroundAndSelf() {
         val now = System.currentTimeMillis()
         val elapsed = now - serviceStartTimeMs
-        val minDuration = 3500L // Garantizar al menos 3.5 segundos de vida activa antes de detener el servicio
-        val delayTime = if (elapsed < minDuration) minDuration - elapsed else 100L
+        val minDuration = 4000L // Garantizar al menos 4 segundos de vida activa para cumplir el contrato del SO
+        val delayTime = if (elapsed < minDuration) minDuration - elapsed else 500L
 
         Handler(Looper.getMainLooper()).postDelayed({
             try {
@@ -169,10 +165,14 @@ class DownloadForegroundService : Service() {
 
                 isRunning = false
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    try {
+                        stopForeground(STOP_FOREGROUND_REMOVE)
+                    } catch (_: Throwable) {}
                 } else {
                     @Suppress("DEPRECATION")
-                    stopForeground(true)
+                    try {
+                        stopForeground(true)
+                    } catch (_: Throwable) {}
                 }
                 stopSelf()
             } catch (e: Throwable) {
