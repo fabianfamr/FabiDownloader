@@ -506,7 +506,7 @@ fun InputDialog(
 fun SelectionDialog(title: String, options: List<String>, selectedOption: String, onSelection: (String) -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
+        title = { Text(title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
         containerColor = MaterialTheme.colorScheme.surface,
         text = {
             Column(
@@ -537,8 +537,11 @@ fun SelectionDialog(title: String, options: List<String>, selectedOption: String
                             Text(
                                 text = option, 
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface, 
-                                fontSize = 15.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                fontSize = 15.sp, 
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false)
                             )
                         }
                     }
@@ -575,7 +578,9 @@ fun ToggleSetting(icon: ImageVector, title: String, checked: Boolean, onCheckedC
             color = MaterialTheme.colorScheme.onSurface, 
             fontSize = 15.sp, 
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
         )
         Switch(
             checked = checked, 
@@ -607,7 +612,9 @@ fun SettingSectionHeader(title: String) {
             color = MaterialTheme.colorScheme.primary,
             fontSize = 12.sp,
             fontWeight = FontWeight.Black,
-            letterSpacing = 1.sp
+            letterSpacing = 1.sp,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
         )
     }
 }
@@ -638,16 +645,24 @@ fun SettingItem(icon: ImageVector, title: String, trailing: String? = null, onCl
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f, fill = false),
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
             )
             if (trailing != null) {
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = trailing, 
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), 
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f, fill = false),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
             } else {
+                Spacer(modifier = Modifier.weight(1f))
                 Icon(AppIcons.ChevronRight, null, tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f), modifier = Modifier.size(18.dp))
             }
         }

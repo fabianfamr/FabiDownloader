@@ -1063,9 +1063,11 @@ fun DownloadStartedDialog(
                             )
                         ) {
                             Text(
-                                ctx.getString(R.string.share_not_now),
+                                text = ctx.getString(R.string.share_not_now),
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
+                                fontSize = 13.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
 
@@ -1082,9 +1084,11 @@ fun DownloadStartedDialog(
                             )
                         ) {
                             Text(
-                                ctx.getString(R.string.share_view),
+                                text = ctx.getString(R.string.share_view),
                                 fontWeight = FontWeight.Black,
-                                fontSize = 14.sp
+                                fontSize = 13.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }

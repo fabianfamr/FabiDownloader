@@ -1319,8 +1319,21 @@ fun SettingsToggleRow(
                 Icon(icon, contentDescription = null, tint = if (checked) colorAccent else grayColor, modifier = Modifier.size(16.dp))
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, color = textColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                Text(subtitle, color = grayColor, fontSize = 11.sp)
+                Text(
+                    text = title, 
+                    color = textColor, 
+                    fontSize = 13.sp, 
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = subtitle, 
+                    color = grayColor, 
+                    fontSize = 11.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
         Switch(
@@ -1360,7 +1373,7 @@ fun SettingsRow(
         Row(
             verticalAlignment = Alignment.CenterVertically, 
             horizontalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f, fill = false)
         ) {
             Box(
                 modifier = Modifier
@@ -1370,10 +1383,31 @@ fun SettingsRow(
             ) {
                 Icon(icon, contentDescription = null, tint = colorAccent, modifier = Modifier.size(16.dp))
             }
-            Text(title, color = textColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                text = title, 
+                color = textColor, 
+                fontSize = 13.sp, 
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(trailing, color = grayColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.width(8.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically, 
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.weight(1f, fill = false)
+        ) {
+            Text(
+                text = trailing, 
+                color = grayColor, 
+                fontSize = 11.sp, 
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
+                textAlign = androidx.compose.ui.text.style.TextAlign.End
+            )
             Icon(AppIcons.ChevronRight, null, tint = grayColor, modifier = Modifier.size(16.dp))
         }
     }
