@@ -25,6 +25,8 @@ android {
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     
+    resourceConfigurations += listOf("es", "en", "de", "fr", "ja", "ru")
+
     ndk {
         abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
     }
@@ -34,27 +36,33 @@ android {
     abi {
       isEnable = true
       reset()
-      include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+      include("arm64-v8a", "armeabi-v7a")
       isUniversalApk = true
     }
   }
 
   packaging {
     jniLibs {
-      useLegacyPackaging = true
-      keepDebugSymbols.add("**/libpython.zip.so")
-      keepDebugSymbols.add("**/libffmpeg.zip.so")
+      useLegacyPackaging = false
     }
     resources {
       pickFirsts.add("lib/**/libc++_shared.so")
       pickFirsts.add("lib/armeabi-v7a/libpython.zip.so")
       pickFirsts.add("lib/arm64-v8a/libpython.zip.so")
-      pickFirsts.add("lib/x86/libpython.zip.so")
-      pickFirsts.add("lib/x86_64/libpython.zip.so")
       pickFirsts.add("lib/armeabi-v7a/libFFmpeg.so")
       pickFirsts.add("lib/arm64-v8a/libFFmpeg.so")
-      pickFirsts.add("lib/x86/libFFmpeg.so")
-      pickFirsts.add("lib/x86_64/libFFmpeg.so")
+      excludes.add("META-INF/DEPENDENCIES")
+      excludes.add("META-INF/LICENSE")
+      excludes.add("META-INF/LICENSE.txt")
+      excludes.add("META-INF/license.txt")
+      excludes.add("META-INF/NOTICE")
+      excludes.add("META-INF/NOTICE.txt")
+      excludes.add("META-INF/notice.txt")
+      excludes.add("META-INF/ASL2.0")
+      excludes.add("META-INF/AL2.0")
+      excludes.add("META-INF/LGPL2.1")
+      excludes.add("META-INF/*.kotlin_module")
+      excludes.add("META-INF/licenses/**")
     }
   }
 
