@@ -637,20 +637,12 @@ fun OptionListItem(
         )
         
         if (option.sizeStr.isNotEmpty()) {
-            if (option.sizeStr == "...") {
-                CircularProgressIndicator(
-                    color = accentColor,
-                    strokeWidth = 1.5.dp,
-                    modifier = Modifier.size(12.dp)
-                )
-            } else {
-                Text(
-                    text = option.sizeStr,
-                    color = Color(0xFF888888),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal
-                )
-            }
+            Text(
+                text = option.sizeStr,
+                color = Color(0xFF888888),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Normal
+            )
             Spacer(modifier = Modifier.width(14.dp))
         }
         
@@ -865,12 +857,6 @@ fun FormatRow(
                             tint = Color(0xFFEF5350),
                             modifier = Modifier.size(11.dp)
                         )
-                    } else if (option.sizeStr == "...") {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.primary,
-                            strokeWidth = 1.2f.dp,
-                            modifier = Modifier.size(10.dp)
-                        )
                     } else {
                         Text(
                             text = option.sizeStr,
@@ -907,36 +893,30 @@ fun FormatRow(
 }
 
 fun getOptionSize(ctx: android.content.Context, option: DownloadOption, formatSizes: Map<String, Double>?): String {
-    if (formatSizes == null) return ctx.getString(R.string.share_size_loading)
-    if (formatSizes.isEmpty()) return ctx.getString(R.string.share_size_auto)
+    // Si aún está buscando o no hay tamaños, no mostrar nada (estilo Snaptube)
+    if (formatSizes == null || formatSizes.isEmpty()) return ""
     
     val qKey = option.quality.lowercase() 
     val fKey = option.format.lowercase() 
     
     val sizeInMb = formatSizes[option.id] 
         ?: formatSizes[qKey]
+        ?: formatSizes["${qKey}p"]
         ?: formatSizes["video_$qKey"]
+        ?: formatSizes["video_${qKey}p"]
         ?: formatSizes["audio_$fKey"]
         ?: formatSizes.entries.find { it.key.contains(qKey, ignoreCase = true) }?.value
         ?: formatSizes.entries.find { it.key.contains(fKey, ignoreCase = true) }?.value
     
     if (sizeInMb != null && sizeInMb > 0.0) {
-        return ctx.getString(R.string.share_size_mb, sizeInMb)
+        return if (sizeInMb >= 1024.0) {
+            String.format(java.util.Locale.US, "%.1f GB", sizeInMb / 1024.0)
+        } else {
+            ctx.getString(R.string.share_size_mb, sizeInMb)
+        }
     }
     
-    // Estimación si no se encuentra
-    val estimate = when (option.id) {
-        "music_320" -> 8.5
-        "music_192" -> 5.2
-        "music_128" -> 3.5
-        "music_64" -> 1.8
-        "video_1080" -> 45.0
-        "video_720" -> 25.0
-        "video_480" -> 12.0
-        "video_360" -> 7.5
-        else -> 15.0
-    }
-    return ctx.getString(R.string.share_size_mb, estimate)
+    return ""
 }
 
 @Composable

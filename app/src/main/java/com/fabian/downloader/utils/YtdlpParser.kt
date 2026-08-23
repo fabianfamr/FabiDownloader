@@ -210,10 +210,35 @@ object YtdlpParser {
                 val mb = if (totalBytes > 0) totalBytes / (1024.0 * 1024.0) else 0.0
                 
                 if (vcodec == "none" || vcodec.contains("audio only")) {
-                    if (ext == "m4a") sizesMap["audio_m4a"] = mb
-                    if (ext == "mp3" || vcodec == "none" || vcodec.contains("audio only")) sizesMap["audio_mp3"] = mb
+                    if (ext == "m4a") {
+                        sizesMap["audio_m4a"] = mb
+                        sizesMap["music_64"] = mb
+                        sizesMap["64"] = mb
+                    }
+                    if (ext == "mp3" || vcodec == "none" || vcodec.contains("audio only")) {
+                        sizesMap["audio_mp3"] = mb
+                        val abr = formatoObj.optDouble("abr", 0.0)
+                        val tbr = formatoObj.optDouble("tbr", 0.0)
+                        val bitRate = if (abr > 0.0) abr else tbr
+                        if (bitRate >= 280.0) {
+                            sizesMap["music_320"] = mb
+                            sizesMap["320"] = mb
+                        } else if (bitRate >= 160.0) {
+                            sizesMap["music_192"] = mb
+                            sizesMap["192"] = mb
+                        } else {
+                            sizesMap["music_128"] = mb
+                            sizesMap["128"] = mb
+                        }
+                    }
                 } else if (realHeight > 0) {
                     sizesMap["video_${realHeight}p"] = mb
+                    sizesMap["${realHeight}p"] = mb
+                    sizesMap["video_$realHeight"] = mb
+                    if (realHeight >= 1080) sizesMap["video_1080"] = mb
+                    else if (realHeight >= 720) sizesMap["video_720"] = mb
+                    else if (realHeight >= 480) sizesMap["video_480"] = mb
+                    else if (realHeight >= 360) sizesMap["video_360"] = mb
                 }
                 
                 if (totalBytes > tamañoBytesMax) tamañoBytesMax = totalBytes
