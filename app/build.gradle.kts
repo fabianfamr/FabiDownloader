@@ -44,6 +44,11 @@ android {
   packaging {
     jniLibs {
       useLegacyPackaging = false
+      keepDebugSymbols += listOf(
+        "**/libpython.zip.so",
+        "**/libffmpeg.zip.so",
+        "**/*.zip.so"
+      )
     }
     resources {
       pickFirsts.add("lib/**/libc++_shared.so")
