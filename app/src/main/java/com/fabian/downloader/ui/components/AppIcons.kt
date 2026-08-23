@@ -1370,7 +1370,21 @@ object AppIcons {
             viewportHeight = 24f
         ).apply {
             addPath(
-                pathData = addPathNodes("m17 2-5 5-5-5"),
+                pathData = addPathNodes("M 4 4 h 16 a 2 2 0 0 1 2 2 v 10 a 2 2 0 0 1 -2 2 H 4 a 2 2 0 0 1 -2 -2 V 6 a 2 2 0 0 1 2 -2 Z"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+            addPath(
+                pathData = addPathNodes("M 10 8.5 l 6 3.5 l -6 3.5 Z"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+            addPath(
+                pathData = addPathNodes("M 8 21 h 8 M 12 18 v 3"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,

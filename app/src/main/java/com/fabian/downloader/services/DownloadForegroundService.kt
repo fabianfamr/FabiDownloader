@@ -23,24 +23,23 @@ class DownloadForegroundService : Service() {
 
     companion object {
         private const val NOTIFICATION_ID = 9999
+        const val ACTION_START = "com.fabian.downloader.ACTION_START_FOREGROUND"
+        const val ACTION_STOP = "com.fabian.downloader.ACTION_STOP_FOREGROUND"
 
         @Volatile
         var isRunning: Boolean = false
             private set
 
         fun start(context: Context) {
-            if (isRunning) return
             try {
-                val intent = Intent(context, DownloadForegroundService::class.java)
+                val intent = Intent(context, DownloadForegroundService::class.java).apply {
+                    action = ACTION_START
+                    setClass(context, DownloadForegroundService::class.java)
+                    component = android.content.ComponentName(context, DownloadForegroundService::class.java)
+                    setPackage(context.packageName)
+                }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    try {
-                        context.startForegroundService(intent)
-                    } catch (e: Exception) {
-                        android.util.Log.w("DownloadService", "Fallo startForegroundService, fallback a startService", e)
-                        try {
-                            context.startService(intent)
-                        } catch (_: Exception) {}
-                    }
+                    androidx.core.content.ContextCompat.startForegroundService(context, intent)
                 } else {
                     context.startService(intent)
                 }
@@ -51,10 +50,19 @@ class DownloadForegroundService : Service() {
 
         fun stop(context: Context) {
             try {
-                val intent = Intent(context, DownloadForegroundService::class.java)
-                context.stopService(intent)
+                val intent = Intent(context, DownloadForegroundService::class.java).apply {
+                    action = ACTION_STOP
+                    setClass(context, DownloadForegroundService::class.java)
+                    component = android.content.ComponentName(context, DownloadForegroundService::class.java)
+                    setPackage(context.packageName)
+                }
+                context.startService(intent)
             } catch (e: Exception) {
-                android.util.Log.e("DownloadService", "Error stopping DownloadForegroundService", e)
+                android.util.Log.e("DownloadService", "Error requesting stop for DownloadForegroundService", e)
+                try {
+                    val fallbackIntent = Intent(context, DownloadForegroundService::class.java)
+                    context.stopService(fallbackIntent)
+                } catch (_: Exception) {}
             } finally {
                 isRunning = false
             }
@@ -70,14 +78,20 @@ class DownloadForegroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         isRunning = true
+        // Garantizar siempre la llamada a startForeground de inmediato para cumplir con el contrato del SO
         promoteToForeground()
+
+        if (intent?.action == ACTION_STOP) {
+            stopForegroundAndSelf()
+            return START_NOT_STICKY
+        }
         
         CoroutineScope(Dispatchers.IO).launch {
-            delay(1500) // Dar tiempo de sincronización a las tareas recién encoladas
+            delay(2000) // Dar tiempo de sincronización a las tareas recién encoladas
             try {
                 val hasActive = DownloadManagerService.getInstance(applicationContext).hasActiveDownloads()
                 if (!hasActive) {
-                    stopSelf()
+                    stopForegroundAndSelf()
                 }
             } catch (_: Exception) {}
         }
@@ -90,20 +104,14 @@ class DownloadForegroundService : Service() {
             val notification = createNotification()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 try {
-                    ServiceCompat.startForeground(
-                        this,
+                    startForeground(
                         NOTIFICATION_ID,
                         notification,
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
                     )
-                } catch (e: Exception) {
-                    android.util.Log.w("DownloadService", "Fallback startForeground standard", e)
-                    ServiceCompat.startForeground(
-                        this,
-                        NOTIFICATION_ID,
-                        notification,
-                        0
-                    )
+                } catch (e: Throwable) {
+                    android.util.Log.w("DownloadService", "Fallo startForeground con DATA_SYNC, fallback a estándar", e)
+                    startForeground(NOTIFICATION_ID, notification)
                 }
             } else {
                 startForeground(NOTIFICATION_ID, notification)
@@ -111,6 +119,19 @@ class DownloadForegroundService : Service() {
         } catch (e: Throwable) {
             android.util.Log.e("DownloadService", "Error calling startForeground in DownloadForegroundService", e)
         }
+    }
+
+    private fun stopForegroundAndSelf() {
+        isRunning = false
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+            } else {
+                @Suppress("DEPRECATION")
+                stopForeground(true)
+            }
+        } catch (_: Exception) {}
+        stopSelf()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
