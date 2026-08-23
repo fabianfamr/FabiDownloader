@@ -27,7 +27,7 @@ data class DownloadTaskSpec(
     val customArgs: String = "",
     
     // Metadatos y Destino (Estación 3)
-    val title: String = "Descargando...",
+    val title: String = Config.STATUS_DOWNLOADING,
     val thumbnailUrl: String? = null,
     val outputDirectory: File? = null,
     val outputFile: File? = null
