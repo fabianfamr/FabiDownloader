@@ -776,7 +776,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             HorizontalDivider(color = C_border, thickness = 1.dp)
                             SettingsToggleRow(AppIcons.Label, stringResource(R.string.settings_metadata), stringResource(R.string.settings_metadata_desc), embedMetadata, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { embedMetadata = it }
                             HorizontalDivider(color = C_border, thickness = 1.dp)
-                            SettingsToggleRow(AppIcons.VideoLibrary, stringResource(R.string.settings_mark_as_mv), stringResource(R.string.settings_mark_as_mv_desc), markAsMV, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { markAsMV = it }
+                            SettingsToggleRow(AppIcons.MusicVideo, stringResource(R.string.settings_mark_as_mv), stringResource(R.string.settings_mark_as_mv_desc), markAsMV, C_accent, C_white, C_gray1, C_card2, C_border, C_bg) { markAsMV = it }
                         }
                     }
 
@@ -1310,11 +1310,17 @@ fun SettingsToggleRow(
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
-        modifier = Modifier.padding(14.dp, 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(14.dp, 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.weight(1f)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically, 
+            horizontalArrangement = Arrangement.spacedBy(10.dp), 
+            modifier = Modifier.weight(1f)
+        ) {
             Box(modifier = Modifier.size(32.dp).background(if (checked) colorAccent.copy(alpha = 0.15f) else card2Color, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
                 Icon(icon, contentDescription = null, tint = if (checked) colorAccent else grayColor, modifier = Modifier.size(16.dp))
             }
@@ -1324,18 +1330,21 @@ fun SettingsToggleRow(
                     color = textColor, 
                     fontSize = 13.sp, 
                     fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = subtitle, 
-                    color = grayColor, 
-                    fontSize = 11.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (subtitle.isNotEmpty()) {
+                    Text(
+                        text = subtitle, 
+                        color = grayColor, 
+                        fontSize = 11.sp,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
+        Spacer(modifier = Modifier.width(8.dp))
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
@@ -1373,7 +1382,7 @@ fun SettingsRow(
         Row(
             verticalAlignment = Alignment.CenterVertically, 
             horizontalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.weight(1f, fill = false)
+            modifier = Modifier.weight(1f)
         ) {
             Box(
                 modifier = Modifier
@@ -1388,15 +1397,14 @@ fun SettingsRow(
                 color = textColor, 
                 fontSize = 13.sp, 
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
         }
         Spacer(modifier = Modifier.width(8.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically, 
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.weight(1f, fill = false)
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
                 text = trailing, 
@@ -1405,7 +1413,6 @@ fun SettingsRow(
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false),
                 textAlign = androidx.compose.ui.text.style.TextAlign.End
             )
             Icon(AppIcons.ChevronRight, null, tint = grayColor, modifier = Modifier.size(16.dp))

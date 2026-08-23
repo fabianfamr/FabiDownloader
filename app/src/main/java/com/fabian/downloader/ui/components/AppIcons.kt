@@ -95,14 +95,21 @@ object AppIcons {
             viewportHeight = 24f
         ).apply {
             addPath(
-                pathData = addPathNodes("M9 9.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997A1 1 0 0 1 9 14.996z"),
+                pathData = addPathNodes("M4 6H2v14a2 2 0 0 0 2 2h14v-2H4V6z"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round
             )
             addPath(
-                pathData = addPathNodes("M 2 12 a 10 10 0 1 0 20 0 a 10 10 0 1 0 -20 0"),
+                pathData = addPathNodes("M8 2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+            addPath(
+                pathData = addPathNodes("M11 6h6M11 10h6M11 14h4"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
@@ -1246,7 +1253,21 @@ object AppIcons {
             viewportHeight = 24f
         ).apply {
             addPath(
-                pathData = addPathNodes("M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"),
+                pathData = addPathNodes("M4 16H3a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+            addPath(
+                pathData = addPathNodes("M7 7h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+            addPath(
+                pathData = addPathNodes("M13 11v6M10 14h6"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
@@ -1311,49 +1332,21 @@ object AppIcons {
             viewportHeight = 24f
         ).apply {
             addPath(
-                pathData = addPathNodes("M7 3v18"),
+                pathData = addPathNodes("M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round
             )
             addPath(
-                pathData = addPathNodes("M3 7.5h4"),
+                pathData = addPathNodes("M14 2v6h6"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round
             )
             addPath(
-                pathData = addPathNodes("M3 12h18"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M3 16.5h4"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M17 3v18"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M17 7.5h4"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M17 16.5h4"),
+                pathData = addPathNodes("M10 11.5l4 2.5-4 2.5v-5z"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
@@ -1401,49 +1394,21 @@ object AppIcons {
             viewportHeight = 24f
         ).apply {
             addPath(
-                pathData = addPathNodes("M7 3v18"),
+                pathData = addPathNodes("M4 6H2v14a2 2 0 0 0 2 2h14v-2H4V6z"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round
             )
             addPath(
-                pathData = addPathNodes("M3 7.5h4"),
+                pathData = addPathNodes("M8 2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round
             )
             addPath(
-                pathData = addPathNodes("M3 12h18"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M3 16.5h4"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M17 3v18"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M17 7.5h4"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M17 16.5h4"),
+                pathData = addPathNodes("M12 7.5l5 3.5-5 3.5V7.5z"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
@@ -1553,21 +1518,21 @@ object AppIcons {
             viewportHeight = 24f
         ).apply {
             addPath(
-                pathData = addPathNodes("M9 18V5l12-2v13"),
+                pathData = addPathNodes("M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round
             )
             addPath(
-                pathData = addPathNodes("M 3 18 a 3 3 0 1 0 6 0 a 3 3 0 1 0 -6 0"),
+                pathData = addPathNodes("M14 2v6h6"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round
             )
             addPath(
-                pathData = addPathNodes("M 15 16 a 3 3 0 1 0 6 0 a 3 3 0 1 0 -6 0"),
+                pathData = addPathNodes("M11 16.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0-1.5 1.5V11l4-1v4"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
@@ -1608,7 +1573,14 @@ object AppIcons {
             viewportHeight = 24f
         ).apply {
             addPath(
-                pathData = addPathNodes("M7 15h4M15 15h2M7 11h2M13 11h4"),
+                pathData = addPathNodes("M3 5h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+            addPath(
+                pathData = addPathNodes("M7 14h4M14 14h3M7 10h10"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
@@ -1663,28 +1635,21 @@ object AppIcons {
             viewportHeight = 24f
         ).apply {
             addPath(
-                pathData = addPathNodes("M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"),
+                pathData = addPathNodes("M3 5h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round
             )
             addPath(
-                pathData = addPathNodes("M20 2v4"),
+                pathData = addPathNodes("M7 9v6M11 9v6M7 12h4"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round
             )
             addPath(
-                pathData = addPathNodes("M22 4h-4"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M 2 20 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0"),
+                pathData = addPathNodes("M14 9v6h2a3 3 0 0 0 0-6h-2z"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
@@ -1701,7 +1666,7 @@ object AppIcons {
             viewportHeight = 24f
         ).apply {
             addPath(
-                pathData = addPathNodes("M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"),
+                pathData = addPathNodes("M4 9v6M8 5v14M12 2v20M16 7v10M20 10v4"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
@@ -2025,63 +1990,21 @@ object AppIcons {
             viewportHeight = 24f
         ).apply {
             addPath(
-                pathData = addPathNodes("M10 8h4"),
+                pathData = addPathNodes("M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round
             )
             addPath(
-                pathData = addPathNodes("M12 21v-9"),
+                pathData = addPathNodes("M10 5h4"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round
             )
             addPath(
-                pathData = addPathNodes("M12 8V3"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M17 16h4"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M19 12V3"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M19 21v-5"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M3 14h4"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M5 10V3"),
-                stroke = SolidColor(Color.White),
-                strokeLineWidth = 2f,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round
-            )
-            addPath(
-                pathData = addPathNodes("M5 21v-7"),
+                pathData = addPathNodes("M9 11l3-3 3 3M12 8v8"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
@@ -2612,6 +2535,44 @@ object AppIcons {
             viewportWidth = 24f,
             viewportHeight = 24f
         ).apply {
+            addPath(
+                pathData = addPathNodes("M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+            addPath(
+                pathData = addPathNodes("M4 15a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3z"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+        }.build()
+
+    val MusicVideo: ImageVector
+        get() = ImageVector.Builder(
+            name = "MusicVideo",
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 24f,
+            viewportHeight = 24f
+        ).apply {
+            addPath(
+                pathData = addPathNodes("M3 5h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+            addPath(
+                pathData = addPathNodes("M10.5 14.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0-1.5 1.5V9.5l5-1.2v3.7"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
         }.build()
 
     val CleaningServices: ImageVector
