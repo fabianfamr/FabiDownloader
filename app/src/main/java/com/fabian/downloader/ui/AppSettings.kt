@@ -609,7 +609,13 @@ object AppSettings {
         _selectedAudioFormat.value = prefs.getString("selectedAudioFormat", Config.FORMAT_MP3) ?: Config.FORMAT_MP3
         _notificationsEnabled.value = prefs.getBoolean("notificationsEnabled", true)
         _dataSaverEnabled.value = prefs.getBoolean("dataSaverEnabled", false)
-        _downloadLocation.value = prefs.getString("downloadLocation", Config.PATH_DOWNLOAD_LOCATION_DEFAULT) ?: Config.PATH_DOWNLOAD_LOCATION_DEFAULT
+        val savedLocation = prefs.getString("downloadLocation", Config.PATH_DOWNLOAD_LOCATION_DEFAULT) ?: Config.PATH_DOWNLOAD_LOCATION_DEFAULT
+        if (savedLocation == "Downloads/FabiDownloader" || savedLocation == "Download/FabiDownloader") {
+            _downloadLocation.value = Config.PATH_DOWNLOAD_LOCATION_DEFAULT
+            saveString("downloadLocation", Config.PATH_DOWNLOAD_LOCATION_DEFAULT)
+        } else {
+            _downloadLocation.value = savedLocation
+        }
         _maxSpeed.value = prefs.getString("maxSpeed", Config.SPEED_UNLIMITED) ?: Config.SPEED_UNLIMITED
         _themePreference.value = prefs.getString("themePreference", "Sistema") ?: "Sistema"
         _language.value = prefs.getString("language", "Sistema") ?: "Sistema"

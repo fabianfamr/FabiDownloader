@@ -103,13 +103,16 @@ object Config {
     const val DB_TABLE_SEARCH_HISTORY = "search_history"
 
     // Storage Paths
-    const val PATH_VIDEO_SUBFOLDER = "FabiDownloader/video"
-    const val PATH_AUDIO_SUBFOLDER = "FabiDownloader/audio"
-    const val PATH_IMAGE_SUBFOLDER = "FabiDownloader/image"
-    const val PATH_VIDEO_SUBFOLDER_ALT = "Fabidownloader/video"
-    const val PATH_AUDIO_SUBFOLDER_ALT = "Fabidownloader/audio"
-    const val PATH_IMAGE_SUBFOLDER_ALT = "Fabidownloader/image"
-    const val PATH_DOWNLOAD_LOCATION_DEFAULT = "Downloads/FabiDownloader"
+    const val PATH_ROOT_FOLDER = "FabiDownloader"
+    const val PATH_DB_FOLDER = "FabiDownloader/db"
+    const val PATH_DOWNLOADS_FOLDER = "FabiDownloader/downloads"
+    const val PATH_VIDEO_SUBFOLDER = "FabiDownloader/downloads/video"
+    const val PATH_AUDIO_SUBFOLDER = "FabiDownloader/downloads/audio"
+    const val PATH_IMAGE_SUBFOLDER = "FabiDownloader/downloads/image"
+    const val PATH_VIDEO_SUBFOLDER_ALT = "Fabidownloader/downloads/video"
+    const val PATH_AUDIO_SUBFOLDER_ALT = "Fabidownloader/downloads/audio"
+    const val PATH_IMAGE_SUBFOLDER_ALT = "Fabidownloader/downloads/image"
+    const val PATH_DOWNLOAD_LOCATION_DEFAULT = "FabiDownloader/downloads"
 
     // UI Placeholder Titles
     const val TITLE_PROCESSING_LINK = "Procesando enlace..."

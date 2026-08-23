@@ -87,10 +87,11 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
+                val dbFile = com.fabian.downloader.utils.PathUtils.getDatabaseFile(context.applicationContext)
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    Config.DB_NAME
+                    dbFile.absolutePath
                 )
                 .addMigrations(MIGRATION_1_7, MIGRATION_2_7, MIGRATION_3_7, MIGRATION_4_7, MIGRATION_5_7, MIGRATION_6_7, MIGRATION_7_8)
                 .build()

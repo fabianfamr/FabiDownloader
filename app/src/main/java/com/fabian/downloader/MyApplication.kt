@@ -93,6 +93,11 @@ class MyApplication : Application(), ImageLoaderFactory {
         
         applicationScope.launch {
             try {
+                com.fabian.downloader.utils.PathUtils.migrateOldStructureIfNeeded(this@MyApplication)
+            } catch (e: Exception) {
+                Log.e(Config.TAG_PATH_UTILS, "Error migrating old structure", e)
+            }
+            try {
                 // Revertir actualizaciones incompatibles de yt-dlp (compatibilidad Python 3.10 vs Python 3.8 local)
                 val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
                 val hasResetYtdlp = prefs.getBoolean("reset_ytdlp_python310_v10", false)

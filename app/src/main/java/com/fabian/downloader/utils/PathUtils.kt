@@ -31,6 +31,119 @@ object PathUtils {
         }
     }
 
+    fun getRootFolder(context: Context): File {
+        val storageRoot = Environment.getExternalStorageDirectory()
+        if (storageRoot != null) {
+            val fabiRoot = File(storageRoot, Config.PATH_ROOT_FOLDER)
+            if (isWritableDir(fabiRoot)) {
+                return fabiRoot
+            }
+        }
+        // Fallback 1: externalMediaDirs
+        for (mediaDir in context.externalMediaDirs) {
+            if (mediaDir != null) {
+                val target = File(mediaDir, Config.PATH_ROOT_FOLDER)
+                if (isWritableDir(target)) return target
+            }
+        }
+        // Fallback 2: getExternalFilesDir
+        val appExt = context.getExternalFilesDir(null)
+        if (appExt != null) {
+            val target = File(appExt, Config.PATH_ROOT_FOLDER)
+            if (isWritableDir(target)) return target
+        }
+        // Fallback 3: filesDir
+        val internalRoot = File(context.filesDir, Config.PATH_ROOT_FOLDER)
+        if (!internalRoot.exists()) internalRoot.mkdirs()
+        return internalRoot
+    }
+
+    fun getDbFolder(context: Context): File {
+        val root = getRootFolder(context)
+        val dbDir = File(root, "db")
+        if (isWritableDir(dbDir)) {
+            return dbDir
+        }
+        val internalDbDir = context.getDatabasePath("temp").parentFile ?: File(context.filesDir, "databases")
+        if (!internalDbDir.exists()) internalDbDir.mkdirs()
+        return internalDbDir
+    }
+
+    fun getDatabaseFile(context: Context): File {
+        val dbFolder = getDbFolder(context)
+        val targetDbFile = File(dbFolder, Config.DB_NAME)
+
+        val internalDbFile = context.getDatabasePath(Config.DB_NAME)
+        if (!targetDbFile.exists() && internalDbFile.exists() && internalDbFile.length() > 0) {
+            try {
+                internalDbFile.copyTo(targetDbFile, overwrite = true)
+                val internalWal = File(internalDbFile.parentFile, "${Config.DB_NAME}-wal")
+                if (internalWal.exists()) {
+                    internalWal.copyTo(File(dbFolder, "${Config.DB_NAME}-wal"), overwrite = true)
+                }
+                val internalShm = File(internalDbFile.parentFile, "${Config.DB_NAME}-shm")
+                if (internalShm.exists()) {
+                    internalShm.copyTo(File(dbFolder, "${Config.DB_NAME}-shm"), overwrite = true)
+                }
+                android.util.Log.i(Config.TAG_PATH_UTILS, "Migrated database to ${targetDbFile.absolutePath}")
+            } catch (e: Exception) {
+                android.util.Log.e(Config.TAG_PATH_UTILS, "Error migrating database to external storage", e)
+                return internalDbFile
+            }
+        }
+        return targetDbFile
+    }
+
+    fun migrateOldStructureIfNeeded(context: Context) {
+        try {
+            val root = getRootFolder(context)
+            val targetDownloadsDir = File(root, "downloads")
+            if (!targetDownloadsDir.exists()) {
+                targetDownloadsDir.mkdirs()
+            }
+
+            val oldCandidateDirs = listOf(
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), Config.APP_NAME),
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), Config.APP_NAME_LOWER.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }),
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Download/${Config.APP_NAME}")
+            )
+
+            for (oldDir in oldCandidateDirs) {
+                if (oldDir.exists() && oldDir.isDirectory && oldDir.absolutePath != targetDownloadsDir.absolutePath) {
+                    moveDirectoryContents(oldDir, targetDownloadsDir)
+                    if (oldDir.listFiles().isNullOrEmpty()) {
+                        oldDir.delete()
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e(Config.TAG_PATH_UTILS, "Error migrating old download folder", e)
+        }
+    }
+
+    private fun moveDirectoryContents(source: File, destination: File) {
+        if (!destination.exists()) destination.mkdirs()
+        source.listFiles()?.forEach { file ->
+            val destFile = File(destination, file.name)
+            if (file.isDirectory) {
+                moveDirectoryContents(file, destFile)
+                if (file.listFiles().isNullOrEmpty()) {
+                    file.delete()
+                }
+            } else {
+                if (!destFile.exists()) {
+                    val renamed = file.renameTo(destFile)
+                    if (!renamed) {
+                        try {
+                            file.copyTo(destFile, overwrite = true)
+                            file.delete()
+                        } catch (_: Exception) {}
+                    }
+                }
+            }
+        }
+    }
+
     suspend fun saveThumbnail(context: Context, url: String?, id: Long): String? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
         if (url.isNullOrEmpty()) return@withContext null
         if (url.startsWith("file://") || url.startsWith("/")) return@withContext url
@@ -85,9 +198,9 @@ object PathUtils {
         val isVideo = format.equals(Config.FORMAT_MP4, ignoreCase = true) || format.equals(Config.FORMAT_WEBM, ignoreCase = true)
         val isImage = format.equals(Config.FORMAT_JPG, ignoreCase = true) || format.equals(Config.FORMAT_PNG, ignoreCase = true) || format.equals(Config.FORMAT_WEBP, ignoreCase = true) || format.equals("JPEG", ignoreCase = true)
         val relativeSubfolder = when {
-            isVideo -> "${Config.APP_NAME}/video"
-            isImage -> "${Config.APP_NAME}/image"
-            else -> "${Config.APP_NAME}/audio"
+            isVideo -> "${Config.PATH_ROOT_FOLDER}/downloads/video"
+            isImage -> "${Config.PATH_ROOT_FOLDER}/downloads/image"
+            else -> "${Config.PATH_ROOT_FOLDER}/downloads/audio"
         }
         val subfolderName = when {
             isVideo -> "video"
@@ -107,14 +220,14 @@ object PathUtils {
 
         if (locationSetting.startsWith("content://")) {
             configuredDir = resolvePhysicalPathFromUri(context, locationSetting)
-        } else if (locationSetting.isNotEmpty()) {
+        } else if (locationSetting.isNotEmpty() && locationSetting != Config.PATH_DOWNLOAD_LOCATION_DEFAULT) {
             configuredDir = if (locationSetting.startsWith("/")) {
                 File(locationSetting)
             } else if (locationSetting.startsWith("Downloads/", ignoreCase = true) || locationSetting.startsWith("Download/", ignoreCase = true)) {
                 val rel = locationSetting.substringAfter("/")
                 File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), rel)
             } else {
-                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), locationSetting)
+                File(Environment.getExternalStorageDirectory(), locationSetting)
             }
         }
 
@@ -133,29 +246,31 @@ object PathUtils {
             }
         }
 
-        // 2. Fallback 1: Carpeta pública estándar de descargas: Downloads/FabiDownloader/video o audio
+        // 2. Estructura principal estilo Snaptube: FabiDownloader/downloads/video o audio en la raíz de almacenamiento
+        val storageRoot = Environment.getExternalStorageDirectory()
+        if (storageRoot != null) {
+            val fabiDownloadFolder = File(storageRoot, relativeSubfolder)
+            if (isWritableDir(fabiDownloadFolder)) {
+                android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified FabiDownloader folder: ${fabiDownloadFolder.absolutePath}")
+                cachedFolders[cacheKey] = fabiDownloadFolder
+                return fabiDownloadFolder
+            } else {
+                android.util.Log.e(Config.TAG_PATH_UTILS, "FabiDownloader root folder is NOT writable: ${fabiDownloadFolder.absolutePath}")
+            }
+        }
+
+        // 3. Fallback: Carpeta pública estándar de descargas: Downloads/FabiDownloader/downloads/video o audio
         val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         if (publicDownloads != null) {
-            val downloadFabiFolder = File(publicDownloads, relativeSubfolder)
+            val downloadFabiFolder = File(publicDownloads, "${Config.PATH_ROOT_FOLDER}/$subfolderName")
             if (isWritableDir(downloadFabiFolder)) {
                 android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified public Download folder: ${downloadFabiFolder.absolutePath}")
                 cachedFolders[cacheKey] = downloadFabiFolder
                 return downloadFabiFolder
-            } else {
-                android.util.Log.e(Config.TAG_PATH_UTILS, "Public Download folder is NOT writable: ${downloadFabiFolder.absolutePath}")
-            }
-
-            // Fallback 2: Usar directamente la carpeta raíz pública Downloads (sin subcarpetas com.fabian.downloader)
-            if (isWritableDir(publicDownloads)) {
-                android.util.Log.d(Config.TAG_PATH_UTILS, "Using raw public Downloads directory: ${publicDownloads.absolutePath}")
-                cachedFolders[cacheKey] = publicDownloads
-                return publicDownloads
-            } else {
-                android.util.Log.e(Config.TAG_PATH_UTILS, "Raw public Downloads directory is NOT writable: ${publicDownloads.absolutePath}")
             }
         }
 
-        // 3. Recursos de última y absoluta emergencia (contienen el paquete de la app, pero evitan crasheos)
+        // 4. Recursos de emergencia
         val mediaDirs = context.externalMediaDirs
         for (mediaDir in mediaDirs) {
             if (mediaDir == null) continue
@@ -224,7 +339,7 @@ object PathUtils {
         val baseFolder = getDownloadFolder(context, format)
         val sanitizedTitle = sanitizeFileName(title)
         
-        // 1. Try clean path without ID
+        // 1. Try clean path without ID in the primary download folder
         var file = File(baseFolder, "$sanitizedTitle.${format.lowercase()}")
         if (file.exists()) return file
 
@@ -237,17 +352,38 @@ object PathUtils {
         val isVideo = format.equals(Config.FORMAT_MP4, ignoreCase = true) || format.equals(Config.FORMAT_WEBM, ignoreCase = true)
         val isImage = format.equals(Config.FORMAT_JPG, ignoreCase = true) || format.equals(Config.FORMAT_PNG, ignoreCase = true) || format.equals(Config.FORMAT_WEBP, ignoreCase = true) || format.equals("JPEG", ignoreCase = true)
         
-        // We support both FabiDownloader and Fabidownloader
         val capitalizedAppName = Config.APP_NAME_LOWER.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
         val subFolders = when {
-            isVideo -> listOf("${Config.APP_NAME}/video", "$capitalizedAppName/video")
-            isImage -> listOf("${Config.APP_NAME}/image", "$capitalizedAppName/image")
-            else -> listOf("${Config.APP_NAME}/audio", "$capitalizedAppName/audio")
+            isVideo -> listOf(
+                "${Config.PATH_ROOT_FOLDER}/downloads/video",
+                "${Config.PATH_ROOT_FOLDER}/video",
+                "${Config.PATH_ROOT_FOLDER}/downloads",
+                "${Config.APP_NAME}/video",
+                "$capitalizedAppName/video"
+            )
+            isImage -> listOf(
+                "${Config.PATH_ROOT_FOLDER}/downloads/image",
+                "${Config.PATH_ROOT_FOLDER}/image",
+                "${Config.PATH_ROOT_FOLDER}/downloads",
+                "${Config.APP_NAME}/image",
+                "$capitalizedAppName/image"
+            )
+            else -> listOf(
+                "${Config.PATH_ROOT_FOLDER}/downloads/audio",
+                "${Config.PATH_ROOT_FOLDER}/audio",
+                "${Config.PATH_ROOT_FOLDER}/downloads",
+                "${Config.APP_NAME}/audio",
+                "$capitalizedAppName/audio"
+            )
         }
         
         val folderList = mutableListOf<File>()
         
         subFolders.forEach { sub ->
+            if (storageRoot != null) {
+                folderList.add(File(storageRoot, sub))
+                folderList.add(File(storageRoot, "Android/$sub"))
+            }
             // Public downloads
             val publicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             if (publicDir != null) {
@@ -258,11 +394,6 @@ object PathUtils {
                 if (dir != null) {
                     folderList.add(File(dir, sub))
                 }
-            }
-            // Roots / Storage paths
-            if (storageRoot != null) {
-                folderList.add(File(storageRoot, "Android/$sub"))
-                folderList.add(File(storageRoot, sub))
             }
             // App files directories
             folderList.add(File(context.getExternalFilesDir(null) ?: context.filesDir, sub))
@@ -285,3 +416,4 @@ object PathUtils {
         return File(baseFolder, "$sanitizedTitle.${format.lowercase()}")
     }
 }
+
