@@ -133,7 +133,8 @@ class YtdlpDownloader {
                 addOption("--embed-chapters")
             }
 
-            addOption("-o", "${destFolder.absolutePath}/$fileNameWithoutExt.%(ext)s.downloading")
+            addOption("-o", "${destFolder.absolutePath}/$fileNameWithoutExt.downloading")
+            addOption("--no-part")
 
             val cookiesFile = java.io.File(com.fabian.downloader.MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
             if (cookiesFile.exists() && cookiesFile.length() > 0) {

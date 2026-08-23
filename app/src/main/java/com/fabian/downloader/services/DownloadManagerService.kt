@@ -519,14 +519,23 @@ class DownloadManagerService private constructor(
                 }
 
                 val downloadingFile = destFolder.listFiles { _, name ->
-                    name.startsWith("${fileNameWithoutExt}.") && name.contains(".downloading", ignoreCase = true)
+                    (name.startsWith("${fileNameWithoutExt}.") || name == "$fileNameWithoutExt.downloading") && 
+                    name.contains(".downloading", ignoreCase = true)
                 }?.firstOrNull()
 
                 val actualFile = if (downloadingFile != null) {
-                    val finalName = if (downloadingFile.name.endsWith(".downloading", ignoreCase = true)) {
+                    val rawNameWithoutDownloading = if (downloadingFile.name.endsWith(".downloading", ignoreCase = true)) {
                         downloadingFile.name.removeSuffix(".downloading")
                     } else {
                         downloadingFile.name.replace(".downloading", "")
+                    }
+                    val hasValidExt = Config.VALID_EXTENSIONS.any { ext -> 
+                        rawNameWithoutDownloading.endsWith(".$ext", ignoreCase = true) 
+                    }
+                    val finalName = if (hasValidExt) {
+                        rawNameWithoutDownloading
+                    } else {
+                        "$rawNameWithoutDownloading.${format.lowercase()}"
                     }
                     val targetFile = File(destFolder, finalName)
                     if (targetFile.exists() && targetFile.absolutePath != downloadingFile.absolutePath) {
