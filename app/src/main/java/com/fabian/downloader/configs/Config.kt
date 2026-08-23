@@ -259,6 +259,8 @@ object Config {
     // Bot Detection Patterns
     const val BOT_DETECTION_PATTERN = "Sign in to confirm you"
     const val BOT_DETECTION_LOGIN = "login"
+    @StringRes val BOT_DETECTION_PATTERN_RES = R.string.bot_detection_pattern
+    @StringRes val BOT_DETECTION_LOGIN_RES = R.string.bot_detection_login
 
     // Valid media file extensions
     val VALID_EXTENSIONS = listOf("mp4", "mp3", "m4a", "webm", "ogg", "wav", "mkv", "jpg", "jpeg", "png", "webp")

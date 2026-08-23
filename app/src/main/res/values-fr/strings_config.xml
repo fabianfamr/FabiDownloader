@@ -90,4 +90,8 @@
     <string name="storage_margin_3gb">3 Go</string>
     <string name="storage_margin_5gb">5 Go</string>
     <string name="storage_margin_10gb">10 Go</string>
+
+    <!-- Bot Detection Patterns -->
+    <string name="bot_detection_pattern">Sign in to confirm you</string>
+    <string name="bot_detection_login">login</string>
 </resources>
