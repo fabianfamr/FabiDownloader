@@ -569,7 +569,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             ) {
                                 val icon = when(category) {
                                     stringResource(R.string.settings_cat_downloads) -> AppIcons.Download
-                                    stringResource(R.string.settings_cat_library) -> AppIcons.VideoLibrary
+                                    stringResource(R.string.settings_cat_library) -> AppIcons.Library
                                     stringResource(R.string.settings_cat_appearance) -> AppIcons.Palette
                                     stringResource(R.string.settings_cat_advanced) -> AppIcons.Build
                                     else -> AppIcons.Settings
@@ -832,7 +832,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
                                     val modes = listOf(
-                                        Triple("Sistema", AppIcons.SettingsSuggest, stringResource(R.string.settings_theme_system)),
+                                        Triple("Sistema", AppIcons.Smartphone, stringResource(R.string.settings_theme_system)),
                                         Triple("Claro", AppIcons.LightMode, stringResource(R.string.settings_theme_light)),
                                         Triple("Oscuro", AppIcons.DarkMode, stringResource(R.string.settings_theme_dark))
                                     )
@@ -1398,13 +1398,15 @@ fun SettingsRow(
                 fontSize = 13.sp, 
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
             )
         }
         Spacer(modifier = Modifier.width(8.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically, 
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.weight(1f, fill = false)
         ) {
             Text(
                 text = trailing, 

@@ -645,8 +645,8 @@ fun SettingItem(icon: ImageVector, title: String, trailing: String? = null, onCl
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f, fill = false),
-                maxLines = 1,
+                modifier = Modifier.weight(1f),
+                maxLines = 2,
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
             )
             if (trailing != null) {

@@ -1981,6 +1981,37 @@ object AppIcons {
             )
         }.build()
 
+    val Smartphone: ImageVector
+        get() = ImageVector.Builder(
+            name = "Smartphone",
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 24f,
+            viewportHeight = 24f
+        ).apply {
+            addPath(
+                pathData = addPathNodes("M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+            addPath(
+                pathData = addPathNodes("M11 5h2"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+            addPath(
+                pathData = addPathNodes("M12 18h.01"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+        }.build()
+
     val SettingsSuggest: ImageVector
         get() = ImageVector.Builder(
             name = "SettingsSuggest",
