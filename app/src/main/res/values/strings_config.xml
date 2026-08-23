@@ -50,6 +50,12 @@
     <string name="timeout_30_min">30 minutos</string>
     <string name="timeout_never">Nunca</string>
 
+    <!-- Battery Low Threshold Options -->
+    <string name="battery_threshold_15">15%</string>
+    <string name="battery_threshold_20">20%</string>
+    <string name="battery_threshold_25">25%</string>
+    <string name="battery_threshold_30">30%</string>
+
     <!-- Battery Low Action Options -->
     <string name="battery_action_optimize">Optimizar recursos</string>
     <string name="battery_action_limit">Limitar concurrencia</string>

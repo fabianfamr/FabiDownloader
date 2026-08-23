@@ -36,15 +36,23 @@ object AppSettings {
             try {
                 listener(key)
             } catch (e: Exception) {
-                android.util.Log.e("AppSettings", "Error en listener para clave $key", e)
+                android.util.Log.e(Config.TAG_APP_SETTINGS, "Error en listener para clave $key", e)
             }
         }
     }
 
-    val qualityOptions = listOf("Mejor disponible", "4K (2160p)", "1080p Full HD", "720p HD", "480p SD", "360p", "Solo audio (MP3)")
+    val qualityOptions = listOf(
+        Config.QUALITY_BEST,
+        Config.QUALITY_4K,
+        Config.QUALITY_1080P,
+        Config.QUALITY_720P,
+        Config.QUALITY_480P,
+        Config.QUALITY_360P,
+        Config.QUALITY_AUDIO_ONLY
+    )
     val videoFormats = listOf(Config.FORMAT_MP4, Config.FORMAT_MKV, Config.FORMAT_WEBM)
     val audioFormats = listOf(Config.FORMAT_MP3, Config.FORMAT_M4A, Config.FORMAT_OGG, Config.FORMAT_WAV)
-    val themeOptions = listOf("Sistema", "Claro", "Oscuro")
+    val themeOptions = listOf(Config.THEME_SYSTEM, Config.THEME_LIGHT, Config.THEME_DARK)
     val speedOptions = listOf(
         Config.SPEED_UNLIMITED,
         Config.SPEED_100K,
@@ -57,17 +65,26 @@ object AppSettings {
         Config.SPEED_20M,
         Config.SPEED_50M
     )
-    val cardStyleOptions = listOf("Detallado con miniatura", "Compacto en lista", "Minimalista")
-    val defaultAudioBitrateOptions = listOf("320 kbps (Máxima)", "256 kbps", "192 kbps (Estándar)", "128 kbps (Ligero)")
+    val cardStyleOptions = listOf(
+        Config.CARD_STYLE_DETAILED,
+        Config.CARD_STYLE_COMPACT,
+        Config.CARD_STYLE_MINIMAL
+    )
+    val defaultAudioBitrateOptions = listOf(
+        Config.BITRATE_320,
+        Config.BITRATE_256,
+        Config.BITRATE_192,
+        Config.BITRATE_128
+    )
 
-    private val _selectedQuality = mutableStateOf("720p")
+    private val _selectedQuality = mutableStateOf(Config.DEFAULT_QUALITY)
     var selectedQuality: String
         get() = _selectedQuality.value
         set(value) {
             if (_selectedQuality.value != value) {
                 _selectedQuality.value = value
-                saveString("selectedQuality", value)
-                notifyChanged("selectedQuality")
+                saveString(Config.PREF_SELECTED_QUALITY, value)
+                notifyChanged(Config.PREF_SELECTED_QUALITY)
             }
         }
 
@@ -77,8 +94,8 @@ object AppSettings {
         set(value) {
             if (_selectedVideoFormat.value != value) {
                 _selectedVideoFormat.value = value
-                saveString("selectedVideoFormat", value)
-                notifyChanged("selectedVideoFormat")
+                saveString(Config.PREF_SELECTED_VIDEO_FORMAT, value)
+                notifyChanged(Config.PREF_SELECTED_VIDEO_FORMAT)
             }
         }
 
@@ -88,8 +105,8 @@ object AppSettings {
         set(value) {
             if (_selectedAudioFormat.value != value) {
                 _selectedAudioFormat.value = value
-                saveString("selectedAudioFormat", value)
-                notifyChanged("selectedAudioFormat")
+                saveString(Config.PREF_SELECTED_AUDIO_FORMAT, value)
+                notifyChanged(Config.PREF_SELECTED_AUDIO_FORMAT)
             }
         }
 
@@ -99,8 +116,8 @@ object AppSettings {
         set(value) {
             if (_notificationsEnabled.value != value) {
                 _notificationsEnabled.value = value
-                saveBoolean("notificationsEnabled", value)
-                notifyChanged("notificationsEnabled")
+                saveBoolean(Config.PREF_NOTIFICATIONS_ENABLED, value)
+                notifyChanged(Config.PREF_NOTIFICATIONS_ENABLED)
             }
         }
 
@@ -110,8 +127,8 @@ object AppSettings {
         set(value) {
             if (_dataSaverEnabled.value != value) {
                 _dataSaverEnabled.value = value
-                saveBoolean("dataSaverEnabled", value)
-                notifyChanged("dataSaverEnabled")
+                saveBoolean(Config.PREF_DATA_SAVER_ENABLED, value)
+                notifyChanged(Config.PREF_DATA_SAVER_ENABLED)
             }
         }
 
@@ -122,8 +139,8 @@ object AppSettings {
             if (_downloadLocation.value != value) {
                 _downloadLocation.value = value
                 com.fabian.downloader.utils.PathUtils.clearFolderCache()
-                saveString("downloadLocation", value)
-                notifyChanged("downloadLocation")
+                saveString(Config.PREF_DOWNLOAD_LOCATION, value)
+                notifyChanged(Config.PREF_DOWNLOAD_LOCATION)
             }
         }
 
@@ -133,12 +150,12 @@ object AppSettings {
         set(value) {
             if (_maxSpeed.value != value) {
                 _maxSpeed.value = value
-                saveString("maxSpeed", value)
-                notifyChanged("maxSpeed")
+                saveString(Config.PREF_MAX_SPEED, value)
+                notifyChanged(Config.PREF_MAX_SPEED)
             }
         }
 
-    private val _themePreference = mutableStateOf("Sistema")
+    private val _themePreference = mutableStateOf(Config.THEME_SYSTEM)
     val themePreferenceState: androidx.compose.runtime.State<String> get() = _themePreference
     
     var themePreference: String
@@ -146,18 +163,18 @@ object AppSettings {
         set(value) {
             if (_themePreference.value != value) {
                 _themePreference.value = value
-                saveString("themePreference", value)
-                notifyChanged("themePreference")
+                saveString(Config.PREF_THEME_PREFERENCE, value)
+                notifyChanged(Config.PREF_THEME_PREFERENCE)
             }
         }
 
-    private val _language = mutableStateOf("Sistema")
+    private val _language = mutableStateOf(Config.DEFAULT_LANGUAGE)
     val languageState: androidx.compose.runtime.State<String> get() = _language
     var language: String
         get() = _language.value
         set(value) {
             _language.value = value
-            saveString("language", value)
+            saveString(Config.PREF_LANGUAGE, value)
         }
 
     private val _confirmOnDelete = mutableStateOf(true)
@@ -165,17 +182,17 @@ object AppSettings {
         get() = _confirmOnDelete.value
         set(value) {
             _confirmOnDelete.value = value
-            saveBoolean("confirmOnDelete", value)
+            saveBoolean(Config.PREF_CONFIRM_ON_DELETE, value)
         }
 
-    private val _concurrentFragments = mutableStateOf("4")
+    private val _concurrentFragments = mutableStateOf(Config.DEFAULT_CONCURRENT_FRAGMENTS)
     var concurrentFragments: String
         get() = _concurrentFragments.value
         set(value) {
             if (_concurrentFragments.value != value) {
                 _concurrentFragments.value = value
-                saveString("concurrentFragments", value)
-                notifyChanged("concurrentFragments")
+                saveString(Config.PREF_CONCURRENT_FRAGMENTS, value)
+                notifyChanged(Config.PREF_CONCURRENT_FRAGMENTS)
             }
         }
 
@@ -185,8 +202,8 @@ object AppSettings {
         set(value) {
             if (_embedSubtitles.value != value) {
                 _embedSubtitles.value = value
-                saveBoolean("embedSubtitles", value)
-                notifyChanged("embedSubtitles")
+                saveBoolean(Config.PREF_EMBED_SUBTITLES, value)
+                notifyChanged(Config.PREF_EMBED_SUBTITLES)
             }
         }
 
@@ -195,7 +212,7 @@ object AppSettings {
         get() = _playlistEnabled.value
         set(value) {
             _playlistEnabled.value = value
-            saveBoolean("playlistEnabled", value)
+            saveBoolean(Config.PREF_PLAYLIST_ENABLED, value)
         }
 
     private val _maxConcurrentDownloads = mutableStateOf(2)
@@ -205,9 +222,9 @@ object AppSettings {
             if (_maxConcurrentDownloads.value != value) {
                 _maxConcurrentDownloads.value = value
                 if (::prefs.isInitialized) {
-                    prefs.edit { putInt("maxConcurrentDownloads", value) }
+                    prefs.edit { putInt(Config.PREF_MAX_CONCURRENT_DOWNLOADS, value) }
                 }
-                notifyChanged("maxConcurrentDownloads")
+                notifyChanged(Config.PREF_MAX_CONCURRENT_DOWNLOADS)
             }
         }
 
@@ -218,18 +235,18 @@ object AppSettings {
             if (_earlyStartThreshold.value != value) {
                 _earlyStartThreshold.value = value
                 if (::prefs.isInitialized) {
-                    prefs.edit { putInt("earlyStartThreshold", value) }
+                    prefs.edit { putInt(Config.PREF_EARLY_START_THRESHOLD, value) }
                 }
-                notifyChanged("earlyStartThreshold")
+                notifyChanged(Config.PREF_EARLY_START_THRESHOLD)
             }
         }
 
-    private val _clipboardAction = mutableStateOf("banner") // "banner", "auto", "disabled"
+    private val _clipboardAction = mutableStateOf(Config.CLIPBOARD_ACTION_BANNER)
     var clipboardAction: String
         get() = _clipboardAction.value
         set(value) {
             _clipboardAction.value = value
-            saveString("clipboardAction", value)
+            saveString(Config.PREF_CLIPBOARD_ACTION, value)
         }
 
     private val _lastDownloadedOptionId = mutableStateOf("")
@@ -237,7 +254,7 @@ object AppSettings {
         get() = _lastDownloadedOptionId.value
         set(value) {
             _lastDownloadedOptionId.value = value
-            saveString("lastDownloadedOptionId", value)
+            saveString(Config.PREF_LAST_DOWNLOADED_OPTION_ID, value)
         }
 
     private val _customArguments = mutableStateOf("")
@@ -246,8 +263,8 @@ object AppSettings {
         set(value) {
             if (_customArguments.value != value) {
                 _customArguments.value = value
-                saveString("customArguments", value)
-                notifyChanged("customArguments")
+                saveString(Config.PREF_CUSTOM_ARGUMENTS, value)
+                notifyChanged(Config.PREF_CUSTOM_ARGUMENTS)
             }
         }
 
@@ -257,9 +274,9 @@ object AppSettings {
         set(value) {
             if (_cookies.value != value) {
                 _cookies.value = value
-                saveString("cookies", value)
+                saveString(Config.PREF_COOKIES, value)
                 syncCookiesFile(com.fabian.downloader.MyApplication.getInstance(), value)
-                notifyChanged("cookies")
+                notifyChanged(Config.PREF_COOKIES)
             }
         }
 
@@ -274,7 +291,7 @@ object AppSettings {
                 cookiesFile.writeText(cookieContent)
             }
         } catch (e: Exception) {
-            android.util.Log.e("AppSettings", "Error syncing cookies.txt: ${e.message}", e)
+            android.util.Log.e(Config.TAG_APP_SETTINGS, "Error syncing cookies.txt: ${e.message}", e)
         }
     }
 
@@ -284,8 +301,8 @@ object AppSettings {
         set(value) {
             if (_customUserAgent.value != value) {
                 _customUserAgent.value = value
-                saveString("customUserAgent", value)
-                notifyChanged("customUserAgent")
+                saveString(Config.PREF_CUSTOM_USER_AGENT, value)
+                notifyChanged(Config.PREF_CUSTOM_USER_AGENT)
             }
         }
 
@@ -295,8 +312,8 @@ object AppSettings {
         set(value) {
             if (_sponsorBlockEnabled.value != value) {
                 _sponsorBlockEnabled.value = value
-                saveBoolean("sponsorBlockEnabled", value)
-                notifyChanged("sponsorBlockEnabled")
+                saveBoolean(Config.PREF_SPONSOR_BLOCK_ENABLED, value)
+                notifyChanged(Config.PREF_SPONSOR_BLOCK_ENABLED)
             }
         }
 
@@ -306,8 +323,8 @@ object AppSettings {
         set(value) {
             if (_embedThumbnail.value != value) {
                 _embedThumbnail.value = value
-                saveBoolean("embedThumbnail", value)
-                notifyChanged("embedThumbnail")
+                saveBoolean(Config.PREF_EMBED_THUMBNAIL, value)
+                notifyChanged(Config.PREF_EMBED_THUMBNAIL)
             }
         }
 
@@ -317,8 +334,8 @@ object AppSettings {
         set(value) {
             if (_embedMetadata.value != value) {
                 _embedMetadata.value = value
-                saveBoolean("embedMetadata", value)
-                notifyChanged("embedMetadata")
+                saveBoolean(Config.PREF_EMBED_METADATA, value)
+                notifyChanged(Config.PREF_EMBED_METADATA)
             }
         }
 
@@ -328,8 +345,8 @@ object AppSettings {
         set(value) {
             if (_bypassGeo.value != value) {
                 _bypassGeo.value = value
-                saveBoolean("bypassGeo", value)
-                notifyChanged("bypassGeo")
+                saveBoolean(Config.PREF_BYPASS_GEO, value)
+                notifyChanged(Config.PREF_BYPASS_GEO)
             }
         }
 
@@ -339,8 +356,8 @@ object AppSettings {
         set(value) {
             if (_bypassSslVerification.value != value) {
                 _bypassSslVerification.value = value
-                saveBoolean("bypassSslVerification", value)
-                notifyChanged("bypassSslVerification")
+                saveBoolean(Config.PREF_BYPASS_SSL_VERIFICATION, value)
+                notifyChanged(Config.PREF_BYPASS_SSL_VERIFICATION)
             }
         }
 
@@ -349,26 +366,32 @@ object AppSettings {
         get() = _showDownloadSpeedInNotification.value
         set(value) {
             _showDownloadSpeedInNotification.value = value
-            saveBoolean("showDownloadSpeedInNotification", value)
+            saveBoolean(Config.PREF_SHOW_DOWNLOAD_SPEED_IN_NOTIFICATION, value)
         }
 
-    val pausedNotificationTimeoutOptions = listOf("1 minuto", "5 minutos", "10 minutos", "30 minutos", "Nunca")
-    private val _selectedPausedNotificationTimeout = mutableStateOf("10 minutos")
+    val pausedNotificationTimeoutOptions = listOf(
+        Config.TIMEOUT_1_MIN,
+        Config.TIMEOUT_5_MIN,
+        Config.TIMEOUT_10_MIN,
+        Config.TIMEOUT_30_MIN,
+        Config.TIMEOUT_NEVER
+    )
+    private val _selectedPausedNotificationTimeout = mutableStateOf(Config.TIMEOUT_10_MIN)
     val selectedPausedNotificationTimeoutState: androidx.compose.runtime.State<String> get() = _selectedPausedNotificationTimeout
     var selectedPausedNotificationTimeout: String
         get() = _selectedPausedNotificationTimeout.value
         set(value) {
             _selectedPausedNotificationTimeout.value = value
-            saveString("selectedPausedNotificationTimeout", value)
-            notifyChanged("selectedPausedNotificationTimeout")
+            saveString(Config.PREF_SELECTED_PAUSED_NOTIFICATION_TIMEOUT, value)
+            notifyChanged(Config.PREF_SELECTED_PAUSED_NOTIFICATION_TIMEOUT)
         }
 
     val pausedNotificationTimeoutMs: Long
         get() = when (selectedPausedNotificationTimeout) {
-            "1 minuto" -> 60L * 1000L
-            "5 minutos" -> 5L * 60L * 1000L
-            "10 minutos" -> 10L * 60L * 1000L
-            "30 minutos" -> 30L * 60L * 1000L
+            Config.TIMEOUT_1_MIN -> 60L * 1000L
+            Config.TIMEOUT_5_MIN -> 5L * 60L * 1000L
+            Config.TIMEOUT_10_MIN -> 10L * 60L * 1000L
+            Config.TIMEOUT_30_MIN -> 30L * 60L * 1000L
             else -> 0L // Nunca
         }
 
@@ -377,33 +400,41 @@ object AppSettings {
         get() = _batteryOptimizationEnabled.value
         set(value) {
             _batteryOptimizationEnabled.value = value
-            saveBoolean("batteryOptimizationEnabled", value)
-            notifyChanged("batteryOptimizationEnabled")
+            saveBoolean(Config.PREF_BATTERY_OPTIMIZATION_ENABLED, value)
+            notifyChanged(Config.PREF_BATTERY_OPTIMIZATION_ENABLED)
         }
 
-    val batteryLowThresholdOptions = listOf("15%", "20%", "25%", "30%")
-    private val _selectedBatteryLowThreshold = mutableStateOf("20%")
+    val batteryLowThresholdOptions = listOf(
+        Config.BATTERY_THRESHOLD_15,
+        Config.BATTERY_THRESHOLD_20,
+        Config.BATTERY_THRESHOLD_25,
+        Config.BATTERY_THRESHOLD_30
+    )
+    private val _selectedBatteryLowThreshold = mutableStateOf(Config.BATTERY_THRESHOLD_20)
     val selectedBatteryLowThresholdState: androidx.compose.runtime.State<String> get() = _selectedBatteryLowThreshold
     var selectedBatteryLowThreshold: String
         get() = _selectedBatteryLowThreshold.value
         set(value) {
             _selectedBatteryLowThreshold.value = value
-            saveString("selectedBatteryLowThreshold", value)
-            notifyChanged("selectedBatteryLowThreshold")
+            saveString(Config.PREF_SELECTED_BATTERY_LOW_THRESHOLD, value)
+            notifyChanged(Config.PREF_SELECTED_BATTERY_LOW_THRESHOLD)
         }
 
     val batteryLowThresholdInt: Int
         get() = selectedBatteryLowThreshold.replace("%", "").toIntOrNull() ?: 20
 
-    val batteryLowActionOptions = listOf("Optimizar recursos", "Limitar concurrencia")
-    private val _selectedBatteryLowAction = mutableStateOf("Optimizar recursos")
+    val batteryLowActionOptions = listOf(
+        Config.BATTERY_ACTION_OPTIMIZE,
+        Config.BATTERY_ACTION_LIMIT
+    )
+    private val _selectedBatteryLowAction = mutableStateOf(Config.BATTERY_ACTION_OPTIMIZE)
     val selectedBatteryLowActionState: androidx.compose.runtime.State<String> get() = _selectedBatteryLowAction
     var selectedBatteryLowAction: String
         get() = _selectedBatteryLowAction.value
         set(value) {
             _selectedBatteryLowAction.value = value
-            saveString("selectedBatteryLowAction", value)
-            notifyChanged("selectedBatteryLowAction")
+            saveString(Config.PREF_SELECTED_BATTERY_LOW_ACTION, value)
+            notifyChanged(Config.PREF_SELECTED_BATTERY_LOW_ACTION)
         }
 
     val batteryLowAction: String
@@ -414,7 +445,7 @@ object AppSettings {
         get() = _keepHistory.value
         set(value) {
             _keepHistory.value = value
-            saveBoolean("keepHistory", value)
+            saveBoolean(Config.PREF_KEEP_HISTORY, value)
         }
 
     private val _autoRetry = mutableStateOf(false)
@@ -423,8 +454,8 @@ object AppSettings {
         set(value) {
             if (_autoRetry.value != value) {
                 _autoRetry.value = value
-                saveBoolean("autoRetry", value)
-                notifyChanged("autoRetry")
+                saveBoolean(Config.PREF_AUTO_RETRY, value)
+                notifyChanged(Config.PREF_AUTO_RETRY)
             }
         }
 
@@ -435,8 +466,8 @@ object AppSettings {
         set(value) {
             if (_dynamicColor.value != value) {
                 _dynamicColor.value = value
-                saveBoolean("dynamicColor", value)
-                notifyChanged("dynamicColor")
+                saveBoolean(Config.PREF_DYNAMIC_COLOR, value)
+                notifyChanged(Config.PREF_DYNAMIC_COLOR)
             }
         }
 
@@ -447,56 +478,73 @@ object AppSettings {
         set(value) {
             if (_markAsMV.value != value) {
                 _markAsMV.value = value
-                saveBoolean("markAsMV", value)
-                notifyChanged("markAsMV")
+                saveBoolean(Config.PREF_MARK_AS_MV, value)
+                notifyChanged(Config.PREF_MARK_AS_MV)
             }
         }
 
-    private val _accentColorName = mutableStateOf("Azul Eléctrico")
+    private val _accentColorName = mutableStateOf(Config.ACCENT_ELECTRIC_BLUE)
     val accentColorNameState: androidx.compose.runtime.State<String> get() = _accentColorName
-    val accentColorOptions = listOf("Azul Eléctrico", "Verde Esmeralda", "Púrpura Real", "Naranja Sunset", "Rosa Hot", "Gris Acero")
+    val accentColorOptions = listOf(
+        Config.ACCENT_ELECTRIC_BLUE,
+        Config.ACCENT_EMERALD_GREEN,
+        Config.ACCENT_ROYAL_PURPLE,
+        Config.ACCENT_SUNSET_ORANGE,
+        Config.ACCENT_HOT_PINK,
+        Config.ACCENT_STEEL_GRAY
+    )
     var accentColorName: String
         get() = _accentColorName.value
         set(value) {
             if (_accentColorName.value != value) {
                 _accentColorName.value = value
-                saveString("accentColorName", value)
-                notifyChanged("accentColorName")
+                saveString(Config.PREF_ACCENT_COLOR_NAME, value)
+                notifyChanged(Config.PREF_ACCENT_COLOR_NAME)
             }
         }
 
-    val storageMarginOptions = listOf("Desactivado", "100 MB", "250 MB", "500 MB", "1 GB", "2 GB", "3 GB", "5 GB", "10 GB")
-    private val _selectedStorageMargin = mutableStateOf("500 MB")
+    val storageMarginOptions = listOf(
+        Config.STORAGE_MARGIN_DISABLED,
+        Config.STORAGE_MARGIN_100MB,
+        Config.STORAGE_MARGIN_250MB,
+        Config.STORAGE_MARGIN_500MB,
+        Config.STORAGE_MARGIN_1GB,
+        Config.STORAGE_MARGIN_2GB,
+        Config.STORAGE_MARGIN_3GB,
+        Config.STORAGE_MARGIN_5GB,
+        Config.STORAGE_MARGIN_10GB
+    )
+    private val _selectedStorageMargin = mutableStateOf(Config.STORAGE_MARGIN_500MB)
     val selectedStorageMarginState: androidx.compose.runtime.State<String> get() = _selectedStorageMargin
     var selectedStorageMargin: String
         get() = _selectedStorageMargin.value
         set(value) {
             _selectedStorageMargin.value = value
-            saveString("selectedStorageMargin", value)
-            notifyChanged("selectedStorageMargin")
+            saveString(Config.PREF_SELECTED_STORAGE_MARGIN, value)
+            notifyChanged(Config.PREF_SELECTED_STORAGE_MARGIN)
         }
 
     val storageMarginBytes: Long
         get() = when (selectedStorageMargin) {
-            "100 MB" -> 100L * 1024L * 1024L
-            "250 MB" -> 250L * 1024L * 1024L
-            "500 MB" -> 500L * 1024L * 1024L
-            "1 GB" -> 1024L * 1024L * 1024L
-            "2 GB" -> 2L * 1024L * 1024L * 1024L
-            "3 GB" -> 3L * 1024L * 1024L * 1024L
-            "5 GB" -> 5L * 1024L * 1024L * 1024L
-            "10 GB" -> 10L * 1024L * 1024L * 1024L
+            Config.STORAGE_MARGIN_100MB -> 100L * 1024L * 1024L
+            Config.STORAGE_MARGIN_250MB -> 250L * 1024L * 1024L
+            Config.STORAGE_MARGIN_500MB -> 500L * 1024L * 1024L
+            Config.STORAGE_MARGIN_1GB -> 1024L * 1024L * 1024L
+            Config.STORAGE_MARGIN_2GB -> 2L * 1024L * 1024L * 1024L
+            Config.STORAGE_MARGIN_3GB -> 3L * 1024L * 1024L * 1024L
+            Config.STORAGE_MARGIN_5GB -> 5L * 1024L * 1024L * 1024L
+            Config.STORAGE_MARGIN_10GB -> 10L * 1024L * 1024L * 1024L
             else -> 0L // Desactivado
         }
 
-    private val _cardStyle = mutableStateOf("Detallado con miniatura")
+    private val _cardStyle = mutableStateOf(Config.CARD_STYLE_DETAILED)
     var cardStyle: String
         get() = _cardStyle.value
         set(value) {
             if (_cardStyle.value != value) {
                 _cardStyle.value = value
-                saveString("cardStyle", value)
-                notifyChanged("cardStyle")
+                saveString(Config.PREF_CARD_STYLE, value)
+                notifyChanged(Config.PREF_CARD_STYLE)
             }
         }
 
@@ -506,8 +554,8 @@ object AppSettings {
         set(value) {
             if (_showQualityBadge.value != value) {
                 _showQualityBadge.value = value
-                saveBoolean("showQualityBadge", value)
-                notifyChanged("showQualityBadge")
+                saveBoolean(Config.PREF_SHOW_QUALITY_BADGE, value)
+                notifyChanged(Config.PREF_SHOW_QUALITY_BADGE)
             }
         }
 
@@ -517,19 +565,19 @@ object AppSettings {
         set(value) {
             if (_showRealtimeSpeedCard.value != value) {
                 _showRealtimeSpeedCard.value = value
-                saveBoolean("showRealtimeSpeedCard", value)
-                notifyChanged("showRealtimeSpeedCard")
+                saveBoolean(Config.PREF_SHOW_REALTIME_SPEED_CARD, value)
+                notifyChanged(Config.PREF_SHOW_REALTIME_SPEED_CARD)
             }
         }
 
-    private val _defaultAudioBitrate = mutableStateOf("192 kbps (Estándar)")
+    private val _defaultAudioBitrate = mutableStateOf(Config.BITRATE_192)
     var defaultAudioBitrate: String
         get() = _defaultAudioBitrate.value
         set(value) {
             if (_defaultAudioBitrate.value != value) {
                 _defaultAudioBitrate.value = value
-                saveString("defaultAudioBitrate", value)
-                notifyChanged("defaultAudioBitrate")
+                saveString(Config.PREF_DEFAULT_AUDIO_BITRATE, value)
+                notifyChanged(Config.PREF_DEFAULT_AUDIO_BITRATE)
             }
         }
 
@@ -539,8 +587,8 @@ object AppSettings {
         set(value) {
             if (_notifyBatchComplete.value != value) {
                 _notifyBatchComplete.value = value
-                saveBoolean("notifyBatchComplete", value)
-                notifyChanged("notifyBatchComplete")
+                saveBoolean(Config.PREF_NOTIFY_BATCH_COMPLETE, value)
+                notifyChanged(Config.PREF_NOTIFY_BATCH_COMPLETE)
             }
         }
 
@@ -550,8 +598,8 @@ object AppSettings {
         set(value) {
             if (_cleanTempOnCancel.value != value) {
                 _cleanTempOnCancel.value = value
-                saveBoolean("cleanTempOnCancel", value)
-                notifyChanged("cleanTempOnCancel")
+                saveBoolean(Config.PREF_CLEAN_TEMP_ON_CANCEL, value)
+                notifyChanged(Config.PREF_CLEAN_TEMP_ON_CANCEL)
             }
         }
 
@@ -562,8 +610,8 @@ object AppSettings {
         set(value) {
             if (_quickShareMode.value != value) {
                 _quickShareMode.value = value
-                saveBoolean("quickShareMode", value)
-                notifyChanged("quickShareMode")
+                saveBoolean(Config.PREF_QUICK_SHARE_MODE, value)
+                notifyChanged(Config.PREF_QUICK_SHARE_MODE)
             }
         }
 
@@ -573,8 +621,8 @@ object AppSettings {
         set(value) {
             if (_allowDuplicateDownloads.value != value) {
                 _allowDuplicateDownloads.value = value
-                saveBoolean("allowDuplicateDownloads", value)
-                notifyChanged("allowDuplicateDownloads")
+                saveBoolean(Config.PREF_ALLOW_DUPLICATE_DOWNLOADS, value)
+                notifyChanged(Config.PREF_ALLOW_DUPLICATE_DOWNLOADS)
             }
         }
 
@@ -584,8 +632,8 @@ object AppSettings {
         set(value) {
             if (_embedChapters.value != value) {
                 _embedChapters.value = value
-                saveBoolean("embedChapters", value)
-                notifyChanged("embedChapters")
+                saveBoolean(Config.PREF_EMBED_CHAPTERS, value)
+                notifyChanged(Config.PREF_EMBED_CHAPTERS)
             }
         }
 
@@ -596,71 +644,71 @@ object AppSettings {
         set(value) {
             if (_amoledMode.value != value) {
                 _amoledMode.value = value
-                saveBoolean("amoledMode", value)
-                notifyChanged("amoledMode")
+                saveBoolean(Config.PREF_AMOLED_MODE, value)
+                notifyChanged(Config.PREF_AMOLED_MODE)
             }
         }
 
     fun init(context: Context) {
-        prefs = context.getSharedPreferences("fabi_downloader_prefs", Context.MODE_PRIVATE)
+        prefs = context.getSharedPreferences(Config.PREFS_NAME, Context.MODE_PRIVATE)
         
-        _selectedQuality.value = prefs.getString("selectedQuality", "720p") ?: "720p"
-        _selectedVideoFormat.value = prefs.getString("selectedVideoFormat", Config.FORMAT_MP4) ?: Config.FORMAT_MP4
-        _selectedAudioFormat.value = prefs.getString("selectedAudioFormat", Config.FORMAT_MP3) ?: Config.FORMAT_MP3
-        _notificationsEnabled.value = prefs.getBoolean("notificationsEnabled", true)
-        _dataSaverEnabled.value = prefs.getBoolean("dataSaverEnabled", false)
-        val savedLocation = prefs.getString("downloadLocation", Config.PATH_DOWNLOAD_LOCATION_DEFAULT) ?: Config.PATH_DOWNLOAD_LOCATION_DEFAULT
+        _selectedQuality.value = prefs.getString(Config.PREF_SELECTED_QUALITY, Config.DEFAULT_QUALITY) ?: Config.DEFAULT_QUALITY
+        _selectedVideoFormat.value = prefs.getString(Config.PREF_SELECTED_VIDEO_FORMAT, Config.FORMAT_MP4) ?: Config.FORMAT_MP4
+        _selectedAudioFormat.value = prefs.getString(Config.PREF_SELECTED_AUDIO_FORMAT, Config.FORMAT_MP3) ?: Config.FORMAT_MP3
+        _notificationsEnabled.value = prefs.getBoolean(Config.PREF_NOTIFICATIONS_ENABLED, true)
+        _dataSaverEnabled.value = prefs.getBoolean(Config.PREF_DATA_SAVER_ENABLED, false)
+        val savedLocation = prefs.getString(Config.PREF_DOWNLOAD_LOCATION, Config.PATH_DOWNLOAD_LOCATION_DEFAULT) ?: Config.PATH_DOWNLOAD_LOCATION_DEFAULT
         if (savedLocation == "Downloads/FabiDownloader" || savedLocation == "Download/FabiDownloader") {
             _downloadLocation.value = Config.PATH_DOWNLOAD_LOCATION_DEFAULT
-            saveString("downloadLocation", Config.PATH_DOWNLOAD_LOCATION_DEFAULT)
+            saveString(Config.PREF_DOWNLOAD_LOCATION, Config.PATH_DOWNLOAD_LOCATION_DEFAULT)
         } else {
             _downloadLocation.value = savedLocation
         }
-        _maxSpeed.value = prefs.getString("maxSpeed", Config.SPEED_UNLIMITED) ?: Config.SPEED_UNLIMITED
-        _themePreference.value = prefs.getString("themePreference", "Sistema") ?: "Sistema"
-        _language.value = prefs.getString("language", "Sistema") ?: "Sistema"
-        _confirmOnDelete.value = prefs.getBoolean("confirmOnDelete", true)
-        _concurrentFragments.value = prefs.getString("concurrentFragments", "4") ?: "4"
-        _embedSubtitles.value = prefs.getBoolean("embedSubtitles", false)
-        _playlistEnabled.value = prefs.getBoolean("playlistEnabled", false)
-        _maxConcurrentDownloads.value = prefs.getInt("maxConcurrentDownloads", 2)
-        _earlyStartThreshold.value = prefs.getInt("earlyStartThreshold", 0)
-        _clipboardAction.value = prefs.getString("clipboardAction", "banner") ?: "banner"
-        _lastDownloadedOptionId.value = prefs.getString("lastDownloadedOptionId", "") ?: ""
+        _maxSpeed.value = prefs.getString(Config.PREF_MAX_SPEED, Config.SPEED_UNLIMITED) ?: Config.SPEED_UNLIMITED
+        _themePreference.value = prefs.getString(Config.PREF_THEME_PREFERENCE, Config.THEME_SYSTEM) ?: Config.THEME_SYSTEM
+        _language.value = prefs.getString(Config.PREF_LANGUAGE, Config.DEFAULT_LANGUAGE) ?: Config.DEFAULT_LANGUAGE
+        _confirmOnDelete.value = prefs.getBoolean(Config.PREF_CONFIRM_ON_DELETE, true)
+        _concurrentFragments.value = prefs.getString(Config.PREF_CONCURRENT_FRAGMENTS, Config.DEFAULT_CONCURRENT_FRAGMENTS) ?: Config.DEFAULT_CONCURRENT_FRAGMENTS
+        _embedSubtitles.value = prefs.getBoolean(Config.PREF_EMBED_SUBTITLES, false)
+        _playlistEnabled.value = prefs.getBoolean(Config.PREF_PLAYLIST_ENABLED, false)
+        _maxConcurrentDownloads.value = prefs.getInt(Config.PREF_MAX_CONCURRENT_DOWNLOADS, 2)
+        _earlyStartThreshold.value = prefs.getInt(Config.PREF_EARLY_START_THRESHOLD, 0)
+        _clipboardAction.value = prefs.getString(Config.PREF_CLIPBOARD_ACTION, Config.CLIPBOARD_ACTION_BANNER) ?: Config.CLIPBOARD_ACTION_BANNER
+        _lastDownloadedOptionId.value = prefs.getString(Config.PREF_LAST_DOWNLOADED_OPTION_ID, "") ?: ""
         
-        _customArguments.value = prefs.getString("customArguments", "") ?: ""
-        _cookies.value = prefs.getString("cookies", "") ?: ""
+        _customArguments.value = prefs.getString(Config.PREF_CUSTOM_ARGUMENTS, "") ?: ""
+        _cookies.value = prefs.getString(Config.PREF_COOKIES, "") ?: ""
         syncCookiesFile(context, _cookies.value)
-        _customUserAgent.value = prefs.getString("customUserAgent", "") ?: ""
-        _sponsorBlockEnabled.value = prefs.getBoolean("sponsorBlockEnabled", false)
-        _embedThumbnail.value = prefs.getBoolean("embedThumbnail", true)
-        _embedMetadata.value = prefs.getBoolean("embedMetadata", true)
-        _bypassGeo.value = prefs.getBoolean("bypassGeo", true)
-        _bypassSslVerification.value = prefs.getBoolean("bypassSslVerification", false)
+        _customUserAgent.value = prefs.getString(Config.PREF_CUSTOM_USER_AGENT, "") ?: ""
+        _sponsorBlockEnabled.value = prefs.getBoolean(Config.PREF_SPONSOR_BLOCK_ENABLED, false)
+        _embedThumbnail.value = prefs.getBoolean(Config.PREF_EMBED_THUMBNAIL, true)
+        _embedMetadata.value = prefs.getBoolean(Config.PREF_EMBED_METADATA, true)
+        _bypassGeo.value = prefs.getBoolean(Config.PREF_BYPASS_GEO, true)
+        _bypassSslVerification.value = prefs.getBoolean(Config.PREF_BYPASS_SSL_VERIFICATION, false)
 
-        _showDownloadSpeedInNotification.value = prefs.getBoolean("showDownloadSpeedInNotification", true)
-        _selectedPausedNotificationTimeout.value = prefs.getString("selectedPausedNotificationTimeout", "10 minutos") ?: "10 minutos"
-        _batteryOptimizationEnabled.value = prefs.getBoolean("batteryOptimizationEnabled", true)
-        _selectedBatteryLowThreshold.value = prefs.getString("selectedBatteryLowThreshold", "20%") ?: "20%"
-        val rawLowAction = prefs.getString("selectedBatteryLowAction", "Optimizar recursos") ?: "Optimizar recursos"
-        _selectedBatteryLowAction.value = if (rawLowAction == "Suspender todo") "Optimizar recursos" else rawLowAction
-        _keepHistory.value = prefs.getBoolean("keepHistory", true)
-        _autoRetry.value = prefs.getBoolean("autoRetry", false)
-        _dynamicColor.value = prefs.getBoolean("dynamicColor", true)
-        _accentColorName.value = prefs.getString("accentColorName", "Azul Eléctrico") ?: "Azul Eléctrico"
-        val savedMargin = prefs.getString("selectedStorageMargin", "500 MB") ?: "500 MB"
-        _selectedStorageMargin.value = if (savedMargin in storageMarginOptions) savedMargin else "500 MB"
-        _cardStyle.value = prefs.getString("cardStyle", "Detallado con miniatura") ?: "Detallado con miniatura"
-        _showQualityBadge.value = prefs.getBoolean("showQualityBadge", true)
-        _showRealtimeSpeedCard.value = prefs.getBoolean("showRealtimeSpeedCard", false)
-        _defaultAudioBitrate.value = prefs.getString("defaultAudioBitrate", "192 kbps (Estándar)") ?: "192 kbps (Estándar)"
-        _notifyBatchComplete.value = prefs.getBoolean("notifyBatchComplete", true)
-        _cleanTempOnCancel.value = prefs.getBoolean("cleanTempOnCancel", true)
-        _quickShareMode.value = prefs.getBoolean("quickShareMode", true)
-        _allowDuplicateDownloads.value = prefs.getBoolean("allowDuplicateDownloads", true)
-        _embedChapters.value = prefs.getBoolean("embedChapters", true)
-        _amoledMode.value = prefs.getBoolean("amoledMode", false)
-        _markAsMV.value = prefs.getBoolean("markAsMV", false)
+        _showDownloadSpeedInNotification.value = prefs.getBoolean(Config.PREF_SHOW_DOWNLOAD_SPEED_IN_NOTIFICATION, true)
+        _selectedPausedNotificationTimeout.value = prefs.getString(Config.PREF_SELECTED_PAUSED_NOTIFICATION_TIMEOUT, Config.TIMEOUT_10_MIN) ?: Config.TIMEOUT_10_MIN
+        _batteryOptimizationEnabled.value = prefs.getBoolean(Config.PREF_BATTERY_OPTIMIZATION_ENABLED, true)
+        _selectedBatteryLowThreshold.value = prefs.getString(Config.PREF_SELECTED_BATTERY_LOW_THRESHOLD, Config.BATTERY_THRESHOLD_20) ?: Config.BATTERY_THRESHOLD_20
+        val rawLowAction = prefs.getString(Config.PREF_SELECTED_BATTERY_LOW_ACTION, Config.BATTERY_ACTION_OPTIMIZE) ?: Config.BATTERY_ACTION_OPTIMIZE
+        _selectedBatteryLowAction.value = if (rawLowAction == "Suspender todo") Config.BATTERY_ACTION_OPTIMIZE else rawLowAction
+        _keepHistory.value = prefs.getBoolean(Config.PREF_KEEP_HISTORY, true)
+        _autoRetry.value = prefs.getBoolean(Config.PREF_AUTO_RETRY, false)
+        _dynamicColor.value = prefs.getBoolean(Config.PREF_DYNAMIC_COLOR, true)
+        _accentColorName.value = prefs.getString(Config.PREF_ACCENT_COLOR_NAME, Config.ACCENT_ELECTRIC_BLUE) ?: Config.ACCENT_ELECTRIC_BLUE
+        val savedMargin = prefs.getString(Config.PREF_SELECTED_STORAGE_MARGIN, Config.STORAGE_MARGIN_500MB) ?: Config.STORAGE_MARGIN_500MB
+        _selectedStorageMargin.value = if (savedMargin in storageMarginOptions) savedMargin else Config.STORAGE_MARGIN_500MB
+        _cardStyle.value = prefs.getString(Config.PREF_CARD_STYLE, Config.CARD_STYLE_DETAILED) ?: Config.CARD_STYLE_DETAILED
+        _showQualityBadge.value = prefs.getBoolean(Config.PREF_SHOW_QUALITY_BADGE, true)
+        _showRealtimeSpeedCard.value = prefs.getBoolean(Config.PREF_SHOW_REALTIME_SPEED_CARD, false)
+        _defaultAudioBitrate.value = prefs.getString(Config.PREF_DEFAULT_AUDIO_BITRATE, Config.BITRATE_192) ?: Config.BITRATE_192
+        _notifyBatchComplete.value = prefs.getBoolean(Config.PREF_NOTIFY_BATCH_COMPLETE, true)
+        _cleanTempOnCancel.value = prefs.getBoolean(Config.PREF_CLEAN_TEMP_ON_CANCEL, true)
+        _quickShareMode.value = prefs.getBoolean(Config.PREF_QUICK_SHARE_MODE, true)
+        _allowDuplicateDownloads.value = prefs.getBoolean(Config.PREF_ALLOW_DUPLICATE_DOWNLOADS, true)
+        _embedChapters.value = prefs.getBoolean(Config.PREF_EMBED_CHAPTERS, true)
+        _amoledMode.value = prefs.getBoolean(Config.PREF_AMOLED_MODE, false)
+        _markAsMV.value = prefs.getBoolean(Config.PREF_MARK_AS_MV, false)
     }
 
     private fun saveString(key: String, value: String) {
