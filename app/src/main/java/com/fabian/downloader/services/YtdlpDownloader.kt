@@ -77,9 +77,7 @@ class YtdlpDownloader {
                           format.equals("JPEG", ignoreCase = true)
 
             if (isImage) {
-                addOption("--write-thumbnail")
-                addOption("--skip-download")
-                addOption("--convert-thumbnails", format.lowercase())
+                // Descarga de imágenes deshabilitada
             } else if (format == Config.FORMAT_MP3) {
                 when (fallbackLevel) {
                     0 -> addOption("-f", "bestaudio/best")
@@ -259,6 +257,8 @@ class YtdlpDownloader {
             if (settings.embedThumbnail) {
                 addOption("--embed-thumbnail")
             }
+            // Garantizar que NUNCA se escriba un archivo de portada o miniatura independiente en el disco
+            addOption("--no-write-thumbnail")
 
             // SponsorBlock
             if (settings.sponsorBlockEnabled) {
@@ -333,44 +333,8 @@ class YtdlpDownloader {
                       format.equals("JPEG", ignoreCase = true)
 
         if (isImage) {
-            val isDirectImgUrl = videoUrl.endsWith(".jpg", ignoreCase = true) ||
-                                 videoUrl.endsWith(".jpeg", ignoreCase = true) ||
-                                 videoUrl.endsWith(".png", ignoreCase = true) ||
-                                 videoUrl.endsWith(".webp", ignoreCase = true) ||
-                                 videoUrl.contains("/image", ignoreCase = true)
-            if (isDirectImgUrl) {
-                try {
-                    alProgresar(15f, Config.STATUS_DOWNLOADING, Config.STATUS_DOWNLOADING)
-                    val imgFile = java.io.File(destFolder, "$fileNameWithoutExt.${format.lowercase()}")
-                    // Escribir primero a un archivo temporal: si copyTo falla a mitad,
-                    // no queda un .jpg corrupto en disco.
-                    val tmpFile = java.io.File(destFolder, "$fileNameWithoutExt.${format.lowercase()}.part")
-                    val request = okhttp3.Request.Builder()
-                        .url(videoUrl)
-                        .addHeader("User-Agent", Config.UA_DESKTOP)
-                        .build()
-                    com.fabian.downloader.network.NetworkClient.okHttpClient.newCall(request).execute().use { response ->
-                        if (response.isSuccessful && response.body != null) {
-                            tmpFile.outputStream().use { out ->
-                                response.body!!.byteStream().copyTo(out)
-                            }
-                            if (!tmpFile.renameTo(imgFile)) {
-                                // Fallback si el rename falla (ej. sistemas de archivos diferentes)
-                                imgFile.outputStream().use { out ->
-                                    tmpFile.inputStream().copyTo(out)
-                                }
-                                tmpFile.delete()
-                            }
-                            alProgresar(100f, Config.STATUS_COMPLETED, Config.STATUS_COMPLETED)
-                            return@withContext true
-                        }
-                    }
-                    // Respuesta no exitosa o sin cuerpo: limpiar el temporal
-                    tmpFile.delete()
-                } catch (e: Exception) {
-                    Log.w(Config.TAG_YTDLP_DOWNLOADER, "Direct image download failed, falling back to yt-dlp", e)
-                }
-            }
+            Log.w(Config.TAG_YTDLP_DOWNLOADER, "Descarga de imágenes deshabilitada")
+            return@withContext false
         }
 
         // Helper: destroy any previous yt-dlp process

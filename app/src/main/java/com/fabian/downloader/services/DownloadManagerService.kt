@@ -534,6 +534,7 @@ class DownloadManagerService private constructor(
                 storageService.updateDownloadFormat(id, ext)
 
                 com.fabian.downloader.pipeline.DownloadAssemblyLine.station5_verifyAndDeliver(application, actualFile)
+                cleanTempFiles(id, videoTitle, ext)
 
                 if (AppSettings.keepHistory) {
                     storageService.updateDownloadProgressAndSizeAndSpeed(id, 100, Config.STATUS_COMPLETED, Config.STATUS_COMPLETED)
@@ -1001,6 +1002,16 @@ class DownloadManagerService private constructor(
                     if ((name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp") || name.endsWith(".tmp")) &&
                         name.contains(id.toString())) {
                         file.delete()
+                    }
+                    // Eliminar cualquier archivo de portada o miniatura independiente (.jpg, .webp, .png, .jpeg)
+                    if (name.endsWith(".jpg", ignoreCase = true) || name.endsWith(".webp", ignoreCase = true) || 
+                        name.endsWith(".png", ignoreCase = true) || name.endsWith(".jpeg", ignoreCase = true)) {
+                        val baseName = name.substringBeforeLast(".")
+                        val cleanTitle = if (title != null) sanitizeFileName(title) else ""
+                        if ((cleanTitle.isNotEmpty() && baseName.equals(cleanTitle, ignoreCase = true)) || 
+                            baseName.contains(id.toString()) || name.startsWith("thumb_")) {
+                            file.delete()
+                        }
                     }
                 }
             }
