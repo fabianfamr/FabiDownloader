@@ -518,10 +518,38 @@ class DownloadManagerService private constructor(
                     throw Exception(application.getString(R.string.downloads_error_generic))
                 }
 
-                val actualFile = destFolder.listFiles { _, name ->
-                    name.startsWith("${fileNameWithoutExt}.") &&
-                    Config.VALID_EXTENSIONS.any { ext -> name.endsWith(".$ext", ignoreCase = true) }
+                val downloadingFile = destFolder.listFiles { _, name ->
+                    name.startsWith("${fileNameWithoutExt}.") && name.contains(".downloading", ignoreCase = true)
                 }?.firstOrNull()
+
+                val actualFile = if (downloadingFile != null) {
+                    val finalName = if (downloadingFile.name.endsWith(".downloading", ignoreCase = true)) {
+                        downloadingFile.name.removeSuffix(".downloading")
+                    } else {
+                        downloadingFile.name.replace(".downloading", "")
+                    }
+                    val targetFile = File(destFolder, finalName)
+                    if (targetFile.exists() && targetFile.absolutePath != downloadingFile.absolutePath) {
+                        targetFile.delete()
+                    }
+                    if (downloadingFile.renameTo(targetFile)) {
+                        targetFile
+                    } else {
+                        try {
+                            downloadingFile.copyTo(targetFile, overwrite = true)
+                            downloadingFile.delete()
+                            targetFile
+                        } catch (_: Exception) {
+                            downloadingFile
+                        }
+                    }
+                } else {
+                    destFolder.listFiles { _, name ->
+                        name.startsWith("${fileNameWithoutExt}.") &&
+                        Config.VALID_EXTENSIONS.any { ext -> name.endsWith(".$ext", ignoreCase = true) } &&
+                        !name.contains(".downloading", ignoreCase = true)
+                    }?.firstOrNull()
+                }
 
                 // Estación 5: Control de Calidad y Escaneo en MediaStore (Entrega Final)
                 // Si yt-dlp terminó con código 0 pero no generó ningún archivo válido,
@@ -999,7 +1027,7 @@ class DownloadManagerService private constructor(
             if (destFolder.exists() && destFolder.isDirectory) {
                 destFolder.listFiles()?.forEach { file ->
                     val name = file.name
-                    if ((name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp") || name.endsWith(".tmp")) &&
+                    if ((name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp") || name.endsWith(".tmp") || name.endsWith(".downloading") || name.contains(".downloading.")) &&
                         name.contains(id.toString())) {
                         file.delete()
                     }

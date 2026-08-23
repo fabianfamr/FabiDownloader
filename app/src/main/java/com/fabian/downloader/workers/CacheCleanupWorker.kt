@@ -93,7 +93,7 @@ class CacheCleanupWorker(
             if (folder.exists() && folder.isDirectory) {
                 folder.listFiles()?.forEach { file ->
                     val name = file.name.lowercase()
-                    if (name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp") || name.endsWith(".tmp")) {
+                    if (name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp") || name.endsWith(".tmp") || name.endsWith(".downloading") || name.contains(".downloading.")) {
                         val age = System.currentTimeMillis() - file.lastModified()
                         val isProtected = activeOrPausedIds.any { id -> name.contains("_$id.") || name.contains("_$id") }
                         if (!isProtected && age > 120_000) {
