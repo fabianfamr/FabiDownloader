@@ -430,7 +430,7 @@ class DownloadManagerService private constructor(
                 )
 
                 val destFolder = specWithDest.outputDirectory ?: com.fabian.downloader.utils.PathUtils.getDownloadFolder(application, format)
-                val fileNameWithoutExt = "${sanitizeFileName(videoTitle)}_$id"
+                val fileNameWithoutExt = sanitizeFileName(videoTitle).ifEmpty { "download_$id" }
 
                 // Comprobar espacio antes de iniciar la descarga
                 checkStorageSpace(destFolder, id)
@@ -1036,15 +1036,15 @@ class DownloadManagerService private constructor(
             if (destFolder.exists() && destFolder.isDirectory) {
                 destFolder.listFiles()?.forEach { file ->
                     val name = file.name
-                    if ((name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp") || name.endsWith(".tmp") || name.endsWith(".downloading") || name.contains(".downloading.")) &&
-                        name.contains(id.toString())) {
+                    val cleanTitle = if (title != null) sanitizeFileName(title) else ""
+                    if ((name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp") || name.endsWith(".tmp") || name.endsWith(".downloading") || name.contains(".downloading")) &&
+                        (name.contains(id.toString()) || (cleanTitle.isNotEmpty() && name.startsWith(cleanTitle)))) {
                         file.delete()
                     }
                     // Eliminar cualquier archivo de portada o miniatura independiente (.jpg, .webp, .png, .jpeg)
                     if (name.endsWith(".jpg", ignoreCase = true) || name.endsWith(".webp", ignoreCase = true) || 
                         name.endsWith(".png", ignoreCase = true) || name.endsWith(".jpeg", ignoreCase = true)) {
                         val baseName = name.substringBeforeLast(".")
-                        val cleanTitle = if (title != null) sanitizeFileName(title) else ""
                         if ((cleanTitle.isNotEmpty() && baseName.equals(cleanTitle, ignoreCase = true)) || 
                             baseName.contains(id.toString()) || name.startsWith("thumb_")) {
                             file.delete()

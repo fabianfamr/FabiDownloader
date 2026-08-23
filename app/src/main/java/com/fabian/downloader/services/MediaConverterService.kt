@@ -27,8 +27,8 @@ class MediaConverterService(private val context: Context) {
 
             val targetExt = targetFormat.lowercase().trim()
             val outputFolder = PathUtils.getDownloadFolder(context, targetExt)
-            val sanitizedTitle = record.title.replace(Regex("[\\\\/:*?\"<>|]"), "_").trim()
-            val fileNameWithoutExt = "${sanitizedTitle}_${record.id}"
+            val sanitizedTitle = PathUtils.sanitizeFileName(record.title).ifEmpty { "converted_${record.id}" }
+            val fileNameWithoutExt = sanitizedTitle
             val expectedOutputFile = File(outputFolder, "$fileNameWithoutExt.$targetExt")
 
             if (expectedOutputFile.exists() && expectedOutputFile.absolutePath != inputFile.absolutePath) {

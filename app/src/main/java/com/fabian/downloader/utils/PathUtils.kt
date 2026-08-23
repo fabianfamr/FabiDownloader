@@ -224,12 +224,12 @@ object PathUtils {
         val baseFolder = getDownloadFolder(context, format)
         val sanitizedTitle = sanitizeFileName(title)
         
-        // 1. Try new path with ID
-        var file = File(baseFolder, "${sanitizedTitle}_$id.${format.lowercase()}")
+        // 1. Try clean path without ID
+        var file = File(baseFolder, "$sanitizedTitle.${format.lowercase()}")
         if (file.exists()) return file
-        
-        // 2. Try new path without ID
-        file = File(baseFolder, "$sanitizedTitle.${format.lowercase()}")
+
+        // 2. Try legacy path with ID
+        file = File(baseFolder, "${sanitizedTitle}_$id.${format.lowercase()}")
         if (file.exists()) return file
         
         // 3. Fallback search in all possible historical locations (including legacy names)
@@ -275,13 +275,13 @@ object PathUtils {
         folderList.add(context.filesDir)
 
         for (folder in folderList) {
-            val fWithId = File(folder, "${sanitizedTitle}_$id.${format.lowercase()}")
-            if (fWithId.exists()) return fWithId
             val fNoId = File(folder, "$sanitizedTitle.${format.lowercase()}")
             if (fNoId.exists()) return fNoId
+            val fWithId = File(folder, "${sanitizedTitle}_$id.${format.lowercase()}")
+            if (fWithId.exists()) return fWithId
         }
         
-        // Default to the preferred folder
-        return File(baseFolder, "${sanitizedTitle}_$id.${format.lowercase()}")
+        // Default to the preferred folder without ID
+        return File(baseFolder, "$sanitizedTitle.${format.lowercase()}")
     }
 }
