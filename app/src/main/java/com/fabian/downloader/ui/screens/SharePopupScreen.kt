@@ -45,7 +45,7 @@ import androidx.compose.ui.res.painterResource
 import com.fabian.downloader.services.ExtractionService
 import com.fabian.downloader.configs.Config
 import com.fabian.downloader.ui.theme.*
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 data class DownloadOption(
     val id: String,
@@ -127,41 +127,53 @@ fun SharePopupScreen(
             }
         }
 
-        // Parallel extraction: Title/Icon (FAST) and Sizes (SLOW)
-        val jobTitleAndIcon = launch {
+        // Parallel extraction with Kotlin Coroutines: Title, Thumbnail, Playlist, and Format Sizes
+        // Fast Title & Thumbnail extraction in parallel
+        val jobTitleAndIcon = launch(Dispatchers.IO) {
             try {
-                val extractedTitle = viewModel.extractTitle(cleanUrl)
-                val extractedThumb = viewModel.extractThumbnail(cleanUrl)
-                title = extractedTitle
-                thumbnailUrl = extractedThumb
+                val titleDeferred = async(Dispatchers.IO) { viewModel.extractTitle(cleanUrl) }
+                val thumbDeferred = async(Dispatchers.IO) { viewModel.extractThumbnail(cleanUrl) }
+                
+                val extractedTitle = titleDeferred.await()
+                val extractedThumb = thumbDeferred.await()
+                
+                withContext(Dispatchers.Main) {
+                    title = extractedTitle
+                    thumbnailUrl = extractedThumb
+                }
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
-                Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error extracting title/icon", e)
+                Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error extracting title/icon in parallel", e)
             }
         }
         
-        val jobSizes = launch {
+        // Asynchronous non-blocking format sizes fetching
+        val jobSizes = launch(Dispatchers.IO) {
             try {
                 val extractedSizes = kotlinx.coroutines.withTimeoutOrNull(15000) {
                     viewModel.extractFormatSizes(cleanUrl)
                 }
-                formatSizes = extractedSizes ?: emptyMap()
+                withContext(Dispatchers.Main) {
+                    formatSizes = extractedSizes ?: emptyMap()
+                }
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
-                Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error extracting sizes", e)
-                formatSizes = emptyMap()
+                Log.e(Config.TAG_SHARE_POPUP_SCREEN, "Error extracting sizes in background", e)
+                withContext(Dispatchers.Main) {
+                    formatSizes = emptyMap()
+                }
             }
         }
         
         try {
             if (AppSettings.quickShareMode) {
-                // Modo rápido activado: muestra los botones de descarga de inmediato sin bloquear en "Procesando enlace..."
+                // Modo rápido: muestra los botones de descarga de inmediato sin bloquear la UI
                 title = if (service.siteId == "generic") ctx.getString(R.string.share_direct_link) else ctx.getString(R.string.share_video_of, service.displayName)
                 isLoading = false
             } else {
-                // Modo tradicional: espera a la extracción antes de mostrar opciones
-                kotlinx.coroutines.withTimeoutOrNull(1000) {
-                    jobPlaylist.join()
+                // Espera no bloqueante breve para título/icono inicial, tamaños siguen en segundo plano
+                kotlinx.coroutines.withTimeoutOrNull(800) {
+                    if (isLikelyPlaylist) jobPlaylist.join()
                     jobTitleAndIcon.join()
                 }
                 if (title == null && extractedPlaylist == null) {
