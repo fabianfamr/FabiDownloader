@@ -476,9 +476,13 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     }
 
     if (showLanguageDialog) {
-        val languageOptions = listOf("🌐 Sistema", "🇪🇸 Español", "🇺🇸 English")
+        val languageOptions = com.fabian.downloader.utils.LocaleHelper.SUPPORTED_LANGUAGES
         val currentLang = AppSettings.language
-        val selectedOption = languageOptions.find { it.contains(currentLang) || currentLang.contains(it.substring(2)) } ?: "🌐 Sistema"
+        val selectedOption = languageOptions.find { 
+            it.equals(currentLang, ignoreCase = true) || 
+            currentLang.contains(it.drop(2).trim(), ignoreCase = true) || 
+            it.contains(currentLang, ignoreCase = true) 
+        } ?: "🌐 Sistema"
         SelectionDialog(
             title = stringResource(R.string.settings_select_language),
             options = languageOptions,

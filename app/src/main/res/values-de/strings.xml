@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">Library</string>
+    <string name="shortcut_download">Download</string>
+    <string name="downloads_realtime_speed_title">Echtzeit-Geschwindigkeit</string>
+    <string name="downloads_active_downloads_count">%1$d aktive Downloads</string>
+    <string name="downloads_active_count">%1$d aktiv</string>
+    <string name="downloads_pause_all">Alle pausieren</string>
+    <string name="downloads_resume_all">Alle fortsetzen</string>
+    <string name="downloads_force_download_title">Download erzwingen</string>
+    <string name="downloads_force_download_desc">Sofort starten und Gleichzeitigkeitslimit ignorieren</string>
+    <string name="playlist_badge">PLAYLIST (%1$d VIDEOS)</string>
+    <string name="playlist_options_header">BATCH-DOWNLOAD-OPTIONEN</string>
+    <string name="playlist_format_video">Video (MP4)</string>
+    <string name="playlist_format_mp3">Audio (MP3)</string>
+    <string name="playlist_format_m4a">Audio (M4A)</string>
+    <string name="playlist_unselect_all">Alle abwählen</string>
+    <string name="playlist_select_all">Alle auswählen</string>
+    <string name="playlist_selected_count">%1$d von %2$d ausgewählt</string>
+    <string name="playlist_download_batch_button">STAPEL HERUNTERLADEN (%1$d)</string>
+    <string name="storage_permission_title">Speicherberechtigung</string>
+    <string name="storage_permission_desc">Speicherberechtigungen sind erforderlich, um Ihre Video- und Audio-Downloads zu speichern.</string>
+    <string name="storage_permission_grant">Berechtigung erteilen</string>
+    <string name="scoped_storage_active">Scoped Storage Active</string>
+    <string name="status_retrying">Wiederholen...</string>
+</resources>

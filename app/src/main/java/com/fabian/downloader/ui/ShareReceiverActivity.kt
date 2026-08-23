@@ -26,15 +26,7 @@ class ShareReceiverActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: android.content.Context) {
         val prefs = newBase.getSharedPreferences("fabi_downloader_prefs", android.content.Context.MODE_PRIVATE)
         val lang = prefs.getString("language", "Sistema") ?: "Sistema"
-        if (!lang.contains("Sistema")) {
-            val locale = if (lang.contains("English")) java.util.Locale.forLanguageTag("en") else java.util.Locale.forLanguageTag("es")
-            java.util.Locale.setDefault(locale)
-            val config = android.content.res.Configuration(newBase.resources.configuration)
-            config.setLocale(locale)
-            super.attachBaseContext(newBase.createConfigurationContext(config))
-        } else {
-            super.attachBaseContext(newBase)
-        }
+        super.attachBaseContext(com.fabian.downloader.utils.LocaleHelper.applyLocale(newBase, lang))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -89,26 +81,38 @@ class ShareReceiverActivity : ComponentActivity() {
             val accentColorName by com.fabian.downloader.ui.AppSettings.accentColorNameState
             val amoledMode by com.fabian.downloader.ui.AppSettings.amoledModeState
 
-            MyApplicationTheme(
-                themePreference = themePreference,
-                dynamicColor = dynamicColor,
-                accentColorName = accentColorName,
-                amoledMode = amoledMode
+            val language by com.fabian.downloader.ui.AppSettings.languageState
+
+            val currentContext = androidx.compose.ui.platform.LocalContext.current
+            val localizedContext = androidx.compose.runtime.remember(language, currentContext) {
+                com.fabian.downloader.utils.LocaleHelper.applyLocale(currentContext, language)
+            }
+
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.ui.platform.LocalContext provides localizedContext,
+                androidx.compose.ui.platform.LocalConfiguration provides localizedContext.resources.configuration
             ) {
-                SharePopupScreen(
-                    url = sharedText, 
-                    viewModel = viewModel,
-                    onClose = { finish() },
-                    onNavigateToDownloads = {
-                        val intent = Intent(this@ShareReceiverActivity, MainActivity::class.java).apply {
-                            putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
-                            putExtra(Config.EXTRA_INITIAL_PAGE, 1) // Go to "En progreso" tab
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                MyApplicationTheme(
+                    themePreference = themePreference,
+                    dynamicColor = dynamicColor,
+                    accentColorName = accentColorName,
+                    amoledMode = amoledMode
+                ) {
+                    SharePopupScreen(
+                        url = sharedText, 
+                        viewModel = viewModel,
+                        onClose = { finish() },
+                        onNavigateToDownloads = {
+                            val intent = Intent(this@ShareReceiverActivity, MainActivity::class.java).apply {
+                                putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
+                                putExtra(Config.EXTRA_INITIAL_PAGE, 1) // Go to "En progreso" tab
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                            }
+                            startActivity(intent)
+                            finish()
                         }
-                        startActivity(intent)
-                        finish()
-                    }
-                )
+                    )
+                }
             }
         }
     }

@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">Library</string>
+    <string name="shortcut_download">Download</string>
+    <string name="downloads_realtime_speed_title">リアルタイム速度</string>
+    <string name="downloads_active_downloads_count">%1$d 件のダウンロード中</string>
+    <string name="downloads_active_count">%1$d 件進行中</string>
+    <string name="downloads_pause_all">すべて一時停止</string>
+    <string name="downloads_resume_all">すべて再開</string>
+    <string name="downloads_force_download_title">強制ダウンロード</string>
+    <string name="downloads_force_download_desc">同時実行数の制限を無視して直ちに開始します</string>
+    <string name="playlist_badge">プレイリスト (%1$d 本の動画)</string>
+    <string name="playlist_options_header">一括ダウンロード設定</string>
+    <string name="playlist_format_video">動画 (MP4)</string>
+    <string name="playlist_format_mp3">音声 (MP3)</string>
+    <string name="playlist_format_m4a">音声 (M4A)</string>
+    <string name="playlist_unselect_all">すべて選択解除</string>
+    <string name="playlist_select_all">すべて選択</string>
+    <string name="playlist_selected_count">%2$d 件中 %1$d 件選択</string>
+    <string name="playlist_download_batch_button">一括ダウンロード (%1$d)</string>
+    <string name="storage_permission_title">ストレージ権限</string>
+    <string name="storage_permission_desc">動画や音声を保存するには、ストレージへのアクセス権限が必要です。</string>
+    <string name="storage_permission_grant">権限を許可</string>
+    <string name="scoped_storage_active">Scoped Storage Active</string>
+    <string name="status_retrying">再試行中...</string>
+</resources>

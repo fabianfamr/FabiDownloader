@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">Library</string>
+    <string name="shortcut_download">Download</string>
+    <string name="downloads_realtime_speed_title">Vitesse en temps réel</string>
+    <string name="downloads_active_downloads_count">%1$d téléchargements actifs</string>
+    <string name="downloads_active_count">%1$d en direct</string>
+    <string name="downloads_pause_all">Tout suspendre</string>
+    <string name="downloads_resume_all">Tout reprendre</string>
+    <string name="downloads_force_download_title">Forcer le téléchargement</string>
+    <string name="downloads_force_download_desc">Démarrer immédiatement en ignorant la limite de simultanéité</string>
+    <string name="playlist_badge">PLAYLIST (%1$d VIDÉOS)</string>
+    <string name="playlist_options_header">OPTIONS DE TÉLÉCHARGEMENT DU LOT</string>
+    <string name="playlist_format_video">Vidéo (MP4)</string>
+    <string name="playlist_format_mp3">Audio (MP3)</string>
+    <string name="playlist_format_m4a">Audio (M4A)</string>
+    <string name="playlist_unselect_all">Tout désélectionner</string>
+    <string name="playlist_select_all">Tout sélectionner</string>
+    <string name="playlist_selected_count">%1$d sur %2$d sélectionnés</string>
+    <string name="playlist_download_batch_button">TÉLÉCHARGER LE LOT (%1$d)</string>
+    <string name="storage_permission_title">Permission de stockage</string>
+    <string name="storage_permission_desc">Les autorisations de stockage sont requises pour enregistrer vos téléchargements vidéo et audio.</string>
+    <string name="storage_permission_grant">Accorder la permission</string>
+    <string name="scoped_storage_active">Scoped Storage Active</string>
+    <string name="status_retrying">Nouvelle tentative...</string>
+</resources>

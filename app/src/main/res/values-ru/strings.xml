@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">Library</string>
+    <string name="shortcut_download">Download</string>
+    <string name="downloads_realtime_speed_title">Скорость в реальном времени</string>
+    <string name="downloads_active_downloads_count">%1$d активных загрузок</string>
+    <string name="downloads_active_count">%1$d активных</string>
+    <string name="downloads_pause_all">Приостановить все</string>
+    <string name="downloads_resume_all">Возобновить все</string>
+    <string name="downloads_force_download_title">Принудительная загрузка</string>
+    <string name="downloads_force_download_desc">Запустить немедленно, игнорируя лимит одновременных задач</string>
+    <string name="playlist_badge">ПЛЕЙЛИСТ (%1$d ВИДЕО)</string>
+    <string name="playlist_options_header">ПАРАМЕТРЫ ПАКЕТНОЙ ЗАГРУЗКИ</string>
+    <string name="playlist_format_video">Видео (MP4)</string>
+    <string name="playlist_format_mp3">Аудио (MP3)</string>
+    <string name="playlist_format_m4a">Аудио (M4A)</string>
+    <string name="playlist_unselect_all">Снять выбор</string>
+    <string name="playlist_select_all">Выбрать все</string>
+    <string name="playlist_selected_count">Выбрано %1$d из %2$d</string>
+    <string name="playlist_download_batch_button">СКАЧАТЬ ПАКЕТ (%1$d)</string>
+    <string name="storage_permission_title">Разрешение на хранение</string>
+    <string name="storage_permission_desc">Требуются разрешения на доступ к памяти для сохранения загруженных видео и аудио.</string>
+    <string name="storage_permission_grant">Предоставить разрешение</string>
+    <string name="scoped_storage_active">Scoped Storage Active</string>
+    <string name="status_retrying">Повторная попытка...</string>
+</resources>

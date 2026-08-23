@@ -32,15 +32,7 @@ class MainActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: android.content.Context) {
         val prefs = newBase.getSharedPreferences("fabi_downloader_prefs", android.content.Context.MODE_PRIVATE)
         val lang = prefs.getString("language", "Sistema") ?: "Sistema"
-        if (!lang.contains("Sistema")) {
-            val locale = if (lang.contains("English")) java.util.Locale.forLanguageTag("en") else java.util.Locale.forLanguageTag("es")
-            java.util.Locale.setDefault(locale)
-            val config = android.content.res.Configuration(newBase.resources.configuration)
-            config.setLocale(locale)
-            super.attachBaseContext(newBase.createConfigurationContext(config))
-        } else {
-            super.attachBaseContext(newBase)
-        }
+        super.attachBaseContext(com.fabian.downloader.utils.LocaleHelper.applyLocale(newBase, lang))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,15 +54,7 @@ class MainActivity : ComponentActivity() {
 
             val currentContext = androidx.compose.ui.platform.LocalContext.current
             val localizedContext = androidx.compose.runtime.remember(language, currentContext) {
-                val locale = when {
-                    language.contains("English", ignoreCase = true) -> java.util.Locale.forLanguageTag("en")
-                    language.contains("Español", ignoreCase = true) -> java.util.Locale.forLanguageTag("es")
-                    else -> java.util.Locale.getDefault()
-                }
-                java.util.Locale.setDefault(locale)
-                val config = android.content.res.Configuration(currentContext.resources.configuration)
-                config.setLocale(locale)
-                currentContext.createConfigurationContext(config)
+                com.fabian.downloader.utils.LocaleHelper.applyLocale(currentContext, language)
             }
 
             val activityRegistryOwner = (currentContext as? androidx.activity.result.ActivityResultRegistryOwner)
