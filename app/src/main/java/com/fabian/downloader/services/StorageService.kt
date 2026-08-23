@@ -83,10 +83,9 @@ class StorageService(private val database: AppDatabase) {
         }
     }
 
-    @OptIn(FlowPreview::class)
     fun getAllDownloads(): Flow<List<DownloadRecord>> {
         return database.downloadDao().getAllDownloads()
-            .combine(activeProgressUpdates.sample(250L)) { dbList, updates ->
+            .combine(activeProgressUpdates) { dbList, updates ->
                 dbList.map { record ->
                     val isActiveOrQueued = !record.isCompleted && !record.isPaused && !record.size.startsWith(Config.STATUS_FAILED_PREFIX)
                     val update = updates[record.id]

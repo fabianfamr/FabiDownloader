@@ -39,7 +39,12 @@ class DownloadForegroundService : Service() {
                     setPackage(context.packageName)
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    androidx.core.content.ContextCompat.startForegroundService(context, intent)
+                    try {
+                        androidx.core.content.ContextCompat.startForegroundService(context, intent)
+                    } catch (e: Exception) {
+                        android.util.Log.e("DownloadService", "Cannot start foreground service from background context", e)
+                        try { context.startService(intent) } catch (_: Exception) {}
+                    }
                 } else {
                     context.startService(intent)
                 }
@@ -50,6 +55,11 @@ class DownloadForegroundService : Service() {
 
         fun stop(context: Context) {
             try {
+                if (!isRunning) {
+                    val fallbackIntent = Intent(context, DownloadForegroundService::class.java)
+                    context.stopService(fallbackIntent)
+                    return
+                }
                 val intent = Intent(context, DownloadForegroundService::class.java).apply {
                     action = ACTION_STOP
                     setClass(context, DownloadForegroundService::class.java)
@@ -72,7 +82,6 @@ class DownloadForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         isRunning = true
-        createNotificationChannel()
         promoteToForeground()
     }
 
@@ -82,7 +91,13 @@ class DownloadForegroundService : Service() {
         promoteToForeground()
 
         if (intent?.action == ACTION_STOP) {
-            stopForegroundAndSelf()
+            CoroutineScope(Dispatchers.Main).launch {
+                delay(200) // Permitir que el SO registre la promesa de startForeground antes de detener
+                val hasActive = try { DownloadManagerService.getInstance(applicationContext).hasActiveDownloads() } catch(_: Exception) { false }
+                if (!hasActive) {
+                    stopForegroundAndSelf()
+                }
+            }
             return START_NOT_STICKY
         }
         
@@ -102,22 +117,25 @@ class DownloadForegroundService : Service() {
         try {
             createNotificationChannel()
             val notification = createNotification()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                try {
-                    startForeground(
-                        NOTIFICATION_ID,
-                        notification,
-                        ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-                    )
-                } catch (e: Throwable) {
-                    android.util.Log.w("DownloadService", "Fallo startForeground con DATA_SYNC, fallback a estándar", e)
-                    startForeground(NOTIFICATION_ID, notification)
-                }
+            val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
             } else {
-                startForeground(NOTIFICATION_ID, notification)
+                0
+            }
+            try {
+                ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type)
+            } catch (e: Throwable) {
+                android.util.Log.w("DownloadService", "Fallo startForeground con DATA_SYNC, fallback a estándar", e)
+                try {
+                    ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, 0)
+                } catch (e2: Throwable) {
+                    android.util.Log.e("DownloadService", "Error crítico en startForeground", e2)
+                    stopForegroundAndSelf()
+                }
             }
         } catch (e: Throwable) {
-            android.util.Log.e("DownloadService", "Error calling startForeground in DownloadForegroundService", e)
+            android.util.Log.e("DownloadService", "Error llamando startForeground in DownloadForegroundService", e)
+            stopForegroundAndSelf()
         }
     }
 

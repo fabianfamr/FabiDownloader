@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 
-@OptIn(FlowPreview::class)
 class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
     private val app = com.fabian.downloader.MyApplication.getInstance()
     private val storageService = StorageService.getInstance(app)
@@ -20,7 +19,7 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
 
     val downloads: Flow<List<DownloadRecord>> = combine(
         storageService.getAllDownloads(),
-        downloadManager.liveProgressFlow.sample(250L)
+        downloadManager.liveProgressFlow
     ) { records, liveMap ->
         records.map { record ->
             val live = liveMap[record.id]
