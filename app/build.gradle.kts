@@ -43,7 +43,7 @@ android {
 
   packaging {
     jniLibs {
-      useLegacyPackaging = false
+      useLegacyPackaging = true
       keepDebugSymbols += listOf(
         "**/libpython.zip.so",
         "**/libffmpeg.zip.so",
