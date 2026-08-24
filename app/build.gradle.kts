@@ -24,12 +24,14 @@ android {
     versionName = parsedVersionName
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    
-    resourceConfigurations += listOf("es", "en", "de", "fr", "ja", "ru")
 
     ndk {
         abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
     }
+  }
+
+  androidResources {
+    localeFilters += listOf("es", "en", "de", "fr", "ja", "ru")
   }
 
   splits {
