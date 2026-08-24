@@ -510,7 +510,10 @@ class YtdlpDownloader {
                                 }
                             }
 
-                            alProgresar(smoothedProgress, sizeText, speedText)
+                            val cleanSpeed = com.fabian.downloader.utils.YtdlpParser.formatSpeed(speedText)
+                            val cleanSize = com.fabian.downloader.utils.YtdlpParser.formatSize(sizeText)
+
+                            alProgresar(smoothedProgress, cleanSize, cleanSpeed)
                         }
                     }
                     return true

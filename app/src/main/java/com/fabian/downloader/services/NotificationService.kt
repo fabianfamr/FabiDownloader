@@ -115,14 +115,16 @@ class NotificationService(private val context: Context) {
                 append("$progress%")
             }
             if (!size.isNullOrEmpty() && size != Config.STATUS_UNKNOWN) {
+                val cleanSize = com.fabian.downloader.utils.YtdlpParser.formatSize(size)
                 if (progress >= 0) {
-                    append(" • $size")
+                    append(" • $cleanSize")
                 } else {
-                    append(size)
+                    append(cleanSize)
                 }
             }
             if (showSpeed && !speed.isNullOrEmpty() && speed != Config.STATUS_WAITING) {
-                append(" • $speed")
+                val cleanSpeed = com.fabian.downloader.utils.YtdlpParser.formatSpeed(speed)
+                append(" • $cleanSpeed")
             }
         }
 

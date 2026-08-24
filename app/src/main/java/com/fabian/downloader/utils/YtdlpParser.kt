@@ -357,4 +357,35 @@ object YtdlpParser {
             items = items
         )
     }
+
+    fun formatSpeed(speed: String): String {
+        if (speed.isEmpty()) return speed
+        return speed
+            .replace("KiB/s", "KB/s", ignoreCase = true)
+            .replace("MiB/s", "MB/s", ignoreCase = true)
+            .replace("GiB/s", "GB/s", ignoreCase = true)
+            .replace("TiB/s", "TB/s", ignoreCase = true)
+            .replace("kib/s", "KB/s", ignoreCase = true)
+            .replace("mib/s", "MB/s", ignoreCase = true)
+            .replace("gib/s", "GB/s", ignoreCase = true)
+            .replace("KiB", "KB", ignoreCase = true)
+            .replace("MiB", "MB", ignoreCase = true)
+            .replace("GiB", "GB", ignoreCase = true)
+            .replace("TiB", "TB", ignoreCase = true)
+            .replace("kib", "KB", ignoreCase = true)
+            .replace("mib", "MB", ignoreCase = true)
+            .replace("gib", "GB", ignoreCase = true)
+    }
+
+    fun formatSize(size: String): String {
+        if (size.isEmpty()) return size
+        return size
+            .replace("KiB", "KB", ignoreCase = true)
+            .replace("MiB", "MB", ignoreCase = true)
+            .replace("GiB", "GB", ignoreCase = true)
+            .replace("TiB", "TB", ignoreCase = true)
+            .replace("kib", "KB", ignoreCase = true)
+            .replace("mib", "MB", ignoreCase = true)
+            .replace("gib", "GB", ignoreCase = true)
+    }
 }

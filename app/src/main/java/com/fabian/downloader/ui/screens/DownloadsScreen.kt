@@ -1220,7 +1220,7 @@ fun MobileDownloadingItem(
                         isFailed -> stringResource(R.string.downloads_error_retry)
                         record.isPaused -> stringResource(R.string.downloads_status_paused)
                         record.progress < 0 -> stringResource(R.string.downloads_status_waiting)
-                        else -> record.speed
+                        else -> com.fabian.downloader.utils.YtdlpParser.formatSpeed(record.speed)
                     }
 
                     Text(
@@ -1461,7 +1461,7 @@ fun RealtimeSpeedCardBanner(
     val activeCount = activeDownloads.count { !it.isPaused && it.speed != "FAILED" }
     val currentSpeeds = activeDownloads
         .filter { !it.isPaused && it.speed != "FAILED" }
-        .map { it.speed }
+        .map { com.fabian.downloader.utils.YtdlpParser.formatSpeed(it.speed) }
         .joinToString(" • ")
         .ifEmpty { stringResource(R.string.downloads_active_downloads_count, activeDownloads.size) }
 
