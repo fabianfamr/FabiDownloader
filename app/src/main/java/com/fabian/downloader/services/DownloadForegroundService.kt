@@ -132,6 +132,7 @@ class DownloadForegroundService : Service() {
                         startForeground(NOTIFICATION_ID, notification)
                     } catch (e2: Throwable) {
                         Log.e("DownloadService", "Error en fallback startForeground", e2)
+                        stopSelf()
                     }
                 }
             } else {
@@ -139,10 +140,12 @@ class DownloadForegroundService : Service() {
                     startForeground(NOTIFICATION_ID, notification)
                 } catch (e: Throwable) {
                     Log.e("DownloadService", "Error en startForeground pre-Q", e)
+                    stopSelf()
                 }
             }
         } catch (e: Throwable) {
             Log.e("DownloadService", "Error llamando promoteToForeground", e)
+            stopSelf()
         }
     }
 
