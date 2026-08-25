@@ -91,15 +91,14 @@ fun MediaThumbnail(
     val iconToUse = fallbackIcon ?: defaultIcon
     val colorToUse = fallbackColor ?: defaultColor
 
-    val localFileModel = remember(record.id, record.isCompleted, record.format) {
+    val localFileModel = remember(record.id, record.isCompleted, record.format, record.title) {
         if (record.thumbnailUrl.isNullOrEmpty() && record.isCompleted) {
-            val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(
+            com.fabian.downloader.utils.PathUtils.getDownloadFile(
                 ctx,
                 record.title,
                 record.id,
                 record.format
             )
-            if (file.exists()) file else null
         } else {
             null
         }

@@ -96,8 +96,11 @@ class CacheCleanupWorker(
                     if (name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp") || name.endsWith(".tmp") || name.endsWith(".downloading") || name.contains(".downloading.")) {
                         val age = System.currentTimeMillis() - file.lastModified()
                         val isProtected = activeOrPausedIds.any { id -> name.contains("_$id.") || name.contains("_$id") }
-                        if (!isProtected && age > 120_000) {
-                            file.delete()
+                        // Si no está protegido y tiene más de 2 minutos, o si tiene más de 24 horas aunque esté "protegido", eliminar
+                        if ((!isProtected && age > 120_000L) || (age > 86_400_000L)) {
+                            try {
+                                file.delete()
+                            } catch (_: Exception) {}
                         }
                     }
                 }

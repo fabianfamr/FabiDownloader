@@ -1124,11 +1124,6 @@ fun MobileDownloadingItem(
     val targetProgress = remember(record.progress) {
         if (record.progress < 0) 0f else (record.progress / 100f).coerceIn(0f, 1f)
     }
-    val animatedProgress by animateFloatAsState(
-        targetValue = targetProgress,
-        animationSpec = tween(durationMillis = 200, easing = LinearOutSlowInEasing),
-        label = "downloadProgressAnimation"
-    )
 
     Surface(
         color = if (isSelected) C_accentDim else C_card,
@@ -1198,7 +1193,7 @@ fun MobileDownloadingItem(
 
                 // Progress Line directly below title
                 LinearProgressIndicator(
-                    progress = { animatedProgress },
+                    progress = { targetProgress },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(2.5.dp)

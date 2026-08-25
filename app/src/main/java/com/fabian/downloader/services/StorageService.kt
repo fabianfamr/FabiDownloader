@@ -34,6 +34,8 @@ class StorageService(private val database: AppDatabase) {
     private val memoryCache = ConcurrentHashMap<Long, DownloadRecord>()
     private val activeProgressUpdates = MutableStateFlow<Map<Long, ProgressUpdate>>(emptyMap())
     private val dirtyIds = ConcurrentHashMap.newKeySet<Long>()
+    private val lastUiUpdateTimes = ConcurrentHashMap<Long, Long>()
+    private val lastUiProgress = ConcurrentHashMap<Long, Int>()
     private val flushMutex = Mutex()
     private var flushJob: Job? = null
 
@@ -153,6 +155,8 @@ class StorageService(private val database: AppDatabase) {
             database.downloadDao().updateDownloadProgressSizeAndSpeed(id, progress, size, speed)
             activeProgressUpdates.update { current -> current - id }
             dirtyIds.remove(id)
+            lastUiUpdateTimes.remove(id)
+            lastUiProgress.remove(id)
             if (cached != null) {
                 memoryCache[id] = cached.copy(progress = progress, size = size, speed = speed)
             }
@@ -160,10 +164,19 @@ class StorageService(private val database: AppDatabase) {
             return
         }
 
-        // Actualización de alta frecuencia durante la descarga.
-        // Se actualiza la memoria de inmediato (60fps en la UI) y se marca como "sucia" para volcado periódico a disco.
-        val update = ProgressUpdate(progress, size, speed)
-        activeProgressUpdates.update { current -> current + (id to update) }
+        val now = System.currentTimeMillis()
+        val lastTime = lastUiUpdateTimes[id] ?: 0L
+        val lastProg = lastUiProgress[id] ?: -1
+
+        val shouldEmitUi = (now - lastTime >= 120L) || (progress != lastProg) || (progress >= 100)
+
+        if (shouldEmitUi) {
+            lastUiUpdateTimes[id] = now
+            lastUiProgress[id] = progress
+            val update = ProgressUpdate(progress, size, speed)
+            activeProgressUpdates.update { current -> current + (id to update) }
+        }
+
         dirtyIds.add(id)
 
         if (cached != null) {
@@ -182,6 +195,8 @@ class StorageService(private val database: AppDatabase) {
         flushMutex.withLock {
             activeProgressUpdates.update { current -> current - id }
             dirtyIds.remove(id)
+            lastUiUpdateTimes.remove(id)
+            lastUiProgress.remove(id)
 
             // Guardar estado final garantizado en la base de datos SQLite.
             // Se escribe 100% siempre (no solo si lastUpdate != null) para no
@@ -198,6 +213,8 @@ class StorageService(private val database: AppDatabase) {
             database.downloadDao().updateDownloadProgressSizeAndSpeed(id, currentUpdate.progress, currentUpdate.size, currentUpdate.speed)
             activeProgressUpdates.update { current -> current - id }
             dirtyIds.remove(id)
+            lastUiUpdateTimes.remove(id)
+            lastUiProgress.remove(id)
         }
         database.downloadDao().updatePausedState(id, isPaused)
         val cached = memoryCache[id]
