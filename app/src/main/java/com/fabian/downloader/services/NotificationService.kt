@@ -318,6 +318,7 @@ class NotificationService(private val context: Context) {
             .setAutoCancel(true)
             .setOngoing(false)
             .setContentIntent(openPendingIntent)
+            .addAction(R.drawable.ic_cloud_download, context.getString(R.string.notif_action_share), sharePendingIntent)
             .build()
 
         notificationManager.notify(id + 300000, notification) // ID diferente para no solapar con el progreso ya cancelado
