@@ -34,6 +34,9 @@ class DownloadForegroundService : Service() {
         var isRunning: Boolean = false
             private set
 
+        @Volatile
+        private var instance: DownloadForegroundService? = null
+
         fun start(context: Context) {
             try {
                 val intent = Intent(context, DownloadForegroundService::class.java).apply {
@@ -58,26 +61,13 @@ class DownloadForegroundService : Service() {
 
         fun stop(context: Context) {
             try {
-                if (!isRunning) {
-                    return
-                }
-                val intent = Intent(context, DownloadForegroundService::class.java).apply {
-                    action = ACTION_STOP
-                    setClass(context, DownloadForegroundService::class.java)
-                    component = android.content.ComponentName(context, DownloadForegroundService::class.java)
-                    setPackage(context.packageName)
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    try {
-                        context.startService(intent)
-                    } catch (_: Throwable) {
-                        try {
-                            val fallbackIntent = Intent(context, DownloadForegroundService::class.java)
-                            context.stopService(fallbackIntent)
-                        } catch (_: Throwable) {}
-                    }
+                if (!isRunning) return
+                val srv = instance
+                if (srv != null) {
+                    srv.scheduleStopForegroundAndSelf()
                 } else {
-                    context.stopService(intent)
+                    // Si no hay instancia, el servicio se detendrá por sí solo gracias al timeout de 3.5s en onStartCommand
+                    // Evitamos llamar a stopService() para prevenir el RemoteServiceException en Android 12+
                 }
             } catch (e: Throwable) {
                 Log.e("DownloadService", "Error solicitando stop para DownloadForegroundService", e)
@@ -87,6 +77,7 @@ class DownloadForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
         isRunning = true
         serviceStartTimeMs = System.currentTimeMillis()
         promoteToForeground()
@@ -185,6 +176,7 @@ class DownloadForegroundService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
+        instance = null
         isRunning = false
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
