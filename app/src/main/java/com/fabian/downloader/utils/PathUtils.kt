@@ -13,6 +13,33 @@ object PathUtils {
         cachedFolders.clear()
     }
 
+    fun ensureFabiDirectories(context: Context) {
+        try {
+            val storageRoot = Environment.getExternalStorageDirectory()
+            if (storageRoot != null) {
+                val fabiRoot = File(storageRoot, Config.PATH_ROOT_FOLDER)
+                if (!fabiRoot.exists()) fabiRoot.mkdirs()
+                
+                val downloadsDir = File(fabiRoot, "downloads")
+                if (!downloadsDir.exists()) downloadsDir.mkdirs()
+                
+                val videoDir = File(downloadsDir, "video")
+                if (!videoDir.exists()) videoDir.mkdirs()
+                
+                val audioDir = File(downloadsDir, "audio")
+                if (!audioDir.exists()) audioDir.mkdirs()
+                
+                val imageDir = File(downloadsDir, "image")
+                if (!imageDir.exists()) imageDir.mkdirs()
+                
+                val dbDir = File(fabiRoot, "db")
+                if (!dbDir.exists()) dbDir.mkdirs()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e(Config.TAG_PATH_UTILS, "Error creando estructura de carpetas FabiDownloader", e)
+        }
+    }
+
     private fun isWritableDir(dir: File): Boolean {
         return try {
             if (!dir.exists()) {
@@ -196,7 +223,7 @@ object PathUtils {
 
     fun getDisplayDownloadLocation(locationSetting: String = com.fabian.downloader.ui.AppSettings.downloadLocation): String {
         if (locationSetting.isEmpty() || locationSetting == Config.PATH_DOWNLOAD_LOCATION_DEFAULT || locationSetting.equals("downloads", ignoreCase = true)) {
-            return "/storage/emulated/0/FabiDownloader/downloads/"
+            return "FabiDownloader/downloads"
         }
         if (locationSetting.startsWith("content://")) {
             try {
@@ -206,22 +233,23 @@ object PathUtils {
                     val split = treePart.split(":", limit = 2)
                     val type = split[0]
                     val relPath = if (split.size > 1) split[1].trimStart('/') else ""
-                    return if ("primary".equals(type, ignoreCase = true)) {
-                        if (relPath.isNotEmpty()) "/storage/emulated/0/$relPath/" else "/storage/emulated/0/"
-                    } else {
-                        if (relPath.isNotEmpty()) "/storage/$type/$relPath/" else "/storage/$type/"
-                    }
+                    val prefix = if ("primary".equals(type, ignoreCase = true)) "Almacenamiento interno" else "Tarjeta SD"
+                    return if (relPath.isNotEmpty()) "$prefix > $relPath" else prefix
                 }
             } catch (e: Exception) {
                 android.util.Log.e(Config.TAG_PATH_UTILS, "Error decoding SAF uri for display: ${e.message}")
             }
-            return locationSetting
+            return "FabiDownloader/downloads"
+        }
+        if (locationSetting.startsWith("/storage/emulated/0/")) {
+            val rel = locationSetting.removePrefix("/storage/emulated/0/").trim('/')
+            return if (rel.isNotEmpty()) "Almacenamiento interno > $rel" else "Almacenamiento interno"
         }
         if (locationSetting.startsWith("/")) {
-            return if (locationSetting.endsWith("/")) locationSetting else "$locationSetting/"
+            return locationSetting
         }
         val cleanRel = locationSetting.trim('/')
-        return "/storage/emulated/0/$cleanRel/"
+        return "FabiDownloader/$cleanRel"
     }
  
     fun getDownloadFolder(context: Context, format: String): File {
