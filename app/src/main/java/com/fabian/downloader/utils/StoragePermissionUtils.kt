@@ -44,17 +44,9 @@ object StoragePermissionUtils {
      */
     fun hasStoragePermission(context: Context): Boolean {
         return when {
-            // Android 13+ (API 33+): Scoped Storage activo. Comprobamos permisos granulares de medios o acceso a todos los archivos.
-            isAndroid13OrHigher() -> {
-                val readAudio = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED
-                val readVideo = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED
-                val readImages = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
-                readAudio || readVideo || readImages || isAllFilesAccessGranted()
-            }
-            // Android 11 y 12 (API 30-32): Scoped Storage activo.
+            // Android 11+ (API 30+): Se usa el permiso de administración de archivos
             isAndroid11OrHigher() -> {
-                val readStorage = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-                readStorage || isAllFilesAccessGranted()
+                isAllFilesAccessGranted()
             }
             // Android 10 y anteriores (API < 30)
             else -> {
@@ -70,14 +62,7 @@ object StoragePermissionUtils {
      */
     fun getRequiredPermissions(): Array<String> {
         return when {
-            isAndroid13OrHigher() -> arrayOf(
-                Manifest.permission.READ_MEDIA_AUDIO,
-                Manifest.permission.READ_MEDIA_VIDEO,
-                Manifest.permission.READ_MEDIA_IMAGES
-            )
-            isAndroid11OrHigher() -> arrayOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            )
+            isAndroid11OrHigher() -> emptyArray()
             else -> arrayOf(
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
