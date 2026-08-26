@@ -313,7 +313,7 @@ object PathUtils {
                 cachedFolders[cacheKey] = fabiDownloadFolder
                 return fabiDownloadFolder
             } else {
-                android.util.Log.e(Config.TAG_PATH_UTILS, "FabiDownloader root folder is NOT writable: ${fabiDownloadFolder.absolutePath}")
+                android.util.Log.w(Config.TAG_PATH_UTILS, "FabiDownloader root folder is NOT writable: ${fabiDownloadFolder.absolutePath}")
             }
         }
 
