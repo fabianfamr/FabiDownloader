@@ -23,8 +23,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.fabian.downloader.R
+import com.fabian.downloader.utils.LocaleHelper
+import com.fabian.downloader.utils.PathUtils
+import com.fabian.downloader.utils.SettingsLabels
 
 @Composable
 fun DownloadSettingsContent(
@@ -44,6 +48,7 @@ fun DownloadSettingsContent(
     onSpeedChange: (String) -> Unit,
     speedOptions: List<String>
 ) {
+    val context = LocalContext.current
     var showQualityDialog by remember { mutableStateOf(false) }
     var showVideoFormatDialog by remember { mutableStateOf(false) }
     var showAudioFormatDialog by remember { mutableStateOf(false) }
@@ -62,7 +67,6 @@ fun DownloadSettingsContent(
 
     val threadOptions = listOf("1", "3", "5", "8", "10", "12", "16", "20")
     val simultaneousOptions = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")
-    val clipboardOptions = listOf("banner", "auto", "disabled")
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -79,7 +83,7 @@ fun DownloadSettingsContent(
                     showThemeDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(AppIcons.Language, stringResource(R.string.settings_language), trailing = AppSettings.language) {
+                SettingItem(AppIcons.Language, stringResource(R.string.settings_language), trailing = LocaleHelper.getDisplayName(AppSettings.language)) {
                     showLanguageDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
@@ -108,6 +112,10 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
+                SettingItem(AppIcons.Hd, stringResource(R.string.settings_quality_default), trailing = SettingsLabels.getQualityLabel(context, selectedQuality)) {
+                    showQualityDialog = true
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
                 SettingItem(AppIcons.VideoFile, stringResource(R.string.settings_video_format), trailing = selectedVideoFormat) {
                     showVideoFormatDialog = true
                 }
@@ -127,15 +135,15 @@ fun DownloadSettingsContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             Column {
-                SettingItem(AppIcons.FolderOpen, stringResource(R.string.settings_location), trailing = downloadLocation) {
+                SettingItem(AppIcons.FolderOpen, stringResource(R.string.settings_location), trailing = PathUtils.getDisplayDownloadLocation(downloadLocation)) {
                     onPickLocation()
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(AppIcons.Speed, stringResource(R.string.settings_max_speed), trailing = maxSpeed) {
+                SettingItem(AppIcons.Speed, stringResource(R.string.settings_max_speed), trailing = SettingsLabels.getSpeedLabel(context, maxSpeed)) {
                     showSpeedDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(AppIcons.Storage, stringResource(R.string.settings_storage_margin), trailing = AppSettings.selectedStorageMargin) {
+                SettingItem(AppIcons.Storage, stringResource(R.string.settings_storage_margin), trailing = SettingsLabels.getStorageMarginLabel(context, AppSettings.selectedStorageMargin)) {
                     showStorageMarginDialog = true
                 }
             }
@@ -189,7 +197,7 @@ fun DownloadSettingsContent(
                     showUserAgentDialog = true
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                SettingItem(AppIcons.ContentPaste, stringResource(R.string.settings_clipboard_action_title), trailing = AppSettings.clipboardAction) {
+                SettingItem(AppIcons.ContentPaste, stringResource(R.string.settings_clipboard_action_title), trailing = SettingsLabels.getClipboardActionLabel(context, AppSettings.clipboardAction)) {
                     showClipboardDialog = true
                 }
             }
@@ -309,7 +317,7 @@ fun DownloadSettingsContent(
                         showBatteryLowThresholdDialog = true
                     }
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingItem(AppIcons.SettingsApplications, stringResource(R.string.settings_battery_action), trailing = AppSettings.selectedBatteryLowAction) {
+                    SettingItem(AppIcons.SettingsApplications, stringResource(R.string.settings_battery_action), trailing = SettingsLabels.getBatteryActionLabel(context, AppSettings.selectedBatteryLowAction)) {
                         showBatteryLowActionDialog = true
                     }
                 }
@@ -319,7 +327,10 @@ fun DownloadSettingsContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         if (showQualityDialog) {
-            SelectionDialog(stringResource(R.string.settings_select_quality), qualityOptions, selectedQuality,
+            KeyValueSelectionDialog(
+                title = stringResource(R.string.settings_select_quality),
+                items = SettingsLabels.getQualityOptions(context, qualityOptions),
+                selectedKey = selectedQuality,
                 onSelection = {
                     onQualityChange(it)
                     showQualityDialog = false
@@ -390,7 +401,10 @@ fun DownloadSettingsContent(
             )
         }
         if (showClipboardDialog) {
-            SelectionDialog(stringResource(R.string.settings_clipboard_action_title), clipboardOptions, AppSettings.clipboardAction,
+            KeyValueSelectionDialog(
+                title = stringResource(R.string.settings_clipboard_action_title),
+                items = SettingsLabels.getClipboardActionOptions(context),
+                selectedKey = AppSettings.clipboardAction,
                 onSelection = {
                     AppSettings.clipboardAction = it
                     showClipboardDialog = false
@@ -426,7 +440,10 @@ fun DownloadSettingsContent(
             )
         }
         if (showBatteryLowActionDialog) {
-            SelectionDialog(stringResource(R.string.settings_battery_action), AppSettings.batteryLowActionOptions, AppSettings.selectedBatteryLowAction,
+            KeyValueSelectionDialog(
+                title = stringResource(R.string.settings_battery_action),
+                items = SettingsLabels.getBatteryActionOptions(context, AppSettings.batteryLowActionOptions),
+                selectedKey = AppSettings.selectedBatteryLowAction,
                 onSelection = {
                     AppSettings.selectedBatteryLowAction = it
                     showBatteryLowActionDialog = false
@@ -435,7 +452,10 @@ fun DownloadSettingsContent(
             )
         }
         if (showStorageMarginDialog) {
-            SelectionDialog(stringResource(R.string.settings_select_storage_margin), AppSettings.storageMarginOptions, AppSettings.selectedStorageMargin,
+            KeyValueSelectionDialog(
+                title = stringResource(R.string.settings_select_storage_margin),
+                items = SettingsLabels.getStorageMarginOptions(context, AppSettings.storageMarginOptions),
+                selectedKey = AppSettings.selectedStorageMargin,
                 onSelection = {
                     AppSettings.selectedStorageMargin = it
                     showStorageMarginDialog = false
@@ -444,10 +464,12 @@ fun DownloadSettingsContent(
             )
         }
         if (showLanguageDialog) {
-            val languageOptions = listOf("🌐 Sistema", "🇪🇸 Español", "🇺🇸 English")
-            val currentLang = AppSettings.language
-            val selectedOption = languageOptions.find { it.contains(currentLang) || currentLang.contains(it.substring(2)) } ?: "🌐 Sistema"
-            SelectionDialog(stringResource(R.string.settings_select_language), languageOptions, selectedOption,
+            val languageOptions = LocaleHelper.SUPPORTED_LANGUAGES
+            val selectedOption = LocaleHelper.getDisplayName(AppSettings.language)
+            SelectionDialog(
+                title = stringResource(R.string.settings_select_language),
+                options = languageOptions,
+                selectedOption = selectedOption,
                 onSelection = {
                     AppSettings.language = it
                     showLanguageDialog = false
@@ -495,6 +517,66 @@ fun InputDialog(
             }
         },
         dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.settings_btn_cancel), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    )
+}
+
+@Composable
+fun <T> KeyValueSelectionDialog(
+    title: String,
+    items: List<Pair<T, String>>,
+    selectedKey: T,
+    onSelection: (T) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+        containerColor = MaterialTheme.colorScheme.surface,
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                items.forEach { (key, label) ->
+                    val isSelected = key == selectedKey
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { onSelection(key) },
+                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else Color.Transparent
+                    ) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = isSelected,
+                                onClick = { onSelection(key) },
+                                colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
+                            )
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                text = label, 
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface, 
+                                fontSize = 15.sp, 
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false)
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.settings_btn_cancel), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }

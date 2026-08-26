@@ -239,4 +239,19 @@
 
     <string name="settings_copy_clipboard">Copiar al portapapeles</string>
 
+    <!-- Opciones amigables para menús -->
+    <string name="settings_quality_best">Mejor calidad disponible</string>
+    <string name="settings_quality_audio_only">Solo audio</string>
+    <string name="settings_speed_unlimited">Sin límite</string>
+    <string name="settings_card_style_detailed">Detallado</string>
+    <string name="settings_card_style_compact">Compacto</string>
+    <string name="settings_card_style_minimal">Minimalista</string>
+    <string name="settings_accent_electric_blue">Azul Eléctrico</string>
+    <string name="settings_accent_emerald_green">Verde Esmeralda</string>
+    <string name="settings_accent_royal_purple">Púrpura Real</string>
+    <string name="settings_accent_sunset_orange">Naranja Atardecer</string>
+    <string name="settings_accent_hot_pink">Rosa Intenso</string>
+    <string name="settings_accent_steel_gray">Gris Acero</string>
+    <string name="settings_battery_action_optimize">Pausar descargas</string>
+    <string name="settings_battery_action_limit">Limitar velocidad e hilos</string>
 </resources>

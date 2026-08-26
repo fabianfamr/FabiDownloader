@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -25,18 +26,22 @@ import androidx.compose.ui.unit.sp
 import com.fabian.downloader.R
 import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.ui.components.AppIcons
+import com.fabian.downloader.ui.components.KeyValueSelectionDialog
 import com.fabian.downloader.ui.components.SelectionDialog
 import com.fabian.downloader.ui.components.SpeedSliderDialog
 import com.fabian.downloader.ui.screens.SettingsHeader
 import com.fabian.downloader.ui.screens.SettingsRow
 import com.fabian.downloader.ui.screens.SettingsToggleRow
 import com.fabian.downloader.ui.theme.FabiColors
+import com.fabian.downloader.utils.PathUtils
+import com.fabian.downloader.utils.SettingsLabels
 
 @Composable
 fun DownloadsSettingsSection(
     fColors: FabiColors,
     launcher: ManagedActivityResultLauncher<Uri?, Uri?>
 ) {
+    val ctx = LocalContext.current
     val C_card = fColors.card
     val C_card2 = fColors.cardSecondary
     val C_border = fColors.border
@@ -68,10 +73,10 @@ fun DownloadsSettingsSection(
     var showEarlyStartThresholdDialog by remember { mutableStateOf(false) }
 
     if (showQualityDialog) {
-        SelectionDialog(
+        KeyValueSelectionDialog(
             title = stringResource(R.string.settings_quality_default),
-            options = AppSettings.qualityOptions,
-            selectedOption = selectedQualityState,
+            items = SettingsLabels.getQualityOptions(ctx, AppSettings.qualityOptions),
+            selectedKey = selectedQualityState,
             onSelection = {
                 AppSettings.selectedQuality = it
                 selectedQualityState = it
@@ -179,7 +184,15 @@ fun DownloadsSettingsSection(
         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
     ) {
         Column {
-            SettingsRow(AppIcons.Folder, stringResource(R.string.settings_download_dir), AppSettings.downloadLocation.substringAfterLast("/"), C_accent, C_white, C_gray1, C_card2) {
+            SettingsRow(
+                icon = AppIcons.Folder,
+                title = stringResource(R.string.settings_download_dir),
+                trailing = PathUtils.getDisplayDownloadLocation(AppSettings.downloadLocation),
+                colorAccent = C_accent,
+                textColor = C_white,
+                grayColor = C_gray1,
+                card2Color = C_card2
+            ) {
                 launcher.launch(null)
             }
         }
@@ -208,7 +221,15 @@ fun DownloadsSettingsSection(
                 AppSettings.dataSaverEnabled = it
             }
             HorizontalDivider(color = C_border, thickness = 1.dp)
-            SettingsRow(AppIcons.Speed, stringResource(R.string.settings_speed_limit), maxSpeedState, C_accent, C_white, C_gray1, C_card2) {
+            SettingsRow(
+                icon = AppIcons.Speed,
+                title = stringResource(R.string.settings_speed_limit),
+                trailing = SettingsLabels.getSpeedLabel(ctx, maxSpeedState),
+                colorAccent = C_accent,
+                textColor = C_white,
+                grayColor = C_gray1,
+                card2Color = C_card2
+            ) {
                 showSpeedDialog = true
             }
             HorizontalDivider(color = C_border, thickness = 1.dp)
@@ -253,7 +274,15 @@ fun DownloadsSettingsSection(
         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
     ) {
         Column {
-            SettingsRow(AppIcons.Hd, stringResource(R.string.settings_quality_default), selectedQualityState, C_accent, C_white, C_gray1, C_card2) {
+            SettingsRow(
+                icon = AppIcons.Hd,
+                title = stringResource(R.string.settings_quality_default),
+                trailing = SettingsLabels.getQualityLabel(ctx, selectedQualityState),
+                colorAccent = C_accent,
+                textColor = C_white,
+                grayColor = C_gray1,
+                card2Color = C_card2
+            ) {
                 showQualityDialog = true
             }
             HorizontalDivider(color = C_border, thickness = 1.dp)

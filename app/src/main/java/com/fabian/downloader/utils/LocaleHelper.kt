@@ -28,6 +28,26 @@ object LocaleHelper {
         }
     }
 
+    fun getDisplayName(lang: String): String {
+        val trimmed = lang.trim()
+        val found = SUPPORTED_LANGUAGES.find {
+            it.equals(trimmed, ignoreCase = true) ||
+            it.contains(trimmed, ignoreCase = true)
+        }
+        if (found != null) return found
+
+        return when {
+            trimmed.equals("system", ignoreCase = true) || trimmed.isEmpty() -> "🌐 Sistema"
+            trimmed.equals("es", ignoreCase = true) || trimmed.contains("Español", ignoreCase = true) -> "🇪🇸 Español"
+            trimmed.equals("en", ignoreCase = true) || trimmed.contains("English", ignoreCase = true) -> "🇺🇸 English"
+            trimmed.equals("fr", ignoreCase = true) || trimmed.contains("Français", ignoreCase = true) -> "🇫🇷 Français"
+            trimmed.equals("ru", ignoreCase = true) || trimmed.contains("Русский", ignoreCase = true) -> "🇷🇺 Русский"
+            trimmed.equals("ja", ignoreCase = true) || trimmed.contains("日本語", ignoreCase = true) -> "🇯🇵 日本語"
+            trimmed.equals("de", ignoreCase = true) || trimmed.contains("Deutsch", ignoreCase = true) -> "🇩🇪 Deutsch"
+            else -> "🌐 Sistema"
+        }
+    }
+
     fun applyLocale(context: Context, lang: String): Context {
         if (lang.contains("Sistema", ignoreCase = true)) {
             return context

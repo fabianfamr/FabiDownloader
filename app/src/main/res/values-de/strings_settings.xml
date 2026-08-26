@@ -215,4 +215,18 @@
     <string name="settings_copy_errors">Copy app errors</string>
     <string name="settings_copying">Copying...</string>
     <string name="settings_copy_clipboard">Copy to clipboard</string>
+    <string name="settings_quality_best">Beste verfügbare Qualität</string>
+    <string name="settings_quality_audio_only">Nur Audio</string>
+    <string name="settings_speed_unlimited">Unbegrenzt</string>
+    <string name="settings_card_style_detailed">Detailliert</string>
+    <string name="settings_card_style_compact">Kompakt</string>
+    <string name="settings_card_style_minimal">Minimalistisch</string>
+    <string name="settings_accent_electric_blue">Elektrisches Blau</string>
+    <string name="settings_accent_emerald_green">Smaragdgrün</string>
+    <string name="settings_accent_royal_purple">Königliches Lila</string>
+    <string name="settings_accent_sunset_orange">Sonnenuntergang Orange</string>
+    <string name="settings_accent_hot_pink">Kräftiges Rosa</string>
+    <string name="settings_accent_steel_gray">Stahlgrau</string>
+    <string name="settings_battery_action_optimize">Downloads anhalten</string>
+    <string name="settings_battery_action_limit">Geschwindigkeit und Threads begrenzen</string>
 </resources>

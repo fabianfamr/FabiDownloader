@@ -215,4 +215,18 @@
     <string name="settings_copy_errors">Copy app errors</string>
     <string name="settings_copying">Copying...</string>
     <string name="settings_copy_clipboard">Copy to clipboard</string>
+    <string name="settings_quality_best">利用可能な最高品質</string>
+    <string name="settings_quality_audio_only">音声のみ</string>
+    <string name="settings_speed_unlimited">無制限</string>
+    <string name="settings_card_style_detailed">詳細</string>
+    <string name="settings_card_style_compact">コンパクト</string>
+    <string name="settings_card_style_minimal">ミニマル</string>
+    <string name="settings_accent_electric_blue">エレクトリックブルー</string>
+    <string name="settings_accent_emerald_green">エメラルドグリーン</string>
+    <string name="settings_accent_royal_purple">ロイヤルパープル</string>
+    <string name="settings_accent_sunset_orange">サンセットオレンジ</string>
+    <string name="settings_accent_hot_pink">ホットピンク</string>
+    <string name="settings_accent_steel_gray">スチールグレー</string>
+    <string name="settings_battery_action_optimize">ダウンロードを一時停止</string>
+    <string name="settings_battery_action_limit">速度とスレッドを制限</string>
 </resources>

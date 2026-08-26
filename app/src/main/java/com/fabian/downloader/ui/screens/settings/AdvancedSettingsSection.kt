@@ -7,20 +7,24 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.fabian.downloader.R
 import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.ui.components.AppIcons
 import com.fabian.downloader.ui.components.InputDialog
+import com.fabian.downloader.ui.components.KeyValueSelectionDialog
 import com.fabian.downloader.ui.components.SelectionDialog
 import com.fabian.downloader.ui.screens.SettingsHeader
 import com.fabian.downloader.ui.screens.SettingsRow
 import com.fabian.downloader.ui.screens.SettingsToggleRow
 import com.fabian.downloader.ui.theme.FabiColors
+import com.fabian.downloader.utils.SettingsLabels
 
 @Composable
 fun AdvancedSettingsSection(fColors: FabiColors) {
+    val ctx = LocalContext.current
     val C_card = fColors.card
     val C_card2 = fColors.cardSecondary
     val C_border = fColors.border
@@ -63,10 +67,10 @@ fun AdvancedSettingsSection(fColors: FabiColors) {
     }
 
     if (showClipboardDialog) {
-        SelectionDialog(
+        KeyValueSelectionDialog(
             title = stringResource(R.string.settings_clipboard_action),
-            options = listOf("banner", "auto", "disabled"),
-            selectedOption = clipboardActionState,
+            items = SettingsLabels.getClipboardActionOptions(ctx),
+            selectedKey = clipboardActionState,
             onSelection = {
                 AppSettings.clipboardAction = it
                 clipboardActionState = it
@@ -208,7 +212,7 @@ fun AdvancedSettingsSection(fColors: FabiColors) {
             SettingsRow(
                 icon = AppIcons.ContentPaste,
                 title = stringResource(R.string.settings_clipboard_action),
-                trailing = clipboardActionState,
+                trailing = SettingsLabels.getClipboardActionLabel(ctx, clipboardActionState),
                 colorAccent = C_accent,
                 textColor = C_white,
                 grayColor = C_gray1,

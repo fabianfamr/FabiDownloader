@@ -193,6 +193,36 @@ object PathUtils {
         }
         return null
     }
+
+    fun getDisplayDownloadLocation(locationSetting: String = com.fabian.downloader.ui.AppSettings.downloadLocation): String {
+        if (locationSetting.isEmpty() || locationSetting == Config.PATH_DOWNLOAD_LOCATION_DEFAULT || locationSetting.equals("downloads", ignoreCase = true)) {
+            return "/storage/emulated/0/FabiDownloader/downloads/"
+        }
+        if (locationSetting.startsWith("content://")) {
+            try {
+                val decoded = android.net.Uri.decode(locationSetting)
+                val treePart = decoded.substringAfter("tree/", "").substringAfter("document/", "")
+                if (treePart.contains(":")) {
+                    val split = treePart.split(":", limit = 2)
+                    val type = split[0]
+                    val relPath = if (split.size > 1) split[1].trimStart('/') else ""
+                    return if ("primary".equals(type, ignoreCase = true)) {
+                        if (relPath.isNotEmpty()) "/storage/emulated/0/$relPath/" else "/storage/emulated/0/"
+                    } else {
+                        if (relPath.isNotEmpty()) "/storage/$type/$relPath/" else "/storage/$type/"
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e(Config.TAG_PATH_UTILS, "Error decoding SAF uri for display: ${e.message}")
+            }
+            return locationSetting
+        }
+        if (locationSetting.startsWith("/")) {
+            return if (locationSetting.endsWith("/")) locationSetting else "$locationSetting/"
+        }
+        val cleanRel = locationSetting.trim('/')
+        return "/storage/emulated/0/$cleanRel/"
+    }
  
     fun getDownloadFolder(context: Context, format: String): File {
         val isVideo = format.equals(Config.FORMAT_MP4, ignoreCase = true) || format.equals(Config.FORMAT_WEBM, ignoreCase = true)

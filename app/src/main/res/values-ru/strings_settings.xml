@@ -215,4 +215,18 @@
     <string name="settings_copy_errors">Copy app errors</string>
     <string name="settings_copying">Copying...</string>
     <string name="settings_copy_clipboard">Copy to clipboard</string>
+    <string name="settings_quality_best">Лучшее доступное качество</string>
+    <string name="settings_quality_audio_only">Только аудио</string>
+    <string name="settings_speed_unlimited">Без ограничений</string>
+    <string name="settings_card_style_detailed">Подробный</string>
+    <string name="settings_card_style_compact">Компактный</string>
+    <string name="settings_card_style_minimal">Минималистичный</string>
+    <string name="settings_accent_electric_blue">Электрический синий</string>
+    <string name="settings_accent_emerald_green">Изумрудно-зеленый</string>
+    <string name="settings_accent_royal_purple">Королевский пурпурный</string>
+    <string name="settings_accent_sunset_orange">Закатно-оранжевый</string>
+    <string name="settings_accent_hot_pink">Ярко-розовый</string>
+    <string name="settings_accent_steel_gray">Стальной серый</string>
+    <string name="settings_battery_action_optimize">Приостановить загрузки</string>
+    <string name="settings_battery_action_limit">Ограничить скорость и потоки</string>
 </resources>

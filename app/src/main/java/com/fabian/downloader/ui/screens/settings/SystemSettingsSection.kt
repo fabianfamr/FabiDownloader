@@ -26,12 +26,14 @@ import com.fabian.downloader.managers.UpdateInfo
 import com.fabian.downloader.managers.UpdateManager
 import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.ui.components.AppIcons
+import com.fabian.downloader.ui.components.KeyValueSelectionDialog
 import com.fabian.downloader.ui.components.SelectionDialog
 import com.fabian.downloader.ui.screens.SettingsHeader
 import com.fabian.downloader.ui.screens.SettingsRow
 import com.fabian.downloader.ui.screens.SettingsToggleRow
 import com.fabian.downloader.ui.theme.FabiColors
 import com.fabian.downloader.utils.LocaleHelper
+import com.fabian.downloader.utils.SettingsLabels
 import com.fabian.downloader.workers.CacheCleanupWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -63,7 +65,7 @@ fun SystemSettingsSection(
     var batteryOptimizationEnabled by remember { mutableStateOf(AppSettings.batteryOptimizationEnabled) }
     var batteryLowThresholdState by remember { mutableStateOf(AppSettings.selectedBatteryLowThreshold) }
     var batteryLowActionState by remember { mutableStateOf(AppSettings.selectedBatteryLowAction) }
-    var languageState by remember { mutableStateOf(AppSettings.language) }
+    var languageState by remember { mutableStateOf(LocaleHelper.getDisplayName(AppSettings.language)) }
 
     var isCheckingUpdates by remember { mutableStateOf(false) }
     var isUpdatingYtdlp by remember { mutableStateOf(false) }
@@ -75,10 +77,10 @@ fun SystemSettingsSection(
     var showLanguageDialog by remember { mutableStateOf(false) }
 
     if (showStorageMarginDialog) {
-        SelectionDialog(
+        KeyValueSelectionDialog(
             title = stringResource(R.string.settings_select_storage_margin),
-            options = AppSettings.storageMarginOptions,
-            selectedOption = storageMarginState,
+            items = SettingsLabels.getStorageMarginOptions(ctx, AppSettings.storageMarginOptions),
+            selectedKey = storageMarginState,
             onSelection = {
                 AppSettings.selectedStorageMargin = it
                 storageMarginState = it
@@ -103,10 +105,10 @@ fun SystemSettingsSection(
     }
 
     if (showBatteryLowActionDialog) {
-        SelectionDialog(
+        KeyValueSelectionDialog(
             title = stringResource(R.string.settings_battery_action),
-            options = AppSettings.batteryLowActionOptions,
-            selectedOption = batteryLowActionState,
+            items = SettingsLabels.getBatteryActionOptions(ctx, AppSettings.batteryLowActionOptions),
+            selectedKey = batteryLowActionState,
             onSelection = {
                 AppSettings.selectedBatteryLowAction = it
                 batteryLowActionState = it
@@ -118,19 +120,14 @@ fun SystemSettingsSection(
 
     if (showLanguageDialog) {
         val languageOptions = LocaleHelper.SUPPORTED_LANGUAGES
-        val currentLang = AppSettings.language
-        val selectedOption = languageOptions.find {
-            it.equals(currentLang, ignoreCase = true) ||
-            currentLang.contains(it.drop(2).trim(), ignoreCase = true) ||
-            it.contains(currentLang, ignoreCase = true)
-        } ?: "🌐 Sistema"
+        val selectedOption = LocaleHelper.getDisplayName(languageState)
         SelectionDialog(
             title = stringResource(R.string.settings_select_language),
             options = languageOptions,
             selectedOption = selectedOption,
             onSelection = {
                 AppSettings.language = it
-                languageState = it
+                languageState = LocaleHelper.getDisplayName(it)
                 showLanguageDialog = false
             },
             onDismiss = { showLanguageDialog = false }
@@ -210,7 +207,15 @@ fun SystemSettingsSection(
         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
     ) {
         Column {
-            SettingsRow(AppIcons.Storage, stringResource(R.string.settings_storage_margin), storageMarginState, C_accent, C_white, C_gray1, C_card2) {
+            SettingsRow(
+                icon = AppIcons.Storage,
+                title = stringResource(R.string.settings_storage_margin),
+                trailing = SettingsLabels.getStorageMarginLabel(ctx, storageMarginState),
+                colorAccent = C_accent,
+                textColor = C_white,
+                grayColor = C_gray1,
+                card2Color = C_card2
+            ) {
                 showStorageMarginDialog = true
             }
         }
@@ -281,7 +286,7 @@ fun SystemSettingsSection(
                 SettingsRow(
                     icon = AppIcons.SettingsApplications,
                     title = stringResource(R.string.settings_battery_action),
-                    trailing = batteryLowActionState,
+                    trailing = SettingsLabels.getBatteryActionLabel(ctx, batteryLowActionState),
                     colorAccent = C_accent,
                     textColor = C_white,
                     grayColor = C_gray1,

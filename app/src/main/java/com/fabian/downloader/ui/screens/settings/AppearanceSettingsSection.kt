@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,14 +22,17 @@ import androidx.compose.ui.unit.sp
 import com.fabian.downloader.R
 import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.ui.components.AppIcons
+import com.fabian.downloader.ui.components.KeyValueSelectionDialog
 import com.fabian.downloader.ui.components.SelectionDialog
 import com.fabian.downloader.ui.screens.SettingsHeader
 import com.fabian.downloader.ui.screens.SettingsRow
 import com.fabian.downloader.ui.screens.SettingsToggleRow
 import com.fabian.downloader.ui.theme.FabiColors
+import com.fabian.downloader.utils.SettingsLabels
 
 @Composable
 fun AppearanceSettingsSection(fColors: FabiColors) {
+    val ctx = LocalContext.current
     val C_card = fColors.card
     val C_card2 = fColors.cardSecondary
     val C_border = fColors.border
@@ -53,10 +57,10 @@ fun AppearanceSettingsSection(fColors: FabiColors) {
     var showCardStyleDialog by remember { mutableStateOf(false) }
 
     if (showAccentDialog) {
-        SelectionDialog(
+        KeyValueSelectionDialog(
             title = stringResource(R.string.settings_accent_color),
-            options = AppSettings.accentColorOptions,
-            selectedOption = accentColorNameState,
+            items = SettingsLabels.getAccentColorOptions(ctx, AppSettings.accentColorOptions),
+            selectedKey = accentColorNameState,
             onSelection = {
                 AppSettings.accentColorName = it
                 accentColorNameState = it
@@ -67,10 +71,10 @@ fun AppearanceSettingsSection(fColors: FabiColors) {
     }
 
     if (showCardStyleDialog) {
-        SelectionDialog(
+        KeyValueSelectionDialog(
             title = stringResource(R.string.settings_card_style_dialog),
-            options = AppSettings.cardStyleOptions,
-            selectedOption = cardStyleState,
+            items = SettingsLabels.getCardStyleOptions(ctx, AppSettings.cardStyleOptions),
+            selectedKey = cardStyleState,
             onSelection = {
                 AppSettings.cardStyle = it
                 cardStyleState = it
@@ -208,7 +212,15 @@ fun AppearanceSettingsSection(fColors: FabiColors) {
 
             if (!dynamicColor) {
                 HorizontalDivider(color = C_border, thickness = 1.dp)
-                SettingsRow(AppIcons.ColorLens, stringResource(R.string.settings_accent_color), accentColorNameState, C_accent, C_white, C_gray1, C_card2) {
+                SettingsRow(
+                    icon = AppIcons.ColorLens,
+                    title = stringResource(R.string.settings_accent_color),
+                    trailing = SettingsLabels.getAccentColorLabel(ctx, accentColorNameState),
+                    colorAccent = C_accent,
+                    textColor = C_white,
+                    grayColor = C_gray1,
+                    card2Color = C_card2
+                ) {
                     showAccentDialog = true
                 }
             }
@@ -241,7 +253,15 @@ fun AppearanceSettingsSection(fColors: FabiColors) {
         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
     ) {
         Column {
-            SettingsRow(AppIcons.ViewStream, stringResource(R.string.settings_card_style), cardStyleState, C_accent, C_white, C_gray1, C_card2) {
+            SettingsRow(
+                icon = AppIcons.ViewStream,
+                title = stringResource(R.string.settings_card_style),
+                trailing = SettingsLabels.getCardStyleLabel(ctx, cardStyleState),
+                colorAccent = C_accent,
+                textColor = C_white,
+                grayColor = C_gray1,
+                card2Color = C_card2
+            ) {
                 showCardStyleDialog = true
             }
             HorizontalDivider(color = C_border, thickness = 1.dp)

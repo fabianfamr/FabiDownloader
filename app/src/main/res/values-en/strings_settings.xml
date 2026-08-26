@@ -239,4 +239,19 @@
 
     <string name="settings_copy_clipboard">Copy to clipboard</string>
 
+    <!-- User-friendly menu options -->
+    <string name="settings_quality_best">Best quality available</string>
+    <string name="settings_quality_audio_only">Audio only</string>
+    <string name="settings_speed_unlimited">Unlimited</string>
+    <string name="settings_card_style_detailed">Detailed</string>
+    <string name="settings_card_style_compact">Compact</string>
+    <string name="settings_card_style_minimal">Minimal</string>
+    <string name="settings_accent_electric_blue">Electric Blue</string>
+    <string name="settings_accent_emerald_green">Emerald Green</string>
+    <string name="settings_accent_royal_purple">Royal Purple</string>
+    <string name="settings_accent_sunset_orange">Sunset Orange</string>
+    <string name="settings_accent_hot_pink">Hot Pink</string>
+    <string name="settings_accent_steel_gray">Steel Gray</string>
+    <string name="settings_battery_action_optimize">Pause downloads</string>
+    <string name="settings_battery_action_limit">Limit speed and threads</string>
 </resources>
