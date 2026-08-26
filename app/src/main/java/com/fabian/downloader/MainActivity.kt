@@ -11,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.room.Room
 import com.fabian.downloader.configs.Config
@@ -22,11 +23,10 @@ class MainActivity : ComponentActivity() {
     lateinit var database: AppDatabase
     private val startOnDownloadsState = mutableStateOf(false)
     private val initialPageState = mutableStateOf(0)
-
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        // Handle permission result if needed
+    ) { _ ->
+        com.fabian.downloader.utils.PathUtils.ensureFabiDirectories(this)
     }
 
     override fun attachBaseContext(newBase: android.content.Context) {
@@ -114,6 +114,9 @@ class MainActivity : ComponentActivity() {
             }
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 permissionsToRequest.add(Manifest.permission.READ_MEDIA_AUDIO)
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(Manifest.permission.READ_MEDIA_IMAGES)
             }
         } else {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {

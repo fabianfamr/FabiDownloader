@@ -15,26 +15,23 @@ object PathUtils {
 
     fun ensureFabiDirectories(context: Context) {
         try {
-            val storageRoot = Environment.getExternalStorageDirectory()
-            if (storageRoot != null) {
-                val fabiRoot = File(storageRoot, Config.PATH_ROOT_FOLDER)
-                if (!fabiRoot.exists()) fabiRoot.mkdirs()
-                
-                val downloadsDir = File(fabiRoot, "downloads")
-                if (!downloadsDir.exists()) downloadsDir.mkdirs()
-                
-                val videoDir = File(downloadsDir, "video")
-                if (!videoDir.exists()) videoDir.mkdirs()
-                
-                val audioDir = File(downloadsDir, "audio")
-                if (!audioDir.exists()) audioDir.mkdirs()
-                
-                val imageDir = File(downloadsDir, "image")
-                if (!imageDir.exists()) imageDir.mkdirs()
-                
-                val dbDir = File(fabiRoot, "db")
-                if (!dbDir.exists()) dbDir.mkdirs()
-            }
+            val root = getRootFolder(context)
+            if (!root.exists()) root.mkdirs()
+            
+            val downloadsDir = File(root, "downloads")
+            if (!downloadsDir.exists()) downloadsDir.mkdirs()
+            
+            val videoDir = File(downloadsDir, "video")
+            if (!videoDir.exists()) videoDir.mkdirs()
+            
+            val audioDir = File(downloadsDir, "audio")
+            if (!audioDir.exists()) audioDir.mkdirs()
+            
+            val imageDir = File(downloadsDir, "image")
+            if (!imageDir.exists()) imageDir.mkdirs()
+            
+            val dbDir = File(root, "db")
+            if (!dbDir.exists()) dbDir.mkdirs()
         } catch (e: Exception) {
             android.util.Log.e(Config.TAG_PATH_UTILS, "Error creando estructura de carpetas FabiDownloader", e)
         }
@@ -59,6 +56,16 @@ object PathUtils {
     }
 
     fun getRootFolder(context: Context): File {
+        // 1. Ubicación estándar en la carpeta pública de descargas: /storage/emulated/0/Download/FabiDownloader
+        val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        if (publicDownloads != null) {
+            val fabiDownloadRoot = File(publicDownloads, Config.PATH_ROOT_FOLDER)
+            if (isWritableDir(fabiDownloadRoot)) {
+                return fabiDownloadRoot
+            }
+        }
+
+        // 2. Raíz de almacenamiento si está disponible y escribible
         val storageRoot = Environment.getExternalStorageDirectory()
         if (storageRoot != null) {
             val fabiRoot = File(storageRoot, Config.PATH_ROOT_FOLDER)
@@ -66,6 +73,7 @@ object PathUtils {
                 return fabiRoot
             }
         }
+
         // Fallback 1: externalMediaDirs
         for (mediaDir in context.externalMediaDirs) {
             if (mediaDir != null) {
@@ -100,22 +108,43 @@ object PathUtils {
         val dbFolder = getDbFolder(context)
         val targetDbFile = File(dbFolder, Config.DB_NAME)
 
-        val internalDbFile = context.getDatabasePath(Config.DB_NAME)
-        if (!targetDbFile.exists() && internalDbFile.exists() && internalDbFile.length() > 0) {
-            try {
-                internalDbFile.copyTo(targetDbFile, overwrite = true)
-                val internalWal = File(internalDbFile.parentFile, "${Config.DB_NAME}-wal")
-                if (internalWal.exists()) {
-                    internalWal.copyTo(File(dbFolder, "${Config.DB_NAME}-wal"), overwrite = true)
+        if (!targetDbFile.exists()) {
+            // Verificar si existía una DB previa en la raíz /storage/emulated/0/FabiDownloader/db/
+            val storageRoot = Environment.getExternalStorageDirectory()
+            if (storageRoot != null) {
+                val oldRootDb = File(storageRoot, "${Config.PATH_ROOT_FOLDER}/db/${Config.DB_NAME}")
+                if (oldRootDb.exists() && oldRootDb.length() > 0) {
+                    try {
+                        oldRootDb.copyTo(targetDbFile, overwrite = true)
+                        val oldWal = File(oldRootDb.parentFile, "${Config.DB_NAME}-wal")
+                        if (oldWal.exists()) oldWal.copyTo(File(dbFolder, "${Config.DB_NAME}-wal"), overwrite = true)
+                        val oldShm = File(oldRootDb.parentFile, "${Config.DB_NAME}-shm")
+                        if (oldShm.exists()) oldShm.copyTo(File(dbFolder, "${Config.DB_NAME}-shm"), overwrite = true)
+                        android.util.Log.i(Config.TAG_PATH_UTILS, "Migrated database from root to ${targetDbFile.absolutePath}")
+                    } catch (e: Exception) {
+                        android.util.Log.e(Config.TAG_PATH_UTILS, "Error migrating database from root", e)
+                    }
                 }
-                val internalShm = File(internalDbFile.parentFile, "${Config.DB_NAME}-shm")
-                if (internalShm.exists()) {
-                    internalShm.copyTo(File(dbFolder, "${Config.DB_NAME}-shm"), overwrite = true)
+            }
+
+            // Migración desde base de datos interna estándar si aplica
+            val internalDbFile = context.getDatabasePath(Config.DB_NAME)
+            if (!targetDbFile.exists() && internalDbFile.exists() && internalDbFile.length() > 0) {
+                try {
+                    internalDbFile.copyTo(targetDbFile, overwrite = true)
+                    val internalWal = File(internalDbFile.parentFile, "${Config.DB_NAME}-wal")
+                    if (internalWal.exists()) {
+                        internalWal.copyTo(File(dbFolder, "${Config.DB_NAME}-wal"), overwrite = true)
+                    }
+                    val internalShm = File(internalDbFile.parentFile, "${Config.DB_NAME}-shm")
+                    if (internalShm.exists()) {
+                        internalShm.copyTo(File(dbFolder, "${Config.DB_NAME}-shm"), overwrite = true)
+                    }
+                    android.util.Log.i(Config.TAG_PATH_UTILS, "Migrated internal database to ${targetDbFile.absolutePath}")
+                } catch (e: Exception) {
+                    android.util.Log.e(Config.TAG_PATH_UTILS, "Error migrating internal database", e)
+                    return internalDbFile
                 }
-                android.util.Log.i(Config.TAG_PATH_UTILS, "Migrated database to ${targetDbFile.absolutePath}")
-            } catch (e: Exception) {
-                android.util.Log.e(Config.TAG_PATH_UTILS, "Error migrating database to external storage", e)
-                return internalDbFile
             }
         }
         return targetDbFile
@@ -223,7 +252,7 @@ object PathUtils {
 
     fun getDisplayDownloadLocation(locationSetting: String = com.fabian.downloader.ui.AppSettings.downloadLocation): String {
         if (locationSetting.isEmpty() || locationSetting == Config.PATH_DOWNLOAD_LOCATION_DEFAULT || locationSetting.equals("downloads", ignoreCase = true)) {
-            return "FabiDownloader/downloads"
+            return "Descargas > FabiDownloader"
         }
         if (locationSetting.startsWith("content://")) {
             try {
@@ -239,7 +268,7 @@ object PathUtils {
             } catch (e: Exception) {
                 android.util.Log.e(Config.TAG_PATH_UTILS, "Error decoding SAF uri for display: ${e.message}")
             }
-            return "FabiDownloader/downloads"
+            return "Descargas > FabiDownloader"
         }
         if (locationSetting.startsWith("/storage/emulated/0/")) {
             val rel = locationSetting.removePrefix("/storage/emulated/0/").trim('/')
@@ -249,22 +278,18 @@ object PathUtils {
             return locationSetting
         }
         val cleanRel = locationSetting.trim('/')
-        return "FabiDownloader/$cleanRel"
+        return "Descargas > FabiDownloader/$cleanRel"
     }
  
     fun getDownloadFolder(context: Context, format: String): File {
         val isVideo = format.equals(Config.FORMAT_MP4, ignoreCase = true) || format.equals(Config.FORMAT_WEBM, ignoreCase = true)
         val isImage = format.equals(Config.FORMAT_JPG, ignoreCase = true) || format.equals(Config.FORMAT_PNG, ignoreCase = true) || format.equals(Config.FORMAT_WEBP, ignoreCase = true) || format.equals("JPEG", ignoreCase = true)
-        val relativeSubfolder = when {
-            isVideo -> "${Config.PATH_ROOT_FOLDER}/downloads/video"
-            isImage -> "${Config.PATH_ROOT_FOLDER}/downloads/image"
-            else -> "${Config.PATH_ROOT_FOLDER}/downloads/audio"
-        }
         val subfolderName = when {
             isVideo -> "video"
             isImage -> "image"
             else -> "audio"
         }
+        val relativeSubfolder = "${Config.PATH_ROOT_FOLDER}/downloads/$subfolderName"
         
         val locationSetting = com.fabian.downloader.ui.AppSettings.downloadLocation
         val cacheKey = "${locationSetting}_$relativeSubfolder"
@@ -273,7 +298,7 @@ object PathUtils {
             if (it.exists()) return it
         }
  
-        // 1. Intentar usar la ubicación configurada por el usuario (SAF Uri o ruta física)
+        // 1. Intentar usar la ubicación configurada expresamente por el usuario (SAF Uri o ruta física)
         var configuredDir: File? = null
 
         if (locationSetting.startsWith("content://")) {
@@ -304,27 +329,25 @@ object PathUtils {
             }
         }
 
-        // 2. Estructura principal estilo Snaptube: FabiDownloader/downloads/video o audio en la raíz de almacenamiento
-        val storageRoot = Environment.getExternalStorageDirectory()
-        if (storageRoot != null) {
-            val fabiDownloadFolder = File(storageRoot, relativeSubfolder)
-            if (isWritableDir(fabiDownloadFolder)) {
-                android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified FabiDownloader folder: ${fabiDownloadFolder.absolutePath}")
-                cachedFolders[cacheKey] = fabiDownloadFolder
-                return fabiDownloadFolder
-            } else {
-                android.util.Log.w(Config.TAG_PATH_UTILS, "FabiDownloader root folder is NOT writable: ${fabiDownloadFolder.absolutePath}")
-            }
-        }
-
-        // 3. Fallback: Carpeta pública estándar de descargas: Downloads/FabiDownloader/downloads/video o audio
+        // 2. Ubicación principal estándar: /storage/emulated/0/Download/FabiDownloader/downloads/video o audio
         val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         if (publicDownloads != null) {
-            val downloadFabiFolder = File(publicDownloads, "${Config.PATH_ROOT_FOLDER}/$subfolderName")
+            val downloadFabiFolder = File(publicDownloads, relativeSubfolder)
             if (isWritableDir(downloadFabiFolder)) {
                 android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified public Download folder: ${downloadFabiFolder.absolutePath}")
                 cachedFolders[cacheKey] = downloadFabiFolder
                 return downloadFabiFolder
+            }
+        }
+
+        // 3. Fallback: Raíz de almacenamiento si está disponible y escribible
+        val storageRoot = Environment.getExternalStorageDirectory()
+        if (storageRoot != null) {
+            val fabiDownloadFolder = File(storageRoot, relativeSubfolder)
+            if (isWritableDir(fabiDownloadFolder)) {
+                android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified FabiDownloader root folder: ${fabiDownloadFolder.absolutePath}")
+                cachedFolders[cacheKey] = fabiDownloadFolder
+                return fabiDownloadFolder
             }
         }
 
