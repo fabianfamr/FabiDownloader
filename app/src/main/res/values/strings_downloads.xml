@@ -8,6 +8,8 @@
     <string name="downloads_error_copied">Error copiado al portapapeles</string>
     <string name="downloads_copy_all_button">Copiar Todo</string>
     <string name="downloads_close_button">Cerrar</string>
+    <string name="downloads_share_file">Compartir archivo</string>
+    <string name="downloads_share_file_desc">Enviar o compartir este archivo descargado</string>
     <string name="downloads_share_title">Compartir archivos</string>
     <string name="downloads_share_empty">No hay archivos locales listos para compartir</string>
     <string name="downloads_share_error">Error al compartir: %1$s</string>

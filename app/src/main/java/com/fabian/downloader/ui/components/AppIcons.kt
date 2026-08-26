@@ -493,6 +493,20 @@ object AppIcons {
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round
             )
+            addPath(
+                pathData = addPathNodes("M 8.59 13.51 L 15.42 17.49"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+            addPath(
+                pathData = addPathNodes("M 15.41 6.51 L 8.59 10.49"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
         }.build()
 
     val Speed: ImageVector
@@ -869,7 +883,14 @@ object AppIcons {
             viewportHeight = 24f
         ).apply {
             addPath(
-                pathData = addPathNodes("M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"),
+                pathData = addPathNodes("M 9 9 h 10 a 2 2 0 0 1 2 2 v 10 a 2 2 0 0 1 -2 2 H 9 a 2 2 0 0 1 -2 -2 V 11 a 2 2 0 0 1 2 -2 Z"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+            addPath(
+                pathData = addPathNodes("M 5 15 H 4 a 2 2 0 0 1 -2 -2 V 4 a 2 2 0 0 1 2 -2 h 9 a 2 2 0 0 1 2 2 v 1"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,
@@ -886,7 +907,14 @@ object AppIcons {
             viewportHeight = 24f
         ).apply {
             addPath(
-                pathData = addPathNodes("M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"),
+                pathData = addPathNodes("M 9 9 h 10 a 2 2 0 0 1 2 2 v 10 a 2 2 0 0 1 -2 2 H 9 a 2 2 0 0 1 -2 -2 V 11 a 2 2 0 0 1 2 -2 Z"),
+                stroke = SolidColor(Color.White),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            )
+            addPath(
+                pathData = addPathNodes("M 5 15 H 4 a 2 2 0 0 1 -2 -2 V 4 a 2 2 0 0 1 2 -2 h 9 a 2 2 0 0 1 2 2 v 1"),
                 stroke = SolidColor(Color.White),
                 strokeLineWidth = 2f,
                 strokeLineCap = StrokeCap.Round,

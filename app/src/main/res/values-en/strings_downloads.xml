@@ -8,6 +8,8 @@
     <string name="downloads_error_copied">Error copied to clipboard</string>
     <string name="downloads_copy_all_button">Copy All</string>
     <string name="downloads_close_button">Close</string>
+    <string name="downloads_share_file">Share file</string>
+    <string name="downloads_share_file_desc">Send or share this downloaded file</string>
     <string name="downloads_share_title">Share files</string>
     <string name="downloads_share_empty">No local files ready to share</string>
     <string name="downloads_share_error">Error sharing: %1$s</string>

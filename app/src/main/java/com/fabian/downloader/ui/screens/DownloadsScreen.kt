@@ -248,6 +248,26 @@ fun DownloadsScreen(
                     // Completed Options
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable {
+                            val targetRecord = menuRecord
+                            menuRecord = null
+                            if (targetRecord != null) {
+                                onShareFile(targetRecord)
+                            }
+                        }.padding(20.dp, 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.size(32.dp).background(C_accentDim, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
+                            Icon(AppIcons.Share, contentDescription = null, tint = C_accent, modifier = Modifier.size(16.dp))
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(stringResource(R.string.downloads_share_file), color = C_white, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.downloads_share_file_desc), color = C_gray1, fontSize = 12.sp)
+                        }
+                    }
+                    HorizontalDivider(color = C_border)
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable {
                             clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(menuRecord!!.url))
                             ToastUtils.showShort(ctx, R.string.downloads_link_copied)
                             menuRecord = null
