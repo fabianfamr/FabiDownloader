@@ -23,6 +23,8 @@ import kotlinx.coroutines.launch
 
 class DownloadForegroundService : Service() {
 
+    private var serviceStartTimeMs: Long = 0L
+
     companion object {
         private const val NOTIFICATION_ID = 9999
         const val ACTION_START = "com.fabian.downloader.ACTION_START_FOREGROUND"
@@ -31,9 +33,6 @@ class DownloadForegroundService : Service() {
         @Volatile
         var isRunning: Boolean = false
             private set
-
-        @Volatile
-        private var serviceStartTimeMs: Long = 0L
 
         fun start(context: Context) {
             try {
@@ -95,9 +94,7 @@ class DownloadForegroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         isRunning = true
-        if (serviceStartTimeMs == 0L) {
-            serviceStartTimeMs = System.currentTimeMillis()
-        }
+        serviceStartTimeMs = System.currentTimeMillis()
         
         // Garantizar siempre la llamada a startForeground de inmediato para cumplir con el contrato del SO
         promoteToForeground()
