@@ -54,11 +54,11 @@ class StorageService(private val database: AppDatabase) {
 
     fun shutdownAndFlush() {
         flushJob?.cancel()
-        try {
-            kotlinx.coroutines.runBlocking(Dispatchers.IO) {
+        serviceScope.launch(kotlinx.coroutines.NonCancellable) {
+            try {
                 flushPendingWrites()
-            }
-        } catch (_: Exception) {}
+            } catch (_: Exception) {}
+        }
     }
 
     suspend fun flushPendingWrites() {

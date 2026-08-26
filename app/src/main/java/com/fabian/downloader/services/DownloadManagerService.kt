@@ -148,20 +148,17 @@ class DownloadManagerService private constructor(
                         if (forcedToProcess.isNotEmpty()) {
                             DownloadForegroundService.start(application)
                             forcedToProcess.forEach { record ->
-                                processingIds.add(record.id)
-                                serviceScope.launch {
+                                val id = record.id
+                                processingIds.add(id)
+                                val job = serviceScope.launch {
                                     try {
-                                        runDownloadDirect(record.id)
+                                        runDownloadDirect(id)
                                     } finally {
-                                        processingIds.remove(record.id)
-                                        activeProgresses.remove(record.id)
-                                        forcedDownloadIds.remove(record.id)
-                                        if (processingIds.isEmpty()) {
-                                            DownloadForegroundService.stop(application)
-                                            System.gc()
-                                        }
-                                        triggerQueue()
+                                        releaseSlot(id)
                                     }
+                                }
+                                job.invokeOnCompletion {
+                                    releaseSlot(id)
                                 }
                             }
                         }
@@ -169,7 +166,10 @@ class DownloadManagerService private constructor(
                         var maxParallel = AppSettings.maxConcurrentDownloads
                         val batteryManager = BatteryOptimizerManager.getInstance(application)
                         if (AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
-                            if (AppSettings.batteryLowAction == "Optimizar recursos" || AppSettings.batteryLowAction == "Limitar concurrencia") {
+                            if (AppSettings.batteryLowAction == Config.BATTERY_ACTION_OPTIMIZE || 
+                                AppSettings.batteryLowAction == Config.BATTERY_ACTION_LIMIT ||
+                                AppSettings.batteryLowAction == "Optimizar recursos" || 
+                                AppSettings.batteryLowAction == "Limitar concurrencia") {
                                 maxParallel = 1
                             }
                         }
@@ -188,22 +188,18 @@ class DownloadManagerService private constructor(
                             DownloadForegroundService.start(application)
                             
                             normalToProcess.take(slotsAvailable).forEach { record ->
-                                processingIds.add(record.id)
+                                val id = record.id
+                                processingIds.add(id)
                                 
-                                serviceScope.launch {
+                                val job = serviceScope.launch {
                                     try {
-                                        runDownloadDirect(record.id)
+                                        runDownloadDirect(id)
                                     } finally {
-                                        processingIds.remove(record.id)
-                                        activeProgresses.remove(record.id)
-                                        forcedDownloadIds.remove(record.id)
-                                        if (processingIds.isEmpty()) {
-                                            // Detener servicio en segundo plano cuando no queden descargas activas
-                                            DownloadForegroundService.stop(application)
-                                            System.gc()
-                                        }
-                                        triggerQueue() // Trigger again to let other queued items start instantly
+                                        releaseSlot(id)
                                     }
+                                }
+                                job.invokeOnCompletion {
+                                    releaseSlot(id)
                                 }
                             }
                         }
@@ -1016,6 +1012,22 @@ class DownloadManagerService private constructor(
             }
         } catch (e: Exception) {
             Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error flushing state on app closed", e)
+        }
+    }
+
+    private fun releaseSlot(id: Long) {
+        val removed = processingIds.remove(id)
+        activeProgresses.remove(id)
+        forcedDownloadIds.remove(id)
+        activeJobs.remove(id)
+        activeCalls.remove(id)
+        _liveProgressFlow.update { it - id }
+        if (processingIds.isEmpty()) {
+            DownloadForegroundService.stop(application)
+            System.gc()
+        }
+        if (removed) {
+            triggerQueue()
         }
     }
 

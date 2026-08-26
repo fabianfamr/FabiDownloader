@@ -91,8 +91,9 @@ abstract class BaseSiteService : SiteService {
 
                     for (client in clientOptions) {
                         val request = createRequest(client)
+                        val processId = java.util.UUID.randomUUID().toString()
                         try {
-                            val response = YoutubeDL.getInstance().execute(request)
+                            val response = YoutubeDL.getInstance().execute(request, processId)
                             val jsonRaw = response.out ?: continue
                             val json = JSONObject(jsonRaw)
 
@@ -116,6 +117,10 @@ abstract class BaseSiteService : SiteService {
                                 val appCtx = com.fabian.downloader.MyApplication.getInstance()
                                 appCtx.forceUpdateYtdlpBinary(appCtx)
                             }
+                        } finally {
+                            try {
+                                YoutubeDL.getInstance().destroyProcessById(processId)
+                            } catch (_: Exception) {}
                         }
                     }
                     Log.w(Config.TAG_BASE_SITE_SERVICE, "Todas las extracciones fallaron para $cleanUrl (servicio $siteId)")

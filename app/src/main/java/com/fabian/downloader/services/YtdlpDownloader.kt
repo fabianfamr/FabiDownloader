@@ -382,6 +382,20 @@ class YtdlpDownloader {
             return keywords.any { lowerMsg.contains(it) || lowerClass.contains(it) || lowerLine.contains(it) }
         }
 
+        fun isFatalUnrecoverableError(e: Throwable, line: String): Boolean {
+            val lowerMsg = (e.message ?: "").lowercase()
+            val lowerClass = e.javaClass.name.lowercase()
+            val lowerLine = line.lowercase()
+            val fatalKeywords = listOf(
+                "private video", "this video is private", "video unavailable",
+                "this video has been removed", "account has been terminated",
+                "http error 404", "404 not found", "requires payment",
+                "members-only content", "drm protected", "login required",
+                "sign in to confirm your age", "this video is only available to registered users"
+            )
+            return fatalKeywords.any { lowerMsg.contains(it) || lowerClass.contains(it) || lowerLine.contains(it) }
+        }
+
         suspend fun isExplicitCancellation(e: Throwable): Boolean {
             if (e is kotlinx.coroutines.CancellationException) return true
             if (!kotlinx.coroutines.currentCoroutineContext().isActive) return true
@@ -552,6 +566,12 @@ class YtdlpDownloader {
                         com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(com.fabian.downloader.MyApplication.getInstance())
                     }
 
+                    if (isFatalUnrecoverableError(e, lastLine)) {
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Error irrecuperable detectado ($lastLine). Cancelando intentos y fallbacks inmediatamente.")
+                        onFailAction(if (e is Exception) e else Exception(e))
+                        return false
+                    }
+
                     val hasInternet = connService.checkConnection()
                     val isNetworkOrIoError = !hasInternet || isNetworkOrTemporaryError(e, lastLine)
 
@@ -580,11 +600,9 @@ class YtdlpDownloader {
                         kotlinx.coroutines.delay(2000)
                     }
                 } finally {
-                    if (!coroutineContext.isActive) {
-                        try {
-                            com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(processId)
-                        } catch (_: Exception) {}
-                    }
+                    try {
+                        com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(processId)
+                    } catch (_: Exception) {}
                 }
             }
             return false
@@ -594,7 +612,7 @@ class YtdlpDownloader {
             // Nivel 0: Intentar con la calidad / formato solicitados (y fallback interno de calidad)
             val success0 = executeWithRetry(0) { e ->
                 executionError = e
-                if (autoRetry) {
+                if (autoRetry && !isFatalUnrecoverableError(e, lastLine)) {
                     Log.w(Config.TAG_YTDLP_DOWNLOADER, "Primer nivel fallido para $videoUrl: ${e.message}. Reintentando nivel de fallback 1...")
                     alProgresar(-1f, Config.STATUS_DOWNLOADING, Config.STATUS_RETRYING)
                     cleanupBeforeRetry()
@@ -605,7 +623,7 @@ class YtdlpDownloader {
                 }
             }
             if (success0) return@withContext true
-            if (!autoRetry) {
+            if (!autoRetry || isFatalUnrecoverableError(executionError ?: Exception(), lastLine)) {
                 val finalError = executionError ?: Exception(lastLine.ifEmpty { "Error en la descarga" })
                 val errorMessage = resolveUserFacingError(finalError, lastLine)
                 throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)

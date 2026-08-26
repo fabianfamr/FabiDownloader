@@ -434,46 +434,20 @@ class NotificationService(private val context: Context) {
         notificationManager.notify(id + 500000, notification)
     }
 
-    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
-        val (height: Int, width: Int) = options.run { outHeight to outWidth }
-        var inSampleSize = 1
-        if (height > reqHeight || width > reqWidth) {
-            val halfHeight: Int = height / 2
-            val halfWidth: Int = width / 2
-            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
-                inSampleSize *= 2
-            }
-        }
-        return inSampleSize
-    }
-
     private suspend fun getBitmapFromUrl(url: String): Bitmap? = withContext(Dispatchers.IO) {
         val cached = thumbnailCache.get(url)
         if (cached != null) return@withContext cached
 
         try {
-            val bitmap = if (url.startsWith("http://") || url.startsWith("https://")) {
-                val request = okhttp3.Request.Builder()
-                    .url(url)
-                    .header("User-Agent", Config.UA_DESKTOP)
-                    .build()
-                
-                com.fabian.downloader.network.NetworkClient.okHttpClient.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) return@withContext null
-                    val bytes = response.body?.bytes() ?: return@withContext null
-                    val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
-                    opts.inSampleSize = calculateInSampleSize(opts, 256, 256)
-                    opts.inJustDecodeBounds = false
-                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
-                }
-            } else {
-                val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeFile(url, opts)
-                opts.inSampleSize = calculateInSampleSize(opts, 256, 256)
-                opts.inJustDecodeBounds = false
-                BitmapFactory.decodeFile(url, opts)
-            }
+            val imageLoader = coil.ImageLoader(context)
+            val request = coil.request.ImageRequest.Builder(context)
+                .data(url)
+                .size(256, 256)
+                .allowHardware(false)
+                .build()
+            val result = imageLoader.execute(request)
+            val drawable = result.drawable
+            val bitmap = (drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
             if (bitmap != null) {
                 thumbnailCache.put(url, bitmap)
             }

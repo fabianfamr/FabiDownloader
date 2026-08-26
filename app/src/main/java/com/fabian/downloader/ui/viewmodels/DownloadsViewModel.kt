@@ -17,9 +17,10 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
     private val storageService = StorageService.getInstance(app)
     private val downloadManager = DownloadManagerService.getInstance(app)
 
+    @OptIn(FlowPreview::class)
     val downloads: Flow<List<DownloadRecord>> = combine(
         storageService.getAllDownloads(),
-        downloadManager.liveProgressFlow
+        downloadManager.liveProgressFlow.sample(150L)
     ) { records, liveMap ->
         records.map { record ->
             val live = liveMap[record.id]

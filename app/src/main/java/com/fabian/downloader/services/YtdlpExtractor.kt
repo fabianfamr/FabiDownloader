@@ -90,9 +90,9 @@ class YtdlpExtractor {
                     com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(com.fabian.downloader.MyApplication.getInstance())
                 }
             } finally {
-                if (!isActive) {
-                    try { YoutubeDL.getInstance().destroyProcessById(processId) } catch (_: Exception) {}
-                }
+                try {
+                    YoutubeDL.getInstance().destroyProcessById(processId)
+                } catch (_: Exception) {}
             }
         }
         Log.w(Config.TAG_YTDLP_EXTRACTOR, "No se pudo extraer metadatos para: $videoUrl")
@@ -141,9 +141,9 @@ class YtdlpExtractor {
             Log.e(Config.TAG_YTDLP_EXTRACTOR, "Error extracting playlist info: ${e.message}", e)
             null
         } finally {
-            if (!isActive) {
-                try { YoutubeDL.getInstance().destroyProcessById(processId) } catch (_: Exception) {}
-            }
+            try {
+                YoutubeDL.getInstance().destroyProcessById(processId)
+            } catch (_: Exception) {}
         }
     }
 }
