@@ -45,6 +45,7 @@ class MainActivity : ComponentActivity() {
         
         checkAndRequestPermissions()
         com.fabian.downloader.utils.PathUtils.ensureFabiDirectories(this)
+        com.fabian.downloader.utils.DeviceOptimizationHelper.applyScreenAndWindowOptimizations(this)
         enableEdgeToEdge()
         setContent {
             val themePreference by com.fabian.downloader.ui.AppSettings.themePreferenceState

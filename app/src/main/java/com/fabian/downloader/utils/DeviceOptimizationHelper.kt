@@ -1,7 +1,12 @@
 package com.fabian.downloader.utils
 
+import android.app.Activity
+import android.content.Context
+import android.net.wifi.WifiManager
 import android.os.Build
+import android.os.PowerManager
 import android.util.Log
+import android.view.WindowManager
 import com.fabian.downloader.configs.Config
 
 enum class DeviceBrand(val displayName: String, val systemLayerName: String) {
@@ -58,7 +63,6 @@ object DeviceOptimizationHelper {
         return when (brand) {
             DeviceBrand.XIAOMI -> {
                 // MIUI / HyperOS gestiona agresivamente procesos con alto número de hilos de red
-                // Bloques de 8MB y buffers optimizados para evitar bloqueos del garbage collector de MIUI
                 DeviceDownloadTuning(
                     defaultConcurrentFragments = if (numCores >= 8) 4 else 3,
                     httpChunkSize = if (maxMemoryMb > 256) "10M" else "5M",
@@ -117,5 +121,119 @@ object DeviceOptimizationHelper {
                 )
             }
         }
+    }
+
+    /**
+     * Aplica optimizaciones automáticas a la pantalla, ventana, tasa de refresco (90/120Hz)
+     * y recorte de pantalla (notch/punch hole) adaptadas a la pantalla del dispositivo.
+     */
+    fun applyScreenAndWindowOptimizations(activity: Activity) {
+        try {
+            val window = activity.window
+
+            // 1. Adaptación de Recorte de Pantalla (Punch Hole / Notch / Bordes Curvos)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val layoutParams = window.attributes
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    layoutParams.layoutInDisplayCutoutMode =
+                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                } else {
+                    layoutParams.layoutInDisplayCutoutMode =
+                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                }
+                window.attributes = layoutParams
+            }
+
+            // 2. Activación automática de alta tasa de refresco (90Hz / 120Hz / 144Hz) en Samsung, Xiaomi, OnePlus, Vivo, etc.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    activity.display
+                } else {
+                    @Suppress("DEPRECATION")
+                    window.windowManager.defaultDisplay
+                }
+
+                if (display != null) {
+                    val supportedModes = display.supportedModes
+                    val highestRefreshRateMode = supportedModes.maxByOrNull { it.refreshRate }
+                    if (highestRefreshRateMode != null && highestRefreshRateMode.refreshRate > 60f) {
+                        val params = window.attributes
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            params.preferredDisplayModeId = highestRefreshRateMode.modeId
+                            window.attributes = params
+                            Log.d(Config.TAG_DOWNLOAD_MANAGER, "Pantalla adaptada automáticamente a ${highestRefreshRateMode.refreshRate}Hz")
+                        }
+                    }
+                }
+            }
+
+            // 3. Flags de aceleración de hardware fluida
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
+            )
+        } catch (e: Throwable) {
+            Log.w(Config.TAG_DOWNLOAD_MANAGER, "Adaptación de pantalla omitida: ${e.message}")
+        }
+    }
+
+    /**
+     * Adquiere un WakeLock parcial y un WifiLock de alto rendimiento para garantizar
+     * que marcas agresivas (MIUI, EMUI, ColorOS, FuntouchOS, OneUI) no suspendan la CPU ni el WiFi
+     * con la pantalla apagada durante descargas activas.
+     */
+    fun acquireDownloadLocks(context: Context): Pair<PowerManager.WakeLock?, WifiManager.WifiLock?> {
+        var wakeLock: PowerManager.WakeLock? = null
+        var wifiLock: WifiManager.WifiLock? = null
+
+        try {
+            val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+            if (powerManager != null) {
+                wakeLock = powerManager.newWakeLock(
+                    PowerManager.PARTIAL_WAKE_LOCK,
+                    "FabiDownloader:DownloadActiveWakeLock"
+                ).apply {
+                    setReferenceCounted(false)
+                    // Auto-liberación de seguridad máxima tras 60 minutos
+                    acquire(60 * 60 * 1000L)
+                }
+            }
+        } catch (e: Throwable) {
+            Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo adquirir WakeLock: ${e.message}")
+        }
+
+        try {
+            val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+            if (wifiManager != null) {
+                val wifiMode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    WifiManager.WIFI_MODE_FULL_LOW_LATENCY
+                } else {
+                    @Suppress("DEPRECATION")
+                    WifiManager.WIFI_MODE_FULL_HIGH_PERF
+                }
+                wifiLock = wifiManager.createWifiLock(wifiMode, "FabiDownloader:DownloadWifiLock").apply {
+                    setReferenceCounted(false)
+                    acquire()
+                }
+            }
+        } catch (e: Throwable) {
+            Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo adquirir WifiLock: ${e.message}")
+        }
+
+        return Pair(wakeLock, wifiLock)
+    }
+
+    fun releaseDownloadLocks(wakeLock: PowerManager.WakeLock?, wifiLock: WifiManager.WifiLock?) {
+        try {
+            if (wakeLock?.isHeld == true) {
+                wakeLock.release()
+            }
+        } catch (_: Throwable) {}
+
+        try {
+            if (wifiLock?.isHeld == true) {
+                wifiLock.release()
+            }
+        } catch (_: Throwable) {}
     }
 }

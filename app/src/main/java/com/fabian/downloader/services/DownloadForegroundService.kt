@@ -24,6 +24,8 @@ import kotlinx.coroutines.launch
 class DownloadForegroundService : Service() {
 
     private var serviceStartTimeMs: Long = 0L
+    private var wakeLock: android.os.PowerManager.WakeLock? = null
+    private var wifiLock: android.net.wifi.WifiManager.WifiLock? = null
 
     companion object {
         private const val NOTIFICATION_ID = 9999
@@ -88,6 +90,9 @@ class DownloadForegroundService : Service() {
         instance = this
         isRunning = true
         serviceStartTimeMs = System.currentTimeMillis()
+        val locks = com.fabian.downloader.utils.DeviceOptimizationHelper.acquireDownloadLocks(this)
+        wakeLock = locks.first
+        wifiLock = locks.second
         promoteToForeground()
     }
 
@@ -186,6 +191,11 @@ class DownloadForegroundService : Service() {
     override fun onDestroy() {
         instance = null
         isRunning = false
+        try {
+            com.fabian.downloader.utils.DeviceOptimizationHelper.releaseDownloadLocks(wakeLock, wifiLock)
+            wakeLock = null
+            wifiLock = null
+        } catch (_: Throwable) {}
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 stopForeground(STOP_FOREGROUND_REMOVE)
