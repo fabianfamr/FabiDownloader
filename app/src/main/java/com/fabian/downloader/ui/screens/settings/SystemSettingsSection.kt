@@ -75,78 +75,6 @@ fun SystemSettingsSection(
     var showBatteryLowThresholdDialog by remember { mutableStateOf(false) }
     var showBatteryLowActionDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
-    var showOemGuideDialog by remember { mutableStateOf(false) }
-
-    val currentBrand = remember { com.fabian.downloader.utils.DeviceOptimizationHelper.getCurrentBrand() }
-    val oemGuide = remember(currentBrand) { com.fabian.downloader.utils.DeviceOptimizationHelper.getOptimizationGuide(ctx, currentBrand) }
-
-    if (showOemGuideDialog) {
-        AlertDialog(
-            onDismissRequest = { showOemGuideDialog = false },
-            containerColor = C_card,
-            icon = {
-                Icon(
-                    imageVector = AppIcons.Smartphone,
-                    contentDescription = null,
-                    tint = C_accent,
-                    modifier = Modifier.size(28.dp)
-                )
-            },
-            title = {
-                Text(
-                    text = oemGuide.title,
-                    color = C_white,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = stringResource(R.string.settings_oem_desc),
-                        color = C_gray1,
-                        fontSize = 13.sp
-                    )
-                    Surface(
-                        color = C_card2,
-                        shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, C_border),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            oemGuide.steps.forEach { step ->
-                                Text(
-                                    text = step,
-                                    color = C_white,
-                                    fontSize = 12.sp,
-                                    lineHeight = 16.sp
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showOemGuideDialog = false
-                        com.fabian.downloader.utils.DeviceOptimizationHelper.openBrandBatterySettings(ctx, currentBrand)
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = C_accent)
-                ) {
-                    Text(stringResource(R.string.settings_oem_action_btn), color = androidx.compose.ui.graphics.Color.White, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showOemGuideDialog = false }) {
-                    Text(stringResource(R.string.settings_cancel_button), color = C_gray1)
-                }
-            }
-        )
-    }
 
     if (showStorageMarginDialog) {
         KeyValueSelectionDialog(
@@ -366,19 +294,6 @@ fun SystemSettingsSection(
                 ) {
                     showBatteryLowActionDialog = true
                 }
-            }
-
-            HorizontalDivider(color = C_border, thickness = 1.dp)
-            SettingsRow(
-                icon = AppIcons.Smartphone,
-                title = stringResource(R.string.settings_oem_title),
-                trailing = "${currentBrand.displayName} (${currentBrand.systemLayerName})",
-                colorAccent = C_accent,
-                textColor = C_white,
-                grayColor = C_gray1,
-                card2Color = C_card2
-            ) {
-                showOemGuideDialog = true
             }
         }
     }

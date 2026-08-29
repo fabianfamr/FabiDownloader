@@ -142,7 +142,7 @@ class YtdlpDownloader {
             }
 
             // ============================================================
-            // PARALELISMO Y VELOCIDAD (respetar ajustes del usuario o aplicar límites por batería baja)
+            // PARALELISMO Y VELOCIDAD (Calibración automática según dispositivo/marca y ajustes)
             // ============================================================
             val appCtx = com.fabian.downloader.MyApplication.getInstance()
             val batteryManager = BatteryOptimizerManager.getInstance(appCtx)
@@ -150,14 +150,15 @@ class YtdlpDownloader {
                                    batteryManager.isBatteryLowAndNotCharging() && 
                                    settings.batteryLowAction == "Optimizar recursos"
 
-            // Concurrent fragments: limitar automáticamente según el número de descargas activas
-            // para evitar saturación de CPU, bloqueos de I/O de disco y trabas del sistema
+            val brandTuning = com.fabian.downloader.utils.DeviceOptimizationHelper.getAutoTuning()
+
+            // Concurrent fragments: calibrado por hardware del teléfono y descargas activas
             val activeCount = try {
                 DownloadManagerService.getInstance(appCtx).getActiveDownloadsCount()
             } catch (e: Exception) {
                 1
             }
-            val userFragments = settings.concurrentFragments.toIntOrNull() ?: 4
+            val userFragments = settings.concurrentFragments.toIntOrNull() ?: brandTuning.defaultConcurrentFragments
             val safeFragments = when {
                 isBatteryLowMode -> 2
                 activeCount > 2 -> userFragments.coerceAtMost(3)
@@ -166,11 +167,9 @@ class YtdlpDownloader {
             }
             addOption("--concurrent-fragments", safeFragments.toString())
 
-            // Larger buffer = better throughput on fast connections
-            addOption("--buffer-size", "16K")
-
-            // HTTP chunk size: improves speed on large downloads (10MB chunks)
-            addOption("--http-chunk-size", "10M")
+            // Buffer size y HTTP chunk size calibrados internamente por marca/dispositivo
+            addOption("--buffer-size", brandTuning.bufferSize)
+            addOption("--http-chunk-size", brandTuning.httpChunkSize)
 
             // ============================================================
             // LIMITACIÓN DE VELOCIDAD (respetar maxSpeed o limitar por batería baja)
