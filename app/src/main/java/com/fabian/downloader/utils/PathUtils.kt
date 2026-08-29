@@ -94,60 +94,61 @@ object PathUtils {
     }
 
     fun getDbFolder(context: Context): File {
-        val root = getRootFolder(context)
-        val dbDir = File(root, "db")
-        if (isWritableDir(dbDir)) {
-            return dbDir
-        }
         val internalDbDir = context.getDatabasePath("temp").parentFile ?: File(context.filesDir, "databases")
         if (!internalDbDir.exists()) internalDbDir.mkdirs()
         return internalDbDir
     }
 
     fun getDatabaseFile(context: Context): File {
-        val dbFolder = getDbFolder(context)
-        val targetDbFile = File(dbFolder, Config.DB_NAME)
+        val internalDbFile = context.getDatabasePath(Config.DB_NAME)
+        val internalDbFolder = internalDbFile.parentFile ?: File(context.filesDir, "databases")
+        if (!internalDbFolder.exists()) internalDbFolder.mkdirs()
 
-        if (!targetDbFile.exists()) {
-            // Verificar si existía una DB previa en la raíz /storage/emulated/0/FabiDownloader/db/
+        if (!internalDbFile.exists() || internalDbFile.length() == 0L) {
+            // Attempt to migrate from legacy external storage locations to internal DB
+            val legacyPaths = mutableListOf<File>()
+            
+            val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            if (publicDownloads != null) {
+                legacyPaths.add(File(publicDownloads, "${Config.PATH_ROOT_FOLDER}/db/${Config.DB_NAME}"))
+            }
+            
             val storageRoot = Environment.getExternalStorageDirectory()
             if (storageRoot != null) {
-                val oldRootDb = File(storageRoot, "${Config.PATH_ROOT_FOLDER}/db/${Config.DB_NAME}")
-                if (oldRootDb.exists() && oldRootDb.length() > 0) {
-                    try {
-                        oldRootDb.copyTo(targetDbFile, overwrite = true)
-                        val oldWal = File(oldRootDb.parentFile, "${Config.DB_NAME}-wal")
-                        if (oldWal.exists()) oldWal.copyTo(File(dbFolder, "${Config.DB_NAME}-wal"), overwrite = true)
-                        val oldShm = File(oldRootDb.parentFile, "${Config.DB_NAME}-shm")
-                        if (oldShm.exists()) oldShm.copyTo(File(dbFolder, "${Config.DB_NAME}-shm"), overwrite = true)
-                        android.util.Log.i(Config.TAG_PATH_UTILS, "Migrated database from root to ${targetDbFile.absolutePath}")
-                    } catch (e: Exception) {
-                        android.util.Log.e(Config.TAG_PATH_UTILS, "Error migrating database from root", e)
-                    }
+                legacyPaths.add(File(storageRoot, "${Config.PATH_ROOT_FOLDER}/db/${Config.DB_NAME}"))
+            }
+            
+            val appExt = context.getExternalFilesDir(null)
+            if (appExt != null) {
+                legacyPaths.add(File(appExt, "${Config.PATH_ROOT_FOLDER}/db/${Config.DB_NAME}"))
+            }
+            
+            var externalLegacyDb: File? = null
+            for (path in legacyPaths) {
+                if (path.exists() && path.length() > 0) {
+                    externalLegacyDb = path
+                    break
                 }
             }
 
-            // Migración desde base de datos interna estándar si aplica
-            val internalDbFile = context.getDatabasePath(Config.DB_NAME)
-            if (!targetDbFile.exists() && internalDbFile.exists() && internalDbFile.length() > 0) {
+            if (externalLegacyDb != null) {
                 try {
-                    internalDbFile.copyTo(targetDbFile, overwrite = true)
-                    val internalWal = File(internalDbFile.parentFile, "${Config.DB_NAME}-wal")
-                    if (internalWal.exists()) {
-                        internalWal.copyTo(File(dbFolder, "${Config.DB_NAME}-wal"), overwrite = true)
-                    }
-                    val internalShm = File(internalDbFile.parentFile, "${Config.DB_NAME}-shm")
-                    if (internalShm.exists()) {
-                        internalShm.copyTo(File(dbFolder, "${Config.DB_NAME}-shm"), overwrite = true)
-                    }
-                    android.util.Log.i(Config.TAG_PATH_UTILS, "Migrated internal database to ${targetDbFile.absolutePath}")
+                    externalLegacyDb.copyTo(internalDbFile, overwrite = true)
+                    
+                    val extWal = File(externalLegacyDb.parentFile, "${Config.DB_NAME}-wal")
+                    if (extWal.exists()) extWal.copyTo(File(internalDbFolder, "${Config.DB_NAME}-wal"), overwrite = true)
+                    
+                    val extShm = File(externalLegacyDb.parentFile, "${Config.DB_NAME}-shm")
+                    if (extShm.exists()) extShm.copyTo(File(internalDbFolder, "${Config.DB_NAME}-shm"), overwrite = true)
+                    
+                    android.util.Log.i(Config.TAG_PATH_UTILS, "Migrated legacy database from ${externalLegacyDb.absolutePath} to internal storage")
                 } catch (e: Exception) {
-                    android.util.Log.e(Config.TAG_PATH_UTILS, "Error migrating internal database", e)
-                    return internalDbFile
+                    android.util.Log.e(Config.TAG_PATH_UTILS, "Error migrating legacy database to internal storage", e)
                 }
             }
         }
-        return targetDbFile
+        
+        return internalDbFile
     }
 
     fun migrateOldStructureIfNeeded(context: Context) {
