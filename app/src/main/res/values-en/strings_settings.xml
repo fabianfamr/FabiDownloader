@@ -254,4 +254,9 @@
     <string name="settings_accent_steel_gray">Steel Gray</string>
     <string name="settings_battery_action_optimize">Pause downloads</string>
     <string name="settings_battery_action_limit">Limit speed and threads</string>
+    <string name="settings_oem_title">Phone Brand Optimization</string>
+    <string name="settings_oem_desc">Configure background settings for your device brand so background downloads are never killed.</string>
+    <string name="settings_oem_open_btn">Configure</string>
+    <string name="settings_oem_dialog_title">Manufacturer Optimization Guide</string>
+    <string name="settings_oem_action_btn">Open Phone Settings</string>
 </resources>

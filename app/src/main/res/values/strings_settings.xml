@@ -254,4 +254,9 @@
     <string name="settings_accent_steel_gray">Gris Acero</string>
     <string name="settings_battery_action_optimize">Pausar descargas</string>
     <string name="settings_battery_action_limit">Limitar velocidad e hilos</string>
+    <string name="settings_oem_title">Optimización según tu Teléfono</string>
+    <string name="settings_oem_desc">Configura los permisos de segundo plano de tu fabricante para que no corte descargas al apagar la pantalla.</string>
+    <string name="settings_oem_open_btn">Configurar</string>
+    <string name="settings_oem_dialog_title">Guía de Optimización del Fabricante</string>
+    <string name="settings_oem_action_btn">Abrir Ajustes del Teléfono</string>
 </resources>
