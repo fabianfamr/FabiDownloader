@@ -8,6 +8,8 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.GlobalScope
 
 class YtdlpDownloader {
 
@@ -122,9 +124,9 @@ class YtdlpDownloader {
 
             if (isYoutube) {
                 when (fallbackLevel) {
-                    0 -> addOption("--extractor-args", "youtube:player_client=android,mweb,ios")
-                    1 -> addOption("--extractor-args", "youtube:player_client=ios,web,mweb")
-                    2 -> addOption("--extractor-args", "youtube:player_client=android_creator,ios,tv")
+                    0 -> addOption("--extractor-args", "youtube:player_client=android,web,ios")
+                    1 -> addOption("--extractor-args", "youtube:player_client=ios,web")
+                    2 -> addOption("--extractor-args", "youtube:player_client=android_creator,ios")
                     else -> { /* omit player_client for raw yt-dlp fallback */ }
                 }
             }
@@ -222,13 +224,13 @@ class YtdlpDownloader {
             }
 
             // ============================================================
-            // TIMEOUTS Y RETRIES OPTIMIZADOS PARA MÁXIMA ESTABILIDAD
+            // TIMEOUTS Y RETRIES OPTIMIZADOS PARA INICIO RÁPIDO Y FALLBACK INMEDIATO
             // ============================================================
-            addOption("--socket-timeout", "20")
-            addOption("--retries", "15")
-            addOption("--fragment-retries", "15")
-            addOption("--extractor-retries", "5")
-            addOption("--file-access-retries", "3")
+            addOption("--socket-timeout", "10")
+            addOption("--retries", "3")
+            addOption("--fragment-retries", "5")
+            addOption("--extractor-retries", "2")
+            addOption("--file-access-retries", "2")
             addOption("--retry-sleep", "fragment:1")
             addOption("--no-cache-dir")
             addOption("--no-update")
@@ -427,7 +429,7 @@ class YtdlpDownloader {
             onFailAction: suspend (Exception) -> Unit
         ): Boolean {
             var attempt = 0
-            val maxAttempts = if (autoRetry) 3 else 1
+            val maxAttempts = if (autoRetry) 2 else 1
             while (attempt < maxAttempts) {
                 if (!coroutineContext.isActive || isExplicitCancellation(kotlinx.coroutines.CancellationException())) {
                     throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
@@ -561,8 +563,11 @@ class YtdlpDownloader {
                         lowerMsg.contains("format is not available") || lowerLast.contains("format is not available") ||
                         lowerMsg.contains("no video formats found") || lowerLast.contains("no video formats found") ||
                         lowerMsg.contains("quickjs") || lowerLast.contains("quickjs")) {
-                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectada incompatibilidad de API/extractor en YouTube. Intentando refrescar binario yt-dlp...")
-                        com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(com.fabian.downloader.MyApplication.getInstance())
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectada incompatibilidad de API/extractor en YouTube. Actualizando binario en segundo plano...")
+                        val appCtx = com.fabian.downloader.MyApplication.getInstance()
+                        kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
+                            appCtx.forceUpdateYtdlpBinary(appCtx)
+                        }
                     }
 
                     if (isFatalUnrecoverableError(e, lastLine)) {
@@ -575,9 +580,9 @@ class YtdlpDownloader {
                     val isNetworkOrIoError = !hasInternet || isNetworkOrTemporaryError(e, lastLine)
 
                     if (isNetworkOrIoError && attempt < maxAttempts) {
-                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido por error de red/I/O. Esperando recuperación de red...")
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido por error de red/I/O. Esperando breve recuperación...")
                         var secondsWaited = 0
-                        while (secondsWaited < 15 && !connService.checkConnection()) {
+                        while (secondsWaited < 5 && !connService.checkConnection()) {
                             if (!coroutineContext.isActive || isExplicitCancellation(e)) throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
                             kotlinx.coroutines.delay(1000)
                             secondsWaited++
@@ -586,7 +591,7 @@ class YtdlpDownloader {
                         if (connService.checkConnection()) {
                             Log.i(Config.TAG_YTDLP_DOWNLOADER, "Reintentando el mismo nivel $level (intento ${attempt + 1})...")
                             cleanupBeforeRetry(isNetworkRetry = true)
-                            kotlinx.coroutines.delay(1000)
+                            kotlinx.coroutines.delay(500)
                             continue
                         }
                     }
@@ -594,9 +599,9 @@ class YtdlpDownloader {
                     if (attempt >= maxAttempts) {
                         onFailAction(if (e is Exception) e else Exception(e))
                     } else {
-                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido. Reintentando en 2 segundos...")
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Intento $attempt fallido. Reintentando...")
                         cleanupBeforeRetry(isNetworkRetry = true)
-                        kotlinx.coroutines.delay(2000)
+                        kotlinx.coroutines.delay(500)
                     }
                 } finally {
                     try {

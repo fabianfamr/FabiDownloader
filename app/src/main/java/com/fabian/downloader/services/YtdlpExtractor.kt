@@ -63,7 +63,7 @@ class YtdlpExtractor {
             }
         }
 
-        val clientOptions: List<String?> = listOf("android,mweb,ios", "ios,mweb", "tv,android_creator,mweb", "android_creator,ios,tv,web", null)
+        val clientOptions: List<String?> = listOf("android,web,ios", "ios,web", null)
 
         for (client in clientOptions) {
             val processId = java.util.UUID.randomUUID().toString()

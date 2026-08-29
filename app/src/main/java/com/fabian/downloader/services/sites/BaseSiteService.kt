@@ -35,8 +35,9 @@ abstract class BaseSiteService : SiteService {
         request.addOption("--geo-bypass")
         request.addOption("--quiet")
         request.addOption("--no-warnings")
-        request.addOption("--socket-timeout", "10")
-        request.addOption("--retries", "5")
+        request.addOption("--socket-timeout", "8")
+        request.addOption("--retries", "2")
+        request.addOption("--extractor-retries", "1")
         if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
             request.addOption("--no-check-certificate")
         }
@@ -61,7 +62,7 @@ abstract class BaseSiteService : SiteService {
             val deferred = activeExtractions.computeIfAbsent(cleanUrl) { _ ->
                 extractionScope.async {
                     val clientOptions: List<String?> = if (isYoutube) {
-                        listOf("android,mweb,ios", "ios,mweb", "tv,android_creator,mweb", "android_creator,ios,tv,web", null)
+                        listOf("android,web,ios", "ios,web", null)
                     } else {
                         listOf(null)
                     }
