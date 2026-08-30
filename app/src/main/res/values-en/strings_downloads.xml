@@ -82,23 +82,28 @@
     <string name="downloads_failed_prefix">Failed: </string>
 
     <!-- Toast messages -->
-    <string name="downloads_toast_no_connection">No internet connection</string>
-    <string name="downloads_toast_already_in_progress">This download is already in progress or queued</string>
-    <string name="downloads_toast_already_downloaded">This file has already been downloaded</string>
+    <string name="downloads_toast_no_connection">No connection</string>
+    <string name="downloads_toast_already_in_progress">Already in progress</string>
+    <string name="downloads_toast_already_downloaded">Already downloaded</string>
     <string name="downloads_toast_paused">Download paused</string>
     <string name="downloads_toast_link_copied">Link copied</string>
-    <string name="downloads_toast_no_app_to_open">No app found to open the file</string>
-    <string name="downloads_toast_file_not_found">The file does not exist or was moved</string>
-    <string name="downloads_toast_file_not_found_short">The file does not exist</string>
-    <string name="downloads_toast_share_error">Error sharing file</string>
-    <string name="downloads_toast_no_valid_link">No valid link found</string>
+    <string name="downloads_toast_no_app_to_open">No app to open</string>
+    <string name="downloads_toast_file_not_found">File not found</string>
+    <string name="downloads_toast_file_not_found_short">Does not exist</string>
+    <string name="downloads_toast_share_error">Error sharing</string>
+    <string name="downloads_toast_no_valid_link">Invalid link</string>
+    <string name="downloads_toast_wifi_only">Wi-Fi only mode</string>
+    <string name="downloads_toast_battery_low">Low battery</string>
 
     <!-- Error messages -->
     <string name="downloads_error_generic">Download error</string>
-    <string name="downloads_error_storage">Insufficient storage space</string>
-    <string name="downloads_error_requires_login">Sign-in required. Configure Cookies in Settings.</string>
-    <string name="downloads_error_network_retry">Network error — tap to retry</string>
-    <string name="downloads_error_retry">Error — tap to retry</string>
+    <string name="downloads_error_storage">Not enough storage</string>
+    <string name="downloads_error_requires_login">Sign in required</string>
+    <string name="downloads_error_network_retry">Network error — retry</string>
+    <string name="downloads_error_retry">Error — retry</string>
+    <string name="downloads_error_process_stuck">Process stuck</string>
+    <string name="downloads_error_interrupted">Download interrupted</string>
+    <string name="downloads_error_access_denied">Access denied (403)</string>
 
     <!-- Action labels -->
     <string name="downloads_action_open">Open</string>
@@ -117,7 +122,7 @@
     <string name="notif_channel_progress">Downloads in Progress</string>
     <string name="notif_channel_progress_desc">Shows real-time progress of active downloads</string>
     <string name="notif_channel_status">Download Status</string>
-    <string name="notif_channel_status_desc">Notifications for successfully completed or failed downloads</string>
+    <string name="notif_channel_status_desc">Notifications for completed or failed downloads</string>
     <string name="notif_title_completed">Download completed</string>
     <string name="notif_title_failed">Download failed</string>
     <string name="notif_batch_completed">Batch completed: %1$d downloads finished</string>
@@ -132,7 +137,4 @@
     <!-- Fallback titles -->
     <string name="downloads_default_title">Download</string>
     <string name="downloads_default_domain">Internet</string>
-
-    <string name="downloads_toast_wifi_only">\'Wi-Fi Only\' mode is active: Connect to Wi-Fi to download</string>
-    <string name="downloads_toast_battery_low">Low battery: download will be paused or limited</string>
 </resources>

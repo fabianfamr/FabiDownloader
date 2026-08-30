@@ -82,23 +82,28 @@
     <string name="downloads_failed_prefix">Fallo: </string>
 
     <!-- Toast messages -->
-    <string name="downloads_toast_no_connection">Sin conexión a internet</string>
-    <string name="downloads_toast_already_in_progress">Esta descarga ya está en progreso o en cola</string>
-    <string name="downloads_toast_already_downloaded">Este archivo ya ha sido descargado</string>
+    <string name="downloads_toast_no_connection">Sin conexión</string>
+    <string name="downloads_toast_already_in_progress">Ya en progreso</string>
+    <string name="downloads_toast_already_downloaded">Ya descargado</string>
     <string name="downloads_toast_paused">Descarga pausada</string>
     <string name="downloads_toast_link_copied">Enlace copiado</string>
-    <string name="downloads_toast_no_app_to_open">No se encontró una aplicación para abrir el archivo</string>
-    <string name="downloads_toast_file_not_found">El archivo no existe o fue movido</string>
-    <string name="downloads_toast_file_not_found_short">El archivo no existe</string>
-    <string name="downloads_toast_share_error">Error al compartir archivo</string>
-    <string name="downloads_toast_no_valid_link">No se encontró un enlace válido</string>
+    <string name="downloads_toast_no_app_to_open">Sin app para abrir</string>
+    <string name="downloads_toast_file_not_found">Archivo no encontrado</string>
+    <string name="downloads_toast_file_not_found_short">No existe</string>
+    <string name="downloads_toast_share_error">Error al compartir</string>
+    <string name="downloads_toast_no_valid_link">Enlace inválido</string>
+    <string name="downloads_toast_wifi_only">Solo Wi-Fi activado</string>
+    <string name="downloads_toast_battery_low">Batería baja</string>
 
     <!-- Error messages -->
     <string name="downloads_error_generic">Error de descarga</string>
-    <string name="downloads_error_storage">Espacio insuficiente en el almacenamiento</string>
-    <string name="downloads_error_requires_login">Requiere inicio de sesión. Configura las Cookies en Ajustes.</string>
-    <string name="downloads_error_network_retry">Error de red — toca para reintentar</string>
-    <string name="downloads_error_retry">Error — toca para reintentar</string>
+    <string name="downloads_error_storage">Espacio insuficiente</string>
+    <string name="downloads_error_requires_login">Requiere inicio de sesión</string>
+    <string name="downloads_error_network_retry">Error de red — reintentar</string>
+    <string name="downloads_error_retry">Error — reintentar</string>
+    <string name="downloads_error_process_stuck">Proceso atascado</string>
+    <string name="downloads_error_interrupted">Descarga interrumpida</string>
+    <string name="downloads_error_access_denied">Acceso denegado (403)</string>
 
     <!-- Action labels -->
     <string name="downloads_action_open">Abrir</string>
@@ -132,8 +137,4 @@
     <!-- Fallback titles -->
     <string name="downloads_default_title">Descarga</string>
     <string name="downloads_default_domain">Internet</string>
-
-    <string name="downloads_toast_wifi_only">Modo \'Solo Wi-Fi\' activo: Conéctate a Wi-Fi para descargar</string>
-    <string name="downloads_toast_battery_low">Batería baja: la descarga se pausará o limitará</string>
-
 </resources>

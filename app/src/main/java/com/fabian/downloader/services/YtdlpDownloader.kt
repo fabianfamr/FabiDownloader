@@ -19,6 +19,13 @@ class YtdlpDownloader {
         private val SIZE_REGEX = Regex("""of\s+([~]?[0-9.]+[a-zA-Z]+)""")
 
         fun resolveUserFacingError(e: Throwable, lastLine: String): String {
+            val appCtx = try { com.fabian.downloader.MyApplication.getInstance() } catch (_: Exception) { null }
+            val ctx = if (appCtx != null) {
+                com.fabian.downloader.utils.LocaleHelper.applyLocale(appCtx, com.fabian.downloader.ui.AppSettings.language)
+            } else null
+
+            fun getStr(resId: Int, fallback: String): String = ctx?.getString(resId) ?: fallback
+
             val actualException = if (e is Exception && e.cause != null && e.message?.contains(e.cause!!.javaClass.name) == true) e.cause!! else e
             val msg = actualException.message ?: e.message ?: ""
             val lowerMsg = msg.lowercase()
@@ -27,36 +34,36 @@ class YtdlpDownloader {
 
             if (lowerClass.contains("youtubedlexception") || lowerClass.contains("youtubedl") || lowerMsg.contains("youtubedl")) {
                 if (lowerMsg.contains("process id already exists")) {
-                    return "Proceso atascado. Por favor, reintente la descarga."
+                    return getStr(com.fabian.downloader.R.string.downloads_error_process_stuck, "Proceso atascado")
                 }
                 if (lowerMsg.contains("sign in") || lowerMsg.contains("private video") || lowerMsg.contains("login")) {
-                    return "Requiere inicio de sesión (Video privado o con restricciones)."
+                    return getStr(com.fabian.downloader.R.string.downloads_error_requires_login, "Requiere inicio de sesión")
                 }
                 if (lowerMsg.contains("unavailable") || lowerLine.contains("unavailable")) {
-                    return "Video o formato no disponible."
+                    return getStr(com.fabian.downloader.R.string.downloads_error_unavailable, "No disponible")
                 }
                 if (lowerMsg.contains("canceled") || lowerClass.contains("canceled")) {
-                    return "Descarga interrumpida de forma inesperada. Pulse reintentar."
+                    return getStr(com.fabian.downloader.R.string.downloads_error_interrupted, "Descarga interrumpida")
                 }
                 if (lowerMsg.contains("http error 403")) {
-                    return "Error de acceso (403). Intente reiniciar la descarga."
+                    return getStr(com.fabian.downloader.R.string.downloads_error_access_denied, "Acceso denegado (403)")
                 }
-                return "Error de YT-DLP: ${msg.take(40)}..."
+                return "YT-DLP: ${msg.take(30)}..."
             }
             
             if (actualException is java.io.InterruptedIOException || lowerClass.contains("interruptedioexception") || lowerMsg.contains("interrupted")) {
-                return "Conexión interrumpida inesperadamente. Pulse reintentar."
+                return getStr(com.fabian.downloader.R.string.downloads_error_interrupted, "Descarga interrumpida")
             }
             
             if (lowerMsg.contains("no space left") || lowerMsg.contains("enospc") || lowerMsg.contains("disk full")) {
-                return "Espacio en disco insuficiente. Libere espacio."
+                return getStr(com.fabian.downloader.R.string.downloads_error_storage, "Espacio insuficiente")
             }
             if (lowerMsg.contains("timeout") || lowerMsg.contains("connection") || lowerMsg.contains("network")) {
-                return "Error de conexión o tiempo de espera agotado."
+                return getStr(com.fabian.downloader.R.string.downloads_error_network_retry, "Error de red")
             }
             
             val fallBackMsg = lastLine.ifEmpty { msg }
-            return fallBackMsg.ifEmpty { com.fabian.downloader.MyApplication.getInstance().getString(com.fabian.downloader.R.string.downloads_error_unknown) }
+            return fallBackMsg.ifEmpty { getStr(com.fabian.downloader.R.string.downloads_error_unknown, "Error desconocido") }
         }
     }
 
