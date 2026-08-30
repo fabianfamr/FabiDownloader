@@ -666,7 +666,12 @@ class YtdlpDownloader {
             }
             if (success3) return@withContext true
 
-            val finalError = executionError ?: Exception(lastLine.ifEmpty { "Error en la descarga" })
+            val genericError = try {
+                val appCtx = com.fabian.downloader.MyApplication.getInstance()
+                com.fabian.downloader.utils.LocaleHelper.applyLocale(appCtx, com.fabian.downloader.ui.AppSettings.language)
+                    .getString(com.fabian.downloader.R.string.downloads_error_generic)
+            } catch (_: Exception) { "Error" }
+            val finalError = executionError ?: Exception(lastLine.ifEmpty { genericError })
             val errorMessage = resolveUserFacingError(finalError, lastLine)
             throw Exception(Config.STATUS_FAILED_PREFIX + errorMessage)
         } finally {

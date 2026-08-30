@@ -166,10 +166,8 @@ class DownloadManagerService private constructor(
                         var maxParallel = AppSettings.maxConcurrentDownloads
                         val batteryManager = BatteryOptimizerManager.getInstance(application)
                         if (AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
-                            if (AppSettings.batteryLowAction == Config.BATTERY_ACTION_OPTIMIZE || 
-                                AppSettings.batteryLowAction == Config.BATTERY_ACTION_LIMIT ||
-                                AppSettings.batteryLowAction == "Optimizar recursos" || 
-                                AppSettings.batteryLowAction == "Limitar concurrencia") {
+                            if (AppSettings.batteryLowAction == Config.BATTERY_ACTION_OPTIMIZE ||
+                                AppSettings.batteryLowAction == Config.BATTERY_ACTION_LIMIT) {
                                 maxParallel = 1
                             }
                         }
@@ -1001,7 +999,7 @@ class DownloadManagerService private constructor(
                 idsToReset.forEach { id ->
                     try {
                         storageService.updatePausedState(id, true)
-                        storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, "Pausado", "PAUSED")
+                        storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, Config.STATUS_WAITING, Config.STATUS_WAITING)
                     } catch (e: Exception) {
                         Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al restablecer el estado de la descarga $id", e)
                     }

@@ -113,7 +113,3 @@
 -keep class com.fabian.downloader.receivers.** { *; }
 -keep class com.fabian.downloader.workers.** { *; }
 -keep class com.fabian.downloader.ui.AppSettings { *; }
-
-
-
-
