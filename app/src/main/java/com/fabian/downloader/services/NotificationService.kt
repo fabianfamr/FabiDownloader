@@ -110,6 +110,7 @@ class NotificationService(private val context: Context) {
         cancelPendingDismiss(id)
 
         val localizedCtx = com.fabian.downloader.utils.LocaleHelper.applyLocale(context, com.fabian.downloader.ui.AppSettings.language)
+        val showSpeed = com.fabian.downloader.ui.AppSettings.showDownloadSpeedInNotification
         val text = buildString {
             if (progress >= 0) {
                 append("$progress%")
