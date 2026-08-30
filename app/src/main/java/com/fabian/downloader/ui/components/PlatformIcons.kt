@@ -487,39 +487,3 @@ object PlatformIcons {
             )
         }.build()
 }
-
-// Extension properties on AppIcons for backwards compatibility
-val AppIcons.YouTube: ImageVector get() = PlatformIcons.YouTube
-val AppIcons.TikTok: ImageVector get() = PlatformIcons.TikTok
-val AppIcons.Instagram: ImageVector get() = PlatformIcons.Instagram
-val AppIcons.X: ImageVector get() = PlatformIcons.X
-val AppIcons.Facebook: ImageVector get() = PlatformIcons.Facebook
-val AppIcons.Reddit: ImageVector get() = PlatformIcons.Reddit
-val AppIcons.Pinterest: ImageVector get() = PlatformIcons.Pinterest
-val AppIcons.SoundCloud: ImageVector get() = PlatformIcons.SoundCloud
-val AppIcons.Twitch: ImageVector get() = PlatformIcons.Twitch
-val AppIcons.Vimeo: ImageVector get() = PlatformIcons.Vimeo
-val AppIcons.Kick: ImageVector get() = PlatformIcons.Kick
-val AppIcons.Spotify: ImageVector get() = PlatformIcons.Spotify
-val AppIcons.YouTubeMusic: ImageVector get() = PlatformIcons.YouTubeMusic
-val AppIcons.Dailymotion: ImageVector get() = PlatformIcons.Dailymotion
-val AppIcons.Bilibili: ImageVector get() = PlatformIcons.Bilibili
-val AppIcons.Tumblr: ImageVector get() = PlatformIcons.Tumblr
-val AppIcons.VK: ImageVector get() = PlatformIcons.VK
-val AppIcons.Rumble: ImageVector get() = PlatformIcons.Rumble
-val AppIcons.Snapchat: ImageVector get() = PlatformIcons.Snapchat
-val AppIcons.Threads: ImageVector get() = PlatformIcons.Threads
-val AppIcons.Patreon: ImageVector get() = PlatformIcons.Patreon
-val AppIcons.Bandcamp: ImageVector get() = PlatformIcons.Bandcamp
-val AppIcons.Mixcloud: ImageVector get() = PlatformIcons.Mixcloud
-val AppIcons.Dropbox: ImageVector get() = PlatformIcons.Dropbox
-val AppIcons.GoogleDrive: ImageVector get() = PlatformIcons.GoogleDrive
-val AppIcons.Telegram: ImageVector get() = PlatformIcons.Telegram
-val AppIcons.WhatsApp: ImageVector get() = PlatformIcons.WhatsApp
-val AppIcons.Discord: ImageVector get() = PlatformIcons.Discord
-val AppIcons.Imgur: ImageVector get() = PlatformIcons.Imgur
-val AppIcons.Flickr: ImageVector get() = PlatformIcons.Flickr
-val AppIcons.Giphy: ImageVector get() = PlatformIcons.Giphy
-val AppIcons.AppleMusic: ImageVector get() = PlatformIcons.AppleMusic
-val AppIcons.Odysee: ImageVector get() = PlatformIcons.Odysee
-val AppIcons.Mastodon: ImageVector get() = PlatformIcons.Mastodon
