@@ -28,8 +28,15 @@
     <string name="downloads_empty_progress_subtitle">Active downloads will appear here</string>
     <string name="downloads_error_network">Network Error</string>
     <string name="downloads_error_failed">Failed</string>
-    <string name="downloads_status_paused">Suspendu</string>
-    <string name="downloads_status_waiting">Waiting...</string>
+    <string name="downloads_status_paused">En pause</string>
+    <string name="downloads_status_waiting">En attente...</string>
+    <string name="downloads_status_queued">En file d\'attente</string>
+    <string name="downloads_status_connecting">Connexion...</string>
+    <string name="downloads_status_downloading">Téléchargement...</string>
+    <string name="downloads_status_calculating">Calcul en cours...</string>
+    <string name="downloads_status_finalizing">Finalisation...</string>
+    <string name="downloads_status_retrying">Nouvel essai...</string>
+    <string name="downloads_status_completed">Terminé</string>
     <string name="downloads_thumbnail">Thumbnail</string>
     <string name="downloads_error_extractor">Internal extractor error (click for details)</string>
     <string name="downloads_error_denied">Access denied by the website</string>

@@ -29,7 +29,14 @@
     <string name="downloads_error_network">Network Error</string>
     <string name="downloads_error_failed">Failed</string>
     <string name="downloads_status_paused">一時停止中</string>
-    <string name="downloads_status_waiting">Waiting...</string>
+    <string name="downloads_status_waiting">待機中...</string>
+    <string name="downloads_status_queued">待機列</string>
+    <string name="downloads_status_connecting">接続中...</string>
+    <string name="downloads_status_downloading">ダウンロード中...</string>
+    <string name="downloads_status_calculating">計算中...</string>
+    <string name="downloads_status_finalizing">完了処理中...</string>
+    <string name="downloads_status_retrying">再試行中...</string>
+    <string name="downloads_status_completed">完了</string>
     <string name="downloads_thumbnail">Thumbnail</string>
     <string name="downloads_error_extractor">Internal extractor error (click for details)</string>
     <string name="downloads_error_denied">Access denied by the website</string>

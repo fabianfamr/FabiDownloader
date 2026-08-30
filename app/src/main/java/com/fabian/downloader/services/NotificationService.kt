@@ -109,13 +109,13 @@ class NotificationService(private val context: Context) {
 
         cancelPendingDismiss(id)
 
-        val showSpeed = com.fabian.downloader.ui.AppSettings.showDownloadSpeedInNotification
+        val localizedCtx = com.fabian.downloader.utils.LocaleHelper.applyLocale(context, com.fabian.downloader.ui.AppSettings.language)
         val text = buildString {
             if (progress >= 0) {
                 append("$progress%")
             }
             if (!size.isNullOrEmpty() && size != Config.STATUS_UNKNOWN) {
-                val cleanSize = com.fabian.downloader.utils.YtdlpParser.formatSize(size)
+                val cleanSize = com.fabian.downloader.utils.YtdlpParser.getLocalizedSize(localizedCtx, size)
                 if (progress >= 0) {
                     append(" • $cleanSize")
                 } else {
@@ -123,7 +123,7 @@ class NotificationService(private val context: Context) {
                 }
             }
             if (showSpeed && !speed.isNullOrEmpty() && speed != Config.STATUS_WAITING) {
-                val cleanSpeed = com.fabian.downloader.utils.YtdlpParser.formatSpeed(speed)
+                val cleanSpeed = com.fabian.downloader.utils.YtdlpParser.getLocalizedStatus(localizedCtx, speed)
                 append(" • $cleanSpeed")
             }
         }

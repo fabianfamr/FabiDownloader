@@ -29,7 +29,14 @@
     <string name="downloads_error_network">Network Error</string>
     <string name="downloads_error_failed">Failed</string>
     <string name="downloads_status_paused">Pausiert</string>
-    <string name="downloads_status_waiting">Waiting...</string>
+    <string name="downloads_status_waiting">Warten...</string>
+    <string name="downloads_status_queued">In der Warteschlange</string>
+    <string name="downloads_status_connecting">Verbinden...</string>
+    <string name="downloads_status_downloading">Herunterladen...</string>
+    <string name="downloads_status_calculating">Berechnen...</string>
+    <string name="downloads_status_finalizing">Fertigstellen...</string>
+    <string name="downloads_status_retrying">Wiederholen...</string>
+    <string name="downloads_status_completed">Abgeschlossen</string>
     <string name="downloads_thumbnail">Thumbnail</string>
     <string name="downloads_error_extractor">Internal extractor error (click for details)</string>
     <string name="downloads_error_denied">Access denied by the website</string>

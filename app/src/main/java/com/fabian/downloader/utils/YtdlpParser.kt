@@ -388,4 +388,40 @@ object YtdlpParser {
             .replace("mib", "MB", ignoreCase = true)
             .replace("gib", "GB", ignoreCase = true)
     }
+
+    fun getLocalizedStatus(context: android.content.Context, status: String): String {
+        if (status.isEmpty()) return status
+        val trimmed = status.trim()
+        val lower = trimmed.lowercase()
+        return when {
+            lower == "waiting" -> context.getString(com.fabian.downloader.R.string.downloads_status_waiting)
+            lower == "queued" || lower == "en cola" -> context.getString(com.fabian.downloader.R.string.downloads_status_queued)
+            lower == "connecting" || lower == "conectando" -> context.getString(com.fabian.downloader.R.string.downloads_status_connecting)
+            lower == "downloading" || lower == "descargando" -> context.getString(com.fabian.downloader.R.string.downloads_status_downloading)
+            lower == "calculating" || lower == "calculando" -> context.getString(com.fabian.downloader.R.string.downloads_status_calculating)
+            lower == "finalizing" || lower == "finalizando" -> context.getString(com.fabian.downloader.R.string.downloads_status_finalizing)
+            lower == "retrying" || lower == "reintentando" -> context.getString(com.fabian.downloader.R.string.downloads_status_retrying)
+            lower == "completed" || lower == "completado" -> context.getString(com.fabian.downloader.R.string.downloads_status_completed)
+            lower == "paused" || lower == "pausado" -> context.getString(com.fabian.downloader.R.string.downloads_status_paused)
+            lower == "failed" || lower.startsWith("failed:") || lower.startsWith("fallo:") -> context.getString(com.fabian.downloader.R.string.downloads_error_retry)
+            else -> formatSpeed(status)
+        }
+    }
+
+    fun getLocalizedSize(context: android.content.Context, size: String): String {
+        if (size.isEmpty()) return size
+        val trimmed = size.trim()
+        val lower = trimmed.lowercase()
+        return when {
+            lower == "waiting" -> context.getString(com.fabian.downloader.R.string.downloads_status_waiting)
+            lower == "queued" || lower == "en cola" -> context.getString(com.fabian.downloader.R.string.downloads_status_queued)
+            lower == "connecting" || lower == "conectando" -> context.getString(com.fabian.downloader.R.string.downloads_status_connecting)
+            lower == "downloading" || lower == "descargando" -> context.getString(com.fabian.downloader.R.string.downloads_status_downloading)
+            lower == "calculating" || lower == "calculando" -> context.getString(com.fabian.downloader.R.string.downloads_status_calculating)
+            lower == "finalizing" || lower == "finalizando" -> context.getString(com.fabian.downloader.R.string.downloads_status_finalizing)
+            lower == "retrying" || lower == "reintentando" -> context.getString(com.fabian.downloader.R.string.downloads_status_retrying)
+            lower == "completed" || lower == "completado" -> context.getString(com.fabian.downloader.R.string.downloads_status_completed)
+            else -> formatSize(size)
+        }
+    }
 }

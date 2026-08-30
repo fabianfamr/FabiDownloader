@@ -1235,7 +1235,7 @@ fun MobileDownloadingItem(
                         isFailed -> stringResource(R.string.downloads_error_retry)
                         record.isPaused -> stringResource(R.string.downloads_status_paused)
                         record.progress < 0 -> stringResource(R.string.downloads_status_waiting)
-                        else -> com.fabian.downloader.utils.YtdlpParser.formatSpeed(record.speed)
+                        else -> com.fabian.downloader.utils.YtdlpParser.getLocalizedStatus(ctx, record.speed)
                     }
 
                     Text(
@@ -1417,7 +1417,7 @@ fun MobileDownloadedItem(
                         Box(modifier = Modifier.size(3.dp).background(C_gray1, CircleShape))
                     }
                     Text(
-                        text = record.size, 
+                        text = com.fabian.downloader.utils.YtdlpParser.getLocalizedSize(ctx, record.size), 
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = C_gray1,
@@ -1473,10 +1473,11 @@ fun RealtimeSpeedCardBanner(
     grayColor: Color,
     onClick: () -> Unit = {}
 ) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     val activeCount = activeDownloads.count { !it.isPaused && it.speed != "FAILED" }
     val currentSpeeds = activeDownloads
         .filter { !it.isPaused && it.speed != "FAILED" }
-        .map { com.fabian.downloader.utils.YtdlpParser.formatSpeed(it.speed) }
+        .map { com.fabian.downloader.utils.YtdlpParser.getLocalizedStatus(ctx, it.speed) }
         .joinToString(" • ")
         .ifEmpty { stringResource(R.string.downloads_active_downloads_count, activeDownloads.size) }
 
