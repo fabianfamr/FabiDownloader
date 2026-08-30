@@ -1,31 +1,23 @@
 package com.fabian.downloader.ui.components
 
-import com.fabian.downloader.ui.components.AppIcons
-
-import com.fabian.downloader.ui.AppSettings
-
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.fabian.downloader.R
+import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.utils.LocaleHelper
 import com.fabian.downloader.utils.PathUtils
 import com.fabian.downloader.utils.SettingsLabels
@@ -217,7 +209,6 @@ fun DownloadSettingsContent(
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f), modifier = Modifier.padding(horizontal = 16.dp))
                 
-                // Stepper para descargas simultáneas
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -271,7 +262,7 @@ fun DownloadSettingsContent(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.ExtraBold,
                             modifier = Modifier.width(28.dp),
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            textAlign = TextAlign.Center
                         )
                         
                         IconButton(
@@ -479,275 +470,3 @@ fun DownloadSettingsContent(
         }
     }
 }
-
-@Composable
-fun InputDialog(
-    title: String,
-    placeholder: String,
-    initialValue: String,
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit,
-    singleLine: Boolean = true
-) {
-    var text by remember { mutableStateOf(initialValue) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
-        containerColor = MaterialTheme.colorScheme.surface,
-        text = {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                placeholder = { Text(placeholder) },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).let { 
-                    if (!singleLine) it.heightIn(min = 150.dp, max = 300.dp) else it 
-                },
-                shape = RoundedCornerShape(12.dp),
-                singleLine = singleLine,
-                maxLines = if (singleLine) 1 else 10,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                )
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(text); onDismiss() }) {
-                Text(stringResource(R.string.settings_btn_accept), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.settings_btn_cancel), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-            }
-        }
-    )
-}
-
-@Composable
-fun <T> KeyValueSelectionDialog(
-    title: String,
-    items: List<Pair<T, String>>,
-    selectedKey: T,
-    onSelection: (T) -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
-        containerColor = MaterialTheme.colorScheme.surface,
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.padding(top = 8.dp)
-            ) {
-                items.forEach { (key, label) ->
-                    val isSelected = key == selectedKey
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { onSelection(key) },
-                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else Color.Transparent
-                    ) {
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = isSelected,
-                                onClick = { onSelection(key) },
-                                colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
-                            )
-                            Spacer(Modifier.width(10.dp))
-                            Text(
-                                text = label, 
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface, 
-                                fontSize = 15.sp, 
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                maxLines = 1,
-                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false)
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.settings_btn_cancel), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-            }
-        }
-    )
-}
-
-@Composable
-fun SelectionDialog(title: String, options: List<String>, selectedOption: String, onSelection: (String) -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
-        containerColor = MaterialTheme.colorScheme.surface,
-        text = {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.padding(top = 8.dp)
-            ) {
-                options.forEach { option ->
-                    val isSelected = option == selectedOption
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { onSelection(option) },
-                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else Color.Transparent
-                    ) {
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = isSelected,
-                                onClick = { onSelection(option) },
-                                colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
-                            )
-                            Spacer(Modifier.width(10.dp))
-                            Text(
-                                text = option, 
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface, 
-                                fontSize = 15.sp, 
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                maxLines = 1,
-                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false)
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.settings_btn_cancel), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-            }
-        }
-    )
-}
-
-@Composable
-fun ToggleSetting(icon: ImageVector, title: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 18.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = title, 
-            color = MaterialTheme.colorScheme.onSurface, 
-            fontSize = 15.sp, 
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
-            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-        )
-        Switch(
-            checked = checked, 
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                checkedTrackColor = MaterialTheme.colorScheme.primary,
-                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        )
-    }
-}
-
-@Composable
-fun SettingSectionHeader(title: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(start = 6.dp, top = 24.dp, bottom = 10.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(width = 4.dp, height = 16.dp)
-                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(2.dp))
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = title.uppercase(),
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 1.sp,
-            maxLines = 1,
-            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-        )
-    }
-}
-
-@Composable
-fun SettingItem(icon: ImageVector, title: String, trailing: String? = null, onClick: () -> Unit = {}) {
-    Surface(
-        onClick = onClick,
-        color = Color.Transparent
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = title,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f),
-                maxLines = 2,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-            )
-            if (trailing != null) {
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = trailing, 
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), 
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f, fill = false),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
-                    maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                )
-            } else {
-                Spacer(modifier = Modifier.weight(1f))
-                Icon(AppIcons.ChevronRight, null, tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f), modifier = Modifier.size(18.dp))
-            }
-        }
-    }
-}
-

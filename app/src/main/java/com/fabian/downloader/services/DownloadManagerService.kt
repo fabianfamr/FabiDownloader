@@ -1,35 +1,34 @@
 package com.fabian.downloader.services
 
 import android.app.Application
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Log
 import android.widget.Toast
-import com.fabian.downloader.database.DownloadRecord
-import com.fabian.downloader.network.ConnectionService
-import com.fabian.downloader.ui.AppSettings
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
-import java.io.File
-import android.content.Context
-import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.isActive
 import com.fabian.downloader.R
 import com.fabian.downloader.configs.Config
+import com.fabian.downloader.database.DownloadRecord
 import com.fabian.downloader.managers.BatteryOptimizerManager
+import com.fabian.downloader.network.ConnectionService
+import com.fabian.downloader.ui.AppSettings
+import com.fabian.downloader.utils.PathUtils
+import com.yausername.youtubedl_android.YoutubeDL
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import okhttp3.Call
+import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 class DownloadManagerService private constructor(
     private val application: Application,
@@ -75,148 +74,58 @@ class DownloadManagerService private constructor(
         }
     }
 
-    private val serviceScope = kotlinx.coroutines.CoroutineScope(Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
-    private val client = com.fabian.downloader.network.NetworkClient.okHttpClient
-    
-    private val activeJobs = java.util.concurrent.ConcurrentHashMap<Long, kotlinx.coroutines.Job>()
-    private val activeCalls = java.util.concurrent.ConcurrentHashMap<Long, okhttp3.Call>()
-    private val processingIds = java.util.concurrent.ConcurrentSkipListSet<Long>()
-    private val forcedDownloadIds = java.util.concurrent.ConcurrentHashMap.newKeySet<Long>()
-    private val activeProgresses = java.util.concurrent.ConcurrentHashMap<Long, Int>()
-    private val isQueueProcessorRunning = java.util.concurrent.atomic.AtomicBoolean(false)
-    private val queueTrigger = MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
-    private val startDownloadMutex = kotlinx.coroutines.sync.Mutex()
+    typealias LiveProgress = DownloadProgressTracker.LiveProgress
 
-    data class LiveProgress(
-        val progress: Int = 0,
-        val sizeText: String = "",
-        val speedText: String = ""
+    private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val activeJobs = ConcurrentHashMap<Long, Job>()
+    private val activeCalls = ConcurrentHashMap<Long, Call>()
+    private val startDownloadMutex = Mutex()
+
+    private val progressTracker = DownloadProgressTracker(serviceScope, storageService, notificationService)
+    val liveProgressFlow: StateFlow<Map<Long, DownloadProgressTracker.LiveProgress>> = progressTracker.liveProgressFlow
+
+    private val downloadExecutor = DownloadExecutor(
+        application = application,
+        storageService = storageService,
+        connectionService = connectionService,
+        notificationService = notificationService,
+        progressTracker = progressTracker,
+        activeCalls = activeCalls,
+        onTriggerQueue = { triggerQueue() }
     )
 
-    private val _liveProgressFlow = MutableStateFlow<Map<Long, LiveProgress>>(emptyMap())
-    val liveProgressFlow: StateFlow<Map<Long, LiveProgress>> = _liveProgressFlow.asStateFlow()
-
-    fun triggerQueue() {
-        queueTrigger.tryEmit(Unit)
-    }
-
-    fun registerActiveCall(id: Long, call: okhttp3.Call) {
-        activeCalls[id] = call
-    }
-
-    fun unregisterActiveCall(id: Long) {
-        activeCalls.remove(id)
-    }
-
-    fun hasActiveDownloads(): Boolean {
-        return processingIds.isNotEmpty()
-    }
-
-    fun getActiveDownloadsCount(): Int {
-        return processingIds.size
-    }
+    private val queueManager = DownloadQueueManager(
+        application = application,
+        storageService = storageService,
+        progressTracker = progressTracker,
+        downloadExecutor = downloadExecutor,
+        serviceScope = serviceScope,
+        activeJobs = activeJobs,
+        activeCalls = activeCalls
+    )
 
     init {
-        // Inicializar el optimizador de batería para que empiece a monitorear desde el inicio del servicio
         BatteryOptimizerManager.getInstance(application)
-        startQueueProcessor()
+        queueManager.startQueueProcessor()
         registerSettingsListener()
     }
 
-    private fun startQueueProcessor() {
-        if (!isQueueProcessorRunning.compareAndSet(false, true)) return
-        serviceScope.launch {
-            try {
-                // Trigger immediately on start
-                triggerQueue()
-                
-                // On-demand only: wait for trigger signals (no polling timer)
-                queueTrigger.collect {
-                    try {
-                        val activeInDb = storageService.getActiveDownloadsDirect()
-                        val nextToProcess = activeInDb.filter {
-                            !it.isPaused &&
-                            it.speed != "FAILED" &&
-                            !it.title.startsWith(Config.STATUS_FAILED_PREFIX) &&
-                            !processingIds.contains(it.id)
-                        }
-                        
-                        val forcedToProcess = nextToProcess.filter { it.id in forcedDownloadIds }
-                        val normalToProcess = nextToProcess.filter { it.id !in forcedDownloadIds }
+    fun triggerQueue() = queueManager.triggerQueue()
+    fun registerActiveCall(id: Long, call: Call) { activeCalls[id] = call }
+    fun unregisterActiveCall(id: Long) { activeCalls.remove(id) }
+    fun hasActiveDownloads(): Boolean = queueManager.processingIds.isNotEmpty()
+    fun getActiveDownloadsCount(): Int = queueManager.processingIds.size
 
-                        // Iniciar de inmediato descargas forzadas ignorando los límites
-                        if (forcedToProcess.isNotEmpty()) {
-                            DownloadForegroundService.start(application)
-                            forcedToProcess.forEach { record ->
-                                val id = record.id
-                                processingIds.add(id)
-                                val job = serviceScope.launch {
-                                    try {
-                                        runDownloadDirect(id)
-                                    } finally {
-                                        releaseSlot(id)
-                                    }
-                                }
-                                job.invokeOnCompletion {
-                                    releaseSlot(id)
-                                }
-                            }
-                        }
-
-                        var maxParallel = AppSettings.maxConcurrentDownloads
-                        val batteryManager = BatteryOptimizerManager.getInstance(application)
-                        if (AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
-                            if (AppSettings.batteryLowAction == Config.BATTERY_ACTION_OPTIMIZE ||
-                                AppSettings.batteryLowAction == Config.BATTERY_ACTION_LIMIT) {
-                                maxParallel = 1
-                            }
-                        }
-                        
-                        val threshold = AppSettings.earlyStartThreshold
-                        val almostFinishedCount = if (threshold in 90..99) {
-                            processingIds.filter { it !in forcedDownloadIds }.count { id -> (activeProgresses[id] ?: 0) in threshold..99 }
-                        } else {
-                            0
-                        }
-                        
-                        val activeNormalCount = processingIds.count { it !in forcedDownloadIds }
-                        val slotsAvailable = maxParallel - (activeNormalCount - almostFinishedCount)
-                        if (slotsAvailable > 0 && normalToProcess.isNotEmpty()) {
-                            // Iniciar servicio en segundo plano para que no se muera la descarga
-                            DownloadForegroundService.start(application)
-                            
-                            normalToProcess.take(slotsAvailable).forEach { record ->
-                                val id = record.id
-                                processingIds.add(id)
-                                
-                                val job = serviceScope.launch {
-                                    try {
-                                        runDownloadDirect(id)
-                                    } finally {
-                                        releaseSlot(id)
-                                    }
-                                }
-                                job.invokeOnCompletion {
-                                    releaseSlot(id)
-                                }
-                            }
-                        }
-                    } catch (e: Exception) {
-                        Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error in queue loop", e)
-                    }
-                }
-            } finally {
-                isQueueProcessorRunning.set(false)
-            }
-        }
-    }
-
-    fun startDownload(rawUrl: String, quality: String, format: String, passedTitle: String? = null, passedThumbnailUrl: String? = null, existingId: Long? = null, isForced: Boolean = false) {
-        // Estación 1: Recepción y limpieza del enlace
+    fun startDownload(
+        rawUrl: String,
+        quality: String,
+        format: String,
+        passedTitle: String? = null,
+        passedThumbnailUrl: String? = null,
+        existingId: Long? = null,
+        isForced: Boolean = false
+    ) {
         val url = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawUrl)
-        // Estación 2: Inyección de configuración de usuario
-        val taskSpec = com.fabian.downloader.pipeline.DownloadAssemblyLine.station2_assembleUserSettings(rawUrl, url, quality, format)
-        
         serviceScope.launch {
             var newId: Long = existingId ?: 0L
             try {
@@ -241,8 +150,7 @@ class DownloadManagerService private constructor(
                     }
                 }
 
-                var provisionalTitle: String = ""
-                
+                var provisionalTitle = ""
                 startDownloadMutex.withLock {
                     if (existingId == null) {
                         val existing = storageService.getDownloadsByUrl(url)
@@ -257,7 +165,7 @@ class DownloadManagerService private constructor(
                         if (!AppSettings.allowDuplicateDownloads) {
                             val completed = existing.find { it.isCompleted }
                             if (completed != null) {
-                                val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(application, completed.title, completed.id, completed.format)
+                                val file = PathUtils.getDownloadFile(application, completed.title, completed.id, completed.format)
                                 if (file.exists()) {
                                     withContext(Dispatchers.Main) {
                                         Toast.makeText(application, application.getString(R.string.downloads_toast_already_downloaded), Toast.LENGTH_SHORT).show()
@@ -267,12 +175,6 @@ class DownloadManagerService private constructor(
                             }
                         }
 
-                        var resolvedTitle = passedTitle
-                        var resolvedThumbnail = passedThumbnailUrl
-
-                        // FAST PATH: Insert the download IMMEDIATELY with a provisional title
-                        // so the user sees it in the queue right away. Title/thumbnail are
-                        // resolved in the BACKGROUND while the download may already start.
                         provisionalTitle = passedTitle?.takeIf { it.isNotEmpty() && it != Config.TITLE_PROCESSING_LINK && it != Config.TITLE_ANALYZING_SHARED }
                             ?: generateProvisionalTitle(url)
 
@@ -289,18 +191,15 @@ class DownloadManagerService private constructor(
                         )
                         newId = storageService.insertDownload(record)
                         if (isForced) {
-                            forcedDownloadIds.add(newId!!)
+                            queueManager.forcedDownloadIds.add(newId)
                         }
                     }
-                } // end withLock
+                }
 
                 if (existingId == null) {
-                    // Trigger queue IMMEDIATELY so download can start while we resolve title
                     triggerQueue()
-
                     val capturedProvisionalTitle = provisionalTitle
-                    val safeNewId = newId!!
-                    // Background title/thumbnail resolution and caching (non-blocking, short timeout)
+                    val safeNewId = newId
                     serviceScope.launch {
                         var resolvedTitleBg: String? = null
                         var resolvedThumbnailBg: String? = passedThumbnailUrl
@@ -311,11 +210,11 @@ class DownloadManagerService private constructor(
                                 val extractedThumb = withTimeoutOrNull(4000) { extractionService.extractThumbnail(url) }
                                 if (extractedThumb != null) resolvedThumbnailBg = extractedThumb
                             } catch (e: Exception) {
-                                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Background title resolution failed for $url: ${e.message}")
+                                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Background title resolution failed: ${e.message}")
                             }
                         }
 
-                        val localThumb = com.fabian.downloader.utils.PathUtils.saveThumbnail(application, resolvedThumbnailBg, safeNewId)
+                        val localThumb = PathUtils.saveThumbnail(application, resolvedThumbnailBg, safeNewId)
                         val finalTitle = if (!resolvedTitleBg.isNullOrEmpty() && resolvedTitleBg != Config.TITLE_PROCESSING_LINK && resolvedTitleBg != Config.TITLE_ANALYZING_SHARED) {
                             resolvedTitleBg
                         } else {
@@ -323,14 +222,14 @@ class DownloadManagerService private constructor(
                         }
 
                         if (finalTitle != capturedProvisionalTitle || localThumb != passedThumbnailUrl) {
-                            val isAlreadyDownloading = processingIds.contains(safeNewId) || activeJobs.containsKey(safeNewId)
+                            val isAlreadyDownloading = queueManager.processingIds.contains(safeNewId) || activeJobs.containsKey(safeNewId)
                             val titleToSave = if (isAlreadyDownloading) capturedProvisionalTitle else finalTitle
                             storageService.updateDownloadInfoWithThumbnail(safeNewId, titleToSave, Config.STATUS_QUEUED, localThumb)
                         }
                     }
                 } else {
                     if (isForced) {
-                        forcedDownloadIds.add(existingId)
+                        queueManager.forcedDownloadIds.add(existingId)
                     }
                     storageService.updatePausedState(existingId, false)
                     val existingRecord = storageService.getDownloadById(existingId)
@@ -339,8 +238,7 @@ class DownloadManagerService private constructor(
                         while (cleanTitle.startsWith(Config.STATUS_FAILED_PREFIX)) {
                             cleanTitle = cleanTitle.substringAfter(Config.STATUS_FAILED_PREFIX)
                         }
-                        
-                        val localThumb = com.fabian.downloader.utils.PathUtils.saveThumbnail(application, existingRecord.thumbnailUrl, existingId)
+                        val localThumb = PathUtils.saveThumbnail(application, existingRecord.thumbnailUrl, existingId)
                         val cleanProgress = if (existingRecord.progress < 0) 0 else existingRecord.progress
                         storageService.updateDownloadInfoWithThumbnail(existingId, cleanTitle, Config.STATUS_QUEUED, localThumb ?: existingRecord.thumbnailUrl)
                         storageService.updateDownloadProgressAndSizeAndSpeed(existingId, cleanProgress, Config.STATUS_QUEUED, Config.STATUS_WAITING)
@@ -353,10 +251,6 @@ class DownloadManagerService private constructor(
         }
     }
 
-    /**
-     * Generates a quick provisional title from the URL without any network call.
-     * Used to insert the download record immediately so the user sees it in the queue.
-     */
     private fun generateProvisionalTitle(url: String): String {
         val lastSegment = url.substringAfterLast("/").substringBefore("?").trim()
         if (lastSegment.isNotEmpty() && lastSegment.contains(".")) {
@@ -370,282 +264,6 @@ class DownloadManagerService private constructor(
         }
     }
 
-    private suspend fun runDownloadDirect(id: Long) {
-        // Pre-fetch the record so videoTitle is available in the catch block
-        val preRecord = storageService.getDownloadById(id)
-        var videoTitle = preRecord?.title ?: application.getString(R.string.downloads_default_title)
-        var passedThumbnailUrl: String? = preRecord?.thumbnailUrl
-        // Lazy start: registrar el job en activeJobs ANTES de que comience a ejecutarse,
-        // para que pause/delete/requeue puedan encontrarlo sin race condition.
-        val job = serviceScope.launch(start = kotlinx.coroutines.CoroutineStart.LAZY) {
-            val oldPriority = try {
-                android.os.Process.getThreadPriority(android.os.Process.myTid())
-            } catch (e: Exception) {
-                0
-            }
-            try {
-                try {
-                    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND)
-                } catch (e: Exception) {
-                    Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo establecer la prioridad de fondo para el hilo de descarga", e)
-                }
-                val record = storageService.getDownloadById(id) ?: return@launch
-                if (record.isPaused || record.isCompleted) return@launch
-                
-                videoTitle = com.fabian.downloader.utils.YtdlpParser.cleanTitleOfSuffixes(record.title)
-                val url = record.url
-                val quality = record.quality
-                val format = record.format
-                passedThumbnailUrl = record.thumbnailUrl
-                
-                // Comprobación de conexión a internet real antes de empezar
-                if (!connectionService.checkConnection()) {
-                    throw Exception(application.getString(R.string.downloads_toast_no_connection))
-                }
-
-                storageService.updateDownloadProgressAndSizeAndSpeed(id, record.progress, Config.STATUS_QUEUED, Config.STATUS_WAITING)
-
-                val service = com.fabian.downloader.services.sites.SiteServiceProvider.getServiceForUrl(url)
-
-                // Estación 2: Inyección de Configuración
-                val initialSpec = com.fabian.downloader.pipeline.DownloadAssemblyLine.station2_assembleUserSettings(
-                    rawUrl = url,
-                    cleanUrl = url,
-                    requestedQuality = quality,
-                    requestedFormat = format
-                )
-                // Estación 3: Asignación de Almacenamiento y Destino
-                val specWithDest = com.fabian.downloader.pipeline.DownloadAssemblyLine.station3_assignDestination(
-                    context = application,
-                    spec = initialSpec,
-                    recordId = id,
-                    title = videoTitle,
-                    thumbnailUrl = passedThumbnailUrl
-                )
-
-                val destFolder = specWithDest.outputDirectory ?: com.fabian.downloader.utils.PathUtils.getDownloadFolder(application, format)
-                val fileNameWithoutExt = sanitizeFileName(videoTitle).ifEmpty { "download_$id" }
-
-                // Comprobar espacio antes de iniciar la descarga
-                checkStorageSpace(destFolder, id)
-
-                var lastDbPersistTime = 0L
-                var lastNotificationUpdate = 0L
-                var lastSpaceCheck = 0L
-                val storageSpaceExceeded = java.util.concurrent.atomic.AtomicBoolean(false)
-                val downloadSuccess = service.download(url, quality, format, destFolder, fileNameWithoutExt, processId = id.toString()) { progress, sizeText, speedText ->
-                    val currentTime = System.currentTimeMillis()
-                    // Comprobar espacio de forma ultra eficiente cada 5 segundos para priorizar rendimiento y velocidad
-                    if (currentTime - lastSpaceCheck > 5000) {
-                        lastSpaceCheck = currentTime
-                        if (!hasEnoughStorageSpace(destFolder)) {
-                            storageSpaceExceeded.set(true)
-                            stopDownloadForStorage(id)
-                        }
-                    }
-
-                    val currentProgressInt = progress.toInt()
-                    val oldProgress = activeProgresses[id] ?: 0
-                    activeProgresses[id] = currentProgressInt
-                    val earlyThreshold = AppSettings.earlyStartThreshold
-                    if (earlyThreshold in 90..99 && oldProgress < earlyThreshold && currentProgressInt >= earlyThreshold) {
-                        Log.i(Config.TAG_DOWNLOAD_MANAGER, "Descarga $id alcanzó el umbral de inicio temprano ($currentProgressInt% >= $earlyThreshold%). Disparando cola.")
-                        triggerQueue()
-                    }
-
-                    val cappedProgress = if (progress >= 100f) 99 else progress.toInt()
-                    val displaySpeed = if (progress >= 100f) Config.STATUS_FINALIZING else speedText
-                    val displaySize = sizeText
-
-                    // 1. Actualización instantánea en memoria RAM (StateFlow a 60 FPS sin I/O de disco)
-                    _liveProgressFlow.update { currentMap ->
-                        currentMap + (id to LiveProgress(cappedProgress, displaySize, displaySpeed))
-                    }
-
-                    // 2. Persistir en base de datos SQLite cada 5 segundos para no degradar el I/O ni bloquear el hilo
-                    if (currentTime - lastDbPersistTime > 5000 || progress >= 100f) {
-                        lastDbPersistTime = currentTime
-                        serviceScope.launch {
-                            val currentRecord = storageService.getDownloadById(id)
-                            if (currentRecord != null && !currentRecord.isPaused && !currentRecord.isCompleted) {
-                                val finalSize = if (displaySize == Config.STATUS_DOWNLOADING) {
-                                    currentRecord.size.takeIf { it != Config.STATUS_ZERO_MB && it.isNotEmpty() } ?: Config.STATUS_DOWNLOADING
-                                } else {
-                                    displaySize
-                                }
-                                storageService.updateDownloadProgressAndSizeAndSpeed(id, cappedProgress, finalSize, displaySpeed)
-                            }
-                        }
-                    }
-
-                    // 3. Notificación de progreso del sistema Android a un ritmo prudente (cada 1000ms)
-                    if (AppSettings.notificationsEnabled && (currentTime - lastNotificationUpdate > 1000 || progress >= 100f)) {
-                        lastNotificationUpdate = currentTime
-                        serviceScope.launch {
-                            val currentRecord = storageService.getDownloadById(id)
-                            if (currentRecord != null && !currentRecord.isPaused && !currentRecord.isCompleted) {
-                                val notifSize = if (displaySize == Config.STATUS_DOWNLOADING) {
-                                    currentRecord.size.takeIf { it != Config.STATUS_ZERO_MB && it.isNotEmpty() } ?: Config.STATUS_DOWNLOADING
-                                } else {
-                                    displaySize
-                                }
-                                notificationService.showDownloadProgress(
-                                    id = id.toInt(), 
-                                    title = videoTitle, 
-                                    progress = cappedProgress, 
-                                    thumbnailUrl = currentRecord.thumbnailUrl,
-                                    speed = displaySpeed,
-                                    size = notifSize
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Si el callback nativo detectó falta de espacio, lanzar el error aquí,
-                // dentro de la corrutina, para que llegue al bloque catch y marque FAILED.
-                if (storageSpaceExceeded.get()) {
-                    throw Exception(application.getString(R.string.downloads_error_storage))
-                }
-
-                if (!downloadSuccess) {
-                    throw Exception(application.getString(R.string.downloads_error_generic))
-                }
-
-                val downloadingFile = destFolder.listFiles { _, name ->
-                    (name.startsWith("${fileNameWithoutExt}.") || name == "$fileNameWithoutExt.downloading") && 
-                    name.contains(".downloading", ignoreCase = true)
-                }?.firstOrNull()
-
-                val actualFile = if (downloadingFile != null) {
-                    val rawNameWithoutDownloading = if (downloadingFile.name.endsWith(".downloading", ignoreCase = true)) {
-                        downloadingFile.name.removeSuffix(".downloading")
-                    } else {
-                        downloadingFile.name.replace(".downloading", "")
-                    }
-                    val hasValidExt = Config.VALID_EXTENSIONS.any { ext -> 
-                        rawNameWithoutDownloading.endsWith(".$ext", ignoreCase = true) 
-                    }
-                    val finalName = if (hasValidExt) {
-                        rawNameWithoutDownloading
-                    } else {
-                        "$rawNameWithoutDownloading.${format.lowercase()}"
-                    }
-                    val targetFile = File(destFolder, finalName)
-                    if (targetFile.exists() && targetFile.absolutePath != downloadingFile.absolutePath) {
-                        targetFile.delete()
-                    }
-                    if (downloadingFile.renameTo(targetFile)) {
-                        targetFile
-                    } else {
-                        try {
-                            downloadingFile.copyTo(targetFile, overwrite = true)
-                            downloadingFile.delete()
-                            targetFile
-                        } catch (_: Exception) {
-                            downloadingFile
-                        }
-                    }
-                } else {
-                    destFolder.listFiles { _, name ->
-                        name.startsWith("${fileNameWithoutExt}.") &&
-                        Config.VALID_EXTENSIONS.any { ext -> name.endsWith(".$ext", ignoreCase = true) } &&
-                        !name.contains(".downloading", ignoreCase = true)
-                    }?.firstOrNull()
-                }
-
-                // Estación 5: Control de Calidad y Escaneo en MediaStore (Entrega Final)
-                // Si yt-dlp terminó con código 0 pero no generó ningún archivo válido,
-                // se trata como fallo: no notificar éxito ni marcar como completado.
-                if (actualFile == null) {
-                    throw Exception(application.getString(R.string.downloads_error_generic))
-                }
-
-                val ext = actualFile.extension.uppercase()
-                storageService.updateDownloadFormat(id, ext)
-
-                com.fabian.downloader.pipeline.DownloadAssemblyLine.station5_verifyAndDeliver(application, actualFile)
-                cleanTempFiles(id, videoTitle, ext)
-
-                if (AppSettings.keepHistory) {
-                    storageService.updateDownloadProgressAndSizeAndSpeed(id, 100, Config.STATUS_COMPLETED, Config.STATUS_COMPLETED)
-                    storageService.markAsCompleted(id)
-                } else {
-                    storageService.deleteDownload(id)
-                }
-                
-                // Mostrar notificación de éxito REAL solo cuando ya se tiene el archivo y terminó el post-procesado
-                if (AppSettings.notificationsEnabled) {
-                    notificationService.showDownloadSuccess(
-                        id = id.toInt(), 
-                        title = videoTitle, 
-                        thumbnailUrl = passedThumbnailUrl
-                    )
-                }
-                
-            } catch (e: Exception) {
-                if (e is CancellationException) return@launch
-                val currentRecord = storageService.getDownloadById(id)
-                if (currentRecord == null || currentRecord.isPaused || !kotlinx.coroutines.currentCoroutineContext().isActive) {
-                    return@launch
-                }
-                com.fabian.downloader.managers.ErrorLogManager.logError(application, Config.TAG_DOWNLOAD_MANAGER, "Error downloading id $id (Title: $videoTitle)", e)
-                val rawMsg = e.message ?: application.getString(R.string.downloads_error_generic)
-                val normalizedMsg = rawMsg.replace("\u2019", "'").replace("\u2018", "'")
-                val lowerMsg = normalizedMsg.lowercase()
-                val errorMsg = if (normalizedMsg.contains(Config.BOT_DETECTION_PATTERN, ignoreCase = true) || normalizedMsg.contains(Config.BOT_DETECTION_LOGIN, ignoreCase = true)) {
-                    application.getString(R.string.downloads_error_requires_login)
-                } else if (lowerMsg.contains("no space left") || lowerMsg.contains("enospc") || lowerMsg.contains("disk full") || lowerMsg.contains("espacio en disco") || lowerMsg.contains("almacenamiento casi lleno") || lowerMsg.contains("espacio insuficiente")) {
-                    application.getString(R.string.downloads_error_storage)
-                } else {
-                    rawMsg
-                }
-                var cleanTitle = videoTitle
-                while (cleanTitle.startsWith(Config.STATUS_FAILED_PREFIX)) {
-                    cleanTitle = cleanTitle.substringAfter(Config.STATUS_FAILED_PREFIX)
-                }
-                val cleanErrorMsg = errorMsg.removePrefix(Config.STATUS_FAILED_PREFIX)
-                storageService.updateDownloadInfo(id, cleanTitle, cleanErrorMsg)
-                storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, cleanErrorMsg, "FAILED")
-                
-                if (AppSettings.notificationsEnabled) {
-                    notificationService.showDownloadFailed(
-                        id = id.toInt(),
-                        title = cleanTitle,
-                        errorMsg = cleanErrorMsg,
-                        thumbnailUrl = passedThumbnailUrl
-                    )
-                }
-            } finally {
-                _liveProgressFlow.update { it - id }
-                activeJobs.remove(id)
-                activeCalls.remove(id)
-                activeProgresses.remove(id)
-                try {
-                    com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
-                } catch (e: Exception) {
-                    Log.e(Config.TAG_DOWNLOAD_MANAGER, "Failed to destroy process in finally", e)
-                }
-                try {
-                    notificationService.cancelProgressNotification(id.toInt())
-                } catch (e: Exception) {
-                    Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al limpiar la notificación de progreso", e)
-                }
-                try {
-                    android.os.Process.setThreadPriority(oldPriority)
-                } catch (e: Exception) {
-                    // Ignorar
-                }
-                // Programar tarea en segundo plano con WorkManager para liberar caché, archivos temporales y memoria RAM
-                com.fabian.downloader.workers.CacheCleanupWorker.scheduleCleanup(application)
-            }
-        }
-        
-        activeJobs[id] = job
-        job.start()
-        job.join()
-    }
-
     fun pauseDownload(id: Long) {
         serviceScope.launch {
             pauseDownloadInternal(id)
@@ -653,25 +271,19 @@ class DownloadManagerService private constructor(
     }
 
     private suspend fun pauseDownloadInternal(id: Long) {
-        _liveProgressFlow.update { it - id }
-        forcedDownloadIds.remove(id)
+        progressTracker.removeProgress(id)
+        queueManager.forcedDownloadIds.remove(id)
         storageService.updatePausedState(id, true)
-        
-        // Forzar actualización de progreso y velocidad en la base de datos para evitar estados residuales de carga
+
         try {
             val currentRecord = storageService.getDownloadById(id)
             if (currentRecord != null) {
                 val currentProgress = if (currentRecord.progress < 0) 0 else currentRecord.progress
                 val currentSize = if (currentRecord.size == Config.STATUS_QUEUED || currentRecord.size == Config.STATUS_CONNECTING) Config.STATUS_ZERO_MB else currentRecord.size
-                storageService.updateDownloadProgressAndSizeAndSpeed(
-                    id,
-                    currentProgress,
-                    currentSize,
-                    Config.STATUS_WAITING
-                )
+                storageService.updateDownloadProgressAndSizeAndSpeed(id, currentProgress, currentSize, Config.STATUS_WAITING)
             }
         } catch (e: Exception) {
-            Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al actualizar estado durante pausa", e)
+            Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error actualizando pausa", e)
         }
 
         activeCalls[id]?.cancel()
@@ -679,45 +291,32 @@ class DownloadManagerService private constructor(
         job?.cancel()
         activeCalls.remove(id)
         activeJobs.remove(id)
-        processingIds.remove(id)
-        activeProgresses.remove(id)
-        
-        // Mostrar la notificación de pausa si están activadas las notificaciones
+        queueManager.processingIds.remove(id)
+
         if (AppSettings.notificationsEnabled) {
             val currentRecord = storageService.getDownloadById(id)
             if (currentRecord != null) {
-                notificationService.showDownloadPaused(
-                    id = id.toInt(),
-                    title = currentRecord.title,
-                    thumbnailUrl = currentRecord.thumbnailUrl
-                )
+                notificationService.showDownloadPaused(id = id.toInt(), title = currentRecord.title, thumbnailUrl = currentRecord.thumbnailUrl)
             } else {
                 notificationService.cancelProgressNotification(id.toInt())
             }
         } else {
             notificationService.cancelProgressNotification(id.toInt())
         }
-        
+
         try {
-            com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
-        } catch (e: Exception) {
-            Log.e(Config.TAG_DOWNLOAD_MANAGER, "Failed to destroy process", e)
-        }
-        
-        // Wait for the job to actually complete cancellation before proceeding
+            YoutubeDL.getInstance().destroyProcessById(id.toString())
+        } catch (_: Exception) {}
+
         if (job != null) {
-            try {
-                job.join()
-            } catch (e: Exception) {
-                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Job join interrupted during pause", e)
-            }
+            try { job.join() } catch (_: Exception) {}
         }
-        
-        if (processingIds.isEmpty()) {
+
+        if (queueManager.processingIds.isEmpty()) {
             DownloadForegroundService.stop(application)
         }
         triggerQueue()
-        
+
         withContext(Dispatchers.Main) {
             Toast.makeText(application, application.getString(R.string.downloads_toast_paused), Toast.LENGTH_SHORT).show()
         }
@@ -725,10 +324,10 @@ class DownloadManagerService private constructor(
 
     fun requeueDownload(id: Long) {
         serviceScope.launch {
-            _liveProgressFlow.update { it - id }
-            forcedDownloadIds.remove(id)
+            progressTracker.removeProgress(id)
+            queueManager.forcedDownloadIds.remove(id)
             storageService.updatePausedState(id, false)
-            
+
             try {
                 val currentRecord = storageService.getDownloadById(id)
                 if (currentRecord != null) {
@@ -738,32 +337,23 @@ class DownloadManagerService private constructor(
                     }
                     val currentProgress = if (currentRecord.progress < 0) 0 else currentRecord.progress
                     storageService.updateDownloadInfo(id, cleanTitle, Config.STATUS_QUEUED)
-                    storageService.updateDownloadProgressAndSizeAndSpeed(
-                        id,
-                        currentProgress,
-                        Config.STATUS_QUEUED,
-                        Config.STATUS_WAITING
-                    )
+                    storageService.updateDownloadProgressAndSizeAndSpeed(id, currentProgress, Config.STATUS_QUEUED, Config.STATUS_WAITING)
                 }
             } catch (e: Exception) {
-                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al actualizar estado durante reencolado", e)
+                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error en requeueDownload", e)
             }
 
             try {
-                com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
-            } catch (e: Exception) {
-                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Error al destruir proceso $id al reencolar", e)
-            }
+                YoutubeDL.getInstance().destroyProcessById(id.toString())
+            } catch (_: Exception) {}
             activeCalls[id]?.cancel()
             val job = activeJobs[id]
             job?.cancel()
             activeCalls.remove(id)
             activeJobs.remove(id)
-            processingIds.remove(id)
-            activeProgresses.remove(id)
-            
+            queueManager.processingIds.remove(id)
+
             notificationService.cancelProgressNotification(id.toInt())
-            
             triggerQueue()
         }
     }
@@ -773,9 +363,7 @@ class DownloadManagerService private constructor(
             val activeIds = activeJobs.keys.toList()
             coroutineScope {
                 activeIds.map { id ->
-                    launch {
-                        pauseDownloadInternal(id)
-                    }
+                    launch { pauseDownloadInternal(id) }
                 }
             }
         }
@@ -785,9 +373,7 @@ class DownloadManagerService private constructor(
         serviceScope.launch {
             val activeIds = activeJobs.keys.toList()
             if (activeIds.size > 1) {
-                activeIds.drop(1).forEach { id ->
-                    requeueDownload(id)
-                }
+                activeIds.drop(1).forEach { id -> requeueDownload(id) }
             }
             triggerQueue()
         }
@@ -795,102 +381,61 @@ class DownloadManagerService private constructor(
 
     fun deleteDownload(id: Long) {
         serviceScope.launch {
-            _liveProgressFlow.update { it - id }
-            forcedDownloadIds.remove(id)
+            progressTracker.removeProgress(id)
+            queueManager.forcedDownloadIds.remove(id)
             activeCalls[id]?.cancel()
             val job = activeJobs[id]
             job?.cancel()
             activeCalls.remove(id)
             activeJobs.remove(id)
-            processingIds.remove(id)
-            activeProgresses.remove(id)
-            
+            queueManager.processingIds.remove(id)
+
             try {
-                com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
-            } catch (e: Exception) {
-                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Failed to destroy process", e)
-            }
-            
+                YoutubeDL.getInstance().destroyProcessById(id.toString())
+            } catch (_: Exception) {}
+
             val record = storageService.getDownloadById(id)
             if (record != null) {
-                val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(application, record.title, record.id, record.format)
-                if (file.exists()) {
-                    file.delete()
-                }
+                val file = PathUtils.getDownloadFile(application, record.title, record.id, record.format)
+                if (file.exists()) file.delete()
             }
             if (AppSettings.cleanTempOnCancel) {
-                cleanTempFiles(id, record?.title, record?.format ?: "MP4")
+                downloadExecutor.cleanTempFiles(id, record?.title, record?.format ?: "MP4")
             }
-            
-            val thumbnailsDir = java.io.File(application.filesDir, "thumbnails")
-            val thumbFile = java.io.File(thumbnailsDir, "thumb_$id.jpg")
+
+            val thumbnailsDir = File(application.filesDir, "thumbnails")
+            val thumbFile = File(thumbnailsDir, "thumb_$id.jpg")
             if (thumbFile.exists()) thumbFile.delete()
-            
+
             storageService.deleteDownload(id)
             notificationService.cancelNotification(id.toInt())
 
-            if (processingIds.isEmpty()) {
+            if (queueManager.processingIds.isEmpty()) {
                 DownloadForegroundService.stop(application)
             }
             triggerQueue()
         }
     }
-    
-    fun deleteDownloadHistory(id: Long) {
-        serviceScope.launch {
-            _liveProgressFlow.update { it - id }
-            forcedDownloadIds.remove(id)
-            activeCalls[id]?.cancel()
-            val job = activeJobs[id]
-            job?.cancel()
-            activeCalls.remove(id)
-            activeJobs.remove(id)
-            processingIds.remove(id)
-            activeProgresses.remove(id)
-            
-            try {
-                com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
-            } catch (e: Exception) {
-                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Failed to destroy process", e)
-            }
-            
-            val thumbnailsDir = java.io.File(application.filesDir, "thumbnails")
-            val thumbFile = java.io.File(thumbnailsDir, "thumb_$id.jpg")
-            if (thumbFile.exists()) thumbFile.delete()
-            
-            storageService.deleteDownload(id)
-            notificationService.cancelNotification(id.toInt())
 
-            if (processingIds.isEmpty()) {
-                DownloadForegroundService.stop(application)
-            }
-            triggerQueue()
-        }
-    }
-    
+    fun deleteDownloadHistory(id: Long) = deleteDownload(id)
+
     fun clearCompletedDownloads() {
         serviceScope.launch {
             val completed = storageService.getAllDownloadsDirect().filter { it.isCompleted }
-            val thumbnailsDir = java.io.File(application.filesDir, "thumbnails")
+            val thumbnailsDir = File(application.filesDir, "thumbnails")
             completed.forEach { record ->
-                val thumbFile = java.io.File(thumbnailsDir, "thumb_${record.id}.jpg")
+                val thumbFile = File(thumbnailsDir, "thumb_${record.id}.jpg")
                 if (thumbFile.exists()) thumbFile.delete()
             }
             storageService.deleteCompletedDownloads()
         }
     }
 
-    private fun sanitizeFileName(title: String): String {
-        return com.fabian.downloader.utils.PathUtils.sanitizeFileName(title)
-    }
-
     private fun registerSettingsListener() {
         AppSettings.addListener { key ->
-            Log.i(Config.TAG_DOWNLOAD_MANAGER, "Configuración cambiada detectada: $key")
+            Log.i(Config.TAG_DOWNLOAD_MANAGER, "Configuración cambiada: $key")
             when (key) {
-                "maxConcurrentDownloads" -> {
-                    triggerQueue()
-                }
+                "maxConcurrentDownloads" -> triggerQueue()
                 "batteryOptimizationEnabled", "selectedBatteryLowThreshold", "selectedBatteryLowAction" -> {
                     BatteryOptimizerManager.getInstance(application).evaluateBatteryStatus()
                 }
@@ -898,114 +443,40 @@ class DownloadManagerService private constructor(
         }
     }
 
-    private fun hasEnoughStorageSpace(destFolder: File): Boolean {
-        val minimumRequiredBytes = AppSettings.storageMarginBytes
-        if (minimumRequiredBytes <= 0L) return true
-
-        return try {
-            var targetDir = destFolder
-            if (!targetDir.exists()) {
-                targetDir.mkdirs()
-            }
-            while (!targetDir.exists() && targetDir.parentFile != null) {
-                targetDir = targetDir.parentFile!!
-            }
-            if (!targetDir.exists()) {
-                targetDir = application.filesDir
-            }
-
-            val stat = android.os.StatFs(targetDir.absolutePath)
-            stat.availableBytes >= minimumRequiredBytes
-        } catch (e: Exception) {
-            Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error comprobando espacio en ${destFolder.absolutePath}", e)
-            true
-        }
-    }
-
-    private fun stopDownloadForStorage(id: Long) {
-        if (id <= 0) return
-        try {
-            com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
-        } catch (e: Exception) {
-            Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo destruir el proceso $id durante la parada por espacio", e)
-        }
-        try {
-            activeCalls[id]?.cancel()
-        } catch (e: Exception) {
-            Log.w(Config.TAG_DOWNLOAD_MANAGER, "No se pudo cancelar la llamada $id durante la parada por espacio", e)
-        }
-    }
-
-    private fun checkStorageSpace(destFolder: File, id: Long) {
-        if (!hasEnoughStorageSpace(destFolder)) {
-            stopDownloadForStorage(id)
-            throw Exception(application.getString(R.string.downloads_error_storage))
-        }
-    }
-
     fun onAppClosed() {
-        Log.i(Config.TAG_DOWNLOAD_MANAGER, "onAppClosed llamado. Limpiando descargas activas para evitar procesos huérfanos nativos.")
-        
+        Log.i(Config.TAG_DOWNLOAD_MANAGER, "onAppClosed llamado. Limpiando descargas activas.")
         val jobsToCancel = activeJobs.values.toList()
-        val idsToReset = processingIds.toList()
+        val idsToReset = queueManager.processingIds.toList()
 
-        // 1. Cancelar todos los trabajos activos y esperar a que terminen sus bloques finally
-        //    (que destruyen los procesos nativos de yt-dlp). Sin join() los procesos quedan huérfanos.
         jobsToCancel.forEach { job ->
-            try {
-                job.cancel()
-            } catch (e: Exception) {
-                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Error al cancelar trabajo", e)
-            }
+            try { job.cancel() } catch (_: Exception) {}
         }
         activeJobs.clear()
 
-        // 2. Cancelar todas las llamadas de red activas
-        activeCalls.forEach { (id, call) ->
-            try {
-                call.cancel()
-            } catch (e: Exception) {
-                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Error al cancelar llamada $id", e)
-            }
+        activeCalls.forEach { (_, call) ->
+            try { call.cancel() } catch (_: Exception) {}
         }
         activeCalls.clear()
 
-        // 3. Destruir todos los procesos nativos de yt-dlp para no laguear el teléfono
         idsToReset.forEach { id ->
             try {
-                com.yausername.youtubedl_android.YoutubeDL.getInstance().destroyProcessById(id.toString())
-            } catch (e: Exception) {
-                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Error al destruir el proceso yt-dlp $id", e)
-            }
+                YoutubeDL.getInstance().destroyProcessById(id.toString())
+                notificationService.cancelProgressNotification(id.toInt())
+            } catch (_: Exception) {}
         }
         com.fabian.downloader.services.sites.BaseSiteService.cancelAllExtractions()
-        
-        // Cancelar de inmediato las notificaciones de progreso activas para que no queden huérfanas
-        idsToReset.forEach { id ->
-            try {
-                notificationService.cancelProgressNotification(id.toInt())
-            } catch (e: Exception) {
-                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error cancelando notificación de progreso para $id al cerrar", e)
-            }
-        }
-        
-        // 4. Esperar a que los jobs terminen y persistir el estado en la BD de forma síncrona
-        //    (bounded con timeout) para garantizar que la escritura ocurre antes de que muera el proceso.
+
         try {
-            kotlinx.coroutines.runBlocking(Dispatchers.IO) {
-                withTimeoutOrNull(3000) {
-                    jobsToCancel.forEach { it.join() }
-                }
+            runBlocking(Dispatchers.IO) {
+                withTimeoutOrNull(3000) { jobsToCancel.forEach { it.join() } }
                 idsToReset.forEach { id ->
                     try {
                         storageService.updatePausedState(id, true)
                         storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, Config.STATUS_WAITING, Config.STATUS_WAITING)
-                    } catch (e: Exception) {
-                        Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al restablecer el estado de la descarga $id", e)
-                    }
+                    } catch (_: Exception) {}
                 }
-                processingIds.clear()
-                activeProgresses.clear()
+                queueManager.processingIds.clear()
+                progressTracker.clearAll()
                 storageService.flushPendingWrites()
             }
         } catch (e: Exception) {
@@ -1013,57 +484,14 @@ class DownloadManagerService private constructor(
         }
     }
 
-    private fun releaseSlot(id: Long) {
-        val removed = processingIds.remove(id)
-        activeProgresses.remove(id)
-        forcedDownloadIds.remove(id)
-        activeJobs.remove(id)
-        activeCalls.remove(id)
-        _liveProgressFlow.update { it - id }
-        if (processingIds.isEmpty()) {
-            DownloadForegroundService.stop(application)
-            System.gc()
-        }
-        if (removed) {
-            triggerQueue()
-        }
-    }
-
     private fun isCellularNetwork(): Boolean {
         return try {
-            val cm = application.getSystemService(Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager ?: return false
+            val cm = application.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
             val network = cm.activeNetwork ?: return false
             val capabilities = cm.getNetworkCapabilities(network) ?: return false
-            capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR)
-        } catch (e: Exception) {
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+        } catch (_: Exception) {
             false
-        }
-    }
-
-    private fun cleanTempFiles(id: Long, title: String?, format: String = "MP4") {
-        try {
-            val destFolder = com.fabian.downloader.utils.PathUtils.getDownloadFolder(application, format)
-            if (destFolder.exists() && destFolder.isDirectory) {
-                destFolder.listFiles()?.forEach { file ->
-                    val name = file.name
-                    val cleanTitle = if (title != null) sanitizeFileName(title) else ""
-                    if ((name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp") || name.endsWith(".tmp") || name.endsWith(".downloading") || name.contains(".downloading")) &&
-                        (name.contains(id.toString()) || (cleanTitle.isNotEmpty() && name.startsWith(cleanTitle)))) {
-                        file.delete()
-                    }
-                    // Eliminar cualquier archivo de portada o miniatura independiente (.jpg, .webp, .png, .jpeg)
-                    if (name.endsWith(".jpg", ignoreCase = true) || name.endsWith(".webp", ignoreCase = true) || 
-                        name.endsWith(".png", ignoreCase = true) || name.endsWith(".jpeg", ignoreCase = true)) {
-                        val baseName = name.substringBeforeLast(".")
-                        if ((cleanTitle.isNotEmpty() && baseName.equals(cleanTitle, ignoreCase = true)) || 
-                            baseName.contains(id.toString()) || name.startsWith("thumb_")) {
-                            file.delete()
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error cleaning temp files for $id", e)
         }
     }
 }

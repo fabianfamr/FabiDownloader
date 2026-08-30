@@ -2,661 +2,322 @@ package com.fabian.downloader.ui
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.core.content.edit
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
+import android.util.Log
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.core.content.edit
 import com.fabian.downloader.configs.Config
+import com.fabian.downloader.utils.PathUtils
+import java.io.File
 
 object AppSettings {
     private lateinit var prefs: SharedPreferences
-
     private val listeners = mutableListOf<(String) -> Unit>()
 
     fun addListener(listener: (String) -> Unit) {
         synchronized(listeners) {
-            if (!listeners.contains(listener)) {
-                listeners.add(listener)
-            }
+            if (!listeners.contains(listener)) listeners.add(listener)
         }
     }
 
     fun removeListener(listener: (String) -> Unit) {
-        synchronized(listeners) {
-            listeners.remove(listener)
-        }
+        synchronized(listeners) { listeners.remove(listener) }
     }
 
     private fun notifyChanged(key: String) {
         val targets = synchronized(listeners) { listeners.toList() }
         targets.forEach { listener ->
-            try {
-                listener(key)
-            } catch (e: Exception) {
-                android.util.Log.e(Config.TAG_APP_SETTINGS, "Error en listener para clave $key", e)
+            try { listener(key) } catch (e: Exception) {
+                Log.e(Config.TAG_APP_SETTINGS, "Error en listener para clave $key", e)
             }
         }
     }
 
-    val qualityOptions = listOf(
-        Config.QUALITY_BEST,
-        Config.QUALITY_4K,
-        Config.QUALITY_1080P,
-        Config.QUALITY_720P,
-        Config.QUALITY_480P,
-        Config.QUALITY_360P,
-        Config.QUALITY_AUDIO_ONLY
-    )
-    val videoFormats = listOf(Config.FORMAT_MP4, Config.FORMAT_MKV, Config.FORMAT_WEBM)
-    val audioFormats = listOf(Config.FORMAT_MP3, Config.FORMAT_M4A, Config.FORMAT_OGG, Config.FORMAT_WAV)
-    val themeOptions = listOf(Config.THEME_SYSTEM, Config.THEME_LIGHT, Config.THEME_DARK)
-    val speedOptions = listOf(
-        Config.SPEED_UNLIMITED,
-        Config.SPEED_100K,
-        Config.SPEED_250K,
-        Config.SPEED_500K,
-        Config.SPEED_1M,
-        Config.SPEED_2M,
-        Config.SPEED_5M,
-        Config.SPEED_10M,
-        Config.SPEED_20M,
-        Config.SPEED_50M
-    )
-    val cardStyleOptions = listOf(
-        Config.CARD_STYLE_DETAILED,
-        Config.CARD_STYLE_COMPACT,
-        Config.CARD_STYLE_MINIMAL
-    )
-    val defaultAudioBitrateOptions = listOf(
-        Config.BITRATE_320,
-        Config.BITRATE_256,
-        Config.BITRATE_192,
-        Config.BITRATE_128
-    )
+    // Listas delegadas a AppSettingsDefaults
+    val qualityOptions get() = AppSettingsDefaults.qualityOptions
+    val videoFormats get() = AppSettingsDefaults.videoFormats
+    val audioFormats get() = AppSettingsDefaults.audioFormats
+    val themeOptions get() = AppSettingsDefaults.themeOptions
+    val speedOptions get() = AppSettingsDefaults.speedOptions
+    val cardStyleOptions get() = AppSettingsDefaults.cardStyleOptions
+    val defaultAudioBitrateOptions get() = AppSettingsDefaults.defaultAudioBitrateOptions
+    val pausedNotificationTimeoutOptions get() = AppSettingsDefaults.pausedNotificationTimeoutOptions
+    val batteryLowThresholdOptions get() = AppSettingsDefaults.batteryLowThresholdOptions
+    val batteryLowActionOptions get() = AppSettingsDefaults.batteryLowActionOptions
+    val accentColorOptions get() = AppSettingsDefaults.accentColorOptions
+    val storageMarginOptions get() = AppSettingsDefaults.storageMarginOptions
 
+    // Preferencias de Calidad y Formato
     private val _selectedQuality = mutableStateOf(Config.DEFAULT_QUALITY)
     var selectedQuality: String
         get() = _selectedQuality.value
-        set(value) {
-            if (_selectedQuality.value != value) {
-                _selectedQuality.value = value
-                saveString(Config.PREF_SELECTED_QUALITY, value)
-                notifyChanged(Config.PREF_SELECTED_QUALITY)
-            }
-        }
+        set(value) { if (_selectedQuality.value != value) { _selectedQuality.value = value; saveString(Config.PREF_SELECTED_QUALITY, value); notifyChanged(Config.PREF_SELECTED_QUALITY) } }
 
     private val _selectedVideoFormat = mutableStateOf(Config.FORMAT_MP4)
     var selectedVideoFormat: String
         get() = _selectedVideoFormat.value
-        set(value) {
-            if (_selectedVideoFormat.value != value) {
-                _selectedVideoFormat.value = value
-                saveString(Config.PREF_SELECTED_VIDEO_FORMAT, value)
-                notifyChanged(Config.PREF_SELECTED_VIDEO_FORMAT)
-            }
-        }
+        set(value) { if (_selectedVideoFormat.value != value) { _selectedVideoFormat.value = value; saveString(Config.PREF_SELECTED_VIDEO_FORMAT, value); notifyChanged(Config.PREF_SELECTED_VIDEO_FORMAT) } }
 
     private val _selectedAudioFormat = mutableStateOf(Config.FORMAT_MP3)
     var selectedAudioFormat: String
         get() = _selectedAudioFormat.value
-        set(value) {
-            if (_selectedAudioFormat.value != value) {
-                _selectedAudioFormat.value = value
-                saveString(Config.PREF_SELECTED_AUDIO_FORMAT, value)
-                notifyChanged(Config.PREF_SELECTED_AUDIO_FORMAT)
-            }
-        }
-
-    private val _notificationsEnabled = mutableStateOf(true)
-    var notificationsEnabled: Boolean
-        get() = _notificationsEnabled.value
-        set(value) {
-            if (_notificationsEnabled.value != value) {
-                _notificationsEnabled.value = value
-                saveBoolean(Config.PREF_NOTIFICATIONS_ENABLED, value)
-                notifyChanged(Config.PREF_NOTIFICATIONS_ENABLED)
-            }
-        }
-
-    private val _dataSaverEnabled = mutableStateOf(false)
-    var dataSaverEnabled: Boolean
-        get() = _dataSaverEnabled.value
-        set(value) {
-            if (_dataSaverEnabled.value != value) {
-                _dataSaverEnabled.value = value
-                saveBoolean(Config.PREF_DATA_SAVER_ENABLED, value)
-                notifyChanged(Config.PREF_DATA_SAVER_ENABLED)
-            }
-        }
-
-    private val _downloadLocation = mutableStateOf(Config.PATH_DOWNLOAD_LOCATION_DEFAULT)
-    var downloadLocation: String
-        get() = _downloadLocation.value
-        set(value) {
-            if (_downloadLocation.value != value) {
-                _downloadLocation.value = value
-                com.fabian.downloader.utils.PathUtils.clearFolderCache()
-                saveString(Config.PREF_DOWNLOAD_LOCATION, value)
-                notifyChanged(Config.PREF_DOWNLOAD_LOCATION)
-            }
-        }
-
-    private val _maxSpeed = mutableStateOf(Config.SPEED_UNLIMITED)
-    var maxSpeed: String
-        get() = _maxSpeed.value
-        set(value) {
-            if (_maxSpeed.value != value) {
-                _maxSpeed.value = value
-                saveString(Config.PREF_MAX_SPEED, value)
-                notifyChanged(Config.PREF_MAX_SPEED)
-            }
-        }
-
-    private val _themePreference = mutableStateOf(Config.THEME_SYSTEM)
-    val themePreferenceState: androidx.compose.runtime.State<String> get() = _themePreference
-    
-    var themePreference: String
-        get() = _themePreference.value
-        set(value) {
-            if (_themePreference.value != value) {
-                _themePreference.value = value
-                saveString(Config.PREF_THEME_PREFERENCE, value)
-                notifyChanged(Config.PREF_THEME_PREFERENCE)
-            }
-        }
-
-    private val _language = mutableStateOf(Config.DEFAULT_LANGUAGE)
-    val languageState: androidx.compose.runtime.State<String> get() = _language
-    var language: String
-        get() = _language.value
-        set(value) {
-            _language.value = value
-            saveString(Config.PREF_LANGUAGE, value)
-        }
-
-    private val _confirmOnDelete = mutableStateOf(true)
-    var confirmOnDelete: Boolean
-        get() = _confirmOnDelete.value
-        set(value) {
-            _confirmOnDelete.value = value
-            saveBoolean(Config.PREF_CONFIRM_ON_DELETE, value)
-        }
-
-    private val _concurrentFragments = mutableStateOf(Config.DEFAULT_CONCURRENT_FRAGMENTS)
-    var concurrentFragments: String
-        get() = _concurrentFragments.value
-        set(value) {
-            if (_concurrentFragments.value != value) {
-                _concurrentFragments.value = value
-                saveString(Config.PREF_CONCURRENT_FRAGMENTS, value)
-                notifyChanged(Config.PREF_CONCURRENT_FRAGMENTS)
-            }
-        }
-
-    private val _embedSubtitles = mutableStateOf(false)
-    var embedSubtitles: Boolean
-        get() = _embedSubtitles.value
-        set(value) {
-            if (_embedSubtitles.value != value) {
-                _embedSubtitles.value = value
-                saveBoolean(Config.PREF_EMBED_SUBTITLES, value)
-                notifyChanged(Config.PREF_EMBED_SUBTITLES)
-            }
-        }
-
-    private val _playlistEnabled = mutableStateOf(false)
-    var playlistEnabled: Boolean
-        get() = _playlistEnabled.value
-        set(value) {
-            _playlistEnabled.value = value
-            saveBoolean(Config.PREF_PLAYLIST_ENABLED, value)
-        }
-
-    private val _maxConcurrentDownloads = mutableStateOf(2)
-    var maxConcurrentDownloads: Int
-        get() = _maxConcurrentDownloads.value
-        set(value) {
-            if (_maxConcurrentDownloads.value != value) {
-                _maxConcurrentDownloads.value = value
-                if (::prefs.isInitialized) {
-                    prefs.edit { putInt(Config.PREF_MAX_CONCURRENT_DOWNLOADS, value) }
-                }
-                notifyChanged(Config.PREF_MAX_CONCURRENT_DOWNLOADS)
-            }
-        }
-
-    private val _earlyStartThreshold = mutableStateOf(0) // 0 means Desactivado, otherwise 95..99
-    var earlyStartThreshold: Int
-        get() = _earlyStartThreshold.value
-        set(value) {
-            if (_earlyStartThreshold.value != value) {
-                _earlyStartThreshold.value = value
-                if (::prefs.isInitialized) {
-                    prefs.edit { putInt(Config.PREF_EARLY_START_THRESHOLD, value) }
-                }
-                notifyChanged(Config.PREF_EARLY_START_THRESHOLD)
-            }
-        }
-
-    private val _clipboardAction = mutableStateOf(Config.CLIPBOARD_ACTION_BANNER)
-    var clipboardAction: String
-        get() = _clipboardAction.value
-        set(value) {
-            _clipboardAction.value = value
-            saveString(Config.PREF_CLIPBOARD_ACTION, value)
-        }
-
-    private val _lastDownloadedOptionId = mutableStateOf("")
-    var lastDownloadedOptionId: String
-        get() = _lastDownloadedOptionId.value
-        set(value) {
-            _lastDownloadedOptionId.value = value
-            saveString(Config.PREF_LAST_DOWNLOADED_OPTION_ID, value)
-        }
-
-    private val _customArguments = mutableStateOf("")
-    var customArguments: String
-        get() = _customArguments.value
-        set(value) {
-            if (_customArguments.value != value) {
-                _customArguments.value = value
-                saveString(Config.PREF_CUSTOM_ARGUMENTS, value)
-                notifyChanged(Config.PREF_CUSTOM_ARGUMENTS)
-            }
-        }
-
-    private val _cookies = mutableStateOf("")
-    var cookies: String
-        get() = _cookies.value
-        set(value) {
-            if (_cookies.value != value) {
-                _cookies.value = value
-                saveString(Config.PREF_COOKIES, value)
-                syncCookiesFile(com.fabian.downloader.MyApplication.getInstance(), value)
-                notifyChanged(Config.PREF_COOKIES)
-            }
-        }
-
-    private fun syncCookiesFile(context: Context, cookieContent: String) {
-        try {
-            val cookiesFile = java.io.File(context.filesDir, Config.COOKIES_FILE_NAME)
-            if (cookieContent.trim().isEmpty()) {
-                if (cookiesFile.exists()) {
-                    cookiesFile.delete()
-                }
-            } else {
-                cookiesFile.writeText(cookieContent)
-            }
-        } catch (e: Exception) {
-            android.util.Log.e(Config.TAG_APP_SETTINGS, "Error syncing cookies.txt: ${e.message}", e)
-        }
-    }
-
-    private val _customUserAgent = mutableStateOf("")
-    var customUserAgent: String
-        get() = _customUserAgent.value
-        set(value) {
-            if (_customUserAgent.value != value) {
-                _customUserAgent.value = value
-                saveString(Config.PREF_CUSTOM_USER_AGENT, value)
-                notifyChanged(Config.PREF_CUSTOM_USER_AGENT)
-            }
-        }
-
-    private val _sponsorBlockEnabled = mutableStateOf(false)
-    var sponsorBlockEnabled: Boolean
-        get() = _sponsorBlockEnabled.value
-        set(value) {
-            if (_sponsorBlockEnabled.value != value) {
-                _sponsorBlockEnabled.value = value
-                saveBoolean(Config.PREF_SPONSOR_BLOCK_ENABLED, value)
-                notifyChanged(Config.PREF_SPONSOR_BLOCK_ENABLED)
-            }
-        }
-
-    private val _embedThumbnail = mutableStateOf(true)
-    var embedThumbnail: Boolean
-        get() = _embedThumbnail.value
-        set(value) {
-            if (_embedThumbnail.value != value) {
-                _embedThumbnail.value = value
-                saveBoolean(Config.PREF_EMBED_THUMBNAIL, value)
-                notifyChanged(Config.PREF_EMBED_THUMBNAIL)
-            }
-        }
-
-    private val _embedMetadata = mutableStateOf(true)
-    var embedMetadata: Boolean
-        get() = _embedMetadata.value
-        set(value) {
-            if (_embedMetadata.value != value) {
-                _embedMetadata.value = value
-                saveBoolean(Config.PREF_EMBED_METADATA, value)
-                notifyChanged(Config.PREF_EMBED_METADATA)
-            }
-        }
-
-    private val _bypassGeo = mutableStateOf(true)
-    var bypassGeo: Boolean
-        get() = _bypassGeo.value
-        set(value) {
-            if (_bypassGeo.value != value) {
-                _bypassGeo.value = value
-                saveBoolean(Config.PREF_BYPASS_GEO, value)
-                notifyChanged(Config.PREF_BYPASS_GEO)
-            }
-        }
-
-    private val _bypassSslVerification = mutableStateOf(false)
-    var bypassSslVerification: Boolean
-        get() = _bypassSslVerification.value
-        set(value) {
-            if (_bypassSslVerification.value != value) {
-                _bypassSslVerification.value = value
-                saveBoolean(Config.PREF_BYPASS_SSL_VERIFICATION, value)
-                notifyChanged(Config.PREF_BYPASS_SSL_VERIFICATION)
-            }
-        }
-
-    private val _showDownloadSpeedInNotification = mutableStateOf(true)
-    var showDownloadSpeedInNotification: Boolean
-        get() = _showDownloadSpeedInNotification.value
-        set(value) {
-            _showDownloadSpeedInNotification.value = value
-            saveBoolean(Config.PREF_SHOW_DOWNLOAD_SPEED_IN_NOTIFICATION, value)
-        }
-
-    val pausedNotificationTimeoutOptions = listOf(
-        Config.TIMEOUT_1_MIN,
-        Config.TIMEOUT_5_MIN,
-        Config.TIMEOUT_10_MIN,
-        Config.TIMEOUT_30_MIN,
-        Config.TIMEOUT_NEVER
-    )
-    private val _selectedPausedNotificationTimeout = mutableStateOf(Config.TIMEOUT_10_MIN)
-    val selectedPausedNotificationTimeoutState: androidx.compose.runtime.State<String> get() = _selectedPausedNotificationTimeout
-    var selectedPausedNotificationTimeout: String
-        get() = _selectedPausedNotificationTimeout.value
-        set(value) {
-            _selectedPausedNotificationTimeout.value = value
-            saveString(Config.PREF_SELECTED_PAUSED_NOTIFICATION_TIMEOUT, value)
-            notifyChanged(Config.PREF_SELECTED_PAUSED_NOTIFICATION_TIMEOUT)
-        }
-
-    val pausedNotificationTimeoutMs: Long
-        get() = when (selectedPausedNotificationTimeout) {
-            Config.TIMEOUT_1_MIN -> 60L * 1000L
-            Config.TIMEOUT_5_MIN -> 5L * 60L * 1000L
-            Config.TIMEOUT_10_MIN -> 10L * 60L * 1000L
-            Config.TIMEOUT_30_MIN -> 30L * 60L * 1000L
-            else -> 0L // Nunca
-        }
-
-    private val _batteryOptimizationEnabled = mutableStateOf(true)
-    var batteryOptimizationEnabled: Boolean
-        get() = _batteryOptimizationEnabled.value
-        set(value) {
-            _batteryOptimizationEnabled.value = value
-            saveBoolean(Config.PREF_BATTERY_OPTIMIZATION_ENABLED, value)
-            notifyChanged(Config.PREF_BATTERY_OPTIMIZATION_ENABLED)
-        }
-
-    val batteryLowThresholdOptions = listOf(
-        Config.BATTERY_THRESHOLD_15,
-        Config.BATTERY_THRESHOLD_20,
-        Config.BATTERY_THRESHOLD_25,
-        Config.BATTERY_THRESHOLD_30
-    )
-    private val _selectedBatteryLowThreshold = mutableStateOf(Config.BATTERY_THRESHOLD_20)
-    val selectedBatteryLowThresholdState: androidx.compose.runtime.State<String> get() = _selectedBatteryLowThreshold
-    var selectedBatteryLowThreshold: String
-        get() = _selectedBatteryLowThreshold.value
-        set(value) {
-            _selectedBatteryLowThreshold.value = value
-            saveString(Config.PREF_SELECTED_BATTERY_LOW_THRESHOLD, value)
-            notifyChanged(Config.PREF_SELECTED_BATTERY_LOW_THRESHOLD)
-        }
-
-    val batteryLowThresholdInt: Int
-        get() = selectedBatteryLowThreshold.replace("%", "").toIntOrNull() ?: 20
-
-    val batteryLowActionOptions = listOf(
-        Config.BATTERY_ACTION_OPTIMIZE,
-        Config.BATTERY_ACTION_LIMIT
-    )
-    private val _selectedBatteryLowAction = mutableStateOf(Config.BATTERY_ACTION_OPTIMIZE)
-    val selectedBatteryLowActionState: androidx.compose.runtime.State<String> get() = _selectedBatteryLowAction
-    var selectedBatteryLowAction: String
-        get() = _selectedBatteryLowAction.value
-        set(value) {
-            _selectedBatteryLowAction.value = value
-            saveString(Config.PREF_SELECTED_BATTERY_LOW_ACTION, value)
-            notifyChanged(Config.PREF_SELECTED_BATTERY_LOW_ACTION)
-        }
-
-    val batteryLowAction: String
-        get() = selectedBatteryLowAction
-
-    private val _keepHistory = mutableStateOf(true)
-    var keepHistory: Boolean
-        get() = _keepHistory.value
-        set(value) {
-            _keepHistory.value = value
-            saveBoolean(Config.PREF_KEEP_HISTORY, value)
-        }
-
-    private val _autoRetry = mutableStateOf(false)
-    var autoRetry: Boolean
-        get() = _autoRetry.value
-        set(value) {
-            if (_autoRetry.value != value) {
-                _autoRetry.value = value
-                saveBoolean(Config.PREF_AUTO_RETRY, value)
-                notifyChanged(Config.PREF_AUTO_RETRY)
-            }
-        }
-
-    private val _dynamicColor = mutableStateOf(true)
-    val dynamicColorState: androidx.compose.runtime.State<Boolean> get() = _dynamicColor
-    var dynamicColor: Boolean
-        get() = _dynamicColor.value
-        set(value) {
-            if (_dynamicColor.value != value) {
-                _dynamicColor.value = value
-                saveBoolean(Config.PREF_DYNAMIC_COLOR, value)
-                notifyChanged(Config.PREF_DYNAMIC_COLOR)
-            }
-        }
-
-    private val _markAsMV = mutableStateOf(false)
-    val markAsMVState: androidx.compose.runtime.State<Boolean> get() = _markAsMV
-    var markAsMV: Boolean
-        get() = _markAsMV.value
-        set(value) {
-            if (_markAsMV.value != value) {
-                _markAsMV.value = value
-                saveBoolean(Config.PREF_MARK_AS_MV, value)
-                notifyChanged(Config.PREF_MARK_AS_MV)
-            }
-        }
-
-    private val _accentColorName = mutableStateOf(Config.ACCENT_ELECTRIC_BLUE)
-    val accentColorNameState: androidx.compose.runtime.State<String> get() = _accentColorName
-    val accentColorOptions = listOf(
-        Config.ACCENT_ELECTRIC_BLUE,
-        Config.ACCENT_EMERALD_GREEN,
-        Config.ACCENT_ROYAL_PURPLE,
-        Config.ACCENT_SUNSET_ORANGE,
-        Config.ACCENT_HOT_PINK,
-        Config.ACCENT_STEEL_GRAY
-    )
-    var accentColorName: String
-        get() = _accentColorName.value
-        set(value) {
-            if (_accentColorName.value != value) {
-                _accentColorName.value = value
-                saveString(Config.PREF_ACCENT_COLOR_NAME, value)
-                notifyChanged(Config.PREF_ACCENT_COLOR_NAME)
-            }
-        }
-
-    val storageMarginOptions = listOf(
-        Config.STORAGE_MARGIN_DISABLED,
-        Config.STORAGE_MARGIN_100MB,
-        Config.STORAGE_MARGIN_250MB,
-        Config.STORAGE_MARGIN_500MB,
-        Config.STORAGE_MARGIN_1GB,
-        Config.STORAGE_MARGIN_2GB,
-        Config.STORAGE_MARGIN_3GB,
-        Config.STORAGE_MARGIN_5GB,
-        Config.STORAGE_MARGIN_10GB
-    )
-    private val _selectedStorageMargin = mutableStateOf(Config.STORAGE_MARGIN_500MB)
-    val selectedStorageMarginState: androidx.compose.runtime.State<String> get() = _selectedStorageMargin
-    var selectedStorageMargin: String
-        get() = _selectedStorageMargin.value
-        set(value) {
-            _selectedStorageMargin.value = value
-            saveString(Config.PREF_SELECTED_STORAGE_MARGIN, value)
-            notifyChanged(Config.PREF_SELECTED_STORAGE_MARGIN)
-        }
-
-    val storageMarginBytes: Long
-        get() = when (selectedStorageMargin) {
-            Config.STORAGE_MARGIN_100MB -> 100L * 1024L * 1024L
-            Config.STORAGE_MARGIN_250MB -> 250L * 1024L * 1024L
-            Config.STORAGE_MARGIN_500MB -> 500L * 1024L * 1024L
-            Config.STORAGE_MARGIN_1GB -> 1024L * 1024L * 1024L
-            Config.STORAGE_MARGIN_2GB -> 2L * 1024L * 1024L * 1024L
-            Config.STORAGE_MARGIN_3GB -> 3L * 1024L * 1024L * 1024L
-            Config.STORAGE_MARGIN_5GB -> 5L * 1024L * 1024L * 1024L
-            Config.STORAGE_MARGIN_10GB -> 10L * 1024L * 1024L * 1024L
-            else -> 0L // Desactivado
-        }
-
-    private val _cardStyle = mutableStateOf(Config.CARD_STYLE_DETAILED)
-    var cardStyle: String
-        get() = _cardStyle.value
-        set(value) {
-            if (_cardStyle.value != value) {
-                _cardStyle.value = value
-                saveString(Config.PREF_CARD_STYLE, value)
-                notifyChanged(Config.PREF_CARD_STYLE)
-            }
-        }
-
-    private val _showQualityBadge = mutableStateOf(true)
-    var showQualityBadge: Boolean
-        get() = _showQualityBadge.value
-        set(value) {
-            if (_showQualityBadge.value != value) {
-                _showQualityBadge.value = value
-                saveBoolean(Config.PREF_SHOW_QUALITY_BADGE, value)
-                notifyChanged(Config.PREF_SHOW_QUALITY_BADGE)
-            }
-        }
-
-    private val _showRealtimeSpeedCard = mutableStateOf(false)
-    var showRealtimeSpeedCard: Boolean
-        get() = _showRealtimeSpeedCard.value
-        set(value) {
-            if (_showRealtimeSpeedCard.value != value) {
-                _showRealtimeSpeedCard.value = value
-                saveBoolean(Config.PREF_SHOW_REALTIME_SPEED_CARD, value)
-                notifyChanged(Config.PREF_SHOW_REALTIME_SPEED_CARD)
-            }
-        }
+        set(value) { if (_selectedAudioFormat.value != value) { _selectedAudioFormat.value = value; saveString(Config.PREF_SELECTED_AUDIO_FORMAT, value); notifyChanged(Config.PREF_SELECTED_AUDIO_FORMAT) } }
 
     private val _defaultAudioBitrate = mutableStateOf(Config.BITRATE_192)
     var defaultAudioBitrate: String
         get() = _defaultAudioBitrate.value
-        set(value) {
-            if (_defaultAudioBitrate.value != value) {
-                _defaultAudioBitrate.value = value
-                saveString(Config.PREF_DEFAULT_AUDIO_BITRATE, value)
-                notifyChanged(Config.PREF_DEFAULT_AUDIO_BITRATE)
-            }
-        }
+        set(value) { if (_defaultAudioBitrate.value != value) { _defaultAudioBitrate.value = value; saveString(Config.PREF_DEFAULT_AUDIO_BITRATE, value); notifyChanged(Config.PREF_DEFAULT_AUDIO_BITRATE) } }
+
+    // Almacenamiento y Velocidad
+    private val _downloadLocation = mutableStateOf(Config.PATH_DOWNLOAD_LOCATION_DEFAULT)
+    var downloadLocation: String
+        get() = _downloadLocation.value
+        set(value) { if (_downloadLocation.value != value) { _downloadLocation.value = value; PathUtils.clearFolderCache(); saveString(Config.PREF_DOWNLOAD_LOCATION, value); notifyChanged(Config.PREF_DOWNLOAD_LOCATION) } }
+
+    private val _maxSpeed = mutableStateOf(Config.SPEED_UNLIMITED)
+    var maxSpeed: String
+        get() = _maxSpeed.value
+        set(value) { if (_maxSpeed.value != value) { _maxSpeed.value = value; saveString(Config.PREF_MAX_SPEED, value); notifyChanged(Config.PREF_MAX_SPEED) } }
+
+    private val _selectedStorageMargin = mutableStateOf(Config.STORAGE_MARGIN_500MB)
+    val selectedStorageMarginState: State<String> get() = _selectedStorageMargin
+    var selectedStorageMargin: String
+        get() = _selectedStorageMargin.value
+        set(value) { _selectedStorageMargin.value = value; saveString(Config.PREF_SELECTED_STORAGE_MARGIN, value); notifyChanged(Config.PREF_SELECTED_STORAGE_MARGIN) }
+
+    val storageMarginBytes: Long get() = AppSettingsDefaults.calculateStorageMarginBytes(selectedStorageMargin)
+
+    // Motor yt-dlp y Concurrencia
+    private val _concurrentFragments = mutableStateOf(Config.DEFAULT_CONCURRENT_FRAGMENTS)
+    var concurrentFragments: String
+        get() = _concurrentFragments.value
+        set(value) { if (_concurrentFragments.value != value) { _concurrentFragments.value = value; saveString(Config.PREF_CONCURRENT_FRAGMENTS, value); notifyChanged(Config.PREF_CONCURRENT_FRAGMENTS) } }
+
+    private val _maxConcurrentDownloads = mutableStateOf(2)
+    var maxConcurrentDownloads: Int
+        get() = _maxConcurrentDownloads.value
+        set(value) { if (_maxConcurrentDownloads.value != value) { _maxConcurrentDownloads.value = value; if (::prefs.isInitialized) prefs.edit { putInt(Config.PREF_MAX_CONCURRENT_DOWNLOADS, value) }; notifyChanged(Config.PREF_MAX_CONCURRENT_DOWNLOADS) } }
+
+    private val _earlyStartThreshold = mutableStateOf(0)
+    var earlyStartThreshold: Int
+        get() = _earlyStartThreshold.value
+        set(value) { if (_earlyStartThreshold.value != value) { _earlyStartThreshold.value = value; if (::prefs.isInitialized) prefs.edit { putInt(Config.PREF_EARLY_START_THRESHOLD, value) }; notifyChanged(Config.PREF_EARLY_START_THRESHOLD) } }
+
+    private val _customArguments = mutableStateOf("")
+    var customArguments: String
+        get() = _customArguments.value
+        set(value) { if (_customArguments.value != value) { _customArguments.value = value; saveString(Config.PREF_CUSTOM_ARGUMENTS, value); notifyChanged(Config.PREF_CUSTOM_ARGUMENTS) } }
+
+    private val _customUserAgent = mutableStateOf("")
+    var customUserAgent: String
+        get() = _customUserAgent.value
+        set(value) { if (_customUserAgent.value != value) { _customUserAgent.value = value; saveString(Config.PREF_CUSTOM_USER_AGENT, value); notifyChanged(Config.PREF_CUSTOM_USER_AGENT) } }
+
+    private val _cookies = mutableStateOf("")
+    var cookies: String
+        get() = _cookies.value
+        set(value) { if (_cookies.value != value) { _cookies.value = value; saveString(Config.PREF_COOKIES, value); syncCookiesFile(com.fabian.downloader.MyApplication.getInstance(), value); notifyChanged(Config.PREF_COOKIES) } }
+
+    private fun syncCookiesFile(context: Context, cookieContent: String) {
+        try {
+            val cookiesFile = File(context.filesDir, Config.COOKIES_FILE_NAME)
+            if (cookieContent.trim().isEmpty()) { if (cookiesFile.exists()) cookiesFile.delete() }
+            else { cookiesFile.writeText(cookieContent) }
+        } catch (e: Exception) { Log.e(Config.TAG_APP_SETTINGS, "Error syncing cookies.txt", e) }
+    }
+
+    // Opciones y Flags de Integración
+    private val _notificationsEnabled = mutableStateOf(true)
+    var notificationsEnabled: Boolean
+        get() = _notificationsEnabled.value
+        set(value) { if (_notificationsEnabled.value != value) { _notificationsEnabled.value = value; saveBoolean(Config.PREF_NOTIFICATIONS_ENABLED, value); notifyChanged(Config.PREF_NOTIFICATIONS_ENABLED) } }
+
+    private val _dataSaverEnabled = mutableStateOf(false)
+    var dataSaverEnabled: Boolean
+        get() = _dataSaverEnabled.value
+        set(value) { if (_dataSaverEnabled.value != value) { _dataSaverEnabled.value = value; saveBoolean(Config.PREF_DATA_SAVER_ENABLED, value); notifyChanged(Config.PREF_DATA_SAVER_ENABLED) } }
+
+    private val _confirmOnDelete = mutableStateOf(true)
+    var confirmOnDelete: Boolean
+        get() = _confirmOnDelete.value
+        set(value) { _confirmOnDelete.value = value; saveBoolean(Config.PREF_CONFIRM_ON_DELETE, value) }
+
+    private val _embedSubtitles = mutableStateOf(false)
+    var embedSubtitles: Boolean
+        get() = _embedSubtitles.value
+        set(value) { if (_embedSubtitles.value != value) { _embedSubtitles.value = value; saveBoolean(Config.PREF_EMBED_SUBTITLES, value); notifyChanged(Config.PREF_EMBED_SUBTITLES) } }
+
+    private val _playlistEnabled = mutableStateOf(false)
+    var playlistEnabled: Boolean
+        get() = _playlistEnabled.value
+        set(value) { _playlistEnabled.value = value; saveBoolean(Config.PREF_PLAYLIST_ENABLED, value) }
+
+    private val _clipboardAction = mutableStateOf(Config.CLIPBOARD_ACTION_BANNER)
+    var clipboardAction: String
+        get() = _clipboardAction.value
+        set(value) { _clipboardAction.value = value; saveString(Config.PREF_CLIPBOARD_ACTION, value) }
+
+    private val _lastDownloadedOptionId = mutableStateOf("")
+    var lastDownloadedOptionId: String
+        get() = _lastDownloadedOptionId.value
+        set(value) { _lastDownloadedOptionId.value = value; saveString(Config.PREF_LAST_DOWNLOADED_OPTION_ID, value) }
+
+    private val _sponsorBlockEnabled = mutableStateOf(false)
+    var sponsorBlockEnabled: Boolean
+        get() = _sponsorBlockEnabled.value
+        set(value) { if (_sponsorBlockEnabled.value != value) { _sponsorBlockEnabled.value = value; saveBoolean(Config.PREF_SPONSOR_BLOCK_ENABLED, value); notifyChanged(Config.PREF_SPONSOR_BLOCK_ENABLED) } }
+
+    private val _embedThumbnail = mutableStateOf(true)
+    var embedThumbnail: Boolean
+        get() = _embedThumbnail.value
+        set(value) { if (_embedThumbnail.value != value) { _embedThumbnail.value = value; saveBoolean(Config.PREF_EMBED_THUMBNAIL, value); notifyChanged(Config.PREF_EMBED_THUMBNAIL) } }
+
+    private val _embedMetadata = mutableStateOf(true)
+    var embedMetadata: Boolean
+        get() = _embedMetadata.value
+        set(value) { if (_embedMetadata.value != value) { _embedMetadata.value = value; saveBoolean(Config.PREF_EMBED_METADATA, value); notifyChanged(Config.PREF_EMBED_METADATA) } }
+
+    private val _bypassGeo = mutableStateOf(true)
+    var bypassGeo: Boolean
+        get() = _bypassGeo.value
+        set(value) { if (_bypassGeo.value != value) { _bypassGeo.value = value; saveBoolean(Config.PREF_BYPASS_GEO, value); notifyChanged(Config.PREF_BYPASS_GEO) } }
+
+    private val _bypassSslVerification = mutableStateOf(false)
+    var bypassSslVerification: Boolean
+        get() = _bypassSslVerification.value
+        set(value) { if (_bypassSslVerification.value != value) { _bypassSslVerification.value = value; saveBoolean(Config.PREF_BYPASS_SSL_VERIFICATION, value); notifyChanged(Config.PREF_BYPASS_SSL_VERIFICATION) } }
+
+    private val _showDownloadSpeedInNotification = mutableStateOf(true)
+    var showDownloadSpeedInNotification: Boolean
+        get() = _showDownloadSpeedInNotification.value
+        set(value) { _showDownloadSpeedInNotification.value = value; saveBoolean(Config.PREF_SHOW_DOWNLOAD_SPEED_IN_NOTIFICATION, value) }
+
+    private val _selectedPausedNotificationTimeout = mutableStateOf(Config.TIMEOUT_10_MIN)
+    val selectedPausedNotificationTimeoutState: State<String> get() = _selectedPausedNotificationTimeout
+    var selectedPausedNotificationTimeout: String
+        get() = _selectedPausedNotificationTimeout.value
+        set(value) { _selectedPausedNotificationTimeout.value = value; saveString(Config.PREF_SELECTED_PAUSED_NOTIFICATION_TIMEOUT, value); notifyChanged(Config.PREF_SELECTED_PAUSED_NOTIFICATION_TIMEOUT) }
+
+    val pausedNotificationTimeoutMs: Long get() = AppSettingsDefaults.calculatePausedTimeoutMs(selectedPausedNotificationTimeout)
+
+    private val _batteryOptimizationEnabled = mutableStateOf(true)
+    var batteryOptimizationEnabled: Boolean
+        get() = _batteryOptimizationEnabled.value
+        set(value) { _batteryOptimizationEnabled.value = value; saveBoolean(Config.PREF_BATTERY_OPTIMIZATION_ENABLED, value); notifyChanged(Config.PREF_BATTERY_OPTIMIZATION_ENABLED) }
+
+    private val _selectedBatteryLowThreshold = mutableStateOf(Config.BATTERY_THRESHOLD_20)
+    val selectedBatteryLowThresholdState: State<String> get() = _selectedBatteryLowThreshold
+    var selectedBatteryLowThreshold: String
+        get() = _selectedBatteryLowThreshold.value
+        set(value) { _selectedBatteryLowThreshold.value = value; saveString(Config.PREF_SELECTED_BATTERY_LOW_THRESHOLD, value); notifyChanged(Config.PREF_SELECTED_BATTERY_LOW_THRESHOLD) }
+
+    val batteryLowThresholdInt: Int get() = selectedBatteryLowThreshold.replace("%", "").toIntOrNull() ?: 20
+
+    private val _selectedBatteryLowAction = mutableStateOf(Config.BATTERY_ACTION_OPTIMIZE)
+    val selectedBatteryLowActionState: State<String> get() = _selectedBatteryLowAction
+    var selectedBatteryLowAction: String
+        get() = _selectedBatteryLowAction.value
+        set(value) { _selectedBatteryLowAction.value = value; saveString(Config.PREF_SELECTED_BATTERY_LOW_ACTION, value); notifyChanged(Config.PREF_SELECTED_BATTERY_LOW_ACTION) }
+
+    val batteryLowAction: String get() = selectedBatteryLowAction
+
+    private val _keepHistory = mutableStateOf(true)
+    var keepHistory: Boolean
+        get() = _keepHistory.value
+        set(value) { _keepHistory.value = value; saveBoolean(Config.PREF_KEEP_HISTORY, value) }
+
+    private val _autoRetry = mutableStateOf(false)
+    var autoRetry: Boolean
+        get() = _autoRetry.value
+        set(value) { if (_autoRetry.value != value) { _autoRetry.value = value; saveBoolean(Config.PREF_AUTO_RETRY, value); notifyChanged(Config.PREF_AUTO_RETRY) } }
 
     private val _notifyBatchComplete = mutableStateOf(true)
     var notifyBatchComplete: Boolean
         get() = _notifyBatchComplete.value
-        set(value) {
-            if (_notifyBatchComplete.value != value) {
-                _notifyBatchComplete.value = value
-                saveBoolean(Config.PREF_NOTIFY_BATCH_COMPLETE, value)
-                notifyChanged(Config.PREF_NOTIFY_BATCH_COMPLETE)
-            }
-        }
+        set(value) { if (_notifyBatchComplete.value != value) { _notifyBatchComplete.value = value; saveBoolean(Config.PREF_NOTIFY_BATCH_COMPLETE, value); notifyChanged(Config.PREF_NOTIFY_BATCH_COMPLETE) } }
 
     private val _cleanTempOnCancel = mutableStateOf(true)
     var cleanTempOnCancel: Boolean
         get() = _cleanTempOnCancel.value
-        set(value) {
-            if (_cleanTempOnCancel.value != value) {
-                _cleanTempOnCancel.value = value
-                saveBoolean(Config.PREF_CLEAN_TEMP_ON_CANCEL, value)
-                notifyChanged(Config.PREF_CLEAN_TEMP_ON_CANCEL)
-            }
-        }
+        set(value) { if (_cleanTempOnCancel.value != value) { _cleanTempOnCancel.value = value; saveBoolean(Config.PREF_CLEAN_TEMP_ON_CANCEL, value); notifyChanged(Config.PREF_CLEAN_TEMP_ON_CANCEL) } }
 
     private val _quickShareMode = mutableStateOf(true)
-    val quickShareModeState: androidx.compose.runtime.State<Boolean> get() = _quickShareMode
+    val quickShareModeState: State<Boolean> get() = _quickShareMode
     var quickShareMode: Boolean
         get() = _quickShareMode.value
-        set(value) {
-            if (_quickShareMode.value != value) {
-                _quickShareMode.value = value
-                saveBoolean(Config.PREF_QUICK_SHARE_MODE, value)
-                notifyChanged(Config.PREF_QUICK_SHARE_MODE)
-            }
-        }
+        set(value) { if (_quickShareMode.value != value) { _quickShareMode.value = value; saveBoolean(Config.PREF_QUICK_SHARE_MODE, value); notifyChanged(Config.PREF_QUICK_SHARE_MODE) } }
 
     private val _allowDuplicateDownloads = mutableStateOf(true)
     var allowDuplicateDownloads: Boolean
         get() = _allowDuplicateDownloads.value
-        set(value) {
-            if (_allowDuplicateDownloads.value != value) {
-                _allowDuplicateDownloads.value = value
-                saveBoolean(Config.PREF_ALLOW_DUPLICATE_DOWNLOADS, value)
-                notifyChanged(Config.PREF_ALLOW_DUPLICATE_DOWNLOADS)
-            }
-        }
+        set(value) { if (_allowDuplicateDownloads.value != value) { _allowDuplicateDownloads.value = value; saveBoolean(Config.PREF_ALLOW_DUPLICATE_DOWNLOADS, value); notifyChanged(Config.PREF_ALLOW_DUPLICATE_DOWNLOADS) } }
 
     private val _embedChapters = mutableStateOf(true)
     var embedChapters: Boolean
         get() = _embedChapters.value
-        set(value) {
-            if (_embedChapters.value != value) {
-                _embedChapters.value = value
-                saveBoolean(Config.PREF_EMBED_CHAPTERS, value)
-                notifyChanged(Config.PREF_EMBED_CHAPTERS)
-            }
-        }
+        set(value) { if (_embedChapters.value != value) { _embedChapters.value = value; saveBoolean(Config.PREF_EMBED_CHAPTERS, value); notifyChanged(Config.PREF_EMBED_CHAPTERS) } }
+
+    // Apariencia y UI
+    private val _themePreference = mutableStateOf(Config.THEME_SYSTEM)
+    val themePreferenceState: State<String> get() = _themePreference
+    var themePreference: String
+        get() = _themePreference.value
+        set(value) { if (_themePreference.value != value) { _themePreference.value = value; saveString(Config.PREF_THEME_PREFERENCE, value); notifyChanged(Config.PREF_THEME_PREFERENCE) } }
+
+    private val _language = mutableStateOf(Config.DEFAULT_LANGUAGE)
+    val languageState: State<String> get() = _language
+    var language: String
+        get() = _language.value
+        set(value) { _language.value = value; saveString(Config.PREF_LANGUAGE, value) }
+
+    private val _dynamicColor = mutableStateOf(true)
+    val dynamicColorState: State<Boolean> get() = _dynamicColor
+    var dynamicColor: Boolean
+        get() = _dynamicColor.value
+        set(value) { if (_dynamicColor.value != value) { _dynamicColor.value = value; saveBoolean(Config.PREF_DYNAMIC_COLOR, value); notifyChanged(Config.PREF_DYNAMIC_COLOR) } }
+
+    private val _accentColorName = mutableStateOf(Config.ACCENT_ELECTRIC_BLUE)
+    val accentColorNameState: State<String> get() = _accentColorName
+    var accentColorName: String
+        get() = _accentColorName.value
+        set(value) { if (_accentColorName.value != value) { _accentColorName.value = value; saveString(Config.PREF_ACCENT_COLOR_NAME, value); notifyChanged(Config.PREF_ACCENT_COLOR_NAME) } }
+
+    private val _cardStyle = mutableStateOf(Config.CARD_STYLE_DETAILED)
+    var cardStyle: String
+        get() = _cardStyle.value
+        set(value) { if (_cardStyle.value != value) { _cardStyle.value = value; saveString(Config.PREF_CARD_STYLE, value); notifyChanged(Config.PREF_CARD_STYLE) } }
+
+    private val _showQualityBadge = mutableStateOf(true)
+    var showQualityBadge: Boolean
+        get() = _showQualityBadge.value
+        set(value) { if (_showQualityBadge.value != value) { _showQualityBadge.value = value; saveBoolean(Config.PREF_SHOW_QUALITY_BADGE, value); notifyChanged(Config.PREF_SHOW_QUALITY_BADGE) } }
+
+    private val _showRealtimeSpeedCard = mutableStateOf(false)
+    var showRealtimeSpeedCard: Boolean
+        get() = _showRealtimeSpeedCard.value
+        set(value) { if (_showRealtimeSpeedCard.value != value) { _showRealtimeSpeedCard.value = value; saveBoolean(Config.PREF_SHOW_REALTIME_SPEED_CARD, value); notifyChanged(Config.PREF_SHOW_REALTIME_SPEED_CARD) } }
 
     private val _amoledMode = mutableStateOf(false)
-    val amoledModeState: androidx.compose.runtime.State<Boolean> get() = _amoledMode
+    val amoledModeState: State<Boolean> get() = _amoledMode
     var amoledMode: Boolean
         get() = _amoledMode.value
-        set(value) {
-            if (_amoledMode.value != value) {
-                _amoledMode.value = value
-                saveBoolean(Config.PREF_AMOLED_MODE, value)
-                notifyChanged(Config.PREF_AMOLED_MODE)
-            }
-        }
+        set(value) { if (_amoledMode.value != value) { _amoledMode.value = value; saveBoolean(Config.PREF_AMOLED_MODE, value); notifyChanged(Config.PREF_AMOLED_MODE) } }
+
+    private val _markAsMV = mutableStateOf(false)
+    val markAsMVState: State<Boolean> get() = _markAsMV
+    var markAsMV: Boolean
+        get() = _markAsMV.value
+        set(value) { if (_markAsMV.value != value) { _markAsMV.value = value; saveBoolean(Config.PREF_MARK_AS_MV, value); notifyChanged(Config.PREF_MARK_AS_MV) } }
 
     fun init(context: Context) {
         prefs = context.getSharedPreferences(Config.PREFS_NAME, Context.MODE_PRIVATE)
-        
+
         _selectedQuality.value = prefs.getString(Config.PREF_SELECTED_QUALITY, Config.DEFAULT_QUALITY) ?: Config.DEFAULT_QUALITY
         _selectedVideoFormat.value = prefs.getString(Config.PREF_SELECTED_VIDEO_FORMAT, Config.FORMAT_MP4) ?: Config.FORMAT_MP4
         _selectedAudioFormat.value = prefs.getString(Config.PREF_SELECTED_AUDIO_FORMAT, Config.FORMAT_MP3) ?: Config.FORMAT_MP3
         _notificationsEnabled.value = prefs.getBoolean(Config.PREF_NOTIFICATIONS_ENABLED, true)
         _dataSaverEnabled.value = prefs.getBoolean(Config.PREF_DATA_SAVER_ENABLED, false)
+
         val savedLocation = prefs.getString(Config.PREF_DOWNLOAD_LOCATION, Config.PATH_DOWNLOAD_LOCATION_DEFAULT) ?: Config.PATH_DOWNLOAD_LOCATION_DEFAULT
         if (savedLocation == "Downloads/FabiDownloader" || savedLocation == "Download/FabiDownloader") {
             _downloadLocation.value = Config.PATH_DOWNLOAD_LOCATION_DEFAULT
@@ -664,6 +325,7 @@ object AppSettings {
         } else {
             _downloadLocation.value = savedLocation
         }
+
         _maxSpeed.value = prefs.getString(Config.PREF_MAX_SPEED, Config.SPEED_UNLIMITED) ?: Config.SPEED_UNLIMITED
         _themePreference.value = prefs.getString(Config.PREF_THEME_PREFERENCE, Config.THEME_SYSTEM) ?: Config.THEME_SYSTEM
         _language.value = prefs.getString(Config.PREF_LANGUAGE, Config.DEFAULT_LANGUAGE) ?: Config.DEFAULT_LANGUAGE
@@ -675,7 +337,7 @@ object AppSettings {
         _earlyStartThreshold.value = prefs.getInt(Config.PREF_EARLY_START_THRESHOLD, 0)
         _clipboardAction.value = prefs.getString(Config.PREF_CLIPBOARD_ACTION, Config.CLIPBOARD_ACTION_BANNER) ?: Config.CLIPBOARD_ACTION_BANNER
         _lastDownloadedOptionId.value = prefs.getString(Config.PREF_LAST_DOWNLOADED_OPTION_ID, "") ?: ""
-        
+
         _customArguments.value = prefs.getString(Config.PREF_CUSTOM_ARGUMENTS, "") ?: ""
         _cookies.value = prefs.getString(Config.PREF_COOKIES, "") ?: ""
         syncCookiesFile(context, _cookies.value)
@@ -712,14 +374,10 @@ object AppSettings {
     }
 
     private fun saveString(key: String, value: String) {
-        if (::prefs.isInitialized) {
-            prefs.edit { putString(key, value) }
-        }
+        if (::prefs.isInitialized) prefs.edit { putString(key, value) }
     }
 
     private fun saveBoolean(key: String, value: Boolean) {
-        if (::prefs.isInitialized) {
-            prefs.edit { putBoolean(key, value) }
-        }
+        if (::prefs.isInitialized) prefs.edit { putBoolean(key, value) }
     }
 }

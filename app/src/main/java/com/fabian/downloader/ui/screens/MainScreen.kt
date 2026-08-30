@@ -1,73 +1,59 @@
 package com.fabian.downloader.ui.screens
 
-import com.fabian.downloader.ui.AppSettings
-import com.fabian.downloader.ui.components.AppIcons
-import com.fabian.downloader.ui.components.PlatformIcons
-import com.fabian.downloader.ui.viewmodels.MainViewModel
-import com.fabian.downloader.ui.components.getPlatformIconAndColor
-import com.fabian.downloader.ui.components.MediaThumbnail
-import com.fabian.downloader.ui.components.isAudioFormat
-import com.fabian.downloader.utils.ToastUtils
-
 import android.app.Application
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import androidx.compose.foundation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.slideInVertically
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.testTag
-import androidx.compose.ui.text.font.FontWeight
-import com.fabian.downloader.R
-import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import kotlin.math.cos
-import kotlin.math.sin
-import com.fabian.downloader.ui.theme.*
-import kotlinx.coroutines.delay
-import com.fabian.downloader.BuildConfig
-import com.fabian.downloader.configs.Config
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.fabian.downloader.R
+import com.fabian.downloader.configs.Config
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.database.DownloadRecord
+import com.fabian.downloader.services.StorageService
+import com.fabian.downloader.ui.AppSettings
+import com.fabian.downloader.ui.components.PlatformIcons
+import com.fabian.downloader.ui.theme.fabiColors
+import com.fabian.downloader.ui.viewmodels.MainViewModel
+import com.fabian.downloader.utils.PathUtils
 import kotlinx.coroutines.launch
-import java.io.File
 
 enum class AnalyzeState { Idle, Loading, Success }
 
@@ -87,11 +73,11 @@ fun MainScreen(
     onNavigateToDownloads: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {}
 ) {
-    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val ctx = LocalContext.current
     var query by rememberSaveable { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val application = ctx.applicationContext as Application
-    
+
     val viewModel: MainViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -101,10 +87,8 @@ fun MainScreen(
         }
     )
 
-    // Observe downloads flow in real-time with memory cache & write optimization
-    val storageService = remember { com.fabian.downloader.services.StorageService.getInstance(ctx) }
+    val storageService = remember { StorageService.getInstance(ctx) }
     val downloadsList by storageService.getAllDownloads().collectAsStateWithLifecycle(initialValue = emptyList())
-    // Get last 3 completed downloads
     val recentDownloads by remember(downloadsList) {
         derivedStateOf { 
             downloadsList
@@ -113,13 +97,13 @@ fun MainScreen(
                 .take(3) 
         }
     }
-    
+
     val lifecycleOwner = LocalLifecycleOwner.current
     var clipboardUrl by remember { mutableStateOf<String?>(null) }
     var urlToDownloadInDialog by remember { mutableStateOf<String?>(null) }
     var lastProcessedClipboardUrl by rememberSaveable { mutableStateOf("") }
     val clipboardManager = remember {
-        ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     }
 
     DisposableEffect(lifecycleOwner) {
@@ -141,27 +125,18 @@ fun MainScreen(
                             }
                         }
                     }
-                } catch (e: Exception) {
-                    // Ignore background clipboard access restrictions on some Android versions
-                }
+                } catch (_: Exception) {}
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     val openFile: (DownloadRecord) -> Unit = { record ->
         try {
-            val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(ctx, record.title, record.id, record.format)
-            
+            val file = PathUtils.getDownloadFile(ctx, record.title, record.id, record.format)
             if (file.exists()) {
-                val uri = FileProvider.getUriForFile(
-                    ctx,
-                    "com.fabian.downloader.fileprovider",
-                    file
-                )
+                val uri = FileProvider.getUriForFile(ctx, "com.fabian.downloader.fileprovider", file)
                 val mimeType = when (record.format.uppercase()) {
                     Config.FORMAT_MP4, Config.FORMAT_WEBM -> Config.MIME_VIDEO
                     Config.FORMAT_JPG, Config.FORMAT_PNG, Config.FORMAT_WEBP, "JPEG" -> Config.MIME_IMAGE
@@ -174,47 +149,23 @@ fun MainScreen(
                 }
                 ctx.startActivity(intent)
             } else {
-                scope.launch {
-                    snackbarHostState?.showSnackbar(ctx.getString(R.string.main_error_file_not_found))
-                }
+                scope.launch { snackbarHostState?.showSnackbar(ctx.getString(R.string.main_error_file_not_found)) }
             }
         } catch (e: Exception) {
-            scope.launch {
-                snackbarHostState?.showSnackbar(ctx.getString(R.string.main_error_opening_file, e.localizedMessage ?: ""))
-            }
+            scope.launch { snackbarHostState?.showSnackbar(ctx.getString(R.string.main_error_opening_file, e.localizedMessage ?: "")) }
         }
     }
 
-    // Entrance animation states
-    var headerVisible by remember { mutableStateOf(false) }
     var searchBarVisible by remember { mutableStateOf(false) }
     var contentVisible by remember { mutableStateOf(false) }
-    
+
     LaunchedEffect(Unit) {
-        headerVisible = true
         searchBarVisible = true
         contentVisible = true
     }
 
-    // --- START FIGMA EXEMPLAR DESIGN SYSTEM ---
     val colors = MaterialTheme.fabiColors
-    val C_bg = colors.background
-    val C_card = colors.card
-    val C_card2 = colors.cardSecondary
-    val C_border = colors.border
-    val C_accent = colors.accent
-    val C_accentDim = colors.accentDim
-    val C_accentGlow = colors.accentGlow
-    val C_white = colors.textPrimary
-    val C_gray1 = colors.textSecondary
-    val C_gray2 = colors.textMuted
-    val C_gray3 = colors.textDisabled
-    val C_red = colors.error
-    val C_redDim = colors.errorDim
-    val C_green = colors.success
-    val C_amber = colors.amber
 
-    // Platform definition matching React App.tsx
     val platforms = remember {
         listOf(
             PlatformData("youtube", "YouTube", Color(0xFFFF0000), "youtube.com", PlatformIcons.YouTube),
@@ -252,20 +203,18 @@ fun MainScreen(
         }
     }
 
-    var analyzeState by remember { mutableStateOf(AnalyzeState.Idle) }
-
     val infiniteTransition = rememberInfiniteTransition(label = "orbit")
     val floatY by infiniteTransition.animateFloat(
-        initialValue  = -6f,
-        targetValue   = 6f,
-        animationSpec = infiniteRepeatable(tween(2_000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label         = "floatY",
+        initialValue = -6f,
+        targetValue = 6f,
+        animationSpec = infiniteRepeatable(tween(2000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "floatY"
     )
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(C_bg)
+            .background(colors.background)
     ) {
         Column(
             modifier = Modifier
@@ -275,7 +224,6 @@ fun MainScreen(
                 .padding(horizontal = 20.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Hero Text Section
             AnimatedVisibility(
                 visible = searchBarVisible,
                 enter = fadeIn(tween(300, easing = FastOutSlowInEasing)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, easing = FastOutSlowInEasing))
@@ -284,7 +232,6 @@ fun MainScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Floating App Logo (With edge glow aura, larger icon, no harsh outer border)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -304,7 +251,7 @@ fun MainScreen(
                     Text(
                         text = stringResource(R.string.main_paste_link_title),
                         style = TextStyle(
-                            brush = Brush.horizontalGradient(listOf(C_accent, Color(0xFF7B61FF)))
+                            brush = Brush.horizontalGradient(listOf(colors.accent, Color(0xFF7B61FF)))
                         ),
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
@@ -315,367 +262,29 @@ fun MainScreen(
                 }
             }
 
-
-
-            // Unified Custom Text Field (exactly as React App.tsx)
-            AnimatedVisibility(
-                visible = searchBarVisible,
-                enter = fadeIn(tween(300, easing = FastOutSlowInEasing)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, easing = FastOutSlowInEasing))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp)
-                ) {
-                    BasicTextField(
-                        value = query,
-                        onValueChange = { 
-                            query = it 
-                            analyzeState = AnalyzeState.Idle
-                        },
-                        textStyle = androidx.compose.ui.text.TextStyle(
-                            color = C_white,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Normal
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(54.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(C_card2)
-                            .border(
-                                width = 1.5.dp,
-                                color = if (detectedPlatform != null) detectedPlatform.color.copy(alpha = 0.4f) else C_border,
-                                shape = RoundedCornerShape(16.dp)
-                            )
-                            .testTag("submit_link_input"),
-                        singleLine = true,
-                        cursorBrush = SolidColor(C_accent),
-                        decorationBox = { innerTextField ->
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(start = 40.dp, end = if (query.isNotEmpty()) 90.dp else 78.dp),
-                                contentAlignment = Alignment.CenterStart
-                            ) {
-                                if (query.isEmpty()) {
-                                    Text(
-                                        text = stringResource(R.string.main_input_placeholder),
-                                        color = C_gray1,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Normal,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                                innerTextField()
-                            }
-                        }
-                    )
-
-                    // Left Platform/Link Icon inside Input
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(start = 14.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (detectedPlatform != null) detectedPlatform.icon else AppIcons.Link,
-                            contentDescription = null,
-                            tint = if (detectedPlatform != null) detectedPlatform.color else C_gray1,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-
-                    // Right Clear & Pegar buttons inside Input
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .padding(end = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        if (query.isNotEmpty()) {
-                            IconButton(
-                                onClick = { query = "" },
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .testTag("clear_link_button")
-                            ) {
-                                Icon(
-                                    imageVector = AppIcons.Clear,
-                                    contentDescription = stringResource(R.string.main_clear_button),
-                                    tint = C_gray1,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                            }
-                        }
-
-                        // Pegar Capsule Button
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(C_accentDim)
-                                .border(1.dp, C_accentGlow, RoundedCornerShape(10.dp))
-                                .clickable {
-                                    try {
-                                        if (clipboardManager.hasPrimaryClip()) {
-                                            val clipData = clipboardManager.primaryClip
-                                            if (clipData != null && clipData.itemCount > 0) {
-                                                val clipText = clipData.getItemAt(0).text?.toString() ?: ""
-                                                if (clipText.isNotEmpty()) {
-                                                    query = clipText
-                                                }
-                                            }
-                                        }
-                                    } catch (e: Exception) {
-                                        // Ignore
-                                    }
-                                }
-                                .padding(horizontal = 10.dp, vertical = 5.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(5.dp)
-                            ) {
-                                Icon(
-                                    imageVector = AppIcons.ContentPaste,
-                                    contentDescription = stringResource(R.string.main_paste_button),
-                                    tint = C_accent,
-                                    modifier = Modifier.size(12.dp)
-                                )
-                                Text(
-                                    text = stringResource(R.string.main_paste_button),
-                                    color = C_accent,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
+            MainUrlInputSection(
+                query = query,
+                onQueryChange = { query = it },
+                detectedPlatform = detectedPlatform,
+                searchBarVisible = searchBarVisible,
+                colors = colors,
+                scope = scope,
+                onAnalyzeSuccess = { targetQuery ->
+                    viewModel.saveSearch(targetQuery)
+                    urlToDownloadInDialog = targetQuery
+                    query = ""
                 }
-            }
-            // Big CTA Button (stringResource(R.string.main_analyze_button) - exactly as React App.tsx)
-            AnimatedVisibility(
-                visible = searchBarVisible,
-                enter = fadeIn(tween(300, easing = FastOutSlowInEasing)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, easing = FastOutSlowInEasing))
-            ) {
-                val isQueryValid = query.isNotEmpty() && (query.startsWith("http") || query.contains("."))
-                Button(
-                    onClick = {
-                        if (isQueryValid && analyzeState == AnalyzeState.Idle) {
-                            scope.launch {
-                                analyzeState = AnalyzeState.Loading
-                                delay(200)
-                                analyzeState = AnalyzeState.Success
-                                delay(150)
-                                viewModel.saveSearch(query)
-                                urlToDownloadInDialog = query
-                                query = ""
-                                analyzeState = AnalyzeState.Idle
-                            }
-                        } else if (query.isNotEmpty() && analyzeState == AnalyzeState.Idle) {
-                            ToastUtils.showShort(ctx, R.string.main_invalid_link)
-                        }
-                    },
-                    enabled = query.isNotEmpty() && analyzeState != AnalyzeState.Loading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp)
-                        .testTag("submit_link_button"),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = when(analyzeState) {
-                            AnalyzeState.Success -> C_green
-                            AnalyzeState.Loading -> C_accent.copy(alpha = 0.5f)
-                            else -> if (isQueryValid) C_accent else C_card2
-                        },
-                        contentColor = if (isQueryValid || analyzeState != AnalyzeState.Idle) Color(0xFF0A0A0C) else C_gray1,
-                        disabledContainerColor = C_card2,
-                        disabledContentColor = C_gray1
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (analyzeState == AnalyzeState.Loading) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    color = Color(0xFF0A0A0C),
-                                    strokeWidth = 2.dp
-                                )
-                                Text(
-                                    text = stringResource(R.string.main_analyzing_state),
-                                    color = Color(0xFF0A0A0C),
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        } else if (analyzeState == AnalyzeState.Success) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = AppIcons.CheckCircle,
-                                    contentDescription = null,
-                                    tint = Color(0xFF0A0A0C),
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Text(
-                                    text = stringResource(R.string.main_link_detected_state),
-                                    color = Color(0xFF0A0A0C),
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        } else {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = AppIcons.Download,
-                                    contentDescription = null,
-                                    tint = if (isQueryValid) Color(0xFF0A0A0C) else C_gray1,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Text(
-                                    text = stringResource(R.string.main_analyze_button),
-                                    color = if (isQueryValid) Color(0xFF0A0A0C) else C_gray1,
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
+            )
 
             Spacer(modifier = Modifier.height(36.dp))
 
-            // Recent Downloads
-            AnimatedVisibility(
-                visible = contentVisible && recentDownloads.isNotEmpty(),
-                enter = fadeIn(tween(300, easing = FastOutSlowInEasing)) + slideInVertically(
-                    initialOffsetY = { 20 },
-                    animationSpec = tween(300, easing = FastOutSlowInEasing)
-                )
-            ) {
-                Column {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.main_recent_downloads),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = C_white
-                        )
-                        Text(
-                            text = stringResource(R.string.main_view_all),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = C_accent,
-                            modifier = Modifier
-                                .clickable { onNavigateToDownloads() }
-                                .padding(4.dp)
-                        )
-                    }
-                    
-                    recentDownloads.forEach { record ->
-                        val (platformIcon, platformColor) = getPlatformIconAndColor(record.url, record.format)
-                        val isAudio = isAudioFormat(record.format)
-                        
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp)
-                                .clip(RoundedCornerShape(18.dp))
-                                .clickable { openFile(record) }
-                                .testTag("recent_record_item_${record.id}"),
-                            color = C_card,
-                            shape = RoundedCornerShape(18.dp),
-                            border = BorderStroke(
-                                width = 1.dp,
-                                color = platformColor.copy(alpha = 0.22f)
-                            )
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(14.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                MediaThumbnail(
-                                    record = record,
-                                    size = 48.dp,
-                                    fallbackIcon = platformIcon,
-                                    fallbackColor = platformColor
-                                )
-                                Spacer(modifier = Modifier.width(14.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = record.title,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = C_white,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                        modifier = Modifier.padding(top = 3.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = if (isAudio) AppIcons.MusicNote else AppIcons.PlayArrow,
-                                            contentDescription = null,
-                                            tint = if (isAudio) C_accent else platformColor,
-                                            modifier = Modifier.size(13.dp)
-                                        )
-                                        Surface(
-                                            color = if (isAudio) C_accentDim else Color(0x112ECC71),
-                                            shape = RoundedCornerShape(6.dp)
-                                        ) {
-                                            Text(
-                                                text = record.format,
-                                                style = MaterialTheme.typography.labelSmall,
-                                                fontWeight = FontWeight.Bold,
-                                                color = if (isAudio) C_accent else C_green,
-                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                            )
-                                        }
-                                        Text(
-                                            text = if (record.isCompleted) stringResource(R.string.main_completed) else stringResource(R.string.main_in_progress),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = C_gray1
-                                        )
-                                    }
-                                }
-                                Icon(
-                                    imageVector = AppIcons.CheckCircle,
-                                    contentDescription = stringResource(R.string.main_completed),
-                                    tint = C_green,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-            }
-
+            MainRecentDownloadsSection(
+                recentDownloads = recentDownloads,
+                contentVisible = contentVisible,
+                colors = colors,
+                onNavigateToDownloads = onNavigateToDownloads,
+                onOpenFile = openFile
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
         }
