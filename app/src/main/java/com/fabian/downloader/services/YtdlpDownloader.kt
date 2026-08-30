@@ -7,9 +7,9 @@ import com.yausername.youtubedl_android.YoutubeDLRequest
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 
 class YtdlpDownloader {
 
@@ -565,7 +565,7 @@ class YtdlpDownloader {
                         lowerMsg.contains("quickjs") || lowerLast.contains("quickjs")) {
                         Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectada incompatibilidad de API/extractor en YouTube. Actualizando binario en segundo plano...")
                         val appCtx = com.fabian.downloader.MyApplication.getInstance()
-                        kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
+                        coroutineScope.launch(Dispatchers.IO) {
                             appCtx.forceUpdateYtdlpBinary(appCtx)
                         }
                     }
