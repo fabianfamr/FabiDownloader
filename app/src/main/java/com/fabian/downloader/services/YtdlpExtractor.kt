@@ -63,7 +63,7 @@ class YtdlpExtractor {
             }
         }
 
-        val clientOptions: List<String?> = listOf("android,web,ios", "ios,web", null)
+        val clientOptions: List<String?> = listOf("ios,mweb", "ios,web", "android_creator,mweb", null)
 
         for (client in clientOptions) {
             val processId = java.util.UUID.randomUUID().toString()
@@ -117,7 +117,7 @@ class YtdlpExtractor {
             addOption("--no-update")
             
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player_client=android,mweb,ios")
+                addOption("--extractor-args", "youtube:player_client=ios,mweb")
                 addOption("--user-agent", Config.UA_DESKTOP)
             }
             

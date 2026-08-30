@@ -62,7 +62,7 @@ abstract class BaseSiteService : SiteService {
             val deferred = activeExtractions.computeIfAbsent(cleanUrl) { _ ->
                 extractionScope.async {
                     val clientOptions: List<String?> = if (isYoutube) {
-                        listOf("android,web,ios", "ios,web", null)
+                        listOf("ios,mweb", "ios,web", "android_creator,mweb", null)
                     } else {
                         listOf(null)
                     }
