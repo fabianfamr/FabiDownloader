@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.fabian.downloader.R
 import com.fabian.downloader.managers.YtdlpUpdateManager
 import com.fabian.downloader.managers.YtdlpVersionInfo
-import com.fabian.downloader.ui.theme.FabiColorScheme
+import com.fabian.downloader.ui.theme.FabiColors
 import kotlinx.coroutines.launch
 
 private enum class UpdateState {
@@ -35,7 +35,7 @@ private enum class UpdateState {
 @Composable
 fun YtdlpUpdateDialog(
     onDismiss: () -> Unit,
-    colors: FabiColorScheme
+    colors: FabiColors
 ) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
