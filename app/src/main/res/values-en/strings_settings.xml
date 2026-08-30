@@ -254,4 +254,23 @@
     <string name="settings_accent_steel_gray">Steel Gray</string>
     <string name="settings_battery_action_optimize">Pause downloads</string>
     <string name="settings_battery_action_limit">Limit speed and threads</string>
+
+    <!-- yt-dlp Hot-Swap Dialog -->
+    <string name="ytdlp_update_dialog_title">yt-dlp Engine Updater</string>
+    <string name="ytdlp_update_installed_version">Installed version</string>
+    <string name="ytdlp_update_latest_version">Latest on GitHub</string>
+    <string name="ytdlp_update_up_to_date">Download engine is up to date</string>
+    <string name="ytdlp_update_available">New version available!</string>
+    <string name="ytdlp_update_notes_title">Release Notes &amp; Changelog (GitHub)</string>
+    <string name="ytdlp_update_btn_update">Update yt-dlp now</string>
+    <string name="ytdlp_update_btn_reset">Reset to factory version</string>
+    <string name="ytdlp_update_btn_reset_desc">Restores original APK binaries if you experience extraction errors or issues.</string>
+    <string name="ytdlp_update_btn_check">Check again</string>
+    <string name="ytdlp_update_btn_close">Close</string>
+    <string name="ytdlp_update_state_checking">Checking yt-dlp versions...</string>
+    <string name="ytdlp_update_state_updating">Downloading &amp; hot-swapping yt-dlp...</string>
+    <string name="ytdlp_update_state_resetting">Resetting engine to APK assets...</string>
+    <string name="ytdlp_update_success_msg">yt-dlp updated successfully!</string>
+    <string name="ytdlp_update_reset_success_msg">Engine successfully reset to APK binaries!</string>
+    <string name="ytdlp_update_error_msg">Error during process: %1$s</string>
 </resources>

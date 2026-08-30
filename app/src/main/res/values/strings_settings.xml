@@ -254,4 +254,23 @@
     <string name="settings_accent_steel_gray">Gris Acero</string>
     <string name="settings_battery_action_optimize">Pausar descargas</string>
     <string name="settings_battery_action_limit">Limitar velocidad e hilos</string>
+
+    <!-- Diálogo Hot-Swap yt-dlp -->
+    <string name="ytdlp_update_dialog_title">Actualizador del Motor yt-dlp</string>
+    <string name="ytdlp_update_installed_version">Versión instalada</string>
+    <string name="ytdlp_update_latest_version">Última en GitHub</string>
+    <string name="ytdlp_update_up_to_date">El motor de descargas está al día</string>
+    <string name="ytdlp_update_available">¡Nueva versión disponible!</string>
+    <string name="ytdlp_update_notes_title">Novedades y cambios (GitHub)</string>
+    <string name="ytdlp_update_btn_update">Actualizar yt-dlp ahora</string>
+    <string name="ytdlp_update_btn_reset">Restablecer a versión de fábrica</string>
+    <string name="ytdlp_update_btn_reset_desc">Restaura los binarios originales del APK si experimentas errores o incompatibilidades.</string>
+    <string name="ytdlp_update_btn_check">Comprobar de nuevo</string>
+    <string name="ytdlp_update_btn_close">Cerrar</string>
+    <string name="ytdlp_update_state_checking">Verificando versiones de yt-dlp...</string>
+    <string name="ytdlp_update_state_updating">Descargando e instalando yt-dlp en caliente...</string>
+    <string name="ytdlp_update_state_resetting">Restableciendo motor a la versión de los assets...</string>
+    <string name="ytdlp_update_success_msg">¡yt-dlp se actualizó exitosamente!</string>
+    <string name="ytdlp_update_reset_success_msg">¡Motor restablecido exitosamente a los binarios del APK!</string>
+    <string name="ytdlp_update_error_msg">Error en el proceso: %1$s</string>
 </resources>

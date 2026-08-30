@@ -75,6 +75,7 @@ fun SystemSettingsSection(
     var showBatteryLowThresholdDialog by remember { mutableStateOf(false) }
     var showBatteryLowActionDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showYtdlpUpdateDialog by remember { mutableStateOf(false) }
 
     if (showStorageMarginDialog) {
         KeyValueSelectionDialog(
@@ -344,21 +345,16 @@ fun SystemSettingsSection(
                 }
             }
             HorizontalDivider(color = C_border, thickness = 1.dp)
-            SettingsRow(AppIcons.Download, stringResource(R.string.settings_update_engine), if (isUpdatingYtdlp) stringResource(R.string.settings_updating) else stringResource(R.string.settings_update_binary), C_accent, C_white, C_gray1, C_card2) {
-                if (!isUpdatingYtdlp) {
-                    scope.launch(Dispatchers.IO) {
-                        isUpdatingYtdlp = true
-                        val success = com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(ctx, ignoreThrottle = true)
-                        isUpdatingYtdlp = false
-                        withContext(Dispatchers.Main) {
-                            if (success) {
-                                Toast.makeText(ctx, ctx.getString(R.string.settings_update_ytdlp_success), Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(ctx, ctx.getString(R.string.settings_update_ytdlp_error), Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    }
-                }
+            SettingsRow(
+                AppIcons.Download,
+                stringResource(R.string.settings_update_engine),
+                com.fabian.downloader.managers.YtdlpUpdateManager.getLocalVersion(ctx),
+                C_accent,
+                C_white,
+                C_gray1,
+                C_card2
+            ) {
+                showYtdlpUpdateDialog = true
             }
             HorizontalDivider(color = C_border, thickness = 1.dp)
             SettingsRow(AppIcons.Code, stringResource(R.string.settings_github_repo), stringResource(R.string.settings_view_code), C_accent, C_white, C_gray1, C_card2) {
@@ -387,5 +383,12 @@ fun SystemSettingsSection(
                 }
             }
         }
+    }
+
+    if (showYtdlpUpdateDialog) {
+        com.fabian.downloader.ui.components.YtdlpUpdateDialog(
+            onDismiss = { showYtdlpUpdateDialog = false },
+            colors = fColors
+        )
     }
 }
