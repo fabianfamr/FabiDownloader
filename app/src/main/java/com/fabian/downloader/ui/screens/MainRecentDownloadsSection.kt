@@ -25,13 +25,13 @@ import com.fabian.downloader.ui.components.AppIcons
 import com.fabian.downloader.ui.components.MediaThumbnail
 import com.fabian.downloader.ui.components.getPlatformIconAndColor
 import com.fabian.downloader.ui.components.isAudioFormat
-import com.fabian.downloader.ui.theme.FabiColorScheme
+import com.fabian.downloader.ui.theme.FabiColors
 
 @Composable
 fun MainRecentDownloadsSection(
     recentDownloads: List<DownloadRecord>,
     contentVisible: Boolean,
-    colors: FabiColorScheme,
+    colors: FabiColors,
     onNavigateToDownloads: () -> Unit,
     onOpenFile: (DownloadRecord) -> Unit
 ) {
@@ -68,7 +68,9 @@ fun MainRecentDownloadsSection(
             }
 
             recentDownloads.forEach { record ->
-                val (platformIcon, platformColor) = getPlatformIconAndColor(record.url, record.format)
+                val platformInfo = getPlatformIconAndColor(record.url, record.format)
+                val platformIcon = platformInfo.first
+                val platformColor = platformInfo.second
                 val isAudio = isAudioFormat(record.format)
 
                 Surface(

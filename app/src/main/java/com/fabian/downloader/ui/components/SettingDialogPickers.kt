@@ -80,7 +80,9 @@ fun <T> KeyValueSelectionDialog(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.padding(top = 8.dp)
             ) {
-                items.forEach { (key, label) ->
+                items.forEach { item ->
+                    val key = item.first
+                    val label = item.second
                     val isSelected = key == selectedKey
                     Surface(
                         modifier = Modifier

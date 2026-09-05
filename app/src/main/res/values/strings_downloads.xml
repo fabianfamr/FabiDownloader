@@ -61,6 +61,8 @@
     <string name="downloads_convert_dialog_subtitle">Selecciona el nuevo formato de salida:</string>
     <string name="downloads_convert_button">Convertir</string>
     <string name="downloads_converting">Convirtiendo archivo...</string>
+    <string name="downloads_converting_auto">Convirtiendo a %1$s (%2$s)...</string>
+    <string name="downloads_optimizing_quality">Ajustando calidad requerida...</string>
     <string name="downloads_convert_success">Archivo convertido exitosamente a %s</string>
     <string name="downloads_convert_error">Error al convertir archivo: %s</string>
     <string name="downloads_convert_file_not_found">El archivo de origen no existe en el almacenamiento.</string>

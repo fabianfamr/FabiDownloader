@@ -119,9 +119,11 @@ fun MobileDownloadingItem(
                 ),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val (platformIcon, platformColor) = remember(record.url, record.format) {
+            val platformInfo = remember(record.url, record.format) {
                 getPlatformIconAndColor(record.url, record.format)
             }
+            val platformIcon = platformInfo.first
+            val platformColor = platformInfo.second
 
             MediaThumbnail(
                 record = record,

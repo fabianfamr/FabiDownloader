@@ -266,7 +266,10 @@ fun SharePopupScreen(
                 targetState = Quadruple(isLoading, errorMsg, extractedPlaylist, extractedVideo),
                 label = "PopupContentState"
             ) { state ->
-                val (loading, error, playlist, video) = state
+                val loading = state.first
+                val error = state.second
+                val playlist = state.third
+                val video = state.fourth
                 when {
                     loading -> LoadingStateView(platformColor, cleanUrl)
                     error != null -> ErrorStateView(

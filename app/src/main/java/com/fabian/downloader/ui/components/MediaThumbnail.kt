@@ -85,9 +85,11 @@ fun MediaThumbnail(
     val ctx = LocalContext.current
     val isAudio = remember(record.format) { isAudioFormat(record.format) }
     val fColors = MaterialTheme.fabiColors
-    val (defaultIcon, defaultColor) = remember(record.url, record.format) {
+    val defaultPlatformInfo = remember(record.url, record.format) {
         getPlatformIconAndColor(record.url, record.format)
     }
+    val defaultIcon = defaultPlatformInfo.first
+    val defaultColor = defaultPlatformInfo.second
     val iconToUse = fallbackIcon ?: defaultIcon
     val colorToUse = fallbackColor ?: defaultColor
 

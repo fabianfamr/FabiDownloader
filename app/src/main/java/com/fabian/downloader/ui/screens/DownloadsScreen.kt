@@ -572,14 +572,14 @@ fun DownloadsScreen(
         onDeletePermanent = { id ->
             if (AppSettings.confirmOnDelete) itemToDelete = id else viewModel.deleteDownload(id)
         },
-        viewModel = mainViewModel,
+        viewModel = viewModel,
         colors = fColors
     )
 
     DownloadsConvertDialog(
         record = recordToConvert,
         onDismiss = { recordToConvert = null },
-        viewModel = mainViewModel,
+        viewModel = viewModel,
         colors = fColors
     )
 

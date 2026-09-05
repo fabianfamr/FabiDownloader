@@ -263,7 +263,9 @@ object Config {
     @StringRes val BOT_DETECTION_LOGIN_RES = R.string.bot_detection_login
 
     // Valid media file extensions
-    val VALID_EXTENSIONS = listOf("mp4", "mp3", "m4a", "webm", "ogg", "wav", "mkv", "jpg", "jpeg", "png", "webp")
+    val VALID_EXTENSIONS = listOf("mp4", "mp3", "m4a", "webm", "ogg", "wav", "mkv", "jpg", "jpeg", "png", "webp", "aac", "flac", "opus")
+    val AUDIO_EXTENSIONS = listOf("mp3", "m4a", "aac", "flac", "opus", "wav", "ogg")
+    val VIDEO_EXTENSIONS = listOf("mp4", "mkv", "webm", "avi", "mov")
 
     // Windows-reserved filenames
     val RESERVED_FILENAMES = setOf(

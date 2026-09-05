@@ -61,6 +61,8 @@
     <string name="downloads_convert_dialog_subtitle">Select target output format:</string>
     <string name="downloads_convert_button">Convert</string>
     <string name="downloads_converting">Converting file...</string>
+    <string name="downloads_converting_auto">Converting to %1$s (%2$s)...</string>
+    <string name="downloads_optimizing_quality">Adjusting requested quality...</string>
     <string name="downloads_convert_success">File successfully converted to %s</string>
     <string name="downloads_convert_error">Error converting file: %s</string>
     <string name="downloads_convert_file_not_found">Source file does not exist in storage.</string>

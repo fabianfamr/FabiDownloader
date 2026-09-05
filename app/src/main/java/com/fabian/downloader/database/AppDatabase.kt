@@ -18,7 +18,7 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        val MIGRATION_7_8 = object : Migration(7, 8) {
+        class Migration7To8 : Migration(7, 8) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // To apply unique constraint and indices to search_history, 
                 // we might need to handle duplicates if any exist.
@@ -28,8 +28,9 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_search_history_timestamp` ON `search_history` (`timestamp`)")
             }
         }
+        val MIGRATION_7_8: Migration = Migration7To8()
 
-        val MIGRATION_6_7 = object : Migration(6, 7) {
+        class Migration6To7 : Migration(6, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_download_records_url` ON `download_records` (`url`)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_download_records_isCompleted` ON `download_records` (`isCompleted`)")
@@ -37,8 +38,9 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_download_records_timestamp` ON `download_records` (`timestamp`)")
             }
         }
+        val MIGRATION_6_7: Migration = Migration6To7()
 
-        val MIGRATION_1_6 = object : Migration(1, 6) {
+        class Migration1To6 : Migration(1, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Agregar tabla search_history si no existe
                 db.execSQL("CREATE TABLE IF NOT EXISTS `search_history` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `query` TEXT NOT NULL, `timestamp` INTEGER NOT NULL)")
@@ -67,7 +69,9 @@ abstract class AppDatabase : RoomDatabase() {
                     "speed" to "TEXT NOT NULL DEFAULT ''"
                 )
                 
-                for ((colName, colDef) in columns) {
+                for (pair in columns) {
+                    val colName = pair.first
+                    val colDef = pair.second
                     if (!existingCols.contains(colName)) {
                         try {
                             db.execSQL("ALTER TABLE `download_records` ADD COLUMN `$colName` $colDef")
@@ -78,12 +82,20 @@ abstract class AppDatabase : RoomDatabase() {
                 }
             }
         }
+        val MIGRATION_1_6: Migration = Migration1To6()
         
-        val MIGRATION_1_7 = object : Migration(1, 7) { override fun migrate(db: SupportSQLiteDatabase) { MIGRATION_1_6.migrate(db); MIGRATION_6_7.migrate(db) } }
-        val MIGRATION_2_7 = object : Migration(2, 7) { override fun migrate(db: SupportSQLiteDatabase) { MIGRATION_1_6.migrate(db); MIGRATION_6_7.migrate(db) } }
-        val MIGRATION_3_7 = object : Migration(3, 7) { override fun migrate(db: SupportSQLiteDatabase) { MIGRATION_1_6.migrate(db); MIGRATION_6_7.migrate(db) } }
-        val MIGRATION_4_7 = object : Migration(4, 7) { override fun migrate(db: SupportSQLiteDatabase) { MIGRATION_1_6.migrate(db); MIGRATION_6_7.migrate(db) } }
-        val MIGRATION_5_7 = object : Migration(5, 7) { override fun migrate(db: SupportSQLiteDatabase) { MIGRATION_1_6.migrate(db); MIGRATION_6_7.migrate(db) } }
+        class CompositeMigration(start: Int, end: Int, private val m1: Migration, private val m2: Migration) : Migration(start, end) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                m1.migrate(db)
+                m2.migrate(db)
+            }
+        }
+
+        val MIGRATION_1_7: Migration = CompositeMigration(1, 7, MIGRATION_1_6, MIGRATION_6_7)
+        val MIGRATION_2_7: Migration = CompositeMigration(2, 7, MIGRATION_1_6, MIGRATION_6_7)
+        val MIGRATION_3_7: Migration = CompositeMigration(3, 7, MIGRATION_1_6, MIGRATION_6_7)
+        val MIGRATION_4_7: Migration = CompositeMigration(4, 7, MIGRATION_1_6, MIGRATION_6_7)
+        val MIGRATION_5_7: Migration = CompositeMigration(5, 7, MIGRATION_1_6, MIGRATION_6_7)
 
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {

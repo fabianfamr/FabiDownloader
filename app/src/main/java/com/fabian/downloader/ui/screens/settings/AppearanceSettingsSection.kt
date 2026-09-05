@@ -112,7 +112,10 @@ fun AppearanceSettingsSection(fColors: FabiColors) {
                         Triple("Claro", AppIcons.LightMode, stringResource(R.string.settings_theme_light)),
                         Triple("Oscuro", AppIcons.DarkMode, stringResource(R.string.settings_theme_dark))
                     )
-                    modes.forEach { (modeKey, icon, label) ->
+                    modes.forEach { item ->
+                        val modeKey = item.first
+                        val icon = item.second
+                        val label = item.third
                         val isSelected = themePreferenceState == modeKey
                         Box(
                             modifier = Modifier

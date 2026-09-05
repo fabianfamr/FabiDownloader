@@ -227,11 +227,13 @@ class ExtractionService {
     }
 
     class LruCacheMap<K, V>(private val maxSize: Int = 50) {
-        private val map = object : java.util.LinkedHashMap<K, V>(maxSize, 0.75f, true) {
+        private inner class BoundedLinkedHashMap : java.util.LinkedHashMap<K, V>(maxSize, 0.75f, true) {
             override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, V>?): Boolean {
                 return size > maxSize
             }
         }
+
+        private val map: java.util.LinkedHashMap<K, V> = BoundedLinkedHashMap()
 
         @Synchronized
         fun reset() {
@@ -455,6 +457,35 @@ class ExtractionService {
         videoCache[cleanUrl]?.let { return@withContext it }
 
         val service = SiteServiceProvider.getServiceForUrl(cleanUrl)
+
+        // Intento con NativeMediaExtractor propio (ultra rápido, sin sobrecarga de Python)
+        try {
+            val nativeResult = NativeMediaExtractor.extractNatively(cleanUrl)
+            if (nativeResult != null) {
+                titleCache[cleanUrl] = nativeResult.title
+                nativeResult.thumbnailUrl?.let { thumbnailCache[cleanUrl] = it }
+                if (nativeResult.formatSizes.isNotEmpty()) {
+                    sizeCache[cleanUrl] = nativeResult.formatSizes
+                }
+                val maxMb = nativeResult.formatSizes.values.maxOrNull() ?: 0.0
+                val sizeStr = if (maxMb > 0.0) String.format(java.util.Locale.US, "%.1f MB", maxMb) else "Auto"
+                val res = ExtractedVideo(
+                    title = nativeResult.title,
+                    availableFormats = service.supportedFormats,
+                    size = sizeStr,
+                    thumbnailUrl = nativeResult.thumbnailUrl ?: extractThumbnail(cleanUrl, downloadId),
+                    formatSizes = nativeResult.formatSizes,
+                    platformId = service.siteId,
+                    platformName = service.displayName,
+                    brandColorHex = service.brandColorHex
+                )
+                videoCache[cleanUrl] = res
+                return@withContext res
+            }
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            Log.d(Config.TAG_EXTRACTION_SERVICE, "Native extraction fallback: ${e.message}")
+        }
 
         val title = extractTitle(cleanUrl, downloadId)
         val thumbnailUrl = extractThumbnail(cleanUrl, downloadId)

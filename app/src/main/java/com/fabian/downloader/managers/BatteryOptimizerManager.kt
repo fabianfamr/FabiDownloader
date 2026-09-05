@@ -33,7 +33,7 @@ class BatteryOptimizerManager private constructor(private val context: Context) 
         }
     }
 
-    private val batteryReceiver = object : BroadcastReceiver() {
+    private inner class BatteryReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_BATTERY_CHANGED) {
                 val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
@@ -53,6 +53,8 @@ class BatteryOptimizerManager private constructor(private val context: Context) 
             }
         }
     }
+
+    private val batteryReceiver: BroadcastReceiver = BatteryReceiver()
 
     init {
         AppSettings.addListener(settingsListener)

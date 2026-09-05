@@ -71,15 +71,15 @@ class NotificationService(private val context: Context) {
         }
     }
 
+    private inner class BoundedLinkedHashMap : java.util.LinkedHashMap<Int, Boolean>(100, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, Boolean>?): Boolean {
+            return size > 100
+        }
+    }
+
     private val thumbnailCache = android.util.LruCache<String, Bitmap>(20)
     private val shownSuccessIds: MutableSet<Int> = java.util.Collections.synchronizedSet(
-        java.util.Collections.newSetFromMap(
-            object : java.util.LinkedHashMap<Int, Boolean>(100, 0.75f, true) {
-                override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Int, Boolean>?): Boolean {
-                    return size > 100
-                }
-            }
-        )
+        java.util.Collections.newSetFromMap(BoundedLinkedHashMap())
     )
     private var foregroundDownloadId: Int? = null
 

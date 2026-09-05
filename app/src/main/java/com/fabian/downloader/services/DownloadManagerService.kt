@@ -74,8 +74,6 @@ class DownloadManagerService private constructor(
         }
     }
 
-    typealias LiveProgress = DownloadProgressTracker.LiveProgress
-
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val activeJobs = ConcurrentHashMap<Long, Job>()
     private val activeCalls = ConcurrentHashMap<Long, Call>()
@@ -84,7 +82,7 @@ class DownloadManagerService private constructor(
     private val progressTracker = DownloadProgressTracker(serviceScope, storageService, notificationService)
     val liveProgressFlow: StateFlow<Map<Long, DownloadProgressTracker.LiveProgress>> = progressTracker.liveProgressFlow
 
-    private val downloadExecutor = DownloadExecutor(
+    private val downloadExecutor: DownloadExecutor = DownloadExecutor(
         application = application,
         storageService = storageService,
         connectionService = connectionService,
@@ -94,7 +92,7 @@ class DownloadManagerService private constructor(
         onTriggerQueue = { triggerQueue() }
     )
 
-    private val queueManager = DownloadQueueManager(
+    private val queueManager: DownloadQueueManager = DownloadQueueManager(
         application = application,
         storageService = storageService,
         progressTracker = progressTracker,
@@ -110,7 +108,7 @@ class DownloadManagerService private constructor(
         registerSettingsListener()
     }
 
-    fun triggerQueue() = queueManager.triggerQueue()
+    fun triggerQueue(): Unit { queueManager.triggerQueue() }
     fun registerActiveCall(id: Long, call: Call) { activeCalls[id] = call }
     fun unregisterActiveCall(id: Long) { activeCalls.remove(id) }
     fun hasActiveDownloads(): Boolean = queueManager.processingIds.isNotEmpty()
@@ -453,7 +451,7 @@ class DownloadManagerService private constructor(
         }
         activeJobs.clear()
 
-        activeCalls.forEach { (_, call) ->
+        activeCalls.values.forEach { call ->
             try { call.cancel() } catch (_: Exception) {}
         }
         activeCalls.clear()

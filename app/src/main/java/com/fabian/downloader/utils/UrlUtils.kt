@@ -30,4 +30,14 @@ object UrlUtils {
             return false
         }
     }
+
+    fun isTwitterUrl(url: String): Boolean {
+        try {
+            val host = Uri.parse(url).host?.lowercase() ?: return false
+            return host == "twitter.com" || host.endsWith(".twitter.com") ||
+                   host == "x.com" || host.endsWith(".x.com")
+        } catch (e: Exception) {
+            return false
+        }
+    }
 }

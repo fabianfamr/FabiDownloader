@@ -12,6 +12,7 @@ import com.fabian.downloader.network.ConnectionService
 import com.fabian.downloader.pipeline.DownloadAssemblyLine
 import com.fabian.downloader.services.sites.SiteServiceProvider
 import com.fabian.downloader.ui.AppSettings
+import com.fabian.downloader.utils.MediaMetadataHelper
 import com.fabian.downloader.utils.PathUtils
 import com.fabian.downloader.utils.YtdlpParser
 import com.fabian.downloader.workers.CacheCleanupWorker
@@ -174,10 +175,95 @@ class DownloadExecutor(
             }
 
             val ext = actualFile.extension.uppercase()
-            storageService.updateDownloadFormat(id, ext)
+            var finalFile = actualFile
+            var finalExt = ext
+            val requestedExt = format.uppercase().trim()
+            val requestedHeight = quality.filter { it.isDigit() }.toIntOrNull()
+            val isRequestedAudio = Config.AUDIO_EXTENSIONS.any { it.equals(requestedExt, ignoreCase = true) }
 
-            DownloadAssemblyLine.station5_verifyAndDeliver(application, actualFile)
-            cleanTempFiles(id, videoTitle, ext)
+            // Verificación estilo Snaptube: si se descargó en otra calidad o formato
+            var needsAutoConversion = false
+            var conversionTargetHeight: Int? = null
+
+            if (isRequestedAudio) {
+                // Si el usuario solicitó audio (MP3, M4A, etc.) pero el archivo descargado no es del formato solicitado
+                // o contiene pista de video (ej. se descargó un contenedor mp4/webm con video):
+                val hasVideo = MediaMetadataHelper.hasVideoStream(actualFile)
+                if (ext != requestedExt || hasVideo) {
+                    needsAutoConversion = true
+                }
+            } else {
+                // El usuario solicitó video
+                // 1. Verificación de formato (ej. pidió MP4 y se descargó WEBM o MKV)
+                if (requestedExt == "MP4" && ext != "MP4") {
+                    needsAutoConversion = true
+                }
+                // 2. Verificación de calidad/resolución (ej. pidió 720p y se descargó a 1080p o 480p)
+                if (requestedHeight != null && requestedHeight > 0) {
+                    val resolution = MediaMetadataHelper.getVideoResolution(actualFile)
+                    if (resolution != null) {
+                        val currentHeight = resolution.second
+                        // Si la resolución descargada difiere significativamente (> 16px) de la solicitada
+                        if (Math.abs(currentHeight - requestedHeight) > 16) {
+                            needsAutoConversion = true
+                            conversionTargetHeight = requestedHeight
+                        }
+                    }
+                }
+            }
+
+            if (needsAutoConversion) {
+                try {
+                    Log.i(Config.TAG_DOWNLOAD_MANAGER, "Auto-conversión estilo Snaptube: el archivo descargado ($ext) difiere del solicitado ($requestedExt, $quality). Convirtiendo...")
+                    val convStatus = application.getString(R.string.downloads_converting)
+                    storageService.updateDownloadProgressAndSizeAndSpeed(id, 98, convStatus, "CONVERTING")
+
+                    val converter = MediaConverterService(application)
+                    val targetFolder = PathUtils.getDownloadFolder(application, requestedExt.lowercase())
+                    val convResult = converter.convertFile(
+                        inputFile = actualFile,
+                        outputFolder = targetFolder,
+                        fileNameWithoutExt = fileNameWithoutExt,
+                        targetExt = requestedExt.lowercase(),
+                        targetHeight = conversionTargetHeight,
+                        targetBitrate = if (isRequestedAudio) quality else null,
+                        processId = "conv_$id"
+                    ) { convProgress, _ ->
+                        progressTracker.updateProgress(
+                            id = id,
+                            videoTitle = videoTitle,
+                            progress = 95f + (convProgress * 0.04f).coerceIn(0f, 4f),
+                            sizeText = convStatus,
+                            speedText = "Snaptube Converter",
+                            lastDbPersistTime = lastDbPersistTime,
+                            lastNotificationUpdate = lastNotificationUpdate,
+                            onDbPersistDone = { lastDbPersistTime = it },
+                            onNotificationDone = { lastNotificationUpdate = it },
+                            onEarlyStartTrigger = { onTriggerQueue() }
+                        )
+                    }
+
+                    if (convResult.isSuccess) {
+                        val convertedFile = convResult.getOrThrow()
+                        if (convertedFile.exists() && convertedFile.length() > 0) {
+                            if (convertedFile.absolutePath != actualFile.absolutePath) {
+                                actualFile.delete()
+                            }
+                            finalFile = convertedFile
+                            finalExt = convertedFile.extension.uppercase()
+                        }
+                    } else {
+                        Log.w(Config.TAG_DOWNLOAD_MANAGER, "Auto-conversión no completada: ${convResult.exceptionOrNull()?.message}. Conservando archivo descargado.")
+                    }
+                } catch (convEx: Exception) {
+                    Log.w(Config.TAG_DOWNLOAD_MANAGER, "Excepción durante auto-conversión estilo Snaptube: ${convEx.message}", convEx)
+                }
+            }
+
+            storageService.updateDownloadFormat(id, finalExt)
+
+            DownloadAssemblyLine.station5_verifyAndDeliver(application, finalFile)
+            cleanTempFiles(id, videoTitle, finalExt)
 
             if (AppSettings.keepHistory) {
                 storageService.updateDownloadProgressAndSizeAndSpeed(id, 100, Config.STATUS_COMPLETED, Config.STATUS_COMPLETED)

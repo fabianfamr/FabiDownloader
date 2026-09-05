@@ -26,8 +26,8 @@ import androidx.compose.ui.unit.sp
 import com.fabian.downloader.R
 import com.fabian.downloader.database.DownloadRecord
 import com.fabian.downloader.ui.components.AppIcons
-import com.fabian.downloader.ui.theme.FabiColorScheme
-import com.fabian.downloader.ui.viewmodels.MainViewModel
+import com.fabian.downloader.ui.theme.FabiColors
+import com.fabian.downloader.ui.viewmodels.DownloadsViewModel
 import com.fabian.downloader.utils.ToastUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,8 +38,8 @@ fun DownloadsOptionBottomSheet(
     onShareFile: (DownloadRecord) -> Unit,
     onConvertClick: (DownloadRecord) -> Unit,
     onDeletePermanent: (Long) -> Unit,
-    viewModel: MainViewModel,
-    colors: FabiColorScheme
+    viewModel: DownloadsViewModel,
+    colors: FabiColors
 ) {
     if (menuRecord == null) return
     val ctx = LocalContext.current
@@ -218,8 +218,8 @@ fun DownloadsOptionBottomSheet(
 fun DownloadsConvertDialog(
     record: DownloadRecord?,
     onDismiss: () -> Unit,
-    viewModel: MainViewModel,
-    colors: FabiColorScheme
+    viewModel: DownloadsViewModel,
+    colors: FabiColors
 ) {
     if (record == null) return
     val ctx = LocalContext.current
@@ -320,7 +320,7 @@ fun DownloadsConvertDialog(
                 enabled = !isConverting,
                 onClick = {
                     isConverting = true
-                    viewModel.convertDownloadFormat(record, selectedFormat) { success, errorMsg ->
+                    viewModel.convertDownloadFormat(record, selectedFormat) { success: Boolean, errorMsg: String? ->
                         isConverting = false
                         onDismiss()
                         if (success) {
@@ -349,7 +349,7 @@ fun DownloadsConvertDialog(
 fun DownloadsErrorDialog(
     errorMsg: String?,
     onDismiss: () -> Unit,
-    colors: FabiColorScheme
+    colors: FabiColors
 ) {
     if (errorMsg == null) return
     val ctx = LocalContext.current
@@ -413,7 +413,7 @@ fun DownloadsDeleteConfirmDialog(
     show: Boolean,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
-    colors: FabiColorScheme
+    colors: FabiColors
 ) {
     if (!show) return
     AlertDialog(

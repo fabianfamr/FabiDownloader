@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fabian.downloader.R
 import com.fabian.downloader.ui.components.AppIcons
-import com.fabian.downloader.ui.theme.FabiColorScheme
+import com.fabian.downloader.ui.theme.FabiColors
 import com.fabian.downloader.utils.ToastUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -38,7 +38,7 @@ fun MainUrlInputSection(
     onQueryChange: (String) -> Unit,
     detectedPlatform: PlatformData?,
     searchBarVisible: Boolean,
-    colors: FabiColorScheme,
+    colors: FabiColors,
     scope: CoroutineScope,
     onAnalyzeSuccess: (String) -> Unit
 ) {

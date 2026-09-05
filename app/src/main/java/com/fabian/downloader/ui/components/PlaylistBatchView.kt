@@ -154,7 +154,10 @@ fun PlaylistBatchView(
                 Triple(Config.FORMAT_MP4, stringResource(R.string.playlist_format_video), AppIcons.Videocam),
                 Triple(Config.FORMAT_MP3, stringResource(R.string.playlist_format_mp3), AppIcons.Audiotrack),
                 Triple(Config.FORMAT_M4A, stringResource(R.string.playlist_format_m4a), AppIcons.MusicNote)
-            ).forEach { (fmt, label, icon) ->
+            ).forEach { item ->
+                val fmt = item.first
+                val label = item.second
+                val icon = item.third
                 val isSelected = selectedFormat == fmt
                 Box(
                     modifier = Modifier
