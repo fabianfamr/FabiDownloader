@@ -84,9 +84,7 @@ class YtdlpExtractor {
                     Log.w(Config.TAG_YTDLP_EXTRACTOR, "Binario de yt-dlp corrupto. Reseteando desde APK assets...")
                     val appCtx = com.fabian.downloader.MyApplication.getInstance()
                     appCtx.resetAndReinitYtdlp(appCtx)
-                } else if (msg.contains("player api") || msg.contains("web player api") || msg.contains("player client") ||
-                    msg.contains("requested format") || msg.contains("format is not available") ||
-                    msg.contains("no video formats found") || msg.contains("quickjs") || msg.contains("bot")) {
+                } else if (YtdlpErrorResolver.isExtractorOrCipherError(e, msg) || msg.contains("bot")) {
                     com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(com.fabian.downloader.MyApplication.getInstance())
                 }
             } finally {

@@ -68,14 +68,12 @@ fun SystemSettingsSection(
     var languageState by remember { mutableStateOf(LocaleHelper.getDisplayName(AppSettings.language)) }
 
     var isCheckingUpdates by remember { mutableStateOf(false) }
-    var isUpdatingYtdlp by remember { mutableStateOf(false) }
     var isCopyingErrors by remember { mutableStateOf(false) }
 
     var showStorageMarginDialog by remember { mutableStateOf(false) }
     var showBatteryLowThresholdDialog by remember { mutableStateOf(false) }
     var showBatteryLowActionDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
-    var showYtdlpUpdateDialog by remember { mutableStateOf(false) }
 
     if (showStorageMarginDialog) {
         KeyValueSelectionDialog(
@@ -345,18 +343,6 @@ fun SystemSettingsSection(
                 }
             }
             HorizontalDivider(color = C_border, thickness = 1.dp)
-            SettingsRow(
-                AppIcons.Download,
-                stringResource(R.string.settings_update_engine),
-                com.fabian.downloader.managers.YtdlpUpdateManager.getLocalVersion(ctx),
-                C_accent,
-                C_white,
-                C_gray1,
-                C_card2
-            ) {
-                showYtdlpUpdateDialog = true
-            }
-            HorizontalDivider(color = C_border, thickness = 1.dp)
             SettingsRow(AppIcons.Code, stringResource(R.string.settings_github_repo), stringResource(R.string.settings_view_code), C_accent, C_white, C_gray1, C_card2) {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Config.GITHUB_URL)).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -383,12 +369,5 @@ fun SystemSettingsSection(
                 }
             }
         }
-    }
-
-    if (showYtdlpUpdateDialog) {
-        com.fabian.downloader.ui.components.YtdlpUpdateDialog(
-            onDismiss = { showYtdlpUpdateDialog = false },
-            colors = fColors
-        )
     }
 }

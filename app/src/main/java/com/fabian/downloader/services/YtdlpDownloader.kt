@@ -218,14 +218,8 @@ class YtdlpDownloader {
                         Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectado binario yt-dlp corrupto durante descarga. Ejecutando reset de emergencia desde APK assets...")
                         val appCtx = com.fabian.downloader.MyApplication.getInstance()
                         appCtx.resetAndReinitYtdlp(appCtx)
-                    } else if (lowerMsg.contains("player api") || lowerLast.contains("player api") ||
-                        lowerMsg.contains("player client") || lowerLast.contains("player client") ||
-                        lowerMsg.contains("web player api") || lowerLast.contains("web player api") ||
-                        lowerMsg.contains("requested format") || lowerLast.contains("requested format") ||
-                        lowerMsg.contains("format is not available") || lowerLast.contains("format is not available") ||
-                        lowerMsg.contains("no video formats found") || lowerLast.contains("no video formats found") ||
-                        lowerMsg.contains("quickjs") || lowerLast.contains("quickjs")) {
-                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectada incompatibilidad de API/extractor en YouTube. Actualizando binario en segundo plano...")
+                    } else if (YtdlpErrorResolver.isExtractorOrCipherError(e, lastLine)) {
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectada incompatibilidad de extractor/firma. Actualizando binario silenciosamente en segundo plano...")
                         val appCtx = com.fabian.downloader.MyApplication.getInstance()
                         coroutineScope.launch(Dispatchers.IO) {
                             appCtx.forceUpdateYtdlpBinary(appCtx)

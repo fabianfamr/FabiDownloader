@@ -100,6 +100,20 @@ object YtdlpUpdateManager {
         }
     }
 
+    /**
+     * Dispara una actualización silenciosa del binario yt-dlp en segundo plano cuando se detectan fallos.
+     */
+    suspend fun autoUpdateSilentlyOnFailure(context: Context): Boolean = withContext(Dispatchers.IO) {
+        try {
+            Log.i(TAG, "Ejecutando auto-actualización silenciosa de yt-dlp tras detección de fallo...")
+            val appCtx = MyApplication.getInstance()
+            appCtx.forceUpdateYtdlpBinary(context)
+        } catch (e: Exception) {
+            Log.w(TAG, "Error en auto-actualización silenciosa de yt-dlp: ${e.message}")
+            false
+        }
+    }
+
     fun isNewerVersion(latest: String, current: String): Boolean {
         if (current == "Unknown" || current.isEmpty()) return true
         if (latest.isEmpty()) return false

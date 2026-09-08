@@ -85,4 +85,21 @@ object YtdlpErrorResolver {
         )
         return fatalKeywords.any { lowerMsg.contains(it) || lowerClass.contains(it) || lowerLine.contains(it) }
     }
+
+    fun isExtractorOrCipherError(e: Throwable, line: String = ""): Boolean {
+        val lowerMsg = (e.message ?: "").lowercase()
+        val lowerClass = e.javaClass.name.lowercase()
+        val lowerLine = line.lowercase()
+        val keywords = listOf(
+            "player api", "player client", "web player api", "requested format",
+            "format is not available", "no video formats found", "quickjs",
+            "signature", "cipher", "nsig", "extract_yt_initial_data",
+            "unable to extract", "unsupported url", "extractor error",
+            "unable to download webpage", "http error 403", "403 forbidden",
+            "access denied", "unable to download json", "this video is unavailable from this endpoint",
+            "solving js challenges", "streamgobbler", "signature extraction",
+            "token parameter not found", "cannot download video data"
+        )
+        return keywords.any { lowerMsg.contains(it) || lowerClass.contains(it) || lowerLine.contains(it) }
+    }
 }
