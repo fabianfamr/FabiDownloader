@@ -116,7 +116,7 @@ object Config {
     const val THEME_DARK = "dark"
 
     const val DEFAULT_LANGUAGE = "system"
-    const val DEFAULT_CONCURRENT_FRAGMENTS = "4"
+    const val DEFAULT_CONCURRENT_FRAGMENTS = "2"
     const val CLIPBOARD_ACTION_BANNER = "banner"
     const val CLIPBOARD_ACTION_AUTO = "auto"
     const val CLIPBOARD_ACTION_DISABLED = "disabled"

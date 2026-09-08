@@ -113,10 +113,12 @@ abstract class BaseSiteService : SiteService {
                                 Log.w(Config.TAG_BASE_SITE_SERVICE, "Detectada corrupción de binario. Re-inicializando binario limpio y reintentando...")
                                 val appCtx = com.fabian.downloader.MyApplication.getInstance()
                                 appCtx.resetAndReinitYtdlp(appCtx)
-                            } else if (lowerMsg.contains("player api") || lowerMsg.contains("bot") || lowerMsg.contains("sign in") || lowerMsg.contains("confirm you're not a bot")) {
-                                Log.w(Config.TAG_BASE_SITE_SERVICE, "Error de autenticación/player api en YouTube. Intentando siguiente cliente o actualizando motor...")
+                            } else if (lowerMsg.contains("player api") || lowerMsg.contains("extract_yt_initial_data")) {
+                                Log.w(Config.TAG_BASE_SITE_SERVICE, "Incompatibilidad detectada en YouTube. Solicitando verificación silenciosa con ahorro de Wi-Fi...")
                                 val appCtx = com.fabian.downloader.MyApplication.getInstance()
-                                appCtx.forceUpdateYtdlpBinary(appCtx)
+                                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                                    com.fabian.downloader.managers.YtdlpUpdateManager.autoUpdateSilentlyOnFailure(appCtx)
+                                }
                             }
                         } finally {
                             try {

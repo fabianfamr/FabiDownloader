@@ -112,10 +112,10 @@ object YtdlpCommandBuilder {
             }
             val userFragments = settings.concurrentFragments.toIntOrNull() ?: brandTuning.defaultConcurrentFragments
             val safeFragments = when {
-                isBatteryLowMode -> 2
-                activeCount > 2 -> userFragments.coerceAtMost(3)
-                activeCount > 1 -> userFragments.coerceAtMost(4)
-                else -> userFragments.coerceAtMost(6)
+                isBatteryLowMode -> 1
+                activeCount > 2 -> 1
+                activeCount > 1 -> 2
+                else -> userFragments.coerceIn(1, 3)
             }
             addOption("--concurrent-fragments", safeFragments.toString())
 

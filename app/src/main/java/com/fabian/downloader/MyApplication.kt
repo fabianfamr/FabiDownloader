@@ -163,9 +163,13 @@ class MyApplication : Application(), ImageLoaderFactory {
     }
 
     fun forceUpdateYtdlpBinary(context: android.content.Context, ignoreThrottle: Boolean = false): Boolean {
+        val prefs = context.getSharedPreferences(Config.PREFS_NAME, android.content.Context.MODE_PRIVATE)
         val now = System.currentTimeMillis()
-        if (!ignoreThrottle && now - lastForceUpdateTimestamp < 60_000) {
-            Log.d(Config.TAG_YT_DLP, "Actualización de yt-dlp omitida (solicitada recientemente)")
+        val lastCheck = prefs.getLong("pref_last_ytdlp_update_check", 0L)
+
+        // Protección de ancho de banda: mínimo 24 horas entre descargas de binario (25MB)
+        if (!ignoreThrottle && (now - lastCheck < 24 * 60 * 60 * 1000L || now - lastForceUpdateTimestamp < 24 * 60 * 60 * 1000L)) {
+            Log.d(Config.TAG_YT_DLP, "Actualización de yt-dlp omitida para proteger ancho de banda Wi-Fi (menos de 24h)")
             return false
         }
         // Si otra corrutina ya está actualizando, no duplicar el trabajo
@@ -174,14 +178,15 @@ class MyApplication : Application(), ImageLoaderFactory {
             return false
         }
         lastForceUpdateTimestamp = now
+        prefs.edit().putLong("pref_last_ytdlp_update_check", now).apply()
+
         return try {
-            Log.i(Config.TAG_YT_DLP, "Forzando actualización de binario yt-dlp por incompatibilidad de YouTube...")
+            Log.i(Config.TAG_YT_DLP, "Descargando actualización de binario yt-dlp...")
             val updateResult = YoutubeDL.getInstance().updateYoutubeDL(context)
             Log.i(Config.TAG_YT_DLP, "Binario de yt-dlp actualizado exitosamente: $updateResult")
             true
         } catch (e: Exception) {
-            Log.e(Config.TAG_YT_DLP, "Error al forzar la actualización de binario yt-dlp. Ejecutando reset limpio...", e)
-            resetAndReinitYtdlp(context)
+            Log.e(Config.TAG_YT_DLP, "Error al actualizar binario yt-dlp", e)
             false
         } finally {
             ytdlpUpdateLock.set(false)

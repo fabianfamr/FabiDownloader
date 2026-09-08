@@ -64,19 +64,19 @@ object DeviceOptimizationHelper {
             DeviceBrand.XIAOMI -> {
                 // MIUI / HyperOS gestiona agresivamente procesos con alto número de hilos de red
                 DeviceDownloadTuning(
-                    defaultConcurrentFragments = if (numCores >= 8) 4 else 3,
-                    httpChunkSize = if (maxMemoryMb > 256) "10M" else "5M",
+                    defaultConcurrentFragments = 2,
+                    httpChunkSize = "4M",
                     bufferSize = "32K",
                     threadPriority = android.os.Process.THREAD_PRIORITY_BACKGROUND,
                     socketTimeoutMs = 15000
                 )
             }
             DeviceBrand.SAMSUNG -> {
-                // Samsung One UI funciona con alto rendimiento en I/O con chunks grandes de 10-15M
+                // Samsung One UI optimizado para estabilidad de red y respeto al ancho de banda
                 DeviceDownloadTuning(
-                    defaultConcurrentFragments = if (numCores >= 8) 4 else 3,
-                    httpChunkSize = "10M",
-                    bufferSize = "64K",
+                    defaultConcurrentFragments = 3,
+                    httpChunkSize = "5M",
+                    bufferSize = "32K",
                     threadPriority = android.os.Process.THREAD_PRIORITY_BACKGROUND,
                     socketTimeoutMs = 12000
                 )
@@ -84,18 +84,18 @@ object DeviceOptimizationHelper {
             DeviceBrand.HUAWEI -> {
                 // EMUI restringe los sockets concurrentes; se usa chunk moderado y buffer estándar
                 DeviceDownloadTuning(
-                    defaultConcurrentFragments = 3,
-                    httpChunkSize = "5M",
+                    defaultConcurrentFragments = 2,
+                    httpChunkSize = "4M",
                     bufferSize = "16K",
                     threadPriority = android.os.Process.THREAD_PRIORITY_BACKGROUND,
                     socketTimeoutMs = 15000
                 )
             }
             DeviceBrand.OPPO -> {
-                // ColorOS / RealmeOS tiene excelente estabilidad con fragmentación de 4 y buffer 32K
+                // ColorOS / RealmeOS tiene excelente estabilidad con fragmentación de 3 y buffer 32K
                 DeviceDownloadTuning(
-                    defaultConcurrentFragments = if (numCores >= 8) 4 else 3,
-                    httpChunkSize = "10M",
+                    defaultConcurrentFragments = 3,
+                    httpChunkSize = "5M",
                     bufferSize = "32K",
                     threadPriority = android.os.Process.THREAD_PRIORITY_BACKGROUND,
                     socketTimeoutMs = 12000
@@ -104,8 +104,8 @@ object DeviceOptimizationHelper {
             DeviceBrand.VIVO -> {
                 // FuntouchOS / OriginOS
                 DeviceDownloadTuning(
-                    defaultConcurrentFragments = 3,
-                    httpChunkSize = "5M",
+                    defaultConcurrentFragments = 2,
+                    httpChunkSize = "4M",
                     bufferSize = "32K",
                     threadPriority = android.os.Process.THREAD_PRIORITY_BACKGROUND,
                     socketTimeoutMs = 12000
@@ -113,8 +113,8 @@ object DeviceOptimizationHelper {
             }
             DeviceBrand.GENERIC -> {
                 DeviceDownloadTuning(
-                    defaultConcurrentFragments = if (numCores >= 8) 4 else 3,
-                    httpChunkSize = "10M",
+                    defaultConcurrentFragments = 2,
+                    httpChunkSize = "4M",
                     bufferSize = "16K",
                     threadPriority = android.os.Process.THREAD_PRIORITY_BACKGROUND,
                     socketTimeoutMs = 10000
@@ -205,12 +205,7 @@ object DeviceOptimizationHelper {
         try {
             val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
             if (wifiManager != null) {
-                val wifiMode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    WifiManager.WIFI_MODE_FULL_LOW_LATENCY
-                } else {
-                    @Suppress("DEPRECATION")
-                    WifiManager.WIFI_MODE_FULL_HIGH_PERF
-                }
+                val wifiMode = @Suppress("DEPRECATION") WifiManager.WIFI_MODE_FULL_HIGH_PERF
                 wifiLock = wifiManager.createWifiLock(wifiMode, "FabiDownloader:DownloadWifiLock").apply {
                     setReferenceCounted(false)
                     acquire()

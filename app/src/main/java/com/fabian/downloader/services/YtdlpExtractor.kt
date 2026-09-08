@@ -7,6 +7,7 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 data class InfoMedia(
@@ -84,8 +85,11 @@ class YtdlpExtractor {
                     Log.w(Config.TAG_YTDLP_EXTRACTOR, "Binario de yt-dlp corrupto. Reseteando desde APK assets...")
                     val appCtx = com.fabian.downloader.MyApplication.getInstance()
                     appCtx.resetAndReinitYtdlp(appCtx)
-                } else if (YtdlpErrorResolver.isExtractorOrCipherError(e, msg) || msg.contains("bot")) {
-                    com.fabian.downloader.MyApplication.getInstance().forceUpdateYtdlpBinary(com.fabian.downloader.MyApplication.getInstance())
+                } else if (YtdlpErrorResolver.isExtractorOrCipherError(e, msg)) {
+                    val appCtx = com.fabian.downloader.MyApplication.getInstance()
+                    launch {
+                        com.fabian.downloader.managers.YtdlpUpdateManager.autoUpdateSilentlyOnFailure(appCtx)
+                    }
                 }
             } finally {
                 try {

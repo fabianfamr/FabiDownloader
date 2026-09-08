@@ -100,14 +100,45 @@ object YtdlpUpdateManager {
         }
     }
 
+    private const val PREF_LAST_AUTO_UPDATE_CHECK = "pref_last_ytdlp_update_check"
+    private const val AUTO_UPDATE_COOLDOWN_MS = 24 * 60 * 60 * 1000L // 24 horas para preservar ancho de banda
+
     /**
-     * Dispara una actualización silenciosa del binario yt-dlp en segundo plano cuando se detectan fallos.
+     * Dispara una verificación inteligente y silenciosa del binario yt-dlp en segundo plano.
+     * Solo descarga el binario si GitHub realmente tiene una versión más reciente,
+     * evitando descargas repetitivas de ~25MB que saturan la banda Wi-Fi.
      */
     suspend fun autoUpdateSilentlyOnFailure(context: Context): Boolean = withContext(Dispatchers.IO) {
         try {
-            Log.i(TAG, "Ejecutando auto-actualización silenciosa de yt-dlp tras detección de fallo...")
-            val appCtx = MyApplication.getInstance()
-            appCtx.forceUpdateYtdlpBinary(context)
+            val prefs = context.getSharedPreferences(Config.PREFS_NAME, Context.MODE_PRIVATE)
+            val lastCheck = prefs.getLong(PREF_LAST_AUTO_UPDATE_CHECK, 0L)
+            val now = System.currentTimeMillis()
+
+            // Protección estricta de ancho de banda: no verificar más de una vez cada 24 horas
+            if (now - lastCheck < AUTO_UPDATE_COOLDOWN_MS) {
+                Log.d(TAG, "Auto-actualización omitida para proteger ancho de banda Wi-Fi (última comprobación hace menos de 24h)")
+                return@withContext false
+            }
+
+            // Consultar únicamente metadatos ligeros de la API de GitHub (~1KB de datos)
+            Log.i(TAG, "Comprobando versión en GitHub antes de descargar binario para ahorrar ancho de banda Wi-Fi...")
+            val checkResult = checkYtdlpUpdate(context)
+            prefs.edit().putLong(PREF_LAST_AUTO_UPDATE_CHECK, now).apply()
+
+            if (checkResult.isSuccess) {
+                val info = checkResult.getOrNull()
+                if (info != null && info.hasUpdate) {
+                    Log.i(TAG, "Nueva versión detectada en GitHub (${info.latestVersion} vs local ${info.currentVersion}). Descargando actualización...")
+                    val appCtx = MyApplication.getInstance()
+                    appCtx.forceUpdateYtdlpBinary(context, ignoreThrottle = true)
+                } else {
+                    Log.i(TAG, "yt-dlp ya está en la versión más reciente (${info?.currentVersion ?: "ok"}). Descarga de 25MB omitida para ahorrar Wi-Fi.")
+                    false
+                }
+            } else {
+                Log.w(TAG, "No se pudo comprobar la versión en GitHub. Omitiendo descarga pesada para no saturar la red.")
+                false
+            }
         } catch (e: Exception) {
             Log.w(TAG, "Error en auto-actualización silenciosa de yt-dlp: ${e.message}")
             false

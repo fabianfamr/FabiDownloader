@@ -219,10 +219,10 @@ class YtdlpDownloader {
                         val appCtx = com.fabian.downloader.MyApplication.getInstance()
                         appCtx.resetAndReinitYtdlp(appCtx)
                     } else if (YtdlpErrorResolver.isExtractorOrCipherError(e, lastLine)) {
-                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectada incompatibilidad de extractor/firma. Actualizando binario silenciosamente en segundo plano...")
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectada incompatibilidad de extractor/firma. Solicitando verificación silenciosa con ahorro de Wi-Fi...")
                         val appCtx = com.fabian.downloader.MyApplication.getInstance()
                         coroutineScope.launch(Dispatchers.IO) {
-                            appCtx.forceUpdateYtdlpBinary(appCtx)
+                            com.fabian.downloader.managers.YtdlpUpdateManager.autoUpdateSilentlyOnFailure(appCtx)
                         }
                     }
 
