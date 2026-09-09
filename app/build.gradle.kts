@@ -12,9 +12,9 @@ android {
   compileSdk = 37
 
   val versionFile = rootProject.file("VERSION")
-  val versionLines = if (versionFile.exists()) versionFile.readLines() else listOf("3.47.0", "129")
-  val parsedVersionName = versionLines.getOrNull(0)?.trim() ?: "3.47.0"
-  val parsedVersionCode = versionLines.getOrNull(1)?.trim()?.toIntOrNull() ?: 129
+  val versionLines = if (versionFile.exists()) versionFile.readLines() else listOf("3.48.0", "130")
+  val parsedVersionName = versionLines.getOrNull(0)?.trim() ?: "3.48.0"
+  val parsedVersionCode = versionLines.getOrNull(1)?.trim()?.toIntOrNull() ?: 130
 
   defaultConfig {
     applicationId = "com.fabian.downloader"
