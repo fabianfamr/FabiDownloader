@@ -44,6 +44,10 @@ object YtdlpErrorResolver {
             return getStr(R.string.downloads_error_interrupted, "Descarga interrumpida")
         }
         
+        if (lowerMsg.contains("not initialized") || (lowerClass.contains("illegalstateexception") && lowerMsg.contains("initialized"))) {
+            return getStr(R.string.downloads_error_retry, "Error — reintentar")
+        }
+        
         if (lowerMsg.contains("no space left") || lowerMsg.contains("enospc") || lowerMsg.contains("disk full")) {
             return getStr(R.string.downloads_error_storage, "Espacio insuficiente")
         }
@@ -66,6 +70,7 @@ object YtdlpErrorResolver {
             "read error", "connection reset", "connection refused", "broken pipe", "ssl", "socket", "try again",
             "quickjs", "solving js challenges", "streamgobbler",
             "read interrupted", "interruptedioexception", "signature extraction",
+            "not initialized", "instance not initialized",
             "unable to extract", "temporary failure", "handshake", "end of file", "eof",
             "connection closed", "unexpected end of stream", "software caused connection abort"
         )

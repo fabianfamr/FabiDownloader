@@ -50,7 +50,7 @@ abstract class BaseSiteService : SiteService {
     }
 
     override suspend fun extractMetadata(url: String): InfoMedia? {
-        com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
+        com.fabian.downloader.MyApplication.getInstance().ensureInitialized()
         val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
         val isYoutube = com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(cleanUrl)
 
@@ -107,15 +107,33 @@ abstract class BaseSiteService : SiteService {
                         } catch (e: Exception) {
                             Log.e(Config.TAG_BASE_SITE_SERVICE, "Error extracting info for $cleanUrl (client=$client) in service $siteId: ${e.message}", e)
                             val lowerMsg = (e.message ?: "").lowercase()
-                            if (lowerMsg.contains("zipimport") || lowerMsg.contains("bad local file header") ||
+                            val appCtx = com.fabian.downloader.MyApplication.getInstance()
+                            if (lowerMsg.contains("not initialized") || (e is IllegalStateException && lowerMsg.contains("initialized"))) {
+                                Log.w(Config.TAG_BASE_SITE_SERVICE, "YoutubeDL no inicializado en extracción. Auto-recuperando y reintentando...")
+                                val recovered = appCtx.ensureInitialized(appCtx)
+                                if (recovered) {
+                                    try {
+                                        val retryResponse = YoutubeDL.getInstance().execute(request, processId)
+                                        val jsonRaw = retryResponse.out
+                                        if (jsonRaw != null) {
+                                            val json = JSONObject(jsonRaw)
+                                            return@async com.fabian.downloader.utils.YtdlpParser.parseMetadata(
+                                                json,
+                                                defaultAuthor = Config.STATUS_UNKNOWN,
+                                                defaultTitle = "Video de $displayName"
+                                            )
+                                        }
+                                    } catch (retryEx: Exception) {
+                                        Log.e(Config.TAG_BASE_SITE_SERVICE, "Fallo reintento tras inicialización: ${retryEx.message}", retryEx)
+                                    }
+                                }
+                            } else if (lowerMsg.contains("zipimport") || lowerMsg.contains("bad local file header") ||
                                 lowerMsg.contains("cannot link") || lowerMsg.contains("libandroid-support") ||
                                 lowerMsg.contains("libpython") || lowerMsg.contains("not found")) {
                                 Log.w(Config.TAG_BASE_SITE_SERVICE, "Detectada corrupción de binario. Re-inicializando binario limpio y reintentando...")
-                                val appCtx = com.fabian.downloader.MyApplication.getInstance()
                                 appCtx.resetAndReinitYtdlp(appCtx)
                             } else if (lowerMsg.contains("player api") || lowerMsg.contains("extract_yt_initial_data")) {
                                 Log.w(Config.TAG_BASE_SITE_SERVICE, "Incompatibilidad detectada en YouTube. Solicitando verificación silenciosa con ahorro de Wi-Fi...")
-                                val appCtx = com.fabian.downloader.MyApplication.getInstance()
                                 kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                                     com.fabian.downloader.managers.YtdlpUpdateManager.autoUpdateSilentlyOnFailure(appCtx)
                                 }

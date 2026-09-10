@@ -24,7 +24,7 @@ data class InfoMedia(
 class YtdlpExtractor {
 
     suspend fun obtenerDetallesVideo(rawVideoUrl: String, quality: String? = null, format: String? = null): InfoMedia? = withContext(Dispatchers.IO) {
-        com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
+        com.fabian.downloader.MyApplication.getInstance().ensureInitialized()
         val videoUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawVideoUrl)
         val lowerUrl = videoUrl.lowercase()
         val isYoutube = com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(videoUrl)
@@ -68,8 +68,8 @@ class YtdlpExtractor {
 
         for (client in clientOptions) {
             val processId = java.util.UUID.randomUUID().toString()
+            val request = createExtractorRequest(client)
             try {
-                val request = createExtractorRequest(client)
                 val response = YoutubeDL.getInstance().execute(request, processId)
                 val jsonRaw = response.out ?: continue
                 val json = JSONObject(jsonRaw)
@@ -79,14 +79,29 @@ class YtdlpExtractor {
             } catch (e: Exception) {
                 Log.w(Config.TAG_YTDLP_EXTRACTOR, "Error extrayendo con client=$client: ${e.message}")
                 val msg = (e.message ?: "").lowercase()
-                if (msg.contains("zipimport") || msg.contains("bad local file header") ||
+                val appCtx = com.fabian.downloader.MyApplication.getInstance()
+                if (msg.contains("not initialized") || (e is IllegalStateException && msg.contains("initialized"))) {
+                    Log.w(Config.TAG_YTDLP_EXTRACTOR, "YoutubeDL no inicializado. Auto-recuperando y reintentando...")
+                    val recovered = appCtx.ensureInitialized(appCtx)
+                    if (recovered) {
+                        try {
+                            val retryResp = YoutubeDL.getInstance().execute(request, processId)
+                            val jsonRaw = retryResp.out
+                            if (jsonRaw != null) {
+                                val json = JSONObject(jsonRaw)
+                                val defaultAuthor = if (isInstagram) Config.DEFAULT_AUTHOR_INSTAGRAM else Config.STATUS_UNKNOWN
+                                return@withContext com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, defaultAuthor)
+                            }
+                        } catch (retryEx: Exception) {
+                            Log.e(Config.TAG_YTDLP_EXTRACTOR, "Fallo reintento tras inicialización: ${retryEx.message}", retryEx)
+                        }
+                    }
+                } else if (msg.contains("zipimport") || msg.contains("bad local file header") ||
                     msg.contains("cannot link") || msg.contains("libandroid-support") ||
                     msg.contains("libpython") || msg.contains("not found")) {
                     Log.w(Config.TAG_YTDLP_EXTRACTOR, "Binario de yt-dlp corrupto. Reseteando desde APK assets...")
-                    val appCtx = com.fabian.downloader.MyApplication.getInstance()
                     appCtx.resetAndReinitYtdlp(appCtx)
                 } else if (YtdlpErrorResolver.isExtractorOrCipherError(e, msg)) {
-                    val appCtx = com.fabian.downloader.MyApplication.getInstance()
                     launch {
                         com.fabian.downloader.managers.YtdlpUpdateManager.autoUpdateSilentlyOnFailure(appCtx)
                     }
@@ -102,7 +117,7 @@ class YtdlpExtractor {
     }
 
     suspend fun obtenerDetallesPlaylist(rawPlaylistUrl: String): JSONObject? = withContext(Dispatchers.IO) {
-        com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
+        com.fabian.downloader.MyApplication.getInstance().ensureInitialized()
         val playlistUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawPlaylistUrl, keepPlaylistParams = true)
         val isYoutube = com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(playlistUrl)
         

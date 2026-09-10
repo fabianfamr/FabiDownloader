@@ -12,7 +12,7 @@ android {
   compileSdk = 37
 
   val versionFile = rootProject.file("VERSION")
-  val versionLines = if (versionFile.exists()) versionFile.readLines() else listOf("3.48.0", "130")
+  val versionLines = if (versionFile.exists()) versionFile.readLines() else listOf("3.48.1", "131")
   val parsedVersionName = versionLines.getOrNull(0)?.trim() ?: "3.48.0"
   val parsedVersionCode = versionLines.getOrNull(1)?.trim()?.toIntOrNull() ?: 130
 

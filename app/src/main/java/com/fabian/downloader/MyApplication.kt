@@ -30,7 +30,10 @@ class MyApplication : Application(), ImageLoaderFactory {
     }
 
     private val applicationScope = CoroutineScope(Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
+    @Volatile
     private var isInitialized = false
+    @Volatile
+    private var isYoutubeDLReady = false
     private val initLatch = java.util.concurrent.CountDownLatch(1)
 
     var isAppInForeground = false
@@ -120,12 +123,22 @@ class MyApplication : Application(), ImageLoaderFactory {
                 FFmpeg.getInstance().init(this@MyApplication)
                 
                 isInitialized = true
-                initLatch.countDown()
+                isYoutubeDLReady = true
                 Log.d(Config.TAG_YT_DLP, "Inicialización exitosa de componentes nativos desde APK assets")
             } catch (e: Exception) {
-                Log.e(Config.TAG_YT_DLP, "Error crítico al inicializar binarios nativos", e)
-                isInitialized = true
-                initLatch.countDown() // Release even on error
+                Log.e(Config.TAG_YT_DLP, "Error al inicializar binarios nativos en background. Intentando reset limpio...", e)
+                com.fabian.downloader.managers.ErrorLogManager.logError(this@MyApplication, Config.TAG_YT_DLP, "Error en init inicial de YoutubeDL", e)
+                try {
+                    val recovered = resetAndReinitYtdlp(this@MyApplication)
+                    if (recovered) {
+                        isInitialized = true
+                        isYoutubeDLReady = true
+                    }
+                } catch (recEx: Exception) {
+                    Log.e(Config.TAG_YT_DLP, "Reset de rescate falló", recEx)
+                }
+            } finally {
+                initLatch.countDown()
             }
         }
     }
@@ -152,10 +165,13 @@ class MyApplication : Application(), ImageLoaderFactory {
             }
             YoutubeDL.getInstance().init(context)
             FFmpeg.getInstance().init(context)
+            isInitialized = true
+            isYoutubeDLReady = true
             Log.i(Config.TAG_YT_DLP, "yt-dlp directory cleanly re-initialized from APK assets")
             true
         } catch (e: Exception) {
             Log.e(Config.TAG_YT_DLP, "Error resetting and re-initializing yt-dlp", e)
+            com.fabian.downloader.managers.ErrorLogManager.logError(context, Config.TAG_YT_DLP, "Error al resetear y re-inicializar yt-dlp", e)
             false
         } finally {
             ytdlpResetLock.set(false)
@@ -193,12 +209,47 @@ class MyApplication : Application(), ImageLoaderFactory {
         }
     }
 
+    fun isYtdlpReady(context: android.content.Context = this): Boolean {
+        if (isYoutubeDLReady) return true
+        return try {
+            YoutubeDL.getInstance().version(context)
+            isYoutubeDLReady = true
+            isInitialized = true
+            true
+        } catch (e: IllegalStateException) {
+            false
+        } catch (e: Exception) {
+            !e.message.orEmpty().contains("not initialized", ignoreCase = true)
+        }
+    }
+
     fun waitForInitialization() {
-        if (!isInitialized) {
-            val started = initLatch.await(10, java.util.concurrent.TimeUnit.SECONDS)
+        if (!isYoutubeDLReady) {
+            val started = initLatch.await(15, java.util.concurrent.TimeUnit.SECONDS)
             if (!started) {
-                android.util.Log.w(Config.TAG_YT_DLP, "waitForInitialization timed out after 10s - proceeding anyway")
+                android.util.Log.w(Config.TAG_YT_DLP, "waitForInitialization timed out after 15s")
             }
+        }
+    }
+
+    @Synchronized
+    fun ensureInitialized(context: android.content.Context = this): Boolean {
+        waitForInitialization()
+        if (isYtdlpReady(context)) {
+            return true
+        }
+        Log.w(Config.TAG_YT_DLP, "YoutubeDL no está inicializado. Ejecutando inicialización directa de rescate...")
+        return try {
+            YoutubeDL.getInstance().init(context)
+            FFmpeg.getInstance().init(context)
+            isYoutubeDLReady = true
+            isInitialized = true
+            Log.i(Config.TAG_YT_DLP, "Inicialización directa de rescate completada exitosamente")
+            true
+        } catch (e: Exception) {
+            Log.e(Config.TAG_YT_DLP, "Fallo en init síncrono. Ejecutando reset limpio desde APK...", e)
+            com.fabian.downloader.managers.ErrorLogManager.logError(context, Config.TAG_YT_DLP, "Fallo crítico en init de YoutubeDL", e)
+            resetAndReinitYtdlp(context)
         }
     }
 }

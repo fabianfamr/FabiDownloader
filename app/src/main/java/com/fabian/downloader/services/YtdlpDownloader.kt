@@ -34,7 +34,7 @@ class YtdlpDownloader {
     ): Boolean = withContext(Dispatchers.IO) {
         val coroutineScope = this
         val videoUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawVideoUrl)
-        com.fabian.downloader.MyApplication.getInstance().waitForInitialization()
+        com.fabian.downloader.MyApplication.getInstance().ensureInitialized()
         var lastLine = ""
         var executionError: Exception? = null
 
@@ -209,12 +209,17 @@ class YtdlpDownloader {
                     
                     alProgresar(-1f, Config.STATUS_DOWNLOADING, Config.STATUS_RETRYING)
                     
+                    val isNotInitialized = lowerMsg.contains("not initialized") || lowerLast.contains("not initialized") || (e is IllegalStateException && lowerMsg.contains("initialized"))
                     val isCorruptBinary = lowerMsg.contains("zipimport") || lowerLast.contains("zipimport") ||
                                           lowerMsg.contains("bad local file header") || lowerLast.contains("bad local file header") ||
                                           lowerMsg.contains("cannot link executable") || lowerLast.contains("cannot link executable") ||
                                           lowerMsg.contains("libandroid-support") || lowerLast.contains("libandroid-support") ||
                                           lowerMsg.contains("cannot link") || lowerLast.contains("cannot link")
-                    if (isCorruptBinary) {
+                    if (isNotInitialized) {
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "YoutubeDL no inicializado durante descarga. Auto-recuperando...")
+                        val appCtx = com.fabian.downloader.MyApplication.getInstance()
+                        appCtx.ensureInitialized(appCtx)
+                    } else if (isCorruptBinary) {
                         Log.w(Config.TAG_YTDLP_DOWNLOADER, "Detectado binario yt-dlp corrupto durante descarga. Ejecutando reset de emergencia desde APK assets...")
                         val appCtx = com.fabian.downloader.MyApplication.getInstance()
                         appCtx.resetAndReinitYtdlp(appCtx)
