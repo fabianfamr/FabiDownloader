@@ -6,7 +6,6 @@ import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.database.DownloadRecord
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
@@ -15,7 +14,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -275,10 +273,14 @@ class StorageService(private val database: AppDatabase) {
     }
 
     suspend fun deleteDownload(id: Long) {
-        activeProgressUpdates.update { current -> current - id }
-        dirtyIds.remove(id)
-        memoryCache.remove(id)
-        database.downloadDao().deleteDownload(id)
+        flushMutex.withLock {
+            activeProgressUpdates.update { current -> current - id }
+            dirtyIds.remove(id)
+            lastUiUpdateTimes.remove(id)
+            lastUiProgress.remove(id)
+            memoryCache.remove(id)
+            database.downloadDao().deleteDownload(id)
+        }
     }
 
     suspend fun getAllDownloadsDirect(): List<DownloadRecord> {

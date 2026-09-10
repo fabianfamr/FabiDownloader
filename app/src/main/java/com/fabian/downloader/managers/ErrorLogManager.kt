@@ -97,7 +97,7 @@ object ErrorLogManager {
                 it.title.startsWith(Config.STATUS_FAILED_PREFIX) || 
                 it.speed == "FAILED" || 
                 (!it.isCompleted && !it.isPaused && it.progress == 0)
-            }
+            }.take(50)
             if (failedDownloads.isNotEmpty()) {
                 failedDownloads.forEach { rec ->
                     val dateStr = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(rec.timestamp))

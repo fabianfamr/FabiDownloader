@@ -11,7 +11,13 @@ import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.io.File
 
-abstract class BaseSiteService : SiteService {
+open class BaseSiteService(
+    override val siteId: String = "generic",
+    override val displayName: String = "Enlace Directo",
+    override val brandColorHex: String = "#607D8B",
+    override val iconName: String = "generic",
+    override val supportedUrlPatterns: List<String> = emptyList()
+) : SiteService {
 
     companion object {
         private val activeExtractions = java.util.concurrent.ConcurrentHashMap<String, Deferred<InfoMedia?>>()

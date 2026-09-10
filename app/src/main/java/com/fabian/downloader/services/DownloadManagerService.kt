@@ -50,8 +50,9 @@ class DownloadManagerService private constructor(
             notificationService: NotificationService
         ): DownloadManagerService {
             return instance ?: synchronized(this) {
+                val app = application.applicationContext as? Application ?: application
                 instance ?: DownloadManagerService(
-                    application,
+                    app,
                     storageService,
                     extractionService,
                     connectionService,
@@ -61,7 +62,7 @@ class DownloadManagerService private constructor(
         }
 
         fun getInstance(context: Context): DownloadManagerService {
-            val app = context.applicationContext as Application
+            val app = (context.applicationContext as? Application) ?: com.fabian.downloader.MyApplication.getInstance()
             return instance ?: synchronized(this) {
                 instance ?: DownloadManagerService(
                     app,

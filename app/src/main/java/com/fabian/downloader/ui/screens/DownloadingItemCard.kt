@@ -164,18 +164,34 @@ fun MobileDownloadingItem(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
+                val errRetryStr = stringResource(R.string.downloads_error_retry)
+                val pausedStr = stringResource(R.string.downloads_status_paused)
+                val waitingStr = stringResource(R.string.downloads_status_waiting)
+
+                val speedText = remember(record.speed, record.isPaused, isFailed, record.progress, ctx) {
+                    when {
+                        isFailed -> errRetryStr
+                        record.isPaused -> pausedStr
+                        record.progress < 0 -> waitingStr
+                        else -> YtdlpParser.getLocalizedStatus(ctx, record.speed)
+                    }
+                }
+
+                val percentText = remember(record.progress, record.isPaused) {
+                    if (record.isPaused) {
+                        "${if (record.progress < 0) 0 else record.progress}%"
+                    } else if (record.progress < 0) {
+                        "0%"
+                    } else {
+                        "${record.progress}%"
+                    }
+                }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val speedText = when {
-                        isFailed -> stringResource(R.string.downloads_error_retry)
-                        record.isPaused -> stringResource(R.string.downloads_status_paused)
-                        record.progress < 0 -> stringResource(R.string.downloads_status_waiting)
-                        else -> YtdlpParser.getLocalizedStatus(ctx, record.speed)
-                    }
-
                     Text(
                         text = speedText,
                         style = MaterialTheme.typography.labelSmall,
@@ -185,14 +201,6 @@ fun MobileDownloadingItem(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-
-                    val percentText = if (record.isPaused) {
-                        "${if (record.progress < 0) 0 else record.progress}%"
-                    } else if (record.progress < 0) {
-                        "0%"
-                    } else {
-                        "${record.progress}%"
-                    }
 
                     Text(
                         text = percentText,

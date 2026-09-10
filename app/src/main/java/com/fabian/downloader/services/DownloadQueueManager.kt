@@ -29,7 +29,11 @@ class DownloadQueueManager(
     private val queueTrigger = MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
 
     fun triggerQueue() {
-        queueTrigger.tryEmit(Unit)
+        if (!isQueueProcessorRunning.get()) {
+            startQueueProcessor()
+        } else {
+            queueTrigger.tryEmit(Unit)
+        }
     }
 
     fun startQueueProcessor() {

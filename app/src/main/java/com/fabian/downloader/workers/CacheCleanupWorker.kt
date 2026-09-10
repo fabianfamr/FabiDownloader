@@ -81,8 +81,7 @@ class CacheCleanupWorker(
 
         val activeOrPausedIds = try {
             com.fabian.downloader.database.AppDatabase.getInstance(context).downloadDao()
-                .getAllDownloadsDirect()
-                .filter { !it.isCompleted }
+                .getActiveDownloadsDirect()
                 .map { it.id.toString() }
                 .toSet()
         } catch (_: Exception) {
