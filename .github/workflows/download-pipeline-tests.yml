@@ -1,0 +1,33 @@
+name: CI / Download Pipeline Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name: Run Unit & UI Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Unit Tests
+        run: ./gradlew testDebugUnitTest
+
+  # You can add an instrumented testing job here if you plan to use Firebase Test Lab
+  # or a hardware emulator in the future, although emulator runs in GitHub Actions 
+  # can be flaky due to lack of hardware acceleration on standard runners.
