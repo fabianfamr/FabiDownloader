@@ -40,4 +40,20 @@ object UrlUtils {
             return false
         }
     }
+
+    /**
+     * Extrae una URL válida de cualquier texto (incluso si contiene saltos de línea,
+     * encabezados como '========', o texto adicional al compartir desde redes sociales).
+     */
+    fun extractUrlFromText(text: String): String {
+        val trimmed = text.trim()
+        val regex = Regex("""https?://[^\s<>"']+""")
+        val match = regex.find(trimmed)?.value
+        return if (match != null) {
+            com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(match)
+        } else {
+            // Si no contiene http/https pero es texto multilinea, limpiar saltos de linea
+            trimmed.lines().firstOrNull { it.isNotBlank() && !it.startsWith("===") }?.trim() ?: trimmed
+        }
+    }
 }

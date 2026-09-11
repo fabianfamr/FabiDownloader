@@ -115,12 +115,13 @@ fun MainScreen(
                         val clipData = clipboardManager.primaryClip
                         if (clipData != null && clipData.itemCount > 0) {
                             val clipText = clipData.getItemAt(0).text?.toString() ?: ""
-                            if ((clipText.startsWith("http://") || clipText.startsWith("https://")) && clipText != lastProcessedClipboardUrl) {
-                                lastProcessedClipboardUrl = clipText
+                            val cleanUrl = com.fabian.downloader.utils.UrlUtils.extractUrlFromText(clipText)
+                            if ((cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) && cleanUrl != lastProcessedClipboardUrl) {
+                                lastProcessedClipboardUrl = cleanUrl
                                 if (action == "auto") {
-                                    urlToDownloadInDialog = clipText
+                                    urlToDownloadInDialog = cleanUrl
                                 } else {
-                                    clipboardUrl = clipText
+                                    clipboardUrl = cleanUrl
                                 }
                             }
                         }

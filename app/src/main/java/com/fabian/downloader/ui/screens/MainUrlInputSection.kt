@@ -59,8 +59,13 @@ fun MainUrlInputSection(
         ) {
             BasicTextField(
                 value = query,
-                onValueChange = { 
-                    onQueryChange(it)
+                onValueChange = { raw ->
+                    val clean = if (raw.contains("\n") || raw.contains("\r") || (raw.contains("http") && !raw.startsWith("http"))) {
+                        com.fabian.downloader.utils.UrlUtils.extractUrlFromText(raw)
+                    } else {
+                        raw
+                    }
+                    onQueryChange(clean)
                     analyzeState = AnalyzeState.Idle
                 },
                 textStyle = TextStyle(
@@ -150,8 +155,15 @@ fun MainUrlInputSection(
                                     val clipData = clipboardManager.primaryClip
                                     if (clipData != null && clipData.itemCount > 0) {
                                         val clipText = clipData.getItemAt(0).text?.toString() ?: ""
-                                        if (clipText.isNotEmpty()) {
-                                            onQueryChange(clipText)
+                                        if (clipText.isNotBlank()) {
+                                            val cleanUrl = com.fabian.downloader.utils.UrlUtils.extractUrlFromText(clipText)
+                                            if (cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) {
+                                                onQueryChange(cleanUrl)
+                                            } else if (!clipText.startsWith("===") && !clipText.contains("REGISTRO DE ERRORES")) {
+                                                onQueryChange(cleanUrl)
+                                            } else {
+                                                ToastUtils.show(ctx, ctx.getString(R.string.main_invalid_url_toast))
+                                            }
                                         }
                                     }
                                 }

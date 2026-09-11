@@ -23,4 +23,5 @@
     <string name="storage_permission_grant">Conceder Permiso</string>
     <string name="scoped_storage_active">Almacenamiento Seguro Activo (Scoped Storage)</string>
     <string name="status_retrying">Reintentando...</string>
+    <string name="main_invalid_url_toast">El portapapeles no contiene un enlace válido</string>
 </resources>
