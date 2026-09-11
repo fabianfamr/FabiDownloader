@@ -197,7 +197,7 @@ fun DownloadStartedDialog(
                             modifier = Modifier
                                 .size(84.dp)
                                 .background(
-                                    Color(0xFF00E5FF).copy(alpha = glowAlpha),
+                                    MaterialTheme.colorScheme.primary.copy(alpha = glowAlpha),
                                     CircleShape
                                 )
                         )

@@ -101,7 +101,7 @@ object YtdlpCommandBuilder {
             val batteryManager = BatteryOptimizerManager.getInstance(appCtx)
             val isBatteryLowMode = settings.batteryOptimizationEnabled && 
                                    batteryManager.isBatteryLowAndNotCharging() && 
-                                   settings.batteryLowAction == "Optimizar recursos"
+                                   settings.batteryLowAction == Config.BATTERY_ACTION_OPTIMIZE
 
             val brandTuning = DeviceOptimizationHelper.getAutoTuning()
 
@@ -194,6 +194,9 @@ object YtdlpCommandBuilder {
             if (settings.embedMetadata) {
                 addOption("--embed-metadata")
                 addOption("--parse-metadata", "%(uploader,artist)s:%(album)s")
+                if (settings.markAsMV) {
+                    addOption("--parse-metadata", "Music Video:%(genre)s")
+                }
             }
             if (settings.embedThumbnail) {
                 addOption("--embed-thumbnail")

@@ -20,6 +20,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 
+import com.fabian.downloader.configs.Config
+
 // ---------------------------------------------------------------------------
 // FabiColors System
 // ---------------------------------------------------------------------------
@@ -143,11 +145,12 @@ fun MyApplicationTheme(
         null // Will use dynamic
     } else {
         when (accentColorName) {
-            "Verde Esmeralda" -> AccentGreen
-            "Púrpura Real" -> AccentPurple
-            "Naranja Sunset" -> AccentOrange
-            "Rosa Hot" -> AccentPink
-            "Gris Acero" -> AccentSteel
+            Config.ACCENT_EMERALD_GREEN, "emerald_green", "Verde Esmeralda", "Изумрудно-зеленый" -> AccentGreen
+            Config.ACCENT_ROYAL_PURPLE, "royal_purple", "Púrpura Real", "Королевский пурпурный" -> AccentPurple
+            Config.ACCENT_SUNSET_ORANGE, "sunset_orange", "Naranja Sunset", "Закатно-оранжевый" -> AccentOrange
+            Config.ACCENT_HOT_PINK, "hot_pink", "Rosa Hot", "Ярко-розовый" -> AccentPink
+            Config.ACCENT_STEEL_GRAY, "steel_gray", "Gris Acero", "Стальной серый" -> AccentSteel
+            Config.ACCENT_ELECTRIC_BLUE, "electric_blue", "Azul Eléctrico", "Электрический синий" -> AccentBlue
             else -> AccentBlue
         }
     }
