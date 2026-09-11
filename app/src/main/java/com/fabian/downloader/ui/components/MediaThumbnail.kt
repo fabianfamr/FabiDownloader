@@ -270,7 +270,7 @@ fun VideoMediaThumbnail(
     Box(
         modifier = modifier
             .size(size)
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(14.dp))
             .background(
                 if (isFailed) fColors.error.copy(alpha = 0.15f)
                 else fallbackColor.copy(alpha = 0.12f)
@@ -278,7 +278,7 @@ fun VideoMediaThumbnail(
             .border(
                 if (isFailed) 1.5.dp else 1.dp, 
                 if (isFailed) fColors.error.copy(alpha = 0.7f) else fColors.border.copy(alpha = 0.5f), 
-                RoundedCornerShape(10.dp)
+                RoundedCornerShape(14.dp)
             ),
         contentAlignment = Alignment.Center
     ) {

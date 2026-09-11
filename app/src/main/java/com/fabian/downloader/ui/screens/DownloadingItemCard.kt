@@ -87,14 +87,14 @@ fun MobileDownloadingItem(
 
     Surface(
         color = if (isSelected) C_accentDim else C_card,
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         border = BorderStroke(
             if (isSelected) 2.dp else 1.dp, 
             if (isSelected) C_accent else (if (isFailed) statusColor.copy(alpha = 0.35f) else C_border)
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(16.dp))
             .combinedClickable(
                 onClick = { 
                     if (isSelectionMode) {

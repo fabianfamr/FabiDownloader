@@ -5,9 +5,9 @@
     android:viewportWidth="512"
     android:viewportHeight="512">
 
-    <!-- Themed monochrome icon combining cloud and arrow cutout using evenOdd fillType -->
+    <!-- Themed monochrome icon combining cloud and smooth arrow cutout using evenOdd fillType -->
     <path
         android:fillColor="#FF000000"
         android:fillType="evenOdd"
-        android:pathData="M 256,150 A 65,65 0 0,1 321,215 A 50,50 0 0,1 371,265 A 45,45 0 0,1 326,310 L 186,310 A 45,45 0 0,1 141,265 A 55,55 0 0,1 196,210 A 65,65 0 0,1 256,150 Z M 236,200 L 276,200 L 276,250 L 310,250 L 256,300 L 202,250 L 236,250 Z" />
+        android:pathData="M 256,150 A 65,65 0 0,1 321,215 A 50,50 0 0,1 371,265 A 45,45 0 0,1 326,310 L 186,310 A 45,45 0 0,1 141,265 A 55,55 0 0,1 196,210 A 65,65 0 0,1 256,150 Z M 238,202 C 238,200 240,198 242,198 L 270,198 C 272,198 274,200 274,202 L 274,248 C 274,250 276,252 278,252 L 305,252 C 309,252 311,256 308,259 L 260,298 C 258,300 254,300 252,298 L 204,259 C 201,256 203,252 207,252 L 234,252 C 236,252 238,250 238,248 Z" />
 </vector>

@@ -120,7 +120,7 @@ fun MainRecentDownloadsSection(
                                 )
                                 Surface(
                                     color = if (isAudio) colors.accentDim else Color(0x112ECC71),
-                                    shape = RoundedCornerShape(6.dp)
+                                    shape = RoundedCornerShape(8.dp)
                                 ) {
                                     Text(
                                         text = record.format,

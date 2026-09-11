@@ -22,11 +22,12 @@
         </aapt:attr>
     </path>
 
-    <!-- Arrow -->
+    <!-- Arrow with rounded corners -->
     <path
-        android:pathData="M 236,200 L 276,200 L 276,250 L 310,250 L 256,300 L 202,250 L 236,250 Z"
+        android:pathData="M 238,202 C 238,200 240,198 242,198 L 270,198 C 272,198 274,200 274,202 L 274,248 C 274,250 276,252 278,252 L 305,252 C 309,252 311,256 308,259 L 260,298 C 258,300 254,300 252,298 L 204,259 C 201,256 203,252 207,252 L 234,252 C 236,252 238,250 238,248 Z"
         android:strokeColor="#ffffff"
         android:strokeWidth="2"
+        android:strokeLineCap="round"
         android:strokeLineJoin="round">
         <aapt:attr name="android:fillColor">
             <gradient

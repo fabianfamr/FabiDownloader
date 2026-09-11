@@ -72,12 +72,12 @@ fun MobileDownloadedItem(
     val platformColor = platformInfo.second
 
     Surface(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         color = if (isSelected) C_accentDim else C_card,
         border = if (isSelected) BorderStroke(2.dp, C_accent) else BorderStroke(1.dp, C_border),
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(16.dp))
             .combinedClickable(
                 onClick = { onPlay() },
                 onLongClick = { onLongPress() }
@@ -128,7 +128,7 @@ fun MobileDownloadedItem(
                     if (AppSettings.showQualityBadge) {
                         Surface(
                             color = platformColor.copy(alpha = 0.12f),
-                            shape = RoundedCornerShape(6.dp)
+                            shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
                                 text = "${record.quality} • ${record.format}", 
