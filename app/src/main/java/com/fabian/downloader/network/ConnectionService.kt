@@ -41,7 +41,7 @@ class ConnectionService {
             // o fallos en activeNetwork de MIUI.
             val res = try {
                 java.net.Socket().use { socket ->
-                    socket.connect(java.net.InetSocketAddress("1.1.1.1", 80), 2000)
+                    socket.connect(java.net.InetSocketAddress("1.1.1.1", 53), 2000)
                 }
                 true
             } catch (_: Exception) {
@@ -51,7 +51,9 @@ class ConnectionService {
                     }
                     true
                 } catch (_: Exception) {
-                    hasInternetCap
+                    // Si todo falla, asumimos que puede haber conexión y dejamos que falle la descarga si realmente no la hay,
+                    // en lugar de bloquearla preventivamente (útil para firewalls estrictos o MIUI).
+                    true
                 }
             }
             lastSocketCheckTime = now
