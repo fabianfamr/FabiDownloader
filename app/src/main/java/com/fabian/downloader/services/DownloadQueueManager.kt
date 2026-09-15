@@ -26,7 +26,7 @@ class DownloadQueueManager(
     val processingIds = ConcurrentSkipListSet<Long>()
     val forcedDownloadIds = ConcurrentHashMap.newKeySet<Long>()
     private val isQueueProcessorRunning = AtomicBoolean(false)
-    private val queueTrigger = MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
+    private val queueTrigger = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST)
 
     fun triggerQueue() {
         if (!isQueueProcessorRunning.get()) {
