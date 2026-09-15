@@ -77,9 +77,9 @@ object YtdlpCommandBuilder {
 
             if (isYoutube) {
                 when (fallbackLevel) {
-                    0 -> addOption("--extractor-args", "youtube:player_client=ios,mweb")
-                    1 -> addOption("--extractor-args", "youtube:player_client=ios,web")
-                    2 -> addOption("--extractor-args", "youtube:player_client=android_creator,mweb")
+                    0 -> addOption("--extractor-args", "youtube:player_client=default,-android_sdkless")
+                    1 -> addOption("--extractor-args", "youtube:player_client=android,web")
+                    2 -> addOption("--extractor-args", "youtube:player_client=web,mweb")
                     else -> { /* omit player_client for raw yt-dlp fallback */ }
                 }
             }
@@ -120,7 +120,9 @@ object YtdlpCommandBuilder {
             addOption("--concurrent-fragments", safeFragments.toString())
 
             addOption("--buffer-size", brandTuning.bufferSize)
-            addOption("--http-chunk-size", brandTuning.httpChunkSize)
+            if (!isYoutube) {
+                addOption("--http-chunk-size", brandTuning.httpChunkSize)
+            }
 
             val maxSpeed = if (isBatteryLowMode) {
                 if (settings.maxSpeed == Config.SPEED_UNLIMITED || 
@@ -185,7 +187,10 @@ object YtdlpCommandBuilder {
                 }
             }
 
-            addOption("--referer", Config.REFERER_DEFAULT)
+            addOption("--force-ipv4")
+            if (!isYoutube) {
+                addOption("--referer", Config.REFERER_DEFAULT)
+            }
             if (AppSettings.bypassSslVerification) {
                 addOption("--no-check-certificate")
             }

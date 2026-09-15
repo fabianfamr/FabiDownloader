@@ -51,8 +51,11 @@ class YtdlpExtractor {
                     addOption("--user-agent", Config.UA_DESKTOP)
                 }
                 
+                addOption("--force-ipv4")
                 addOption("--no-check-formats")
-                addOption("--referer", Config.REFERER_DEFAULT)
+                if (!isYoutube) {
+                    addOption("--referer", Config.REFERER_DEFAULT)
+                }
                 if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
                     addOption("--no-check-certificate")
                 }
@@ -64,7 +67,7 @@ class YtdlpExtractor {
             }
         }
 
-        val clientOptions: List<String?> = listOf("ios,mweb", "ios,web", "android_creator,mweb", null)
+        val clientOptions: List<String?> = listOf("default,-android_sdkless", "android,web", "ios,mweb", null)
 
         for (client in clientOptions) {
             val processId = java.util.UUID.randomUUID().toString()
@@ -133,12 +136,13 @@ class YtdlpExtractor {
             addOption("--no-cache-dir")
             addOption("--no-update")
             
+            addOption("--force-ipv4")
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player_client=ios,mweb")
+                addOption("--extractor-args", "youtube:player_client=default,-android_sdkless")
                 addOption("--user-agent", Config.UA_DESKTOP)
+            } else {
+                addOption("--referer", Config.REFERER_DEFAULT)
             }
-            
-            addOption("--referer", Config.REFERER_DEFAULT)
             if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
                 addOption("--no-check-certificate")
             }

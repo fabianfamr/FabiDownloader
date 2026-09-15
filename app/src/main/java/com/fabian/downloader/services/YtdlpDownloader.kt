@@ -122,11 +122,14 @@ class YtdlpDownloader {
                     var lastReportedProgress = -1f
                     var maxObservedRawProgress = 0f
                     var isSecondTrack = false
+                    var lastDetectedSpeed = Config.STATUS_CONNECTING
+                    var lastDetectedSize = Config.STATUS_CALCULATING
 
                     alProgresar(0f, Config.STATUS_CALCULATING, Config.STATUS_CONNECTING)
 
                     YoutubeDL.getInstance().execute(request, processId) { rawProgress, _, line ->
                         lastLine = line
+                        Log.d(Config.TAG_YTDLP_DOWNLOADER, "[$processId] $line")
                         val lowerLine = line.lowercase()
                         val isPostProc = lowerLine.contains("[extractaudio]") ||
                                          lowerLine.contains("[merger]") ||
@@ -137,6 +140,16 @@ class YtdlpDownloader {
                                          lowerLine.contains("[embed") ||
                                          lowerLine.contains("[sponsorblock]") ||
                                          lowerLine.contains("deleting original file")
+
+                        val match = SPEED_REGEX.find(line)
+                        if (match != null) {
+                            lastDetectedSpeed = match.groupValues[1]
+                        }
+
+                        val sizeMatch = SIZE_REGEX.find(line)
+                        if (sizeMatch != null) {
+                            lastDetectedSize = sizeMatch.groupValues[1].replace("~", "")
+                        }
 
                         if (!isSecondTrack && maxObservedRawProgress >= 80f && rawProgress < 20f && (lowerLine.contains("[download] destination") || rawProgress > 0f)) {
                             isSecondTrack = true
@@ -172,23 +185,13 @@ class YtdlpDownloader {
                             lastUiUpdate = now
                             lastReportedProgress = smoothedProgress
 
-                            var speedText = Config.STATUS_CALCULATING
-                            var sizeText = Config.STATUS_DOWNLOADING
-
-                            val match = SPEED_REGEX.find(line)
-                            if (match != null) {
-                                speedText = match.groupValues[1]
-                            }
-
-                            val sizeMatch = SIZE_REGEX.find(line)
-                            if (sizeMatch != null) {
-                                sizeText = sizeMatch.groupValues[1].replace("~", "")
-                            }
+                            var speedText = lastDetectedSpeed
+                            var sizeText = lastDetectedSize
 
                             if (smoothedProgress >= 98f || isPostProc) {
-                                if (speedText == Config.STATUS_CALCULATING || speedText == Config.STATUS_DOWNLOADING) {
-                                    speedText = Config.STATUS_FINALIZING
-                                }
+                                speedText = Config.STATUS_FINALIZING
+                            } else if (speedText == Config.STATUS_CONNECTING && (smoothedProgress > 0f || lowerLine.contains("[download]"))) {
+                                speedText = Config.STATUS_DOWNLOADING
                             }
 
                             val cleanSpeed = com.fabian.downloader.utils.YtdlpParser.formatSpeed(speedText)
