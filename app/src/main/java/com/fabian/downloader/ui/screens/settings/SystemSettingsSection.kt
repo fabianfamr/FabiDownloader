@@ -131,7 +131,13 @@ fun SystemSettingsSection(
                 showLanguageDialog = false
                 
                 if (changed) {
-                    (ctx as? android.app.Activity)?.recreate()
+                    val activity = ctx as? android.app.Activity
+                    if (activity != null) {
+                        val intent = android.content.Intent(activity, com.fabian.downloader.MainActivity::class.java)
+                        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        activity.startActivity(intent)
+                        activity.finish()
+                    }
                 }
             },
             onDismiss = { showLanguageDialog = false }

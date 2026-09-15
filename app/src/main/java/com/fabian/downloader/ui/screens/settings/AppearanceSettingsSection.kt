@@ -64,6 +64,8 @@ fun AppearanceSettingsSection(fColors: FabiColors) {
             onSelection = {
                 AppSettings.accentColorName = it
                 accentColorNameState = it
+                AppSettings.dynamicColor = false
+                dynamicColor = false
                 showAccentDialog = false
             },
             onDismiss = { showAccentDialog = false }
@@ -213,19 +215,17 @@ fun AppearanceSettingsSection(fColors: FabiColors) {
                 )
             }
 
-            if (!dynamicColor) {
-                HorizontalDivider(color = C_border, thickness = 1.dp)
-                SettingsRow(
-                    icon = AppIcons.ColorLens,
-                    title = stringResource(R.string.settings_accent_color),
-                    trailing = SettingsLabels.getAccentColorLabel(ctx, accentColorNameState),
-                    colorAccent = C_accent,
-                    textColor = C_white,
-                    grayColor = C_gray1,
-                    card2Color = C_card2
-                ) {
-                    showAccentDialog = true
-                }
+            HorizontalDivider(color = C_border, thickness = 1.dp)
+            SettingsRow(
+                icon = AppIcons.ColorLens,
+                title = stringResource(R.string.settings_accent_color),
+                trailing = SettingsLabels.getAccentColorLabel(ctx, accentColorNameState),
+                colorAccent = C_accent,
+                textColor = C_white,
+                grayColor = C_gray1,
+                card2Color = C_card2
+            ) {
+                showAccentDialog = true
             }
 
             HorizontalDivider(color = C_border, thickness = 1.dp)

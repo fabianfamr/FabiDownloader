@@ -56,6 +56,13 @@ object LocaleHelper {
         Locale.setDefault(locale)
         val config = Configuration(context.resources.configuration)
         config.setLocale(locale)
-        return context.createConfigurationContext(config)
+        
+        // Fix for "BinderProxy cannot be cast to ClientTransaction" on Xiaomi/MIUI.
+        // Returning createConfigurationContext() can break the context's identity in some OEM implementations.
+        // Updating the resources in place and returning the exact original context is much safer here.
+        @Suppress("DEPRECATION")
+        context.resources.updateConfiguration(config, context.resources.displayMetrics)
+        
+        return context
     }
 }

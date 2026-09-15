@@ -72,12 +72,12 @@ fun MobileDownloadedItem(
     val platformColor = platformInfo.second
 
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(22.dp),
         color = if (isSelected) C_accentDim else C_card,
         border = if (isSelected) BorderStroke(2.dp, C_accent) else BorderStroke(1.dp, C_border),
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(22.dp))
             .combinedClickable(
                 onClick = { onPlay() },
                 onLongClick = { onLongPress() }

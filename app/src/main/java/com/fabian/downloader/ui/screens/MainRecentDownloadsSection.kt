@@ -77,11 +77,11 @@ fun MainRecentDownloadsSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 6.dp)
-                        .clip(RoundedCornerShape(18.dp))
+                        .clip(RoundedCornerShape(22.dp))
                         .clickable { onOpenFile(record) }
                         .testTag("recent_record_item_${record.id}"),
                     color = colors.card,
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(22.dp),
                     border = BorderStroke(
                         width = 1.dp,
                         color = platformColor.copy(alpha = 0.22f)

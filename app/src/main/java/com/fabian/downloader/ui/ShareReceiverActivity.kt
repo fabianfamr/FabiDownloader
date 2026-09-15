@@ -26,7 +26,8 @@ class ShareReceiverActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: android.content.Context) {
         val prefs = newBase.getSharedPreferences("fabi_downloader_prefs", android.content.Context.MODE_PRIVATE)
         val lang = prefs.getString("language", "Sistema") ?: "Sistema"
-        super.attachBaseContext(com.fabian.downloader.utils.LocaleHelper.applyLocale(newBase, lang))
+        val context = com.fabian.downloader.utils.LocaleHelper.applyLocale(newBase, lang)
+        super.attachBaseContext(context)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
