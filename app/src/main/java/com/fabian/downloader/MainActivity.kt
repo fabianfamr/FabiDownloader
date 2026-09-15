@@ -52,39 +52,22 @@ class MainActivity : ComponentActivity() {
             val dynamicColor by com.fabian.downloader.ui.AppSettings.dynamicColorState
             val accentColorName by com.fabian.downloader.ui.AppSettings.accentColorNameState
             val amoledMode by com.fabian.downloader.ui.AppSettings.amoledModeState
-            val language by com.fabian.downloader.ui.AppSettings.languageState
 
-            val currentContext = androidx.compose.ui.platform.LocalContext.current
-            val localizedContext = androidx.compose.runtime.remember(language, currentContext) {
-                com.fabian.downloader.utils.LocaleHelper.applyLocale(currentContext, language)
-            }
-
-            val activityRegistryOwner = (currentContext as? androidx.activity.result.ActivityResultRegistryOwner)
-                ?: (this@MainActivity as? androidx.activity.result.ActivityResultRegistryOwner)
-
-            androidx.compose.runtime.CompositionLocalProvider(
-                androidx.compose.ui.platform.LocalContext provides localizedContext,
-                androidx.compose.ui.platform.LocalConfiguration provides localizedContext.resources.configuration,
-                *(if (activityRegistryOwner != null) arrayOf(
-                    androidx.activity.compose.LocalActivityResultRegistryOwner provides activityRegistryOwner
-                ) else emptyArray())
+            MyApplicationTheme(
+                themePreference = themePreference,
+                dynamicColor = dynamicColor,
+                accentColorName = accentColorName,
+                amoledMode = amoledMode
             ) {
-                MyApplicationTheme(
-                    themePreference = themePreference,
-                    dynamicColor = dynamicColor,
-                    accentColorName = accentColorName,
-                    amoledMode = amoledMode
-                ) {
-                    FabiDownloaderApp(
-                        database = database,
-                        startOnDownloads = startOnDownloadsState.value,
-                        initialPage = initialPageState.value,
-                        onConsumedStartOnDownloads = {
-                            startOnDownloadsState.value = false
-                            initialPageState.value = 0
-                        }
-                    )
-                }
+                FabiDownloaderApp(
+                    database = database,
+                    startOnDownloads = startOnDownloadsState.value,
+                    initialPage = initialPageState.value,
+                    onConsumedStartOnDownloads = {
+                        startOnDownloadsState.value = false
+                        initialPageState.value = 0
+                    }
+                )
             }
         }
     }

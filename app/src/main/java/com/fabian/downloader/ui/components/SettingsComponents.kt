@@ -462,8 +462,13 @@ fun DownloadSettingsContent(
                 options = languageOptions,
                 selectedOption = selectedOption,
                 onSelection = {
+                    val changed = AppSettings.language != it
                     AppSettings.language = it
                     showLanguageDialog = false
+                    
+                    if (changed) {
+                        (context as? android.app.Activity)?.recreate()
+                    }
                 },
                 onDismiss = { showLanguageDialog = false }
             )

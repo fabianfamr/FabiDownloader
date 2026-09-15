@@ -125,9 +125,14 @@ fun SystemSettingsSection(
             options = languageOptions,
             selectedOption = selectedOption,
             onSelection = {
+                val changed = AppSettings.language != it
                 AppSettings.language = it
                 languageState = LocaleHelper.getDisplayName(it)
                 showLanguageDialog = false
+                
+                if (changed) {
+                    (ctx as? android.app.Activity)?.recreate()
+                }
             },
             onDismiss = { showLanguageDialog = false }
         )

@@ -81,38 +81,26 @@ class ShareReceiverActivity : ComponentActivity() {
             val accentColorName by com.fabian.downloader.ui.AppSettings.accentColorNameState
             val amoledMode by com.fabian.downloader.ui.AppSettings.amoledModeState
 
-            val language by com.fabian.downloader.ui.AppSettings.languageState
-
-            val currentContext = androidx.compose.ui.platform.LocalContext.current
-            val localizedContext = androidx.compose.runtime.remember(language, currentContext) {
-                com.fabian.downloader.utils.LocaleHelper.applyLocale(currentContext, language)
-            }
-
-            androidx.compose.runtime.CompositionLocalProvider(
-                androidx.compose.ui.platform.LocalContext provides localizedContext,
-                androidx.compose.ui.platform.LocalConfiguration provides localizedContext.resources.configuration
+            MyApplicationTheme(
+                themePreference = themePreference,
+                dynamicColor = dynamicColor,
+                accentColorName = accentColorName,
+                amoledMode = amoledMode
             ) {
-                MyApplicationTheme(
-                    themePreference = themePreference,
-                    dynamicColor = dynamicColor,
-                    accentColorName = accentColorName,
-                    amoledMode = amoledMode
-                ) {
-                    SharePopupScreen(
-                        url = sharedText, 
-                        viewModel = viewModel,
-                        onClose = { finish() },
-                        onNavigateToDownloads = {
-                            val intent = Intent(this@ShareReceiverActivity, MainActivity::class.java).apply {
-                                putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
-                                putExtra(Config.EXTRA_INITIAL_PAGE, 1) // Go to "En progreso" tab
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                            }
-                            startActivity(intent)
-                            finish()
+                SharePopupScreen(
+                    url = sharedText, 
+                    viewModel = viewModel,
+                    onClose = { finish() },
+                    onNavigateToDownloads = {
+                        val intent = Intent(this@ShareReceiverActivity, MainActivity::class.java).apply {
+                            putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
+                            putExtra(Config.EXTRA_INITIAL_PAGE, 1) // Go to "En progreso" tab
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                         }
-                    )
-                }
+                        startActivity(intent)
+                        finish()
+                    }
+                )
             }
         }
     }
