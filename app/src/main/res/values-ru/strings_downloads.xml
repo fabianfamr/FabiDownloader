@@ -116,7 +116,9 @@
     <string name="notif_channel_progress">Текущие загрузки</string>
     <string name="notif_channel_progress_desc">Отображает прогресс активных загрузок в реальном времени</string>
     <string name="notif_channel_status">Состояние загрузок</string>
-    <string name="notif_channel_status_desc">Уведомления о завершенных или неудачных загрузках</string>
+    <string name="notif_channel_status_desc">Уведомления о завершенных загрузках</string>
+    <string name="notif_channel_failed">Неудачные загрузки</string>
+    <string name="notif_channel_failed_desc">Уведомления о неудачных загрузках или ошибках</string>
     <string name="notif_title_completed">Загрузка завершена</string>
     <string name="notif_title_failed">Ошибка загрузки</string>
     <string name="notif_batch_completed">Пакет завершен: %1$d файлов загружено</string>

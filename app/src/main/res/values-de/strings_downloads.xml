@@ -115,8 +115,10 @@
     <string name="downloads_action_share_with">Teilen mit</string>
     <string name="notif_channel_progress">Laufende Downloads</string>
     <string name="notif_channel_progress_desc">Zeigt den Echtzeitfortschritt aktiver Downloads an</string>
-    <string name="notif_channel_status">Download-Status</string>
-    <string name="notif_channel_status_desc">Benachrichtigungen über abgeschlossene oder fehlgeschlagene Downloads</string>
+    <string name="notif_channel_status">Abgeschlossene Downloads</string>
+    <string name="notif_channel_status_desc">Benachrichtigungen über abgeschlossene Downloads</string>
+    <string name="notif_channel_failed">Fehlgeschlagene Downloads</string>
+    <string name="notif_channel_failed_desc">Benachrichtigungen über fehlgeschlagene Downloads</string>
     <string name="notif_title_completed">Download abgeschlossen</string>
     <string name="notif_title_failed">Download fehlgeschlagen</string>
     <string name="notif_batch_completed">Stapel abgeschlossen: %1$d Downloads beendet</string>

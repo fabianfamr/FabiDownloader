@@ -116,6 +116,11 @@ class YtdlpDownloader {
                     } catch (_: Exception) {}
                 }
 
+                val timedOutByWatchdog = java.util.concurrent.atomic.AtomicBoolean(false)
+                val hasReceivedAnyOutput = java.util.concurrent.atomic.AtomicBoolean(false)
+                var lastActivityTime = System.currentTimeMillis()
+                var watchdogJob: kotlinx.coroutines.Job? = null
+
                 try {
                     val request = YtdlpCommandBuilder.createRequest(videoUrl, quality, format, destFolder, fileNameWithoutExt, level, customizeRequest)
                     var lastUiUpdate = 0L
@@ -127,7 +132,25 @@ class YtdlpDownloader {
 
                     alProgresar(0f, Config.STATUS_CALCULATING, Config.STATUS_CONNECTING)
 
+                    watchdogJob = coroutineScope.launch(Dispatchers.IO) {
+                        while (isActive) {
+                            kotlinx.coroutines.delay(2000)
+                            val elapsed = System.currentTimeMillis() - lastActivityTime
+                            val maxWait = if (!hasReceivedAnyOutput.get()) 30_000L else 45_000L
+                            if (elapsed > maxWait) {
+                                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Watchdog timeout ($elapsed ms) en proceso $processId (level=$level). Abortando para siguiente nivel...")
+                                timedOutByWatchdog.set(true)
+                                try {
+                                    YoutubeDL.getInstance().destroyProcessById(processId)
+                                } catch (_: Exception) {}
+                                break
+                            }
+                        }
+                    }
+
                     YoutubeDL.getInstance().execute(request, processId) { rawProgress, _, line ->
+                        lastActivityTime = System.currentTimeMillis()
+                        hasReceivedAnyOutput.set(true)
                         lastLine = line
                         Log.d(Config.TAG_YTDLP_DOWNLOADER, "[$processId] $line")
                         val lowerLine = line.lowercase()
@@ -201,11 +224,19 @@ class YtdlpDownloader {
                         }
                     }
                     return true
-                } catch (e: Throwable) {
+                } catch (originalEx: Throwable) {
+                    watchdogJob?.cancel()
+                    val e: Throwable = if (timedOutByWatchdog.get()) {
+                        Log.w(Config.TAG_YTDLP_DOWNLOADER, "Timeout de watchdog confirmado para proceso $processId en nivel $level. Forzando reintento/fallback...")
+                        java.net.SocketTimeoutException("Tiempo de espera agotado al conectar con el servidor")
+                    } else {
+                        originalEx
+                    }
+
                     val lowerMsg = (e.message ?: "").lowercase()
                     val lowerLast = lastLine.lowercase()
                     
-                    if (isExplicitCancellation(e)) {
+                    if (!timedOutByWatchdog.get() && isExplicitCancellation(e)) {
                         throw kotlinx.coroutines.CancellationException("Descarga cancelada/pausada")
                     }
                     
@@ -270,6 +301,7 @@ class YtdlpDownloader {
                         kotlinx.coroutines.delay(500)
                     }
                 } finally {
+                    watchdogJob?.cancel()
                     try {
                         YoutubeDL.getInstance().destroyProcessById(processId)
                     } catch (_: Exception) {}

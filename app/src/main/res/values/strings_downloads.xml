@@ -121,10 +121,12 @@
     <string name="downloads_action_share_with">Compartir con</string>
 
     <!-- Notification channels and titles -->
-    <string name="notif_channel_progress">Descargas en Progreso</string>
-    <string name="notif_channel_progress_desc">Muestra el progreso en tiempo real de las descargas activas</string>
-    <string name="notif_channel_status">Estado de Descargas</string>
-    <string name="notif_channel_status_desc">Notificaciones de descargas completadas con éxito o fallidas</string>
+    <string name="notif_channel_progress">Descargas en curso y servicio</string>
+    <string name="notif_channel_progress_desc">Progreso en tiempo real de las descargas y servicio en segundo plano</string>
+    <string name="notif_channel_status">Descargas completadas</string>
+    <string name="notif_channel_status_desc">Notificaciones cuando las descargas finalizan con éxito</string>
+    <string name="notif_channel_failed">Descargas fallidas</string>
+    <string name="notif_channel_failed_desc">Notificaciones cuando una descarga falla o requiere atención</string>
     <string name="notif_title_completed">Descarga completada</string>
     <string name="notif_title_failed">Descarga fallida</string>
     <string name="notif_batch_completed">Lote completado: %1$d descargas finalizadas</string>

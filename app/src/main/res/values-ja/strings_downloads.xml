@@ -115,8 +115,10 @@
     <string name="downloads_action_share_with">共有先</string>
     <string name="notif_channel_progress">進行中のダウンロード</string>
     <string name="notif_channel_progress_desc">アクティブなダウンロードのリアルタイム進行状況を表示</string>
-    <string name="notif_channel_status">ダウンロード状態</string>
-    <string name="notif_channel_status_desc">完了または失敗したダウンロードの通知</string>
+    <string name="notif_channel_status">ダウンロード完了</string>
+    <string name="notif_channel_status_desc">完了したダウンロードの通知</string>
+    <string name="notif_channel_failed">失敗したダウンロード</string>
+    <string name="notif_channel_failed_desc">ダウンロードが失敗した時の通知</string>
     <string name="notif_title_completed">ダウンロード完了</string>
     <string name="notif_title_failed">ダウンロード失敗</string>
     <string name="notif_batch_completed">バッチ完了: %1$d件ダウンロード完了</string>

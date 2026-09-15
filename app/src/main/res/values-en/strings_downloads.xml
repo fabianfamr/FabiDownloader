@@ -121,10 +121,12 @@
     <string name="downloads_action_share_with">Share with</string>
 
     <!-- Notification channels and titles -->
-    <string name="notif_channel_progress">Downloads in Progress</string>
-    <string name="notif_channel_progress_desc">Shows real-time progress of active downloads</string>
-    <string name="notif_channel_status">Download Status</string>
-    <string name="notif_channel_status_desc">Notifications for completed or failed downloads</string>
+    <string name="notif_channel_progress">Ongoing Downloads &amp; Service</string>
+    <string name="notif_channel_progress_desc">Real-time progress of active downloads and background service</string>
+    <string name="notif_channel_status">Completed Downloads</string>
+    <string name="notif_channel_status_desc">Notifications when downloads finish successfully</string>
+    <string name="notif_channel_failed">Failed Downloads</string>
+    <string name="notif_channel_failed_desc">Notifications when a download fails or needs attention</string>
     <string name="notif_title_completed">Download completed</string>
     <string name="notif_title_failed">Download failed</string>
     <string name="notif_batch_completed">Batch completed: %1$d downloads finished</string>

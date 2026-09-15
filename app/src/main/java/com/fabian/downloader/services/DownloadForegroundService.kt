@@ -228,27 +228,15 @@ class DownloadForegroundService : Service() {
             .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.notif_foreground_service))
             .setSmallIcon(R.drawable.ic_cloud_download)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setOngoing(true)
             .setContentIntent(appPendingIntent)
             .build()
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            try {
-                val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                val channel = NotificationChannel(
-                    Config.NOTIF_CHANNEL_PROGRESS,
-                    getString(R.string.notif_channel_progress),
-                    NotificationManager.IMPORTANCE_LOW
-                ).apply {
-                    description = getString(R.string.notif_channel_progress_desc)
-                    setShowBadge(false)
-                }
-                manager.createNotificationChannel(channel)
-            } catch (_: Exception) {}
-        }
+        NotificationService.createAllNotificationChannels(this)
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {

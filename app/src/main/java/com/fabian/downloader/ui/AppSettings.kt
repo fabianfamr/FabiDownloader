@@ -187,6 +187,17 @@ object AppSettings {
         get() = _bypassSslVerification.value
         set(value) { if (_bypassSslVerification.value != value) { _bypassSslVerification.value = value; saveBoolean(Config.PREF_BYPASS_SSL_VERIFICATION, value); notifyChanged(Config.PREF_BYPASS_SSL_VERIFICATION) } }
 
+    private val _showProgressNotification = mutableStateOf(false)
+    var showProgressNotification: Boolean
+        get() = _showProgressNotification.value
+        set(value) {
+            if (_showProgressNotification.value != value) {
+                _showProgressNotification.value = value
+                saveBoolean(Config.PREF_SHOW_PROGRESS_NOTIFICATION, value)
+                notifyChanged(Config.PREF_SHOW_PROGRESS_NOTIFICATION)
+            }
+        }
+
     private val _showDownloadSpeedInNotification = mutableStateOf(true)
     var showDownloadSpeedInNotification: Boolean
         get() = _showDownloadSpeedInNotification.value
@@ -347,7 +358,7 @@ object AppSettings {
         _embedMetadata.value = prefs.getBoolean(Config.PREF_EMBED_METADATA, true)
         _bypassGeo.value = prefs.getBoolean(Config.PREF_BYPASS_GEO, true)
         _bypassSslVerification.value = prefs.getBoolean(Config.PREF_BYPASS_SSL_VERIFICATION, false)
-
+        _showProgressNotification.value = prefs.getBoolean(Config.PREF_SHOW_PROGRESS_NOTIFICATION, false)
         _showDownloadSpeedInNotification.value = prefs.getBoolean(Config.PREF_SHOW_DOWNLOAD_SPEED_IN_NOTIFICATION, true)
         _selectedPausedNotificationTimeout.value = prefs.getString(Config.PREF_SELECTED_PAUSED_NOTIFICATION_TIMEOUT, Config.TIMEOUT_10_MIN) ?: Config.TIMEOUT_10_MIN
         _batteryOptimizationEnabled.value = prefs.getBoolean(Config.PREF_BATTERY_OPTIMIZATION_ENABLED, true)

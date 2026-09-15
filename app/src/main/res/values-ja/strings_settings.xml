@@ -57,6 +57,8 @@
     <string name="settings_accent_color">アクセントカラー</string>
     <string name="settings_notif_global">Global Notifications</string>
     <string name="settings_notif_global_desc">Enable/Disable alerts</string>
+    <string name="settings_notif_progress">進行状況の通知</string>
+    <string name="settings_notif_progress_desc">通知バーに進行中のダウンロードを表示</string>
     <string name="settings_notif_speed">Show Speed</string>
     <string name="settings_notif_speed_desc">In the notification bar</string>
     <string name="settings_history">Keep History</string>

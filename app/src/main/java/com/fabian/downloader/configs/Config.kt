@@ -79,6 +79,7 @@ object Config {
     const val PREF_EMBED_METADATA = "embedMetadata"
     const val PREF_BYPASS_GEO = "bypassGeo"
     const val PREF_BYPASS_SSL_VERIFICATION = "bypassSslVerification"
+    const val PREF_SHOW_PROGRESS_NOTIFICATION = "showProgressNotification"
     const val PREF_SHOW_DOWNLOAD_SPEED_IN_NOTIFICATION = "showDownloadSpeedInNotification"
     const val PREF_SELECTED_PAUSED_NOTIFICATION_TIMEOUT = "selectedPausedNotificationTimeout"
     const val PREF_BATTERY_OPTIMIZATION_ENABLED = "batteryOptimizationEnabled"
@@ -226,6 +227,7 @@ object Config {
     // Notification Channel IDs
     const val NOTIF_CHANNEL_PROGRESS = "downloads_channel_progress"
     const val NOTIF_CHANNEL_STATUS = "downloads_channel_status"
+    const val NOTIF_CHANNEL_FAILED = "downloads_channel_failed"
     const val NOTIF_GROUP = "downloads_group"
 
     // Database Names

@@ -60,6 +60,8 @@
 
     <string name="settings_notif_global">Notificaciones globales</string>
     <string name="settings_notif_global_desc">Activar/Desactivar avisos</string>
+    <string name="settings_notif_progress">Progreso de descargas</string>
+    <string name="settings_notif_progress_desc">Mostrar descargas en curso en la barra de notificaciones</string>
     <string name="settings_notif_speed">Mostrar velocidad</string>
     <string name="settings_notif_speed_desc">En la barra de notificaciones</string>
 

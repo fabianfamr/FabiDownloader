@@ -22,6 +22,7 @@ class NotificationService(private val context: Context) {
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     private val channelProgressId = Config.NOTIF_CHANNEL_PROGRESS
     private val channelStatusId = Config.NOTIF_CHANNEL_STATUS
+    private val channelFailedId = Config.NOTIF_CHANNEL_FAILED
     private val groupId = Config.NOTIF_GROUP
     
     private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
@@ -42,32 +43,49 @@ class NotificationService(private val context: Context) {
     }
     
     init {
-        createNotificationChannels()
+        createAllNotificationChannels(context)
     }
 
-    private fun createNotificationChannels() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Canal para descargas en curso (Silencioso para que no vibre con cada porcentaje)
-            val progressChannel = NotificationChannel(
-                channelProgressId,
-                context.getString(R.string.notif_channel_progress),
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = context.getString(R.string.notif_channel_progress_desc)
-                setShowBadge(false)
-            }
-            notificationManager.createNotificationChannel(progressChannel)
+    companion object {
+        fun createAllNotificationChannels(context: Context) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                try {
+                    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
 
-            // Canal para descargas finalizadas/fallidas (Con sonido y vibración)
-            val statusChannel = NotificationChannel(
-                channelStatusId,
-                context.getString(R.string.notif_channel_status),
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = context.getString(R.string.notif_channel_status_desc)
-                setShowBadge(true)
+                    // Canal 1: Descargas en curso y servicio en segundo plano (Silencioso para no vibrar continuamente)
+                    val progressChannel = NotificationChannel(
+                        Config.NOTIF_CHANNEL_PROGRESS,
+                        context.getString(R.string.notif_channel_progress),
+                        NotificationManager.IMPORTANCE_LOW
+                    ).apply {
+                        description = context.getString(R.string.notif_channel_progress_desc)
+                        setShowBadge(false)
+                    }
+                    manager.createNotificationChannel(progressChannel)
+
+                    // Canal 2: Descargas completadas con éxito (Con sonido y notificación estándar)
+                    val statusChannel = NotificationChannel(
+                        Config.NOTIF_CHANNEL_STATUS,
+                        context.getString(R.string.notif_channel_status),
+                        NotificationManager.IMPORTANCE_DEFAULT
+                    ).apply {
+                        description = context.getString(R.string.notif_channel_status_desc)
+                        setShowBadge(true)
+                    }
+                    manager.createNotificationChannel(statusChannel)
+
+                    // Canal 3: Descargas fallidas y errores (Con sonido y alerta)
+                    val failedChannel = NotificationChannel(
+                        Config.NOTIF_CHANNEL_FAILED,
+                        context.getString(R.string.notif_channel_failed),
+                        NotificationManager.IMPORTANCE_DEFAULT
+                    ).apply {
+                        description = context.getString(R.string.notif_channel_failed_desc)
+                        setShowBadge(true)
+                    }
+                    manager.createNotificationChannel(failedChannel)
+                } catch (_: Throwable) {}
             }
-            notificationManager.createNotificationChannel(statusChannel)
         }
     }
 
@@ -86,13 +104,8 @@ class NotificationService(private val context: Context) {
     /**
      * Shows download progress in the notification bar.
      *
-     * NOTE: By design, real-time progress notifications are DISABLED to avoid vibration/spam
-     * on every percentage update. Only the final state (100%) triggers a notification via
-     * [showDownloadSuccess]. This is intentional — the progress bar is shown only inside
-     * the app UI, not in the system notification.
-     *
-     * If you need to re-enable progress notifications, replace the early `return` below
-     * with a NotificationCompat.Builder progress bar update.
+     * NOTE: By design, real-time progress notifications can be toggled via AppSettings.showProgressNotification.
+     * When disabled, the notification bar is kept clean and only completion triggers a notification.
      */
     suspend fun showDownloadProgress(
         id: Int,
@@ -102,6 +115,10 @@ class NotificationService(private val context: Context) {
         speed: String? = null,
         size: String? = null
     ) {
+        if (!com.fabian.downloader.ui.AppSettings.showProgressNotification) {
+            return
+        }
+
         if (progress >= 100) {
             showDownloadSuccess(id, title, thumbnailUrl)
             return
@@ -187,6 +204,10 @@ class NotificationService(private val context: Context) {
         title: String,
         thumbnailUrl: String? = null
     ) {
+        if (!com.fabian.downloader.ui.AppSettings.showProgressNotification) {
+            return
+        }
+
         cancelPendingDismiss(id)
 
         val largeIcon = if (!thumbnailUrl.isNullOrEmpty()) {
@@ -305,11 +326,7 @@ class NotificationService(private val context: Context) {
             flags
         )
 
-        val channelIdToUse = if (com.fabian.downloader.MyApplication.getInstance().isAppInForeground) {
-            channelProgressId // Silent channel when in foreground
-        } else {
-            channelStatusId // Default channel (with sound) when in background
-        }
+        val channelIdToUse = channelStatusId
 
         val notification = NotificationCompat.Builder(context, channelIdToUse)
             .setContentTitle(context.getString(R.string.notif_title_completed))
@@ -414,11 +431,7 @@ class NotificationService(private val context: Context) {
             flags
         )
 
-        val channelIdToUse = if (com.fabian.downloader.MyApplication.getInstance().isAppInForeground) {
-            channelProgressId // Silent channel when in foreground
-        } else {
-            channelStatusId // Default channel (with sound) when in background
-        }
+        val channelIdToUse = channelFailedId
 
         val notification = NotificationCompat.Builder(context, channelIdToUse)
             .setContentTitle(context.getString(R.string.notif_title_failed))

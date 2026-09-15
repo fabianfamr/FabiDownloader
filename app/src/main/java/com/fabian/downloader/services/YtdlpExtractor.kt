@@ -51,7 +51,6 @@ class YtdlpExtractor {
                     addOption("--user-agent", Config.UA_DESKTOP)
                 }
                 
-                addOption("--force-ipv4")
                 addOption("--no-check-formats")
                 if (!isYoutube) {
                     addOption("--referer", Config.REFERER_DEFAULT)
@@ -67,7 +66,7 @@ class YtdlpExtractor {
             }
         }
 
-        val clientOptions: List<String?> = listOf("default,-android_sdkless", "android,web", "ios,mweb", null)
+        val clientOptions: List<String?> = listOf("ios,mweb", "ios,web", "android_creator,mweb", null)
 
         for (client in clientOptions) {
             val processId = java.util.UUID.randomUUID().toString()
@@ -136,9 +135,8 @@ class YtdlpExtractor {
             addOption("--no-cache-dir")
             addOption("--no-update")
             
-            addOption("--force-ipv4")
             if (isYoutube) {
-                addOption("--extractor-args", "youtube:player_client=default,-android_sdkless")
+                addOption("--extractor-args", "youtube:player_client=ios,mweb")
                 addOption("--user-agent", Config.UA_DESKTOP)
             } else {
                 addOption("--referer", Config.REFERER_DEFAULT)

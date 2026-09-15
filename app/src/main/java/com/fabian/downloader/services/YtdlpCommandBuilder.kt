@@ -77,9 +77,10 @@ object YtdlpCommandBuilder {
 
             if (isYoutube) {
                 when (fallbackLevel) {
-                    0 -> addOption("--extractor-args", "youtube:player_client=default,-android_sdkless")
-                    1 -> addOption("--extractor-args", "youtube:player_client=android,web")
-                    2 -> addOption("--extractor-args", "youtube:player_client=web,mweb")
+                    0 -> addOption("--extractor-args", "youtube:player_client=ios,mweb")
+                    1 -> addOption("--extractor-args", "youtube:player_client=ios,web")
+                    2 -> addOption("--extractor-args", "youtube:player_client=android_creator,mweb")
+                    3 -> addOption("--extractor-args", "youtube:player_client=mweb,web")
                     else -> { /* omit player_client for raw yt-dlp fallback */ }
                 }
             }
@@ -187,7 +188,6 @@ object YtdlpCommandBuilder {
                 }
             }
 
-            addOption("--force-ipv4")
             if (!isYoutube) {
                 addOption("--referer", Config.REFERER_DEFAULT)
             }

@@ -73,6 +73,7 @@ class MyApplication : Application(), ImageLoaderFactory {
         
         com.fabian.downloader.managers.ErrorLogManager.init(this)
         com.fabian.downloader.ui.AppSettings.init(this)
+        com.fabian.downloader.services.NotificationService.createAllNotificationChannels(this)
         
         registerActivityLifecycleCallbacks(object : android.app.Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {}

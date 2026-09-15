@@ -115,8 +115,10 @@
     <string name="downloads_action_share_with">Partager avec</string>
     <string name="notif_channel_progress">Téléchargements en cours</string>
     <string name="notif_channel_progress_desc">Affiche la progression en temps réel des téléchargements actifs</string>
-    <string name="notif_channel_status">État des téléchargements</string>
-    <string name="notif_channel_status_desc">Notifications de téléchargements terminés ou échoués</string>
+    <string name="notif_channel_status">Téléchargements terminés</string>
+    <string name="notif_channel_status_desc">Notifications de téléchargements réussis</string>
+    <string name="notif_channel_failed">Téléchargements échoués</string>
+    <string name="notif_channel_failed_desc">Notifications pour les téléchargements échoués</string>
     <string name="notif_title_completed">Téléchargement terminé</string>
     <string name="notif_title_failed">Échec du téléchargement</string>
     <string name="notif_batch_completed">Lot terminé : %1$d téléchargements finis</string>

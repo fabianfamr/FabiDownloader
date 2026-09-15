@@ -50,6 +50,7 @@ fun AppearanceSettingsSection(fColors: FabiColors) {
     var showQualityBadge by remember { mutableStateOf(AppSettings.showQualityBadge) }
     var showRealtimeSpeedCard by remember { mutableStateOf(AppSettings.showRealtimeSpeedCard) }
     var notificationsEnabled by remember { mutableStateOf(AppSettings.notificationsEnabled) }
+    var showProgressNotif by remember { mutableStateOf(AppSettings.showProgressNotification) }
     var showSpeedInNotif by remember { mutableStateOf(AppSettings.showDownloadSpeedInNotification) }
     var notifyBatchComplete by remember { mutableStateOf(AppSettings.notifyBatchComplete) }
 
@@ -327,10 +328,10 @@ fun AppearanceSettingsSection(fColors: FabiColors) {
             if (notificationsEnabled) {
                 HorizontalDivider(color = C_border, thickness = 1.dp)
                 SettingsToggleRow(
-                    icon = AppIcons.Speed,
-                    title = stringResource(R.string.settings_notif_speed),
-                    subtitle = stringResource(R.string.settings_notif_speed_desc),
-                    checked = showSpeedInNotif,
+                    icon = AppIcons.CloudDownload,
+                    title = stringResource(R.string.settings_notif_progress),
+                    subtitle = stringResource(R.string.settings_notif_progress_desc),
+                    checked = showProgressNotif,
                     colorAccent = C_accent,
                     textColor = C_white,
                     grayColor = C_gray1,
@@ -338,8 +339,26 @@ fun AppearanceSettingsSection(fColors: FabiColors) {
                     borderColor = C_border,
                     bgColor = C_bg
                 ) {
-                    showSpeedInNotif = it
-                    AppSettings.showDownloadSpeedInNotification = it
+                    showProgressNotif = it
+                    AppSettings.showProgressNotification = it
+                }
+                if (showProgressNotif) {
+                    HorizontalDivider(color = C_border, thickness = 1.dp)
+                    SettingsToggleRow(
+                        icon = AppIcons.Speed,
+                        title = stringResource(R.string.settings_notif_speed),
+                        subtitle = stringResource(R.string.settings_notif_speed_desc),
+                        checked = showSpeedInNotif,
+                        colorAccent = C_accent,
+                        textColor = C_white,
+                        grayColor = C_gray1,
+                        card2Color = C_card2,
+                        borderColor = C_border,
+                        bgColor = C_bg
+                    ) {
+                        showSpeedInNotif = it
+                        AppSettings.showDownloadSpeedInNotification = it
+                    }
                 }
             }
             HorizontalDivider(color = C_border, thickness = 1.dp)

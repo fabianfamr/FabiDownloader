@@ -91,7 +91,7 @@ class DownloadProgressTracker(
         }
 
         // 3. Notificaciones del sistema
-        if (AppSettings.notificationsEnabled && (currentTime - lastNotificationUpdate > 1000 || progress >= 100f)) {
+        if (AppSettings.notificationsEnabled && (progress >= 100f || (AppSettings.showProgressNotification && currentTime - lastNotificationUpdate > 1000))) {
             onNotificationDone(currentTime)
             scope.launch {
                 val currentRecord = storageService.getDownloadById(id)
