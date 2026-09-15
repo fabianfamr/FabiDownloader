@@ -6,10 +6,8 @@ import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.database.DownloadRecord
 import com.fabian.downloader.services.DownloadManagerService
 import com.fabian.downloader.services.StorageService
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 
 class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
@@ -17,10 +15,9 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
     private val storageService = StorageService.getInstance(app)
     private val downloadManager = DownloadManagerService.getInstance(app)
 
-    @OptIn(FlowPreview::class)
     val downloads: Flow<List<DownloadRecord>> = combine(
         storageService.getAllDownloads(),
-        downloadManager.liveProgressFlow.sample(150L)
+        downloadManager.liveProgressFlow
     ) { records, liveMap ->
         records.map { record ->
             val live = liveMap[record.id]
@@ -37,8 +34,7 @@ class DownloadsViewModel(private val database: AppDatabase) : ViewModel() {
     }
 
     init {
-        // No borramos silenciosamente registros de la BD al iniciar el ViewModel para evitar
-        // pérdida de historial si un almacenamiento externo/SD está temporalmente desorganizado.
+        downloadManager.triggerQueue()
     }
 
     fun pauseDownload(id: Long) {

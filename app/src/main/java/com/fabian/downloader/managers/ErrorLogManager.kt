@@ -96,7 +96,8 @@ object ErrorLogManager {
             val failedDownloads = allDownloads.filter { 
                 it.title.startsWith(Config.STATUS_FAILED_PREFIX) || 
                 it.speed == "FAILED" || 
-                (!it.isCompleted && !it.isPaused && it.progress == 0)
+                it.size.startsWith(Config.STATUS_FAILED_PREFIX) ||
+                it.progress < 0
             }.take(50)
             if (failedDownloads.isNotEmpty()) {
                 failedDownloads.forEach { rec ->
@@ -115,8 +116,33 @@ object ErrorLogManager {
             sb.append("Error al obtener descargas fallidas de la base de datos: ${e.message}\n\n")
         }
 
-        // 3. Extracto de Logcat (errores recientes del sistema/app)
-        sb.append("--- [3] REGISTRO DE ERRORES DEL SISTEMA (LOGCAT *:E) ---\n")
+        // 3. Estado de descargas en curso o en cola
+        sb.append("--- [3] ESTADO DE DESCARGAS ACTIVAS / EN COLA ---\n")
+        try {
+            val db = AppDatabase.getInstance(context)
+            val allDownloads = db.downloadDao().getAllDownloadsDirect()
+            val activeDownloads = allDownloads.filter { 
+                !it.isCompleted && !it.isPaused && it.speed != "FAILED" && !it.title.startsWith(Config.STATUS_FAILED_PREFIX)
+            }
+            if (activeDownloads.isNotEmpty()) {
+                activeDownloads.forEach { rec ->
+                    val dateStr = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(rec.timestamp))
+                    sb.append("• ID: ${rec.id} | Fecha: $dateStr\n")
+                    sb.append("  Título: ${rec.title}\n")
+                    sb.append("  URL: ${rec.url}\n")
+                    sb.append("  Progreso: ${rec.progress}% | Tamaño: ${rec.size} | Estado: ${rec.speed}\n")
+                    sb.append("  --------------------------------------\n")
+                }
+                sb.append("\n")
+            } else {
+                sb.append("No hay descargas activas ni en cola actualmente.\n\n")
+            }
+        } catch (e: Exception) {
+            sb.append("Error al obtener descargas activas: ${e.message}\n\n")
+        }
+
+        // 4. Extracto de Logcat (errores recientes del sistema/app)
+        sb.append("--- [4] REGISTRO DE ERRORES DEL SISTEMA (LOGCAT *:E) ---\n")
         try {
             val process = Runtime.getRuntime().exec("logcat -d -v threadtime *:E")
             val reader = BufferedReader(InputStreamReader(process.inputStream))

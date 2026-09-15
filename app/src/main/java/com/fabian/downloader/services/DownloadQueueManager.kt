@@ -91,6 +91,15 @@ class DownloadQueueManager(
                             0
                         }
 
+                        // Limpieza de seguridad de IDs inactivos en processingIds
+                        val deadIds = processingIds.filter { id ->
+                            val job = activeJobs[id]
+                            job == null || !job.isActive
+                        }
+                        if (deadIds.isNotEmpty()) {
+                            deadIds.forEach { releaseSlot(it) }
+                        }
+
                         val activeNormalCount = processingIds.count { it !in forcedDownloadIds }
                         val slotsAvailable = maxParallel - (activeNormalCount - almostFinishedCount)
                         if (slotsAvailable > 0 && normalToProcess.isNotEmpty()) {

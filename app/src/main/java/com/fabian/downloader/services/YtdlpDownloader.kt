@@ -123,6 +123,8 @@ class YtdlpDownloader {
                     var maxObservedRawProgress = 0f
                     var isSecondTrack = false
 
+                    alProgresar(0f, Config.STATUS_CALCULATING, Config.STATUS_CONNECTING)
+
                     YoutubeDL.getInstance().execute(request, processId) { rawProgress, _, line ->
                         lastLine = line
                         val lowerLine = line.lowercase()

@@ -52,7 +52,7 @@ interface DownloadDao {
     @Query("DELETE FROM download_records WHERE isCompleted = 1")
     suspend fun deleteCompletedDownloads()
 
-    @Query("SELECT * FROM download_records WHERE isCompleted = 0")
+    @Query("SELECT * FROM download_records WHERE isCompleted = 0 ORDER BY timestamp ASC")
     suspend fun getActiveDownloadsDirect(): List<DownloadRecord>
 
     @Query("SELECT * FROM download_records")

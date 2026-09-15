@@ -67,7 +67,19 @@ class DownloadExecutor(
                 throw Exception(application.getString(R.string.downloads_toast_no_connection))
             }
 
-            storageService.updateDownloadProgressAndSizeAndSpeed(id, record.progress, Config.STATUS_QUEUED, Config.STATUS_WAITING)
+            storageService.updateDownloadProgressAndSizeAndSpeed(id, record.progress, Config.STATUS_CALCULATING, Config.STATUS_CONNECTING)
+            progressTracker.updateProgress(
+                id = id,
+                videoTitle = videoTitle,
+                progress = if (record.progress < 0) 0f else record.progress.toFloat(),
+                sizeText = Config.STATUS_CALCULATING,
+                speedText = Config.STATUS_CONNECTING,
+                lastDbPersistTime = 0L,
+                lastNotificationUpdate = 0L,
+                onDbPersistDone = {},
+                onNotificationDone = {},
+                onEarlyStartTrigger = {}
+            )
 
             val service = SiteServiceProvider.getServiceForUrl(url)
 
