@@ -136,7 +136,10 @@ class YtdlpDownloader {
                         while (isActive) {
                             kotlinx.coroutines.delay(2000)
                             val elapsed = System.currentTimeMillis() - lastActivityTime
-                            val maxWait = if (!hasReceivedAnyOutput.get()) 30_000L else 45_000L
+                            // Tiempos ampliados: la extracción de YouTube (retos JS, firmas,
+                            // QuickJS) puede tardar más de 30s sin emitir ninguna línea;
+                            // el watchdog anterior mataba descargas válidas de forma prematura.
+                            val maxWait = if (!hasReceivedAnyOutput.get()) 60_000L else 90_000L
                             if (elapsed > maxWait) {
                                 Log.w(Config.TAG_YTDLP_DOWNLOADER, "Watchdog timeout ($elapsed ms) en proceso $processId (level=$level). Abortando para siguiente nivel...")
                                 timedOutByWatchdog.set(true)

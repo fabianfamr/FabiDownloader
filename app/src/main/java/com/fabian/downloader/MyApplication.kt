@@ -126,6 +126,18 @@ class MyApplication : Application(), ImageLoaderFactory {
                 isInitialized = true
                 isYoutubeDLReady = true
                 Log.d(Config.TAG_YT_DLP, "Inicialización exitosa de componentes nativos desde APK assets")
+
+                // AUTO-HEALING DEL MOTOR: verifica silenciosamente en GitHub si existe una
+                // versión más reciente de yt-dlp y la instala (cooldown interno de 24h para
+                // ahorrar ancho de banda). Sin esto, el binario embebido del APK queda
+                // obsoleto y las descargas fallan cuando YouTube cambia sus firmas/extractores.
+                launch(Dispatchers.IO) {
+                    try {
+                        com.fabian.downloader.managers.YtdlpUpdateManager.autoUpdateSilentlyOnFailure(this@MyApplication)
+                    } catch (e: Exception) {
+                        Log.w(Config.TAG_YT_DLP, "Verificación proactiva de versión de yt-dlp falló", e)
+                    }
+                }
             } catch (e: Exception) {
                 Log.e(Config.TAG_YT_DLP, "Error al inicializar binarios nativos en background. Intentando reset limpio...", e)
                 com.fabian.downloader.managers.ErrorLogManager.logError(this@MyApplication, Config.TAG_YT_DLP, "Error en init inicial de YoutubeDL", e)

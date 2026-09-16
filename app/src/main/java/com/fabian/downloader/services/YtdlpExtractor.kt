@@ -66,7 +66,8 @@ class YtdlpExtractor {
             }
         }
 
-        val clientOptions: List<String?> = listOf("ios,mweb", "ios,web", "android_creator,mweb", null)
+        // Primero los clientes por defecto de yt-dlp; los explícitos quedan como fallback.
+        val clientOptions: List<String?> = listOf(null, "ios,mweb", "ios,web", "android_creator,mweb")
 
         for (client in clientOptions) {
             val processId = java.util.UUID.randomUUID().toString()
@@ -100,7 +101,7 @@ class YtdlpExtractor {
                     }
                 } else if (msg.contains("zipimport") || msg.contains("bad local file header") ||
                     msg.contains("cannot link") || msg.contains("libandroid-support") ||
-                    msg.contains("libpython") || msg.contains("not found")) {
+                    msg.contains("libpython") || msg.contains("exec format error")) {
                     Log.w(Config.TAG_YTDLP_EXTRACTOR, "Binario de yt-dlp corrupto. Reseteando desde APK assets...")
                     appCtx.resetAndReinitYtdlp(appCtx)
                 } else if (YtdlpErrorResolver.isExtractorOrCipherError(e, msg)) {

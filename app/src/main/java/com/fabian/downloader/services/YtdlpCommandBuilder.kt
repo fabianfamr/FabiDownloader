@@ -54,10 +54,17 @@ object YtdlpCommandBuilder {
                 addOption("--extract-audio")
                 addOption("--audio-format", "m4a")
             } else {
+                // "Mejor calidad" (best) no debe restringirse a una altura fija:
+                // antes caía al default 720p y limitaba las descargas.
+                val isBestQuality = quality.trim().equals(Config.QUALITY_BEST, ignoreCase = true)
                 val height = quality.filter { it.isDigit() }.ifEmpty { "720" }
                 when (fallbackLevel) {
                     0 -> {
-                        addOption("-f", "bv*[height<=$height]+ba/b[height<=$height]/best")
+                        if (isBestQuality) {
+                            addOption("-f", "bv*+ba/b")
+                        } else {
+                            addOption("-f", "bv*[height<=$height]+ba/b[height<=$height]/best")
+                        }
                     }
                     1 -> {
                         addOption("-f", "bv*+ba/b/best")
@@ -77,8 +84,13 @@ object YtdlpCommandBuilder {
 
             if (isYoutube) {
                 when (fallbackLevel) {
-                    0 -> addOption("--extractor-args", "youtube:player_client=ios,mweb")
-                    1 -> addOption("--extractor-args", "youtube:player_client=ios,web")
+                    // Nivel 0: usar los clientes por defecto de yt-dlp. Son los que el
+                    // proyecto mantiene actualizados contra los cambios de YouTube y
+                    // funcionan con el runtime JS QuickJS incluido en la librería.
+                    // Forzar clientes viejos (ios/mweb) en el primer intento aumenta la
+                    // detección de bots ("Sign in to confirm you're not a bot").
+                    0 -> { /* clientes por defecto de yt-dlp */ }
+                    1 -> addOption("--extractor-args", "youtube:player_client=ios,mweb")
                     2 -> addOption("--extractor-args", "youtube:player_client=android_creator,mweb")
                     3 -> addOption("--extractor-args", "youtube:player_client=mweb,web")
                     else -> { /* omit player_client for raw yt-dlp fallback */ }
@@ -167,7 +179,9 @@ object YtdlpCommandBuilder {
 
             addOption("--force-overwrites")
             addOption("--no-mtime")
-            addOption("--continue")  // Resume partial downloads
+            // Nota: --continue se retiró. Con --no-part no se generan archivos .part que
+            // reanudar, por lo que --continue era código muerto; --force-overwrites ya
+            // garantiza un reinicio limpio en cada reintento.
             if (settings.bypassGeo) {
                 addOption("--geo-bypass")
             }

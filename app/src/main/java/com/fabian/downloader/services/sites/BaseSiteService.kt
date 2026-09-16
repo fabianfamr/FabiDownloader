@@ -68,7 +68,10 @@ open class BaseSiteService(
             val deferred = activeExtractions.computeIfAbsent(cleanUrl) { _ ->
                 extractionScope.async {
                     val clientOptions: List<String?> = if (isYoutube) {
-                        listOf("ios,mweb", "ios,web", "android_creator,mweb", null)
+                        // Primero los clientes por defecto de yt-dlp (mantenidos por el
+                        // proyecto y compatibles con QuickJS); los clientes explícitos
+                        // quedan como fallback en caso de bot-detection o firmas rotas.
+                        listOf(null, "ios,mweb", "ios,web", "android_creator,mweb")
                     } else {
                         listOf(null)
                     }
@@ -135,11 +138,11 @@ open class BaseSiteService(
                                 }
                             } else if (lowerMsg.contains("zipimport") || lowerMsg.contains("bad local file header") ||
                                 lowerMsg.contains("cannot link") || lowerMsg.contains("libandroid-support") ||
-                                lowerMsg.contains("libpython") || lowerMsg.contains("not found")) {
+                                lowerMsg.contains("libpython") || lowerMsg.contains("exec format error")) {
                                 Log.w(Config.TAG_BASE_SITE_SERVICE, "Detectada corrupción de binario. Re-inicializando binario limpio y reintentando...")
                                 appCtx.resetAndReinitYtdlp(appCtx)
-                            } else if (lowerMsg.contains("player api") || lowerMsg.contains("extract_yt_initial_data")) {
-                                Log.w(Config.TAG_BASE_SITE_SERVICE, "Incompatibilidad detectada en YouTube. Solicitando verificación silenciosa con ahorro de Wi-Fi...")
+                            } else if (com.fabian.downloader.services.YtdlpErrorResolver.isExtractorOrCipherError(e, lowerMsg)) {
+                                Log.w(Config.TAG_BASE_SITE_SERVICE, "Posible extractor/firma desactualizada. Solicitando verificación silenciosa con ahorro de Wi-Fi...")
                                 kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                                     com.fabian.downloader.managers.YtdlpUpdateManager.autoUpdateSilentlyOnFailure(appCtx)
                                 }

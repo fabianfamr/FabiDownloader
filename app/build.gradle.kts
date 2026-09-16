@@ -26,7 +26,10 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     ndk {
-        abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a"))
+        // x86/x86_64 incluidos: la librería youtubedl-android 0.18.1 los empaqueta y son
+        // necesarios para probar en emuladores. Sin la libpython nativa de la ABI del
+        // dispositivo, YoutubeDL.init falla y la app no descarga nada.
+        abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64"))
     }
   }
 
@@ -38,7 +41,7 @@ android {
     abi {
       isEnable = true
       reset()
-      include("arm64-v8a", "armeabi-v7a")
+      include("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
       isUniversalApk = true
     }
   }
