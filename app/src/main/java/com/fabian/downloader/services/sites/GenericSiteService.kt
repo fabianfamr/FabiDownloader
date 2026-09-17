@@ -6,4 +6,11 @@ class GenericSiteService : BaseSiteService() {
     override val brandColorHex: String = "#607D8B"
     override val iconName: String = "generic"
     override val supportedUrlPatterns: List<String> = emptyList()
+
+    override val capabilities: Set<SiteCapability> = setOf(
+        SiteCapability.AUDIO_EXTRACTION,
+        SiteCapability.VIDEO_MULTI_QUALITY,
+        SiteCapability.FAST_HTTP_STREAM
+    )
 }
+

@@ -8,15 +8,20 @@ class VimeoService : BaseSiteService() {
     override val displayName: String = "Vimeo"
     override val brandColorHex: String = "#1AB7EA"
     override val iconName: String = "vimeo"
-    override val supportedUrlPatterns: List<String> = listOf("vimeo.com")
+    override val supportedUrlPatterns: List<String> = listOf("vimeo.com", "player.vimeo.com")
 
-    override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
-        super.customizeExtractorRequest(request, url)
-        request.addOption("--user-agent", Config.UA_DEFAULT_CHROME_WINDOWS)
-    }
+    override val capabilities: Set<SiteCapability> = setOf(
+        SiteCapability.AUDIO_EXTRACTION,
+        SiteCapability.VIDEO_MULTI_QUALITY,
+        SiteCapability.SUBTITLES,
+        SiteCapability.CUSTOM_USER_AGENT
+    )
 
-    override fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
-        super.customizeDownloaderRequest(request, url)
-        request.addOption("--user-agent", Config.UA_DEFAULT_CHROME_WINDOWS)
+    override val customUserAgent: String = Config.UA_DEFAULT_CHROME_WINDOWS
+    override val customReferer: String = "https://vimeo.com/"
+
+    override fun cleanUrl(url: String): String {
+        return com.fabian.downloader.utils.UrlUtils.cleanTrackingParams(url)
     }
 }
+

@@ -58,4 +58,20 @@ class DownloadAssemblyLineTest {
         // Then
         assertEquals("https://youtube.com/shorts/abcdefgh", cleanUrl)
     }
+
+    @Test
+    fun `station4_preflightInspection returns false when output directory is null`() {
+        val spec = DownloadTaskSpec(rawUrl = "https://example.com/video.mp4", outputDirectory = null)
+        val result = DownloadAssemblyLine.station4_preflightInspection(spec)
+        assertFalse(result)
+    }
+
+    @Test
+    fun `station4_preflightInspection returns true when disk space is available`() {
+        val tempDir = java.io.File(System.getProperty("java.io.tmpdir") ?: "/tmp")
+        val spec = DownloadTaskSpec(rawUrl = "https://example.com/video.mp4", outputDirectory = tempDir)
+        val result = DownloadAssemblyLine.station4_preflightInspection(spec)
+        assertTrue(result)
+    }
 }
+

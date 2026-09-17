@@ -98,6 +98,8 @@ class DownloadExecutor(
                 thumbnailUrl = passedThumbnailUrl
             )
 
+            DownloadAssemblyLine.station4_preflightInspection(specWithDest)
+
             val destFolder = specWithDest.outputDirectory ?: PathUtils.getDownloadFolder(application, format)
             val fileNameWithoutExt = PathUtils.sanitizeFileName(videoTitle).ifEmpty { "download_$id" }
 

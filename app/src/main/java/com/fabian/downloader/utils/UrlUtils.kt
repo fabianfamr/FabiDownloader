@@ -31,6 +31,21 @@ object UrlUtils {
         }
     }
 
+    fun isTikTokUrl(url: String): Boolean = isTiktokUrl(url)
+
+    fun isRedditUrl(url: String): Boolean {
+        try {
+            val host = Uri.parse(url).host?.lowercase() ?: return false
+            return host == "reddit.com" || host.endsWith(".reddit.com") || host == "redd.it"
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
+    fun cleanTrackingParams(url: String): String {
+        return com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
+    }
+
     fun isTwitterUrl(url: String): Boolean {
         try {
             val host = Uri.parse(url).host?.lowercase() ?: return false

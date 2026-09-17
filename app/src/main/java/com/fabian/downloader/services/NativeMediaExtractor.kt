@@ -45,12 +45,64 @@ object NativeMediaExtractor {
             when {
                 UrlUtils.isYoutubeUrl(cleanUrl) -> extractYoutubeInnerTube(cleanUrl)
                 UrlUtils.isTwitterUrl(cleanUrl) -> extractTwitterSyndication(cleanUrl)
+                UrlUtils.isTikTokUrl(cleanUrl) -> extractTikTokOembed(cleanUrl)
+                UrlUtils.isRedditUrl(cleanUrl) -> extractRedditOembed(cleanUrl)
                 isDirectMediaLink(cleanUrl) -> extractDirectMediaLink(cleanUrl)
                 else -> null
             }
         } catch (e: Exception) {
             Log.w(TAG, "Error en extracción nativa para $cleanUrl: ${e.message}")
             null
+        }
+    }
+
+    private fun extractTikTokOembed(url: String): NativeVideoDetails? {
+        val encodedUrl = java.net.URLEncoder.encode(url, "UTF-8")
+        val endpoint = "https://www.tiktok.com/oembed?url=$encodedUrl"
+        val request = Request.Builder()
+            .url(endpoint)
+            .addHeader("User-Agent", Config.UA_TIKTOK_MOBILE)
+            .build()
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) return null
+            val body = response.body?.string() ?: return null
+            val json = JSONObject(body)
+            val title = json.optString("title", "Video de TikTok")
+            val author = json.optString("author_name", "TikTok")
+            val thumb = json.optString("thumbnail_url", null)
+            return NativeVideoDetails(
+                title = title.take(80),
+                author = author,
+                thumbnailUrl = thumb,
+                durationSeconds = 0,
+                streamFormats = emptyList(),
+                formatSizes = emptyMap()
+            )
+        }
+    }
+
+    private fun extractRedditOembed(url: String): NativeVideoDetails? {
+        val encodedUrl = java.net.URLEncoder.encode(url, "UTF-8")
+        val endpoint = "https://www.reddit.com/oembed?url=$encodedUrl"
+        val request = Request.Builder()
+            .url(endpoint)
+            .addHeader("User-Agent", Config.UA_DEFAULT_CHROME_WINDOWS)
+            .build()
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) return null
+            val body = response.body?.string() ?: return null
+            val json = JSONObject(body)
+            val title = json.optString("title", "Publicación de Reddit")
+            val author = json.optString("author_name", "Reddit")
+            val thumb = json.optString("thumbnail_url", null)
+            return NativeVideoDetails(
+                title = title.take(80),
+                author = author,
+                thumbnailUrl = thumb,
+                durationSeconds = 0,
+                streamFormats = emptyList(),
+                formatSizes = emptyMap()
+            )
         }
     }
 

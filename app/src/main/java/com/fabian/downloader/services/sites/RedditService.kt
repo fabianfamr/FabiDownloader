@@ -8,15 +8,24 @@ class RedditService : BaseSiteService() {
     override val displayName: String = "Reddit"
     override val brandColorHex: String = "#FF4500"
     override val iconName: String = "reddit"
-    override val supportedUrlPatterns: List<String> = listOf("reddit.com", "v.redd.it")
+    override val supportedUrlPatterns: List<String> = listOf("reddit.com", "v.redd.it", "redd.it")
 
-    override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
-        super.customizeExtractorRequest(request, url)
-        request.addOption("--user-agent", Config.UA_DEFAULT_CHROME_WINDOWS)
+    override val capabilities: Set<SiteCapability> = setOf(
+        SiteCapability.AUDIO_EXTRACTION,
+        SiteCapability.VIDEO_MULTI_QUALITY,
+        SiteCapability.CUSTOM_USER_AGENT
+    )
+
+    override val customUserAgent: String = Config.UA_DEFAULT_CHROME_WINDOWS
+
+    override fun cleanUrl(url: String): String {
+        return com.fabian.downloader.utils.UrlUtils.cleanTrackingParams(url)
     }
 
     override fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
         super.customizeDownloaderRequest(request, url)
-        request.addOption("--user-agent", Config.UA_DEFAULT_CHROME_WINDOWS)
+        // Reddit separa audio y vídeo en streams DASH diferentes: forzar multiplexión
+        request.addOption("--merge-output-format", "mp4")
     }
 }
+

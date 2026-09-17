@@ -10,13 +10,17 @@ class KickService : BaseSiteService() {
     override val iconName: String = "kick"
     override val supportedUrlPatterns: List<String> = listOf("kick.com")
 
-    override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
-        super.customizeExtractorRequest(request, url)
-        request.addOption("--user-agent", Config.UA_DEFAULT_CHROME_WINDOWS)
-    }
+    override val capabilities: Set<SiteCapability> = setOf(
+        SiteCapability.AUDIO_EXTRACTION,
+        SiteCapability.VIDEO_MULTI_QUALITY,
+        SiteCapability.CUSTOM_USER_AGENT
+    )
 
-    override fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
-        super.customizeDownloaderRequest(request, url)
-        request.addOption("--user-agent", Config.UA_DEFAULT_CHROME_WINDOWS)
+    override val customUserAgent: String = Config.UA_DEFAULT_CHROME_WINDOWS
+    override val customReferer: String = "https://kick.com/"
+
+    override fun cleanUrl(url: String): String {
+        return com.fabian.downloader.utils.UrlUtils.cleanTrackingParams(url)
     }
 }
+

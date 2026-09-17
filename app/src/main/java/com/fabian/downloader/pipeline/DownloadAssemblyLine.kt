@@ -110,6 +110,21 @@ object DownloadAssemblyLine {
     }
 
     /**
+     * ESTACIÓN 4: INSPECCIÓN PRE-VUELO (Pre-flight Inspection)
+     * Verifica espacio disponible en disco y valida los parámetros de descarga.
+     */
+    fun station4_preflightInspection(spec: DownloadTaskSpec): Boolean {
+        val dir = spec.outputDirectory ?: return false
+        val availableBytes = dir.freeSpace
+        val minRequiredBytes = 10L * 1024L * 1024L // 10 MB mínimo
+        if (availableBytes < minRequiredBytes) {
+            Log.w(TAG, "Estación 4 (Pre-vuelo): Espacio insuficiente en disco ($availableBytes bytes)")
+            return false
+        }
+        return true
+    }
+
+    /**
      * ESTACIÓN 5: CONTROL DE CALIDAD Y ESCANEO EN MEDIASTORE (ENTREGA FINAL)
      * Verifica que el archivo exista en disco y solicita el escaneo a Android MediaScanner.
      */

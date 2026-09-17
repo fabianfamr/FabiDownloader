@@ -36,7 +36,7 @@ open class BaseSiteService(
 
     private val downloader = YtdlpDownloader()
 
-    open fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
+    override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         // Shared options between extractor and downloader
         request.addOption("--geo-bypass")
         request.addOption("--quiet")
@@ -48,16 +48,50 @@ open class BaseSiteService(
             request.addOption("--no-check-certificate")
         }
         request.addOption("--no-check-formats")
+
+        customUserAgent?.let { ua ->
+            if (ua.isNotEmpty()) request.addOption("--user-agent", ua)
+        }
+        customReferer?.let { ref ->
+            if (ref.isNotEmpty()) request.addOption("--referer", ref)
+        }
     }
 
-    open fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
-        // Downloader-only options (not needed for extraction)
-        // Site-specific overrides can be added here by subclasses.
+    override fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
+        // Downloader-only options
+        customUserAgent?.let { ua ->
+            if (ua.isNotEmpty()) request.addOption("--user-agent", ua)
+        }
+        customReferer?.let { ref ->
+            if (ref.isNotEmpty()) request.addOption("--referer", ref)
+        }
     }
 
     override suspend fun extractMetadata(url: String): InfoMedia? {
+        val cleanUrl = cleanUrl(com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url))
+        
+        // Vía rápida: Extracción nativa HTTP directa sin sobrecarga de Python si es soportado
+        try {
+            val native = com.fabian.downloader.services.NativeMediaExtractor.extractNatively(cleanUrl)
+            if (native != null && native.title.isNotEmpty() && native.title != Config.STATUS_UNKNOWN) {
+                return InfoMedia(
+                    titulo = native.title,
+                    autor = native.author.ifEmpty { displayName },
+                    miniaturaUrl = native.thumbnailUrl ?: "",
+                    duracionTexto = if (native.durationSeconds > 0) {
+                        val mins = native.durationSeconds / 60
+                        val secs = native.durationSeconds % 60
+                        String.format(java.util.Locale.US, "%d:%02d", mins, secs)
+                    } else "",
+                    vistas = "",
+                    pesoEstimadoMB = native.formatSizes.values.maxOrNull() ?: 0.0,
+                    videoId = "",
+                    formatSizes = native.formatSizes
+                )
+            }
+        } catch (_: Exception) {}
+
         com.fabian.downloader.MyApplication.getInstance().ensureInitialized()
-        val cleanUrl = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url)
         val isYoutube = com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(cleanUrl)
 
         // Reintentar en bucle si el Deferred obtenido pertenece a un scope
