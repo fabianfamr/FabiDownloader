@@ -131,17 +131,17 @@ class YtdlpDownloader {
                     var lastDetectedSize = Config.STATUS_CALCULATING
 
                     alProgresar(0f, Config.STATUS_CALCULATING, Config.STATUS_CONNECTING)
+                    Log.i(Config.TAG_YTDLP_DOWNLOADER, "Iniciando YoutubeDL.execute para proceso $processId (level=$level, url=$videoUrl)")
 
                     watchdogJob = coroutineScope.launch(Dispatchers.IO) {
                         while (isActive) {
                             kotlinx.coroutines.delay(2000)
                             val elapsed = System.currentTimeMillis() - lastActivityTime
-                            // Tiempos ampliados: la extracción de YouTube (retos JS, firmas,
-                            // QuickJS) puede tardar más de 30s sin emitir ninguna línea;
-                            // el watchdog anterior mataba descargas válidas de forma prematura.
-                            val maxWait = if (!hasReceivedAnyOutput.get()) 60_000L else 90_000L
+                            // Si aún no se ha recibido ninguna salida del proceso, esperar hasta 35s antes de abortar.
+                            // Si ya empezó a recibir salida (descarga o procesamiento en curso), esperar hasta 60s sin datos.
+                            val maxWait = if (!hasReceivedAnyOutput.get()) 35_000L else 60_000L
                             if (elapsed > maxWait) {
-                                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Watchdog timeout ($elapsed ms) en proceso $processId (level=$level). Abortando para siguiente nivel...")
+                                Log.w(Config.TAG_YTDLP_DOWNLOADER, "Watchdog timeout ($elapsed ms) en proceso $processId (level=$level, hasOutput=${hasReceivedAnyOutput.get()}). Abortando para siguiente nivel...")
                                 timedOutByWatchdog.set(true)
                                 try {
                                     YoutubeDL.getInstance().destroyProcessById(processId)

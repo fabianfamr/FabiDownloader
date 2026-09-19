@@ -37,12 +37,10 @@ class YouTubeService : BaseSiteService() {
 
     override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         super.customizeExtractorRequest(request, url)
-        request.addOption("--extractor-args", "youtube:player_skip=configs")
     }
 
     override fun customizeDownloaderRequest(request: YoutubeDLRequest, url: String) {
         super.customizeDownloaderRequest(request, url)
-        request.addOption("--extractor-args", "youtube:player_skip=configs")
     }
 }
 
