@@ -127,8 +127,9 @@ class CacheCleanupWorker(
 
         fun performDirectCleanup(context: Context) {
             try {
-                cleanDirectoryDirect(context.cacheDir, maxAgeMs = 0L)
-                context.externalCacheDir?.let { cleanDirectoryDirect(it, maxAgeMs = 0L) }
+                // Margen de 3 minutos para no interferir con cargas activas de imágenes/miniaturas de Coil
+                cleanDirectoryDirect(context.cacheDir, maxAgeMs = 180_000L)
+                context.externalCacheDir?.let { cleanDirectoryDirect(it, maxAgeMs = 180_000L) }
                 ExtractionService.clearCaches()
                 PathUtils.clearFolderCache()
             } catch (e: Exception) {

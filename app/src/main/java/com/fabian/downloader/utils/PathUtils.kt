@@ -152,6 +152,9 @@ object PathUtils {
     }
 
     fun migrateOldStructureIfNeeded(context: Context) {
+        val prefs = context.getSharedPreferences("path_utils_prefs", Context.MODE_PRIVATE)
+        if (prefs.getBoolean("old_structure_migrated", false)) return
+
         try {
             val root = getRootFolder(context)
             val targetDownloadsDir = File(root, "downloads")
@@ -173,6 +176,7 @@ object PathUtils {
                     }
                 }
             }
+            prefs.edit().putBoolean("old_structure_migrated", true).apply()
         } catch (e: Exception) {
             android.util.Log.e(Config.TAG_PATH_UTILS, "Error migrating old download folder", e)
         }

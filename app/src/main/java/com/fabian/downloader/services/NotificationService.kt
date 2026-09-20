@@ -41,6 +41,44 @@ class NotificationService(private val context: Context) {
             mainHandler.removeCallbacks(rawRunnable)
         }
     }
+
+    private fun clearProgressNotificationSafe(id: Int) {
+        synchronized(this) {
+            if (foregroundDownloadId == id) {
+                foregroundDownloadId = null
+                // Si el servicio en segundo plano sigue corriendo, restaurar la notificación base
+                // en lugar de cancelar el ID 9999 para prevenir excepciones de ciclo de vida en Android 12+
+                if (DownloadForegroundService.isRunning) {
+                    try {
+                        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                        val appIntent = Intent(context, MainActivity::class.java).apply {
+                            setClass(context, MainActivity::class.java)
+                            component = ComponentName(context, MainActivity::class.java)
+                            setPackage(context.packageName)
+                            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                            putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
+                            putExtra(Config.EXTRA_INITIAL_PAGE, 1)
+                        }
+                        val appPendingIntent = PendingIntent.getActivity(context, 9999, appIntent, flags)
+                        val resetNotif = NotificationCompat.Builder(context, channelProgressId)
+                            .setContentTitle(context.getString(R.string.app_name))
+                            .setContentText(context.getString(R.string.notif_foreground_service))
+                            .setSmallIcon(R.drawable.ic_cloud_download)
+                            .setPriority(NotificationCompat.PRIORITY_MIN)
+                            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                            .setOngoing(true)
+                            .setContentIntent(appPendingIntent)
+                            .build()
+                        notificationManager.notify(9999, resetNotif)
+                    } catch (_: Throwable) {}
+                } else {
+                    notificationManager.cancel(9999)
+                }
+            } else {
+                notificationManager.cancel(id)
+            }
+        }
+    }
     
     init {
         createAllNotificationChannels(context)
@@ -275,15 +313,8 @@ class NotificationService(private val context: Context) {
             return
         }
 
-        // Primero, cancelar la notificación del canal de progreso en el ID correcto
-        synchronized(this) {
-            if (foregroundDownloadId == id) {
-                notificationManager.cancel(9999)
-                foregroundDownloadId = null
-            } else {
-                notificationManager.cancel(id)
-            }
-        }
+        // Primero, cancelar/limpiar la notificación del canal de progreso en el ID correcto
+        clearProgressNotificationSafe(id)
 
         val largeIcon = if (!thumbnailUrl.isNullOrEmpty()) {
             val bitmap = getBitmapFromUrl(thumbnailUrl)
@@ -377,15 +408,8 @@ class NotificationService(private val context: Context) {
 
     suspend fun showDownloadFailed(id: Int, title: String, errorMsg: String, thumbnailUrl: String? = null) {
         shownSuccessIds.remove(id)
-        // Cancelar el progreso primero en el ID correcto
-        synchronized(this) {
-            if (foregroundDownloadId == id) {
-                notificationManager.cancel(9999)
-                foregroundDownloadId = null
-            } else {
-                notificationManager.cancel(id)
-            }
-        }
+        // Cancelar el progreso primero en el ID correcto de forma segura
+        clearProgressNotificationSafe(id)
 
         val largeIcon = if (!thumbnailUrl.isNullOrEmpty()) {
             val bitmap = getBitmapFromUrl(thumbnailUrl)
@@ -475,28 +499,14 @@ class NotificationService(private val context: Context) {
     fun cancelNotification(id: Int) {
         cancelPendingDismiss(id)
         shownSuccessIds.remove(id)
-        synchronized(this) {
-            if (foregroundDownloadId == id) {
-                notificationManager.cancel(9999)
-                foregroundDownloadId = null
-            } else {
-                notificationManager.cancel(id)
-            }
-        }
+        clearProgressNotificationSafe(id)
         notificationManager.cancel(id + 300000)
         notificationManager.cancel(id + 500000)
     }
 
     fun cancelProgressNotification(id: Int) {
         cancelPendingDismiss(id)
-        synchronized(this) {
-            if (foregroundDownloadId == id) {
-                notificationManager.cancel(9999)
-                foregroundDownloadId = null
-            } else {
-                notificationManager.cancel(id)
-            }
-        }
+        clearProgressNotificationSafe(id)
     }
 }
 

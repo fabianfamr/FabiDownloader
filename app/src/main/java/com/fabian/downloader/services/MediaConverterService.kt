@@ -175,6 +175,16 @@ class MediaConverterService(private val context: Context) {
                 size = formattedSize
             )
 
+            // Eliminar de forma segura el archivo original para no dejar archivos huérfanos ocupando almacenamiento
+            if (inputFile.exists() && inputFile.canonicalPath != finalOutputFile.canonicalPath) {
+                try {
+                    inputFile.delete()
+                    Log.i("MediaConverter", "Archivo original previo eliminado tras conversión exitosa: ${inputFile.absolutePath}")
+                } catch (e: Exception) {
+                    Log.w("MediaConverter", "No se pudo eliminar el archivo original: ${e.message}")
+                }
+            }
+
             val updatedRecord = record.copy(
                 format = targetExt.uppercase(),
                 size = formattedSize

@@ -150,25 +150,29 @@ object YtdlpUpdateManager {
         if (latest.isEmpty()) return false
         if (latest == current) return false
 
-        val cleanLatest = latest.replace(".", "").replace("-", "").trim()
-        val cleanCurrent = current.replace(".", "").replace("-", "").trim()
+        // Comparación semántica y por segmentos de fecha/versión (ej. 2025.01.15 vs 2024.12.30 o 2025.1.15)
+        val lSegments = latest.trim().split(Regex("[.-]"))
+        val cSegments = current.trim().split(Regex("[.-]"))
 
-        val latestLong = cleanLatest.toLongOrNull()
-        val currentLong = cleanCurrent.toLongOrNull()
-
-        if (latestLong != null && currentLong != null) {
-            return latestLong > currentLong
-        }
-
-        val lParts = latest.split(".").mapNotNull { it.toIntOrNull() }
-        val cParts = current.split(".").mapNotNull { it.toIntOrNull() }
-
-        val maxLen = maxOf(lParts.size, cParts.size)
+        val maxLen = maxOf(lSegments.size, cSegments.size)
         for (i in 0 until maxLen) {
-            val lVal = lParts.getOrNull(i) ?: 0
-            val cVal = cParts.getOrNull(i) ?: 0
-            if (lVal > cVal) return true
-            if (lVal < cVal) return false
+            val lSeg = lSegments.getOrNull(i)
+            val cSeg = cSegments.getOrNull(i)
+
+            if (lSeg == null) return false
+            if (cSeg == null) return true
+
+            val lNum = lSeg.toLongOrNull()
+            val cNum = cSeg.toLongOrNull()
+
+            if (lNum != null && cNum != null) {
+                if (lNum > cNum) return true
+                if (lNum < cNum) return false
+            } else {
+                val comp = lSeg.compareTo(cSeg)
+                if (comp > 0) return true
+                if (comp < 0) return false
+            }
         }
         return false
     }

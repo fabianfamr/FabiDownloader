@@ -13,6 +13,8 @@ import okhttp3.Call
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class DownloadQueueManager(
     private val application: Application,
@@ -27,6 +29,7 @@ class DownloadQueueManager(
     val forcedDownloadIds = ConcurrentHashMap.newKeySet<Long>()
     private val isQueueProcessorRunning = AtomicBoolean(false)
     private val queueTrigger = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST)
+    private val queueMutex = Mutex()
 
     fun triggerQueue() {
         if (!isQueueProcessorRunning.get()) {
@@ -100,23 +103,25 @@ class DownloadQueueManager(
                             deadIds.forEach { releaseSlot(it) }
                         }
 
-                        val activeNormalCount = processingIds.count { it !in forcedDownloadIds }
-                        val slotsAvailable = maxParallel - (activeNormalCount - almostFinishedCount)
-                        if (slotsAvailable > 0 && normalToProcess.isNotEmpty()) {
-                            DownloadForegroundService.start(application)
-                            normalToProcess.take(slotsAvailable).forEach { record ->
-                                val id = record.id
-                                processingIds.add(id)
-                                val job = serviceScope.launch {
-                                    try {
-                                        downloadExecutor.runDownload(id, this)
-                                    } finally {
+                        queueMutex.withLock {
+                            val activeNormalCount = processingIds.count { it !in forcedDownloadIds }
+                            val slotsAvailable = maxParallel - (activeNormalCount - almostFinishedCount)
+                            if (slotsAvailable > 0 && normalToProcess.isNotEmpty()) {
+                                DownloadForegroundService.start(application)
+                                normalToProcess.take(slotsAvailable).forEach { record ->
+                                    val id = record.id
+                                    processingIds.add(id)
+                                    val job = serviceScope.launch {
+                                        try {
+                                            downloadExecutor.runDownload(id, this)
+                                        } finally {
+                                            releaseSlot(id)
+                                        }
+                                    }
+                                    activeJobs[id] = job
+                                    job.invokeOnCompletion {
                                         releaseSlot(id)
                                     }
-                                }
-                                activeJobs[id] = job
-                                job.invokeOnCompletion {
-                                    releaseSlot(id)
                                 }
                             }
                         }
@@ -138,7 +143,6 @@ class DownloadQueueManager(
         progressTracker.removeProgress(id)
         if (processingIds.isEmpty()) {
             DownloadForegroundService.stop(application)
-            System.gc()
         }
         if (removed) {
             triggerQueue()
