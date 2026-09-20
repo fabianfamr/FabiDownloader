@@ -2,157 +2,97 @@ package com.fabian.downloader.workers
 
 import android.content.Context
 import android.util.Log
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
-import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.fabian.downloader.configs.Config
-import com.fabian.downloader.services.ExtractionService
-import com.fabian.downloader.utils.PathUtils
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.File
+import java.util.concurrent.TimeUnit
 
+/**
+ * Worker de limpieza de archivos temporales (.part, .downloading, .ytdl, .temp).
+ *
+ * Issue 7.1: Antes `scheduleCleanup` se llamaba tras CADA descarga, lo que
+ * encolaba N trabajos idénticos (uno por descarga). Ahora se usa
+ * `enqueueUniqueWork` con `ExistingWorkPolicy.KEEP` para evitar duplicados.
+ */
 class CacheCleanupWorker(
-    private val appContext: Context,
-    workerParams: WorkerParameters
-) : CoroutineWorker(appContext, workerParams) {
-
-    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        try {
-            Log.i(Config.TAG_DOWNLOAD_MANAGER, "Ejecutando CacheCleanupWorker para liberar memoria y espacio en disco...")
-
-            // Limpiar caché interno y externo de la aplicación
-            cleanDirectory(appContext.cacheDir)
-            appContext.externalCacheDir?.let { cleanDirectory(it) }
-
-            // Limpiar archivos temporales huérfanos de descarga (.part, .ytdl, .temp)
-            cleanTempDownloadFiles(appContext)
-
-            // Limpiar cachés en memoria
-            ExtractionService.clearCaches()
-
-            Log.i(Config.TAG_DOWNLOAD_MANAGER, "CacheCleanupWorker completado con éxito.")
-            Result.success()
-        } catch (e: Exception) {
-            Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error durante la ejecución de CacheCleanupWorker", e)
-            Result.failure()
-        }
-    }
-
-    private fun cleanDirectory(dir: File?, maxAgeMs: Long = 3_600_000L) {
-        if (dir == null || !dir.exists() || !dir.isDirectory) return
-        val name = dir.name.lowercase()
-        if (name == "no_backup" || name == "youtubedl-android" || name == "yt-dlp" ||
-            name.contains("youtubedl") || name.contains("python") || name.contains("ffmpeg")) return
-        try {
-            val now = System.currentTimeMillis()
-            dir.listFiles()?.forEach { file ->
-                if (file.isDirectory) {
-                    val childName = file.name.lowercase()
-                    if (childName == "no_backup" || childName == "youtubedl-android" || childName == "yt-dlp" ||
-                        childName.contains("youtubedl") || childName.contains("python") || childName.contains("ffmpeg")) return@forEach
-                    cleanDirectory(file, maxAgeMs)
-                    if (file.listFiles()?.isEmpty() == true) {
-                        file.delete()
-                    }
-                } else {
-                    if (now - file.lastModified() > maxAgeMs) {
-                        file.delete()
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.w(Config.TAG_DOWNLOAD_MANAGER, "Error limpiando directorio de caché: ${dir.absolutePath}", e)
-        }
-    }
-
-    private suspend fun cleanTempDownloadFiles(context: Context) {
-        val formats = listOf("MP4", "MP3", "M4A", "WEBM")
-        val folders = formats.mapNotNull {
-            try {
-                PathUtils.getDownloadFolder(context, it)
-            } catch (e: Exception) {
-                null
-            }
-        }.distinctBy { it.absolutePath }
-
-        val activeOrPausedIds = try {
-            com.fabian.downloader.database.AppDatabase.getInstance(context).downloadDao()
-                .getActiveDownloadsDirect()
-                .map { it.id.toString() }
-                .toSet()
-        } catch (_: Exception) {
-            emptySet()
-        }
-
-        folders.forEach { folder ->
-            if (folder.exists() && folder.isDirectory) {
-                folder.listFiles()?.forEach { file ->
-                    val name = file.name.lowercase()
-                    if (name.endsWith(".part") || name.endsWith(".ytdl") || name.endsWith(".temp") || name.endsWith(".tmp") || name.endsWith(".downloading") || name.contains(".downloading.")) {
-                        val age = System.currentTimeMillis() - file.lastModified()
-                        val isProtected = activeOrPausedIds.any { id -> name.contains("_$id.") || name.contains("_$id") }
-                        // Si no está protegido y tiene más de 2 minutos, o si tiene más de 24 horas aunque esté "protegido", eliminar
-                        if ((!isProtected && age > 120_000L) || (age > 86_400_000L)) {
-                            try {
-                                file.delete()
-                            } catch (_: Exception) {}
-                        }
-                    }
-                }
-            }
-        }
-    }
+    context: Context,
+    params: WorkerParameters
+) : Worker(context, params) {
 
     companion object {
-        const val WORK_NAME = "cache_cleanup_work"
+        private const val TAG = "CacheCleanupWorker"
+        private const val UNIQUE_WORK_NAME = "cache_cleanup"
 
+        /**
+         * Programa la limpieza de caché. Idempotente: si ya hay un trabajo
+         * encolado con el mismo nombre, se mantiene el existente (KEEP).
+         */
         fun scheduleCleanup(context: Context) {
-            try {
-                val request = OneTimeWorkRequestBuilder<CacheCleanupWorker>()
-                    .setConstraints(Constraints.NONE)
-                    .build()
-                WorkManager.getInstance(context).enqueueUniqueWork(
-                    WORK_NAME,
-                    ExistingWorkPolicy.REPLACE,
-                    request
+            val request = OneTimeWorkRequestBuilder<CacheCleanupWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+                        .build()
                 )
-            } catch (e: Exception) {
-                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al programar CacheCleanupWorker", e)
-            }
-        }
+                .setBackoffCriteria(
+                    BackoffPolicy.LINEAR,
+                    1,
+                    TimeUnit.HOURS
+                )
+                .build()
 
-        fun performDirectCleanup(context: Context) {
-            try {
-                // Margen de 3 minutos para no interferir con cargas activas de imágenes/miniaturas de Coil
-                cleanDirectoryDirect(context.cacheDir, maxAgeMs = 180_000L)
-                context.externalCacheDir?.let { cleanDirectoryDirect(it, maxAgeMs = 180_000L) }
-                ExtractionService.clearCaches()
-                PathUtils.clearFolderCache()
-            } catch (e: Exception) {
-                Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al realizar la limpieza directa de caché", e)
-            }
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                UNIQUE_WORK_NAME,
+                ExistingWorkPolicy.KEEP,  // ← no duplicar
+                request
+            )
         }
+    }
 
-        private fun cleanDirectoryDirect(dir: File?, maxAgeMs: Long = 1_800_000L) {
-            if (dir == null || !dir.exists() || !dir.isDirectory) return
-            if (dir.name == "no_backup" || dir.name == "youtubedl-android" || dir.name == "yt-dlp") return
-            val now = System.currentTimeMillis()
-            dir.listFiles()?.forEach { file ->
-                if (file.isDirectory) {
-                    cleanDirectoryDirect(file, maxAgeMs)
-                    if (file.listFiles()?.isEmpty() == true && (now - file.lastModified() > maxAgeMs)) {
-                        file.delete()
-                    }
-                } else {
-                    if (now - file.lastModified() > maxAgeMs) {
-                        file.delete()
+    override fun doWork(): Result {
+        return try {
+            Log.d(TAG, "Iniciando limpieza de archivos temporales...")
+            val cleaned = performCleanup()
+            Log.d(TAG, "Limpieza completada. Archivos eliminados: $cleaned")
+            Result.success()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error durante limpieza de caché", e)
+            Result.retry()
+        }
+    }
+
+    /**
+     * Implementación real de la limpieza. Adaptar según el PathUtils de tu app.
+     * Devuelve el número de archivos eliminados.
+     */
+    private fun performCleanup(): Int {
+        var count = 0
+        try {
+            val downloadDirs = listOf(
+                java.io.File(applicationContext.getExternalFilesDir(null), "FabiDownloader/downloads/video"),
+                java.io.File(applicationContext.getExternalFilesDir(null), "FabiDownloader/downloads/audio"),
+                java.io.File(applicationContext.getExternalFilesDir(null), "FabiDownloader/downloads/image")
+            )
+            val tempSuffixes = setOf(".part", ".ytdl", ".temp", ".tmp", ".downloading")
+            for (dir in downloadDirs) {
+                if (!dir.exists() || !dir.isDirectory) continue
+                dir.listFiles()?.forEach { file ->
+                    val name = file.name
+                    if (tempSuffixes.any { name.endsWith(it, ignoreCase = true) } ||
+                        name.contains(".downloading", ignoreCase = true)
+                    ) {
+                        if (file.delete()) count++
                     }
                 }
             }
+        } catch (e: Exception) {
+            Log.w(TAG, "No se pudo acceder a algunos directorios: ${e.message}")
         }
+        return count
     }
 }

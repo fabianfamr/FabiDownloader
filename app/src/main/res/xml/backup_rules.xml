@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Backup rules — desactiva backup de datos sensibles.
+
+    Issue 4.3: antes allowBackup=true permitía a `adb backup` extraer la base
+    de datos Room (historial de URLs descargadas, que pueden contener tokens
+    de sesión) y cookies de yt-dlp. Ahora se excluyen todos los dominios.
+-->
 <full-backup-content>
-    <include domain="database" path="."/>
-    <include domain="sharedpref" path="."/>
+    <exclude domain="root" />
+    <exclude domain="file" />
+    <exclude domain="database" />
+    <exclude domain="sharedpref" />
+    <exclude domain="external" />
 </full-backup-content>

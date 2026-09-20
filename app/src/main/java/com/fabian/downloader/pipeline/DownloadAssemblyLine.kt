@@ -10,7 +10,7 @@ import java.io.File
 
 /**
  * PLANTA DE MONTAJE DE DESCARGAS (Assembly Line Pattern)
- * 
+ *
  * Gestiona el flujo de trabajo de la descarga de forma secuencial y modular,
  * como una cinta transportadora donde en cada estación se añade o configura
  * una parte específica del proceso.
@@ -27,17 +27,32 @@ object DownloadAssemblyLine {
         val trimmed = rawUrl.trim()
         val regex = Regex("""https?://[^\s]+""")
         var clean = regex.find(trimmed)?.value ?: trimmed
-        
+
         try {
             val uri = android.net.Uri.parse(clean)
             if (uri.isHierarchical && uri.queryParameterNames.isNotEmpty()) {
-                val trackingParams = setOf("utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "si", "fbclid", "igshid", "feature")
+                val trackingParams = setOf(
+                    "utm_source", "utm_medium", "utm_campaign",
+                    "utm_term", "utm_content", "si", "fbclid",
+                    "igshid", "feature"
+                )
                 val isYoutube = com.fabian.downloader.utils.UrlUtils.isYoutubeUrl(clean)
-                val ytParams = if (isYoutube && !keepPlaylistParams && !com.fabian.downloader.ui.AppSettings.playlistEnabled) setOf("t", "time_continue", "list", "index") else if (isYoutube) setOf("t", "time_continue") else emptySet()
-                
+                val ytParams = if (isYoutube && !keepPlaylistParams &&
+                    !com.fabian.downloader.ui.AppSettings.playlistEnabled
+                ) {
+                    setOf("t", "time_continue", "list", "index")
+                } else if (isYoutube) {
+                    setOf("t", "time_continue")
+                } else {
+                    emptySet()
+                }
+
                 val builder = uri.buildUpon().clearQuery()
                 for (param in uri.queryParameterNames) {
-                    if (param != null && !trackingParams.contains(param.lowercase()) && !ytParams.contains(param.lowercase())) {
+                    if (param != null &&
+                        !trackingParams.contains(param.lowercase()) &&
+                        !ytParams.contains(param.lowercase())
+                    ) {
                         for (valStr in uri.getQueryParameters(param)) {
                             builder.appendQueryParameter(param, valStr)
                         }
@@ -45,12 +60,13 @@ object DownloadAssemblyLine {
                 }
                 clean = builder.build().toString()
             }
-        } catch (_: Exception) {}
-        
+        } catch (_: Exception) {
+        }
+
         if (clean.length > 8 && clean.endsWith("/")) {
             clean = clean.dropLast(1)
         }
-        
+
         Log.d(TAG, "Estación 1 (Recepción): Enlace procesado -> $clean")
         return clean
     }
@@ -97,7 +113,7 @@ object DownloadAssemblyLine {
     ): DownloadTaskSpec {
         val dir = PathUtils.getDownloadFolder(context, spec.format)
         val file = PathUtils.getDownloadFile(context, title, recordId, spec.format)
-        
+
         val updatedSpec = spec.copy(
             recordId = recordId,
             title = title,
@@ -110,15 +126,38 @@ object DownloadAssemblyLine {
     }
 
     /**
-     * ESTACIÓN 4: INSPECCIÓN PRE-VUELO (Pre-flight Inspection)
-     * Verifica espacio disponible en disco y valida los parámetros de descarga.
+     * ESTACIÓN 4: INSPECCIÓN PRE-VUELA (Pre-flight Inspection)
+     *
+     * Verifica espacio disponible en disco. Antes devolvía Boolean pero el caller
+     * ignoraba el resultado, convirtiéndolo en una no-operación. Ahora el caller
+     * (DownloadExecutor.prepareDownloadSpec) usa el valor y lanza StorageException
+     * si devuelve false.
+     *
+     * El umbral mínimo es el mayor entre:
+     *   - 10MB (mínimo absoluto para cualquier descarga)
+     *   - 2x el tamaño estimado (si se conoce, ej: metadata de yt-dlp)
+     *
+     * @param estimatedSizeBytes tamaño estimado de la descarga, 0 si se desconoce.
      */
-    fun station4_preflightInspection(spec: DownloadTaskSpec): Boolean {
+    fun station4_preflightInspection(
+        spec: DownloadTaskSpec,
+        estimatedSizeBytes: Long = 0L
+    ): Boolean {
         val dir = spec.outputDirectory ?: return false
+        if (!dir.exists() && !dir.mkdirs()) {
+            Log.w(TAG, "Estación 4 (Pre-vuelo): No se pudo crear el directorio ${dir.absolutePath}")
+            return false
+        }
         val availableBytes = dir.freeSpace
-        val minRequiredBytes = 10L * 1024L * 1024L // 10 MB mínimo
+        // Mínimo absoluto: 10MB. Si conocemos el tamaño estimado, pedir 2x como headroom.
+        val minRequiredBytes = maxOf(
+            10L * 1024L * 1024L,
+            if (estimatedSizeBytes > 0) estimatedSizeBytes * 2 else 0L
+        )
         if (availableBytes < minRequiredBytes) {
-            Log.w(TAG, "Estación 4 (Pre-vuelo): Espacio insuficiente en disco ($availableBytes bytes)")
+            Log.w(TAG,
+                "Estación 4 (Pre-vuelo): Espacio insuficiente en disco " +
+                    "($availableBytes bytes < $minRequiredBytes bytes requeridos)")
             return false
         }
         return true
@@ -133,7 +172,7 @@ object DownloadAssemblyLine {
             Log.e(TAG, "Estación 5 (Control de Calidad): El archivo no existe tras la descarga")
             return false
         }
-        
+
         try {
             android.media.MediaScannerConnection.scanFile(
                 context,

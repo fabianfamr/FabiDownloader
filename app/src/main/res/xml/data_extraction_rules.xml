@@ -1,11 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Data extraction rules (Android 12+) — desactiva backup y device-transfer.
+
+    Issue 4.3: consistente con backup_rules.xml, evita extracción de datos
+    sensibles vía adb backup o device-to-device migration.
+-->
 <data-extraction-rules>
     <cloud-backup>
-        <include domain="database" path="."/>
-        <include domain="sharedpref" path="."/>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
     </cloud-backup>
     <device-transfer>
-        <include domain="database" path="."/>
-        <include domain="sharedpref" path="."/>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
     </device-transfer>
 </data-extraction-rules>

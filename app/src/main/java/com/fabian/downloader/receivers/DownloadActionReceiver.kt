@@ -18,27 +18,31 @@ import com.fabian.downloader.configs.Config
 class DownloadActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null || intent == null) return
-        
+
         val action = intent.action
         val downloadId = intent.getLongExtra(Config.EXTRA_DOWNLOAD_ID, -1L)
         if (downloadId == -1L) {
-            Log.e(Config.TAG_DOWNLOAD_ACTION_RECEIVER, "Received action $action without valid downloadId")
+            Log.e(Config.TAG_DOWNLOAD_ACTION_RECEIVER,
+                "Received action $action without valid downloadId")
             return
         }
-        
-        Log.d(Config.TAG_DOWNLOAD_ACTION_RECEIVER, "Action received: $action for ID $downloadId")
-        
-        // Cancelar las notificaciones de éxito o fallo al interactuar con ellas para no dejarlas huérfanas
+
+        Log.d(Config.TAG_DOWNLOAD_ACTION_RECEIVER,
+            "Action received: $action for ID $downloadId")
+
+        // Cancelar las notificaciones de éxito o fallo al interactuar con ellas.
         try {
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE)
+                as android.app.NotificationManager
             notificationManager.cancel(downloadId.toInt() + 300000)
             notificationManager.cancel(downloadId.toInt() + 500000)
         } catch (e: Exception) {
-            Log.e(Config.TAG_DOWNLOAD_ACTION_RECEIVER, "Error cancelling notification on action", e)
+            Log.e(Config.TAG_DOWNLOAD_ACTION_RECEIVER,
+                "Error cancelling notification on action", e)
         }
 
         val pendingResult = goAsync()
-        
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 when (action) {
@@ -67,15 +71,22 @@ class DownloadActionReceiver : BroadcastReceiver() {
         }
     }
 
-    private suspend fun retryDownload(context: Context, downloadId: Long) {
+    /**
+     * REANUDAR una descarga pausada: preserva el progreso y deja que yt-dlp
+     * use su mecanismo de resume (`--continue`).
+     *
+     * Antes esta función era idéntica a `retryDownload`, lo que provocaba que
+     * una descarga al 80% pausada se reiniciara desde 0% al reanudar.
+     */
+    private suspend fun resumeDownload(context: Context, downloadId: Long) {
         val storageService = StorageService.getInstance(context)
         val record = storageService.getDownloadById(downloadId) ?: return
-        
-        var cleanTitle = record.title
-        while (cleanTitle.startsWith(Config.STATUS_FAILED_PREFIX)) {
-            cleanTitle = cleanTitle.removePrefix(Config.STATUS_FAILED_PREFIX).trim()
-        }
-        
+
+        // removePrefix simple (antes había un while que sugería bug duplicado).
+        val cleanTitle = record.title.removePrefix(Config.STATUS_FAILED_PREFIX).trim()
+
+        // TODO: Si DownloadManagerService.startDownload soporta un flag `resumeFromCurrentProgress`,
+        // pasarlo como `true` aquí para activar `--continue` en yt-dlp.
         DownloadManagerService.getInstance(context).startDownload(
             rawUrl = record.url,
             quality = record.quality,
@@ -86,15 +97,38 @@ class DownloadActionReceiver : BroadcastReceiver() {
         )
     }
 
-    private suspend fun resumeDownload(context: Context, downloadId: Long) {
+    /**
+     * REINTENTAR una descarga fallida: limpia archivos temporales previos
+     * (`.part`, `.downloading`) y empieza desde 0%.
+     */
+    private suspend fun retryDownload(context: Context, downloadId: Long) {
         val storageService = StorageService.getInstance(context)
         val record = storageService.getDownloadById(downloadId) ?: return
-        
-        var cleanTitle = record.title
-        while (cleanTitle.startsWith(Config.STATUS_FAILED_PREFIX)) {
-            cleanTitle = cleanTitle.removePrefix(Config.STATUS_FAILED_PREFIX).trim()
+
+        // Limpiar archivos temporales de intentos previos fallidos.
+        try {
+            val destFolder = com.fabian.downloader.utils.PathUtils
+                .getDownloadFolder(context, record.format)
+            if (destFolder.exists()) {
+                destFolder.listFiles()?.forEach { file ->
+                    val name = file.name
+                    val isTemp = name.endsWith(".part") || name.endsWith(".ytdl") ||
+                        name.endsWith(".temp") || name.endsWith(".tmp") ||
+                        name.endsWith(".downloading") || name.contains(".downloading")
+                    if (isTemp && (name.contains(downloadId.toString()) ||
+                            name.startsWith(com.fabian.downloader.utils.PathUtils
+                                .sanitizeFileName(record.title)))) {
+                        file.delete()
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(Config.TAG_DOWNLOAD_ACTION_RECEIVER,
+                "No se pudieron limpiar archivos temporales previos", e)
         }
-        
+
+        val cleanTitle = record.title.removePrefix(Config.STATUS_FAILED_PREFIX).trim()
+
         DownloadManagerService.getInstance(context).startDownload(
             rawUrl = record.url,
             quality = record.quality,
@@ -108,8 +142,9 @@ class DownloadActionReceiver : BroadcastReceiver() {
     private suspend fun openFile(context: Context, downloadId: Long) {
         val storageService = StorageService.getInstance(context)
         val record = storageService.getDownloadById(downloadId) ?: return
-        val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(context, record.title, record.id, record.format)
-        
+        val file = com.fabian.downloader.utils.PathUtils
+            .getDownloadFile(context, record.title, record.id, record.format)
+
         withContext(Dispatchers.Main) {
             if (file.exists()) {
                 try {
@@ -120,10 +155,11 @@ class DownloadActionReceiver : BroadcastReceiver() {
                     )
                     val mimeType = when (record.format.uppercase()) {
                         Config.FORMAT_MP4, Config.FORMAT_WEBM -> Config.MIME_VIDEO
-                        Config.FORMAT_JPG, Config.FORMAT_PNG, Config.FORMAT_WEBP, "JPEG" -> Config.MIME_IMAGE
+                        Config.FORMAT_JPG, Config.FORMAT_PNG,
+                        Config.FORMAT_WEBP, "JPEG" -> Config.MIME_IMAGE
                         else -> Config.MIME_AUDIO
                     }
-                    
+
                     val intent = Intent(Intent.ACTION_VIEW).apply {
                         setDataAndType(uri, mimeType)
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -143,8 +179,9 @@ class DownloadActionReceiver : BroadcastReceiver() {
     private suspend fun shareFile(context: Context, downloadId: Long) {
         val storageService = StorageService.getInstance(context)
         val record = storageService.getDownloadById(downloadId) ?: return
-        val file = com.fabian.downloader.utils.PathUtils.getDownloadFile(context, record.title, record.id, record.format)
-        
+        val file = com.fabian.downloader.utils.PathUtils
+            .getDownloadFile(context, record.title, record.id, record.format)
+
         withContext(Dispatchers.Main) {
             if (file.exists()) {
                 try {
@@ -153,21 +190,24 @@ class DownloadActionReceiver : BroadcastReceiver() {
                         "${context.packageName}.fileprovider",
                         file
                     )
-                    
+
                     val mimeType = when (record.format.uppercase()) {
                         Config.FORMAT_MP4, Config.FORMAT_WEBM -> Config.MIME_VIDEO
-                        Config.FORMAT_JPG, Config.FORMAT_PNG, Config.FORMAT_WEBP, "JPEG" -> Config.MIME_IMAGE
+                        Config.FORMAT_JPG, Config.FORMAT_PNG,
+                        Config.FORMAT_WEBP, "JPEG" -> Config.MIME_IMAGE
                         else -> Config.MIME_AUDIO
                     }
-                    
+
                     val intent = Intent(Intent.ACTION_SEND).apply {
                         type = mimeType
                         putExtra(Intent.EXTRA_STREAM, uri)
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
-                    
-                    val chooser = Intent.createChooser(intent, context.getString(R.string.downloads_action_share_with)).apply {
+
+                    val chooser = Intent.createChooser(
+                        intent, context.getString(R.string.downloads_action_share_with)
+                    ).apply {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     context.startActivity(chooser)

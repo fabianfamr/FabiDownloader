@@ -3,6 +3,29 @@ package com.fabian.downloader.configs
 import androidx.annotation.StringRes
 import com.fabian.downloader.R
 
+/**
+ * Configuración central de constantes.
+ *
+ * Issue 6.3 (pendiente): este `object` es un "god object" con ~150 constantes
+ * mezclando identidad de la app, URLs, claves de prefs, tags de log, formatos,
+ * rutas, IDs de notificación, etc. Lo ideal sería partirlo en:
+ *   - AppConfig (identidad)
+ *   - GitHubConfig
+ *   - PrefKeys
+ *   - LogTags
+ *   - DownloadStatus
+ *   - StoragePaths
+ *   - NotificationChannels
+ *
+ * Mientras tanto, este archivo se mantiene como está por compatibilidad con
+ * las llamadas existentes (Config.PREF_*, Config.TAG_*, etc.).
+ *
+ * Issue 6.1 (pendiente): en el código se mezclan 3 libs de JSON:
+ *   - org.json.JSONObject (UpdateManager, YtdlpUpdateManager)
+ *   - Moshi (build.gradle dependency)
+ *   - kotlinx.serialization (build.gradle dependency)
+ * Recomendación: estandarizar en kotlinx.serialization y eliminar las otras.
+ */
 object Config {
     // App Identity
     const val APP_NAME = "FabiDownloader"
@@ -16,14 +39,18 @@ object Config {
     const val GITHUB_API_LATEST_RELEASE = "https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/releases/latest"
 
     // User-Agents
-    const val UA_MOBILE = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36"
-    const val UA_DESKTOP = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    // Issue 8.5 (pendiente): versiones de Chrome hardcodeadas (124/126) que
+    // se ven "antiguas" y pueden ser detectadas por Instagram/TikTok.
+    // Recomendación: generar UAs dinámicamente con Build.VERSION.RELEASE y
+    // leer la versión de Chrome desde un endpoint propio.
+    const val UA_MOBILE = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36"
+    const val UA_DESKTOP = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
     const val UA_GOOGLEBOT = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
     const val UA_FACEBOOK = "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
     const val UA_YOUTUBE_MUSIC = "com.google.android.youtube/19.29.37 (Linux; U; Android 14; en_US) gzip"
     const val UA_TIKTOK_MOBILE = "Mozilla/5.0 (Linux; Android 9; SM-G960F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Mobile Safari/537.36"
     const val UA_INSTAGRAM = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1"
-    const val UA_DEFAULT_CHROME_WINDOWS = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    const val UA_DEFAULT_CHROME_WINDOWS = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
 
     // Endpoints
     const val PING_URL = "https://www.google.com"
@@ -78,7 +105,6 @@ object Config {
     const val PREF_EMBED_THUMBNAIL = "embedThumbnail"
     const val PREF_EMBED_METADATA = "embedMetadata"
     const val PREF_BYPASS_GEO = "bypassGeo"
-    const val PREF_BYPASS_SSL_VERIFICATION = "bypassSslVerification"
     const val PREF_SHOW_PROGRESS_NOTIFICATION = "showProgressNotification"
     const val PREF_SHOW_DOWNLOAD_SPEED_IN_NOTIFICATION = "showDownloadSpeedInNotification"
     const val PREF_SELECTED_PAUSED_NOTIFICATION_TIMEOUT = "selectedPausedNotificationTimeout"
@@ -101,6 +127,12 @@ object Config {
     const val PREF_ALLOW_DUPLICATE_DOWNLOADS = "allowDuplicateDownloads"
     const val PREF_EMBED_CHAPTERS = "embedChapters"
     const val PREF_AMOLED_MODE = "amoledMode"
+
+    // Issue 4.2 (aviso de seguridad): esta preferencia expone un toggle de bypass
+    // SSL que puede dejar TODAS las conexiones inseguras. Recomendación: eliminar
+    // la preferencia y el toggle de UI asociado. Si necesitas debugar SSL, usa
+    // network_security_config.xml con dominios específicos.
+    const val PREF_BYPASS_SSL_VERIFICATION = "bypassSslVerification"
 
     // Default & Option Values (Technical IDs / Neutral values)
     const val QUALITY_BEST = "best"

@@ -5,6 +5,7 @@ import android.util.Log
 import com.fabian.downloader.MyApplication
 import com.fabian.downloader.configs.Config
 import com.fabian.downloader.network.NetworkClient
+import com.fabian.downloader.utils.VersionUtils
 import com.yausername.youtubedl_android.YoutubeDL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -24,6 +25,10 @@ object YtdlpUpdateManager {
     private const val YTDLP_GITHUB_API = "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest"
     private val client = NetworkClient.okHttpClient
 
+    /** Cooldown exclusivo del auto-update (24h). Ya NO compartido con el manual. */
+    private const val PREF_LAST_AUTO_UPDATE_CHECK = "pref_last_ytdlp_auto_check"
+    private const val AUTO_UPDATE_COOLDOWN_MS = 24L * 60 * 60 * 1000
+
     fun getLocalVersion(context: Context): String {
         return try {
             YoutubeDL.getInstance().version(context) ?: "Unknown"
@@ -33,44 +38,50 @@ object YtdlpUpdateManager {
         }
     }
 
-    suspend fun checkYtdlpUpdate(context: Context): Result<YtdlpVersionInfo> = withContext(Dispatchers.IO) {
-        try {
-            val localVer = getLocalVersion(context)
+    suspend fun checkYtdlpUpdate(context: Context): Result<YtdlpVersionInfo> =
+        withContext(Dispatchers.IO) {
+            try {
+                val localVer = getLocalVersion(context)
 
-            val request = Request.Builder()
-                .url(YTDLP_GITHUB_API)
-                .header("User-Agent", Config.UA_DESKTOP)
-                .header("Accept", "application/vnd.github.v3+json")
-                .build()
+                val request = Request.Builder()
+                    .url(YTDLP_GITHUB_API)
+                    .header("User-Agent", Config.UA_DESKTOP)
+                    .header("Accept", "application/vnd.github.v3+json")
+                    .build()
 
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) {
-                    return@withContext Result.failure(Exception("HTTP ${response.code}"))
-                }
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        return@withContext Result.failure(Exception("HTTP ${response.code}"))
+                    }
 
-                val body = response.body?.string() ?: return@withContext Result.failure(Exception("Respuesta vacía de GitHub"))
-                val json = JSONObject(body)
-                val tagName = json.optString("tag_name", "").replace("v", "").trim()
-                val publishedAt = json.optString("published_at", "").take(10)
-                val bodyNotes = json.optString("body", "").trim()
+                    val body = response.body?.string()
+                        ?: return@withContext Result.failure(
+                            Exception("Respuesta vacía de GitHub")
+                        )
+                    val json = JSONObject(body)
+                    // removePrefix en lugar de replace("v", ""): antes "v1.2.3-video"
+                    // se convertía en "1.2.3-ideo".
+                    val tagName = json.optString("tag_name", "").removePrefix("v").trim()
+                    val publishedAt = json.optString("published_at", "").take(10)
+                    val bodyNotes = json.optString("body", "").trim()
 
-                val hasUpdate = isNewerVersion(tagName, localVer)
+                    val hasUpdate = VersionUtils.isNewer(tagName, localVer)
 
-                Result.success(
-                    YtdlpVersionInfo(
-                        currentVersion = localVer,
-                        latestVersion = if (tagName.isNotEmpty()) tagName else localVer,
-                        publishedDate = publishedAt,
-                        releaseNotes = bodyNotes,
-                        hasUpdate = hasUpdate
+                    Result.success(
+                        YtdlpVersionInfo(
+                            currentVersion = localVer,
+                            latestVersion = if (tagName.isNotEmpty()) tagName else localVer,
+                            publishedDate = publishedAt,
+                            releaseNotes = bodyNotes,
+                            hasUpdate = hasUpdate
+                        )
                     )
-                )
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error comprobando actualizaciones de yt-dlp", e)
+                Result.failure(e)
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error comprobando actualizaciones de yt-dlp", e)
-            Result.failure(e)
         }
-    }
 
     suspend fun updateYtdlp(context: Context): Result<String> = withContext(Dispatchers.IO) {
         try {
@@ -100,80 +111,66 @@ object YtdlpUpdateManager {
         }
     }
 
-    private const val PREF_LAST_AUTO_UPDATE_CHECK = "pref_last_ytdlp_update_check"
-    private const val AUTO_UPDATE_COOLDOWN_MS = 24 * 60 * 60 * 1000L // 24 horas para preservar ancho de banda
-
     /**
      * Dispara una verificación inteligente y silenciosa del binario yt-dlp en segundo plano.
+     *
      * Solo descarga el binario si GitHub realmente tiene una versión más reciente,
-     * evitando descargas repetitivas de ~25MB que saturan la banda Wi-Fi.
+     * evitando descargas repetitivas de ~25MB.
+     *
+     * IMPORTANTE: el cooldown de 24h solo se actualiza si la verificación con GitHub
+     * fue exitosa. Si GitHub está caído o no hay red, no se bloquea el auto-update
+     * por 24h — se reintenta más tarde.
      */
-    suspend fun autoUpdateSilentlyOnFailure(context: Context): Boolean = withContext(Dispatchers.IO) {
-        try {
-            val prefs = context.getSharedPreferences(Config.PREFS_NAME, Context.MODE_PRIVATE)
-            val lastCheck = prefs.getLong(PREF_LAST_AUTO_UPDATE_CHECK, 0L)
-            val now = System.currentTimeMillis()
+    suspend fun autoUpdateSilentlyOnFailure(context: Context): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                val prefs = context.getSharedPreferences(
+                    Config.PREFS_NAME, Context.MODE_PRIVATE
+                )
+                val lastCheck = prefs.getLong(PREF_LAST_AUTO_UPDATE_CHECK, 0L)
+                val now = System.currentTimeMillis()
 
-            // Protección estricta de ancho de banda: no verificar más de una vez cada 24 horas
-            if (now - lastCheck < AUTO_UPDATE_COOLDOWN_MS) {
-                Log.d(TAG, "Auto-actualización omitida para proteger ancho de banda Wi-Fi (última comprobación hace menos de 24h)")
-                return@withContext false
-            }
+                if (now - lastCheck < AUTO_UPDATE_COOLDOWN_MS) {
+                    Log.d(TAG, "Auto-actualización omitida (cooldown activo, " +
+                        "última comprobación hace ${(now - lastCheck) / 1000}s)")
+                    return@withContext false
+                }
 
-            // Consultar únicamente metadatos ligeros de la API de GitHub (~1KB de datos)
-            Log.i(TAG, "Comprobando versión en GitHub antes de descargar binario para ahorrar ancho de banda Wi-Fi...")
-            val checkResult = checkYtdlpUpdate(context)
-            prefs.edit().putLong(PREF_LAST_AUTO_UPDATE_CHECK, now).apply()
+                Log.i(TAG, "Comprobando versión en GitHub antes de descargar binario...")
+                val checkResult = checkYtdlpUpdate(context)
 
-            if (checkResult.isSuccess) {
+                // Solo actualizar cooldown si la verificación fue exitosa.
+                // Antes se actualizaba siempre, lo que bloqueaba el auto-update
+                // durante 24h incluso si GitHub estaba caído.
+                if (checkResult.isSuccess) {
+                    prefs.edit().putLong(PREF_LAST_AUTO_UPDATE_CHECK, now).apply()
+                } else {
+                    Log.w(TAG,
+                        "Verificación falló (${checkResult.exceptionOrNull()?.message}). " +
+                            "Cooldown NO actualizado; se reintentará pronto.")
+                    return@withContext false
+                }
+
                 val info = checkResult.getOrNull()
                 if (info != null && info.hasUpdate) {
-                    Log.i(TAG, "Nueva versión detectada en GitHub (${info.latestVersion} vs local ${info.currentVersion}). Descargando actualización...")
+                    Log.i(TAG,
+                        "Nueva versión detectada en GitHub (${info.latestVersion} " +
+                            "vs local ${info.currentVersion}). Descargando actualización...")
                     val appCtx = MyApplication.getInstance()
-                    appCtx.forceUpdateYtdlpBinary(context, ignoreThrottle = true)
+                    appCtx.forceUpdateYtdlpBinary(
+                        context = context,
+                        ignoreThrottle = true,
+                        forcedSource = "auto"
+                    )
                 } else {
-                    Log.i(TAG, "yt-dlp ya está en la versión más reciente (${info?.currentVersion ?: "ok"}). Descarga de 25MB omitida para ahorrar Wi-Fi.")
+                    Log.i(TAG,
+                        "yt-dlp ya está en la versión más reciente " +
+                            "(${info?.currentVersion ?: "ok"}). Descarga omitida.")
                     false
                 }
-            } else {
-                Log.w(TAG, "No se pudo comprobar la versión en GitHub. Omitiendo descarga pesada para no saturar la red.")
+            } catch (e: Exception) {
+                Log.w(TAG, "Error en auto-actualización silenciosa de yt-dlp: ${e.message}")
                 false
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "Error en auto-actualización silenciosa de yt-dlp: ${e.message}")
-            false
         }
-    }
-
-    fun isNewerVersion(latest: String, current: String): Boolean {
-        if (current == "Unknown" || current.isEmpty()) return true
-        if (latest.isEmpty()) return false
-        if (latest == current) return false
-
-        // Comparación semántica y por segmentos de fecha/versión (ej. 2025.01.15 vs 2024.12.30 o 2025.1.15)
-        val lSegments = latest.trim().split(Regex("[.-]"))
-        val cSegments = current.trim().split(Regex("[.-]"))
-
-        val maxLen = maxOf(lSegments.size, cSegments.size)
-        for (i in 0 until maxLen) {
-            val lSeg = lSegments.getOrNull(i)
-            val cSeg = cSegments.getOrNull(i)
-
-            if (lSeg == null) return false
-            if (cSeg == null) return true
-
-            val lNum = lSeg.toLongOrNull()
-            val cNum = cSeg.toLongOrNull()
-
-            if (lNum != null && cNum != null) {
-                if (lNum > cNum) return true
-                if (lNum < cNum) return false
-            } else {
-                val comp = lSeg.compareTo(cSeg)
-                if (comp > 0) return true
-                if (comp < 0) return false
-            }
-        }
-        return false
-    }
 }

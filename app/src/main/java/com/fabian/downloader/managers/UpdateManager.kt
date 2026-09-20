@@ -1,8 +1,10 @@
 package com.fabian.downloader.managers
 
 import android.util.Log
+import com.fabian.downloader.BuildConfig
 import com.fabian.downloader.configs.Config
 import com.fabian.downloader.network.NetworkClient
+import com.fabian.downloader.utils.VersionUtils
 import okhttp3.Request
 import org.json.JSONObject
 import kotlinx.coroutines.Dispatchers
@@ -15,6 +17,7 @@ data class UpdateInfo(
 )
 
 object UpdateManager {
+    private const val TAG = "UpdateManager"
     private val client = NetworkClient.okHttpClient
     private val GITHUB_API_URL = Config.GITHUB_API_LATEST_RELEASE
 
@@ -22,42 +25,50 @@ object UpdateManager {
         try {
             val request = Request.Builder()
                 .url(GITHUB_API_URL)
+                .header(
+                    "User-Agent",
+                    "FabiDownloader/${BuildConfig.VERSION_NAME} (${Config.GITHUB_URL})"
+                )
+                .header("Accept", "application/vnd.github.v3+json")
                 .build()
-            
+
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
                     return@withContext Result.failure(Exception("HTTP ${response.code}"))
                 }
-                
-                val body = response.body?.string() ?: return@withContext Result.failure(Exception("Empty response body"))
+
+                val body = response.body?.string()
+                    ?: return@withContext Result.failure(Exception("Empty response body"))
                 val json = JSONObject(body)
-                val tagName = json.getString("tag_name").replace("v", "").trim()
-                val htmlUrl = json.getString("html_url")
+                // removePrefix en lugar de replace("v", ""): evita corromper tags
+                // tipo "v1.2.3-video" → antes quedaba "1.2.3-ideo".
+                val tagName = json.getString("tag_name").removePrefix("v").trim()
+                val releaseUrl = json.getString("html_url")
                 val bodyText = json.optString("body", "")
-                
-                Result.success(UpdateInfo(tagName, htmlUrl, bodyText))
+
+                // Buscar el APK en los assets. Antes se devolvía `html_url`
+                // (la página web del release), no un enlace directo al APK.
+                val apkUrl = runCatching {
+                    val assets = json.optJSONArray("assets")
+                    (0 until (assets?.length() ?: 0))
+                        .asSequence()
+                        .map { assets!!.getJSONObject(it) }
+                        .firstOrNull { it.optString("name").endsWith(".apk", ignoreCase = true) }
+                        ?.optString("browser_download_url")
+                }.getOrNull() ?: releaseUrl
+
+                Result.success(UpdateInfo(tagName, apkUrl, bodyText))
             }
         } catch (e: Exception) {
-            Log.e(Config.TAG_UPDATE_MANAGER, "Error checking for updates", e)
+            Log.e(TAG, "Error checking for updates", e)
             Result.failure(e)
         }
     }
 
     /**
-     * Compares two version strings.
-     * Returns true if v1 > v2.
+     * Compara dos versiones semánticas. Delegado a [VersionUtils] para evitar
+     * duplicación con `YtdlpUpdateManager.isNewerVersion`.
      */
-    fun isNewerVersion(latest: String, current: String): Boolean {
-        val v1Parts = latest.split(".").mapNotNull { it.toIntOrNull() }
-        val v2Parts = current.split(".").mapNotNull { it.toIntOrNull() }
-        
-        val length = maxOf(v1Parts.size, v2Parts.size)
-        for (i in 0 until length) {
-            val v1 = v1Parts.getOrNull(i) ?: 0
-            val v2 = v2Parts.getOrNull(i) ?: 0
-            if (v1 > v2) return true
-            if (v1 < v2) return false
-        }
-        return false
-    }
+    fun isNewerVersion(latest: String, current: String): Boolean =
+        VersionUtils.isNewer(latest, current)
 }

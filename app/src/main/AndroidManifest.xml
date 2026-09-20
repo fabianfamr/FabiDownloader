@@ -12,12 +12,23 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" tools:ignore="ScopedStorage" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:ignore="ScopedStorage" />
+
+    <!--
+        ELIMINADO (Issue 3.2):
+          - WRITE_EXTERNAL_STORAGE con maxSdkVersion=32 → solo útil < API 23, redundante ahora.
+          - MANAGE_EXTERNAL_STORAGE → acceso a TODO el almacenamiento del usuario;
+            Google Play lo rechaza salvo en apps tipo file-manager/antivirus.
+            Migra a Scoped Storage con MediaStore.Downloads en PathUtils.
+
+        ELIMINADO (Issue 4.2):
+          - No se incluye soporte para bypass de SSL. Si necesitas debugar SSL
+            en desarrollo, usa res/xml/network_security_config.xml con dominios
+            específicos y solo en debug-overrides.
+    -->
 
     <application
         android:name=".MyApplication"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:hasFragileUserData="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -25,8 +36,14 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MyApplication"
-        android:requestLegacyExternalStorage="true">
+        android:theme="@style/Theme.MyApplication">
+
+        <!--
+            ELIMINADO (Issue 3.2):
+              android:requestLegacyExternalStorage="true"
+            Es ignorado en Android 11+ (API 30+) y no aporta nada con targetSdk=37.
+        -->
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

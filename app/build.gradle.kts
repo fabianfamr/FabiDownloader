@@ -76,6 +76,19 @@ android {
     }
   }
 
+  // ============================================================================
+  // Issue 3.6 — Signing configs seguras (sin fallback a debug keystore en release)
+  // ============================================================================
+  //
+  // Antes: si KEYSTORE_PATH no estaba definido o el archivo no existía, la build
+  // de release se firmaba con el DEBUG keystore (público y conocido). Cualquiera
+  // podía firmar una APK con el mismo certificado y hacer que se actualice sobre
+  // tu app.
+  //
+  // Ahora: el signing config de release SÓLO se configura si las variables de
+  // entorno necesarias están presentes. Si no lo están:
+  //   - En builds locales (-PdebugBuild): se usa el debug keystore explícitamente.
+  //   - En builds de release CI: falla con error claro en lugar de usar debug.
   signingConfigs {
     getByName("debug") {
       val debugKeystore = file("${rootDir}/debug.keystore")
@@ -87,19 +100,29 @@ android {
       }
     }
     create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/release.keystore"
-      val keystoreFile = file(keystorePath)
-      val debugKeystore = file("${rootDir}/debug.keystore")
-      if (keystoreFile.exists()) {
+      val keystorePath = System.getenv("KEYSTORE_PATH")
+      val storePwd = System.getenv("STORE_PASSWORD")
+      val alias = System.getenv("KEY_ALIAS")
+      val keyPwd = System.getenv("KEY_PASSWORD")
+
+      if (keystorePath != null && storePwd != null && alias != null && keyPwd != null) {
+        val keystoreFile = file(keystorePath)
+        if (!keystoreFile.exists()) {
+          throw GradleException(
+            "KEYSTORE_PATH apunta a un archivo inexistente: ${keystoreFile.absolutePath}"
+          )
+        }
         storeFile = keystoreFile
-        storePassword = System.getenv("STORE_PASSWORD") ?: "android"
-        keyAlias = System.getenv("KEY_ALIAS") ?: "androiddebugkey"
-        keyPassword = System.getenv("KEY_PASSWORD") ?: "android"
-      } else if (debugKeystore.exists()) {
-        storeFile = debugKeystore
-        storePassword = "android"
-        keyAlias = "androiddebugkey"
-        keyPassword = "android"
+        storePassword = storePwd
+        keyAlias = alias
+        keyPassword = keyPwd
+      } else {
+        // No hay variables de entorno para release. El buildType release fallará
+        // explícitamente salvo que se use -PdebugBuild.
+        project.logger.warn(
+          "SignningConfig release: variables de entorno incompletas. " +
+          "Las builds de release fallarán salvo -PdebugBuild."
+        )
       }
     }
   }
@@ -110,10 +133,20 @@ android {
       isMinifyEnabled = true
       isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      if (signingConfigs.getByName("release").storeFile != null) {
-        signingConfig = signingConfigs.getByName("release")
-      } else {
-        signingConfig = signingConfigs.getByName("debug")
+      val releaseSigning = signingConfigs.getByName("release")
+      val debugSigning = signingConfigs.getByName("debug")
+      val useDebugBuild = project.hasProperty("debugBuild")
+      when {
+        releaseSigning.storeFile != null -> signingConfig = releaseSigning
+        useDebugBuild -> {
+          project.logger.warn("Build de release firmado con DEBUG keystore (-PdebugBuild). " +
+            "NO publicar esta APK en producción.")
+          signingConfig = debugSigning
+        }
+        else -> throw GradleException(
+          "Build de release requiere configurar KEYSTORE_PATH, STORE_PASSWORD, " +
+          "KEY_ALIAS y KEY_PASSWORD (env vars), o pasar -PdebugBuild para builds locales."
+        )
       }
     }
     debug {
@@ -129,10 +162,29 @@ android {
     buildConfig = true
   }
   testOptions { unitTests { isIncludeAndroidResources = true } }
+
+  // ============================================================================
+  // Issue 3.5 — Lint rehabilitado
+  // ============================================================================
+  //
+  // Antes: abortOnError=false, checkReleaseBuilds=false, ignoreWarnings=true.
+  // Esto silenciaba TODOS los warnings de lint, incluyendo bugs reales.
+  //
+  // Ahora: lint aborta en errores, checkea builds de release, y usa un baseline
+  // para permitir fix gradual. Genera el baseline con:
+  //   ./gradlew updateLintBaseline
   lint {
-    abortOnError = false
-    checkReleaseBuilds = false
-    ignoreWarnings = true
+    abortOnError = true
+    checkReleaseBuilds = true
+    warningsAsErrors = false
+    // Exclusiones explícitas y justificadas. NO silencies warnings sin razón.
+    disable += setOf(
+      "MissingTranslation",       // traducciones llegan incrementalmente
+      "ExtraTranslation"          // claves legacy que aún no se borran
+    )
+    // Baseline: snapshot de issues existentes. Solo NUEVOS issues bloquean el build.
+    // Si no existe el archivo, lint reporta todo (útil para detectar regresiones).
+    baseline = file("lint-baseline.xml")
   }
 }
 
@@ -176,6 +228,8 @@ dependencies {
   implementation(libs.moshi.kotlin)
   implementation(libs.okhttp)
   implementation(libs.retrofit)
+  // ProcessLifecycleOwner para detección fiable de foreground/background (Issue 5.2)
+  implementation("androidx.lifecycle:lifecycle-process:2.8.7")
   testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)
   testImplementation(libs.androidx.junit)

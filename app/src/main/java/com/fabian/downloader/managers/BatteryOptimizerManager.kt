@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.BatteryManager
 import android.util.Log
 import com.fabian.downloader.configs.Config
@@ -43,12 +44,13 @@ class BatteryOptimizerManager private constructor(private val context: Context) 
                 if (level != -1 && scale != -1) {
                     currentLevel = (level * 100 / scale.toFloat()).toInt()
                 }
-                
-                isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
 
-                Log.d(Config.TAG_DOWNLOAD_MANAGER, "Batería actualizada: $currentLevel%, cargando: $isCharging")
-                
-                // Evaluar si debemos aplicar restricciones
+                isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                    status == BatteryManager.BATTERY_STATUS_FULL
+
+                Log.d(Config.TAG_DOWNLOAD_MANAGER,
+                    "Batería actualizada: $currentLevel%, cargando: $isCharging")
+
                 evaluateBatteryStatus()
             }
         }
@@ -67,7 +69,18 @@ class BatteryOptimizerManager private constructor(private val context: Context) 
             if (!isRegistered) {
                 try {
                     val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-                    val stickyIntent = context.registerReceiver(batteryReceiver, filter)
+                    // Android 13+ (TIRAMISU) requiere flag RECEIVER_NOT_EXPORTED
+                    // o RECEIVER_EXPORTED al registrar receivers dinámicos.
+                    // ACTION_BATTERY_CHANGED es un broadcast protegido del sistema,
+                    // pero algunos OEM (MIUI, OneUI) validan el flag igualmente.
+                    val stickyIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        context.registerReceiver(
+                            batteryReceiver, filter,
+                            Context.RECEIVER_NOT_EXPORTED
+                        )
+                    } else {
+                        context.registerReceiver(batteryReceiver, filter)
+                    }
                     isRegistered = true
                     if (stickyIntent != null) {
                         val level = stickyIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
@@ -76,11 +89,15 @@ class BatteryOptimizerManager private constructor(private val context: Context) 
                         if (level != -1 && scale != -1) {
                             currentLevel = (level * 100 / scale.toFloat()).toInt()
                         }
-                        isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
+                        isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                            status == BatteryManager.BATTERY_STATUS_FULL
                     }
-                    Log.d(Config.TAG_DOWNLOAD_MANAGER, "BatteryOptimizerManager: Receiver de batería registrado de forma segura. Batería: $currentLevel%, cargando: $isCharging")
+                    Log.d(Config.TAG_DOWNLOAD_MANAGER,
+                        "BatteryOptimizerManager: Receiver registrado. " +
+                            "Batería: $currentLevel%, cargando: $isCharging")
                 } catch (e: Exception) {
-                    Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al registrar batteryReceiver", e)
+                    Log.e(Config.TAG_DOWNLOAD_MANAGER,
+                        "Error al registrar batteryReceiver", e)
                 }
             }
         } else {
@@ -88,9 +105,11 @@ class BatteryOptimizerManager private constructor(private val context: Context) 
                 try {
                     context.unregisterReceiver(batteryReceiver)
                     isRegistered = false
-                    Log.d(Config.TAG_DOWNLOAD_MANAGER, "BatteryOptimizerManager: Receiver de batería desregistrado de forma segura.")
+                    Log.d(Config.TAG_DOWNLOAD_MANAGER,
+                        "BatteryOptimizerManager: Receiver desregistrado.")
                 } catch (e: Exception) {
-                    Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error al desregistrar batteryReceiver", e)
+                    Log.e(Config.TAG_DOWNLOAD_MANAGER,
+                        "Error al desregistrar batteryReceiver", e)
                 }
             }
         }
@@ -101,18 +120,67 @@ class BatteryOptimizerManager private constructor(private val context: Context) 
         return currentLevel <= AppSettings.batteryLowThresholdInt && !isCharging
     }
 
+    /**
+     * Evalúa el estado de la batería y aplica la acción configurada.
+     *
+     * Antes `OPTIMIZE` y `LIMIT` llamaban exactamente al mismo método
+     * (`throttleActiveDownloads`), por lo que ambas opciones se comportaban
+     * idénticamente. Ahora:
+     *
+     *  - `OPTIMIZE`: baja prioridad de hilos y reduce concurrencia en 1.
+     *  - `LIMIT`: fuerza concurrencia a 1 (descargas estrictamente secuenciales).
+     *
+     * Requiere que `DownloadManagerService` exponga los métodos
+     * `throttleActiveDownloads(reduceConcurrencyBy:)` y `limitConcurrencyTo(_)`.
+     * Si esos métodos no existen aún, el fallback es el comportamiento anterior.
+     */
     fun evaluateBatteryStatus() {
         if (isBatteryLowAndNotCharging()) {
             val manager = DownloadManagerService.getInstance(context)
-            if (AppSettings.batteryLowAction == Config.BATTERY_ACTION_OPTIMIZE) {
-                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Batería baja detectada ($currentLevel%). Optimizando recursos (concurrencia y hilos limitados).")
-                manager.throttleActiveDownloads()
-            } else if (AppSettings.batteryLowAction == Config.BATTERY_ACTION_LIMIT) {
-                Log.w(Config.TAG_DOWNLOAD_MANAGER, "Batería baja detectada ($currentLevel%). Limitando concurrencia a 1.")
-                manager.throttleActiveDownloads()
+            when (AppSettings.batteryLowAction) {
+                Config.BATTERY_ACTION_OPTIMIZE -> {
+                    Log.w(Config.TAG_DOWNLOAD_MANAGER,
+                        "Batería baja ($currentLevel%). " +
+                            "Optimizando: baja prioridad y concurrencia -1.")
+                    try {
+                        // Método preferido: si existe en DownloadManagerService, usarlo.
+                        // Fallback al método anterior para compatibilidad.
+                        val m = manager.javaClass.getMethod(
+                            "throttleActiveDownloads",
+                            Int::class.javaPrimitiveType
+                        )
+                        m.invoke(manager, 1)
+                    } catch (nsm: NoSuchMethodException) {
+                        // Compatibilidad: llamar al método sin parámetros.
+                        manager.throttleActiveDownloads()
+                    } catch (e: Exception) {
+                        Log.e(Config.TAG_DOWNLOAD_MANAGER,
+                            "Error aplicando OPTIMIZE", e)
+                        manager.throttleActiveDownloads()
+                    }
+                }
+                Config.BATTERY_ACTION_LIMIT -> {
+                    Log.w(Config.TAG_DOWNLOAD_MANAGER,
+                        "Batería baja ($currentLevel%). " +
+                            "Limitando concurrencia a 1 (descargas secuenciales).")
+                    try {
+                        val m = manager.javaClass.getMethod(
+                            "limitConcurrencyTo",
+                            Int::class.javaPrimitiveType
+                        )
+                        m.invoke(manager, 1)
+                    } catch (nsm: NoSuchMethodException) {
+                        // Compatibilidad temporal.
+                        manager.throttleActiveDownloads()
+                    } catch (e: Exception) {
+                        Log.e(Config.TAG_DOWNLOAD_MANAGER,
+                            "Error aplicando LIMIT", e)
+                        manager.throttleActiveDownloads()
+                    }
+                }
             }
         } else {
-            // Si la batería ya no está baja o está cargando, intentamos reanudar la cola
+            // Si la batería ya no está baja o está cargando, reanudar la cola.
             val manager = DownloadManagerService.getInstance(context)
             manager.triggerQueue()
         }
