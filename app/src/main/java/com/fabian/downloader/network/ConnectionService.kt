@@ -25,6 +25,9 @@ import java.util.concurrent.atomic.AtomicLong
  */
 class ConnectionService {
 
+    suspend fun checkConnection(strict: Boolean = false): Boolean =
+        Companion.checkConnection(strict)
+
     companion object {
         private const val TAG = "ConnectionService"
 
@@ -103,12 +106,8 @@ class ConnectionService {
                     val capabilities = if (network != null)
                         connectivityManager.getNetworkCapabilities(network) else null
 
-                    val hasInternetCap =
-                        capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                            == true
-                    val isValidated =
-                        capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-                            == true
+                    val hasInternetCap = capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+                    val isValidated = capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true
 
                     val reallyOnline = when {
                         // Sistema ya validó: listo

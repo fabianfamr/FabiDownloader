@@ -52,47 +52,48 @@ class CacheCleanupWorker(
                 request
             )
         }
+
+        /**
+         * Realiza la limpieza directa e inmediata de archivos temporales.
+         * Devuelve el número de archivos eliminados.
+         */
+        fun performDirectCleanup(context: Context): Int {
+            var count = 0
+            try {
+                val downloadDirs = listOf(
+                    java.io.File(context.getExternalFilesDir(null), "FabiDownloader/downloads/video"),
+                    java.io.File(context.getExternalFilesDir(null), "FabiDownloader/downloads/audio"),
+                    java.io.File(context.getExternalFilesDir(null), "FabiDownloader/downloads/image"),
+                    context.cacheDir
+                )
+                val tempSuffixes = setOf(".part", ".ytdl", ".temp", ".tmp", ".downloading")
+                for (dir in downloadDirs) {
+                    if (!dir.exists() || !dir.isDirectory) continue
+                    dir.listFiles()?.forEach { file ->
+                        val name = file.name
+                        if (tempSuffixes.any { name.endsWith(it, ignoreCase = true) } ||
+                            name.contains(".downloading", ignoreCase = true)
+                        ) {
+                            if (file.delete()) count++
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "No se pudo acceder a algunos directorios: ${e.message}")
+            }
+            return count
+        }
     }
 
     override fun doWork(): Result {
         return try {
             Log.d(TAG, "Iniciando limpieza de archivos temporales...")
-            val cleaned = performCleanup()
+            val cleaned = performDirectCleanup(applicationContext)
             Log.d(TAG, "Limpieza completada. Archivos eliminados: $cleaned")
             Result.success()
         } catch (e: Exception) {
             Log.e(TAG, "Error durante limpieza de caché", e)
             Result.retry()
         }
-    }
-
-    /**
-     * Implementación real de la limpieza. Adaptar según el PathUtils de tu app.
-     * Devuelve el número de archivos eliminados.
-     */
-    private fun performCleanup(): Int {
-        var count = 0
-        try {
-            val downloadDirs = listOf(
-                java.io.File(applicationContext.getExternalFilesDir(null), "FabiDownloader/downloads/video"),
-                java.io.File(applicationContext.getExternalFilesDir(null), "FabiDownloader/downloads/audio"),
-                java.io.File(applicationContext.getExternalFilesDir(null), "FabiDownloader/downloads/image")
-            )
-            val tempSuffixes = setOf(".part", ".ytdl", ".temp", ".tmp", ".downloading")
-            for (dir in downloadDirs) {
-                if (!dir.exists() || !dir.isDirectory) continue
-                dir.listFiles()?.forEach { file ->
-                    val name = file.name
-                    if (tempSuffixes.any { name.endsWith(it, ignoreCase = true) } ||
-                        name.contains(".downloading", ignoreCase = true)
-                    ) {
-                        if (file.delete()) count++
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.w(TAG, "No se pudo acceder a algunos directorios: ${e.message}")
-        }
-        return count
     }
 }

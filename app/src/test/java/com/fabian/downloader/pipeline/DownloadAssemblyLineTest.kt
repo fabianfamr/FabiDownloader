@@ -4,17 +4,18 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * Tests para DownloadAssemblyLine.station1_cleanUrl.
  *
  * Cubre los casos borde más comunes: tracking params, playlists de YouTube,
  * trailing slash, URLs embebidas en texto, URLs malformadas.
- *
- * Nota: estos tests requieren UrlUtils y AppSettings (no incluidos en el zip).
- * Si no compilan, sustituye los `mock()` correspondientes o anota con @Ignore
- * hasta tener esos archivos disponibles.
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class DownloadAssemblyLineTest {
 
     // Casos que NO dependen de AppSettings (solo de Uri parsing):

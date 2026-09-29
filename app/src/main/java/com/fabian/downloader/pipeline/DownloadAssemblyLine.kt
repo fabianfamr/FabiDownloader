@@ -28,6 +28,10 @@ object DownloadAssemblyLine {
         val regex = Regex("""https?://[^\s]+""")
         var clean = regex.find(trimmed)?.value ?: trimmed
 
+        if (clean.length > 8 && clean.endsWith("/")) {
+            clean = clean.dropLast(1)
+        }
+
         try {
             val uri = android.net.Uri.parse(clean)
             if (uri.isHierarchical && uri.queryParameterNames.isNotEmpty()) {

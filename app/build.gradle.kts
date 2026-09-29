@@ -136,11 +136,14 @@ android {
       val releaseSigning = signingConfigs.getByName("release")
       val debugSigning = signingConfigs.getByName("debug")
       val useDebugBuild = project.hasProperty("debugBuild")
+      val isReleaseRequested = gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }
       when {
         releaseSigning.storeFile != null -> signingConfig = releaseSigning
-        useDebugBuild -> {
-          project.logger.warn("Build de release firmado con DEBUG keystore (-PdebugBuild). " +
-            "NO publicar esta APK en producción.")
+        useDebugBuild || !isReleaseRequested -> {
+          if (useDebugBuild && isReleaseRequested) {
+            project.logger.warn("Build de release firmado con DEBUG keystore (-PdebugBuild). " +
+              "NO publicar esta APK en producción.")
+          }
           signingConfig = debugSigning
         }
         else -> throw GradleException(
