@@ -87,4 +87,35 @@ class PathUtilsMigrationTest {
         assertEquals("different content from nested folder", rescuedDuplicate.readText())
         assertFalse(nested.exists())
     }
+
+    @Test
+    fun testDbFolderRemainsUntouchedAndPreserved() {
+        val rootFabi = tempFolder.newFolder("FabiDownloader")
+        val dbDir = File(rootFabi, "db")
+        dbDir.mkdirs()
+
+        val dbFile = File(dbDir, "downloader-database")
+        dbFile.writeText("database SQLite header and data")
+
+        val downloadsDir = File(rootFabi, "downloads")
+        downloadsDir.mkdirs()
+
+        // Crear anidamiento dentro de downloads
+        val nestedDownloads = File(downloadsDir, "downloads")
+        nestedDownloads.mkdirs()
+        val nestedVideo = File(nestedDownloads, "video.mp4")
+        nestedVideo.writeText("video content")
+
+        // Aplanar descargas
+        PathUtils.flattenNestedDownloads(downloadsDir, downloadsDir)
+
+        // Verificar que la carpeta db y la base de datos están intactas
+        assertTrue("La carpeta db debe permanecer existente", dbDir.exists())
+        assertTrue("El archivo de base de datos debe permanecer intacto", dbFile.exists())
+        assertEquals("database SQLite header and data", dbFile.readText())
+
+        // Y que el video fue rescatado a downloads/video
+        val rescuedVideo = File(downloadsDir, "video/video.mp4")
+        assertTrue("El video anidado debe haber sido rescatado", rescuedVideo.exists())
+    }
 }

@@ -101,6 +101,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onStop() {
+        super.onStop()
+        com.fabian.downloader.utils.PathUtils.backupDatabaseToExternal(this)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         // No llamamos onAppClosed() aquí para permitir que DownloadForegroundService 

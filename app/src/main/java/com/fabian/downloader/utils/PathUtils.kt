@@ -32,6 +32,7 @@ object PathUtils {
             
             val dbDir = File(root, "db")
             if (!dbDir.exists()) dbDir.mkdirs()
+            backupDatabaseToExternal(context)
         } catch (e: Exception) {
             android.util.Log.e(Config.TAG_PATH_UTILS, "Error creando estructura de carpetas FabiDownloader", e)
         }
@@ -149,6 +150,42 @@ object PathUtils {
         }
         
         return internalDbFile
+    }
+
+    /**
+     * Respalda la base de datos interna hacia la carpeta pública '/storage/emulated/0/Download/FabiDownloader/db'
+     * para asegurar que los registros e historial persistan ante reinstalaciones o copias de seguridad.
+     */
+    fun backupDatabaseToExternal(context: Context): Boolean {
+        return try {
+            val root = getRootFolder(context)
+            val dbDir = File(root, "db")
+            if (!dbDir.exists()) dbDir.mkdirs()
+
+            val internalDbFile = context.getDatabasePath(Config.DB_NAME)
+            if (internalDbFile.exists() && internalDbFile.length() > 0L) {
+                val targetDbFile = File(dbDir, Config.DB_NAME)
+                internalDbFile.copyTo(targetDbFile, overwrite = true)
+
+                val internalWal = File(internalDbFile.parentFile, "${Config.DB_NAME}-wal")
+                val targetWal = File(dbDir, "${Config.DB_NAME}-wal")
+                if (internalWal.exists() && internalWal.length() > 0L) {
+                    internalWal.copyTo(targetWal, overwrite = true)
+                }
+
+                val internalShm = File(internalDbFile.parentFile, "${Config.DB_NAME}-shm")
+                val targetShm = File(dbDir, "${Config.DB_NAME}-shm")
+                if (internalShm.exists() && internalShm.length() > 0L) {
+                    internalShm.copyTo(targetShm, overwrite = true)
+                }
+                true
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            android.util.Log.w(Config.TAG_PATH_UTILS, "Error respaldando base de datos a almacenamiento externo", e)
+            false
+        }
     }
 
     fun migrateOldStructureIfNeeded(context: Context) {
