@@ -118,4 +118,26 @@ class PathUtilsMigrationTest {
         val rescuedVideo = File(downloadsDir, "video/video.mp4")
         assertTrue("El video anidado debe haber sido rescatado", rescuedVideo.exists())
     }
+
+    @Test
+    fun testFlatten50LevelsOfNestedDownloads() {
+        val baseDownloads = tempFolder.newFolder("downloads_50")
+        var current = baseDownloads
+        for (i in 1..50) {
+            current = File(current, "downloads")
+            current.mkdirs()
+        }
+
+        val deepVideo = File(current, "deep_50.mp4")
+        deepVideo.writeText("50 levels deep video")
+
+        PathUtils.flattenNestedDownloads(baseDownloads, baseDownloads)
+
+        val rescuedVideo = File(baseDownloads, "video/deep_50.mp4")
+        assertTrue("El video en el nivel 50 debe ser rescatado", rescuedVideo.exists())
+        assertEquals("50 levels deep video", rescuedVideo.readText())
+
+        val level1Nested = File(baseDownloads, "downloads")
+        assertFalse("El primer nivel anidado debe ser eliminado", level1Nested.exists())
+    }
 }

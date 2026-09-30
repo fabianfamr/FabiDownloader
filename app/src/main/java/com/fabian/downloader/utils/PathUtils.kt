@@ -33,6 +33,7 @@ object PathUtils {
             val dbDir = File(root, "db")
             if (!dbDir.exists()) dbDir.mkdirs()
             backupDatabaseToExternal(context)
+            repairAndFlattenNestedDownloadsFolders(context)
         } catch (e: Exception) {
             android.util.Log.e(Config.TAG_PATH_UTILS, "Error creando estructura de carpetas FabiDownloader", e)
         }
@@ -216,7 +217,7 @@ object PathUtils {
             for ((oldMediaDir, targetMediaDir) in legacyDirectMedia) {
                 if (oldMediaDir.exists() && oldMediaDir.isDirectory) {
                     try {
-                        if (oldMediaDir.canonicalPath != targetMediaDir.canonicalPath) {
+                        if (!oldMediaDir.canonicalPath.equals(targetMediaDir.canonicalPath, ignoreCase = true)) {
                             moveDirectoryContents(oldMediaDir, targetMediaDir)
                             if (oldMediaDir.listFiles().isNullOrEmpty()) {
                                 oldMediaDir.delete()
@@ -228,41 +229,6 @@ object PathUtils {
                 }
             }
 
-            // Migrar únicamente directorios obsoletos externos (NUNCA el propio 'root')
-            val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val oldCandidateDirs = mutableListOf<File>()
-            if (publicDownloads != null) {
-                oldCandidateDirs.add(File(publicDownloads, "Download/${Config.APP_NAME}"))
-                val lowerDir = File(publicDownloads, Config.APP_NAME_LOWER)
-                try {
-                    if (lowerDir.canonicalPath != root.canonicalPath) {
-                        oldCandidateDirs.add(lowerDir)
-                    }
-                } catch (_: Exception) {}
-            }
-
-            for (oldDir in oldCandidateDirs) {
-                if (oldDir.exists() && oldDir.isDirectory) {
-                    try {
-                        val oldCanon = oldDir.canonicalPath
-                        val rootCanon = root.canonicalPath
-                        val targetCanon = targetDownloadsDir.canonicalPath
-                        // Protección estricta: No procesar si oldDir es igual o ancestro/descendiente de root o target
-                        if (oldCanon != rootCanon &&
-                            oldCanon != targetCanon &&
-                            !targetCanon.startsWith(oldCanon + File.separator) &&
-                            !oldCanon.startsWith(targetCanon + File.separator)
-                        ) {
-                            moveDirectoryContents(oldDir, targetDownloadsDir)
-                            if (oldDir.listFiles().isNullOrEmpty()) {
-                                oldDir.delete()
-                            }
-                        }
-                    } catch (e: Exception) {
-                        android.util.Log.w(Config.TAG_PATH_UTILS, "Error migrating old candidate: ${oldDir.absolutePath}", e)
-                    }
-                }
-            }
             prefs.edit().putBoolean("old_structure_migrated", true).apply()
         } catch (e: Exception) {
             android.util.Log.e(Config.TAG_PATH_UTILS, "Error migrating old download folder", e)
@@ -276,96 +242,120 @@ object PathUtils {
      * y eliminando los directorios anidados sobrantes.
      */
     fun repairAndFlattenNestedDownloadsFolders(context: Context) {
-        val root = getRootFolder(context)
-        val targetDownloadsDir = File(root, "downloads")
-        if (targetDownloadsDir.exists() && targetDownloadsDir.isDirectory) {
-            flattenNestedDownloads(targetDownloadsDir, targetDownloadsDir)
-        }
-
-        val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        if (publicDownloads != null) {
-            val pubFabi = File(publicDownloads, Config.PATH_ROOT_FOLDER)
-            val pubDownloads = File(pubFabi, "downloads")
-            if (pubDownloads.exists() && pubDownloads.isDirectory) {
-                flattenNestedDownloads(pubDownloads, pubDownloads)
+        try {
+            val root = getRootFolder(context)
+            val targetDownloadsDir = File(root, "downloads")
+            if (targetDownloadsDir.exists() && targetDownloadsDir.isDirectory) {
+                flattenNestedDownloads(targetDownloadsDir, targetDownloadsDir)
             }
+
+            val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            if (publicDownloads != null) {
+                val pubFabi = File(publicDownloads, Config.PATH_ROOT_FOLDER)
+                val pubDownloads = File(pubFabi, "downloads")
+                if (pubDownloads.exists() && pubDownloads.isDirectory) {
+                    flattenNestedDownloads(pubDownloads, pubDownloads)
+                }
+
+                val lowerFabi = File(publicDownloads, Config.APP_NAME_LOWER)
+                if (lowerFabi.exists() && lowerFabi.isDirectory) {
+                    val lowerDownloads = File(lowerFabi, "downloads")
+                    if (lowerDownloads.exists() && lowerDownloads.isDirectory) {
+                        flattenNestedDownloads(lowerDownloads, targetDownloadsDir)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e(Config.TAG_PATH_UTILS, "Error repairing nested downloads folders", e)
         }
     }
 
     fun flattenNestedDownloads(currentDir: File, baseDownloadsDir: File) {
         if (!currentDir.exists() || !currentDir.isDirectory) return
 
-        val children = currentDir.listFiles() ?: return
-        for (child in children) {
-            if (child.isDirectory) {
-                if (child.name.equals("downloads", ignoreCase = true)) {
-                    // Se encontró una carpeta 'downloads' anidada dentro de downloads
-                    rescueFilesFromFolder(child, baseDownloadsDir)
-                    deleteDirRecursivelySafely(child)
-                } else if (child.name.equals("video", ignoreCase = true) ||
-                           child.name.equals("audio", ignoreCase = true) ||
-                           child.name.equals("image", ignoreCase = true)) {
-                    // Dentro de video/audio/image, verificar si hay un 'downloads' anidado accidental
-                    val nestedDownloads = File(child, "downloads")
-                    if (nestedDownloads.exists() && nestedDownloads.isDirectory) {
-                        rescueFilesFromFolder(nestedDownloads, baseDownloadsDir)
-                        deleteDirRecursivelySafely(nestedDownloads)
+        val baseCanon = try { baseDownloadsDir.canonicalPath } catch (_: Exception) { baseDownloadsDir.absolutePath }
+        val nestedDownloadsDirs = mutableListOf<File>()
+
+        try {
+            // Buscar todas las carpetas 'downloads' anidadas (hasta 60 niveles de profundidad)
+            currentDir.walkTopDown().maxDepth(60).forEach { file ->
+                if (file.isDirectory && file.name.equals("downloads", ignoreCase = true)) {
+                    val fileCanon = try { file.canonicalPath } catch (_: Exception) { file.absolutePath }
+                    if (!fileCanon.equals(baseCanon, ignoreCase = true) && fileCanon.startsWith(baseCanon, ignoreCase = true)) {
+                        nestedDownloadsDirs.add(file)
                     }
-                } else {
-                    flattenNestedDownloads(child, baseDownloadsDir)
                 }
             }
+        } catch (e: Exception) {
+            android.util.Log.w(Config.TAG_PATH_UTILS, "Error walking directory for nested downloads", e)
+        }
+
+        // Ordenar por longitud de ruta descendente (las más anidadas primero) para vaciarlas y eliminarlas de abajo hacia arriba
+        nestedDownloadsDirs.sortByDescending { it.absolutePath.length }
+        for (nestedDir in nestedDownloadsDirs) {
+            rescueFilesFromFolder(nestedDir, baseDownloadsDir)
+            deleteDirRecursivelySafely(nestedDir)
         }
     }
 
     private fun rescueFilesFromFolder(folder: File, baseDownloadsDir: File) {
-        val items = folder.listFiles() ?: return
-        for (item in items) {
-            if (item.isDirectory) {
-                rescueFilesFromFolder(item, baseDownloadsDir)
-                deleteDirRecursivelySafely(item)
-            } else if (item.isFile) {
-                val ext = item.extension.lowercase()
-                val isVideo = ext == "mp4" || ext == "webm" || ext == "mkv" || ext == "avi" || ext == "mov" || ext == "flv"
-                val isImage = ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "webp"
-                val isAudio = ext == "mp3" || ext == "m4a" || ext == "ogg" || ext == "wav" || ext == "aac" || ext == "flac" || ext == "opus"
+        if (!folder.exists() || !folder.isDirectory) return
 
-                val targetSubdir = when {
-                    isVideo -> File(baseDownloadsDir, "video")
-                    isImage -> File(baseDownloadsDir, "image")
-                    isAudio -> File(baseDownloadsDir, "audio")
-                    else -> baseDownloadsDir
-                }
-                if (!targetSubdir.exists()) targetSubdir.mkdirs()
+        val allFiles = try {
+            folder.walkTopDown().maxDepth(60).filter { it.isFile }.toList()
+        } catch (_: Exception) {
+            emptyList()
+        }
 
-                var destFile = File(targetSubdir, item.name)
-                if (destFile.exists()) {
-                    if (destFile.length() == item.length() && item.length() > 0L) {
-                        item.delete()
-                        continue
-                    }
-                    val baseName = item.nameWithoutExtension
-                    var counter = 1
-                    while (destFile.exists()) {
-                        destFile = File(targetSubdir, "${baseName}_$counter.$ext")
-                        counter++
-                    }
-                }
+        for (item in allFiles) {
+            val ext = item.extension.lowercase()
+            val isVideo = ext == "mp4" || ext == "webm" || ext == "mkv" || ext == "avi" || ext == "mov" || ext == "flv"
+            val isImage = ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "webp"
+            val isAudio = ext == "mp3" || ext == "m4a" || ext == "ogg" || ext == "wav" || ext == "aac" || ext == "flac" || ext == "opus"
 
-                val moved = item.renameTo(destFile)
-                if (!moved) {
-                    try {
-                        item.copyTo(destFile, overwrite = true)
-                        item.delete()
-                    } catch (_: Exception) {}
+            val targetSubdir = when {
+                isVideo -> File(baseDownloadsDir, "video")
+                isImage -> File(baseDownloadsDir, "image")
+                isAudio -> File(baseDownloadsDir, "audio")
+                else -> baseDownloadsDir
+            }
+            if (!targetSubdir.exists()) targetSubdir.mkdirs()
+
+            var destFile = File(targetSubdir, item.name)
+            if (destFile.exists()) {
+                if (destFile.length() == item.length() && item.length() > 0L) {
+                    item.delete()
+                    continue
                 }
+                val baseName = item.nameWithoutExtension
+                var counter = 1
+                while (destFile.exists()) {
+                    destFile = File(targetSubdir, "${baseName}_$counter.$ext")
+                    counter++
+                }
+            }
+
+            val moved = item.renameTo(destFile)
+            if (!moved) {
+                try {
+                    item.copyTo(destFile, overwrite = true)
+                    item.delete()
+                } catch (_: Exception) {}
             }
         }
     }
 
     private fun deleteDirRecursivelySafely(dir: File) {
         try {
-            dir.deleteRecursively()
+            if (!dir.exists()) return
+            dir.walkBottomUp().maxDepth(60).forEach { file ->
+                try {
+                    file.delete()
+                } catch (_: Exception) {}
+            }
+            if (dir.exists()) {
+                dir.deleteRecursively()
+            }
         } catch (_: Exception) {}
     }
 
@@ -515,16 +505,25 @@ object PathUtils {
         // 1. Intentar usar la ubicación configurada expresamente por el usuario (SAF Uri o ruta física)
         var configuredDir: File? = null
 
-        if (locationSetting.startsWith("content://")) {
-            configuredDir = resolvePhysicalPathFromUri(context, locationSetting)
-        } else if (locationSetting.isNotEmpty() && locationSetting != Config.PATH_DOWNLOAD_LOCATION_DEFAULT) {
-            configuredDir = if (locationSetting.startsWith("/")) {
-                File(locationSetting)
+        val isDefaultLocation = locationSetting.isEmpty() ||
+                                locationSetting.equals(Config.PATH_DOWNLOAD_LOCATION_DEFAULT, ignoreCase = true) ||
+                                locationSetting.equals("downloads", ignoreCase = true) ||
+                                locationSetting.equals("download", ignoreCase = true) ||
+                                locationSetting.equals(Config.PATH_ROOT_FOLDER, ignoreCase = true) ||
+                                locationSetting.equals("${Config.PATH_ROOT_FOLDER}/downloads", ignoreCase = true) ||
+                                locationSetting.equals("Download/${Config.PATH_ROOT_FOLDER}", ignoreCase = true) ||
+                                locationSetting.equals("Download/${Config.PATH_ROOT_FOLDER}/downloads", ignoreCase = true)
+
+        if (!isDefaultLocation) {
+            if (locationSetting.startsWith("content://")) {
+                configuredDir = resolvePhysicalPathFromUri(context, locationSetting)
+            } else if (locationSetting.startsWith("/")) {
+                configuredDir = File(locationSetting)
             } else if (locationSetting.startsWith("Downloads/", ignoreCase = true) || locationSetting.startsWith("Download/", ignoreCase = true)) {
                 val rel = locationSetting.substringAfter("/")
-                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), rel)
+                configuredDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), rel)
             } else {
-                File(Environment.getExternalStorageDirectory(), locationSetting)
+                configuredDir = File(Environment.getExternalStorageDirectory(), locationSetting)
             }
         }
 

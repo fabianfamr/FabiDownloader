@@ -47,22 +47,18 @@ class DownloadForegroundService : Service() {
                     component = android.content.ComponentName(context, DownloadForegroundService::class.java)
                     setPackage(context.packageName)
                 }
-                
-                if (isRunning) {
-                    context.startService(intent)
-                    return
-                }
 
-                try {
-                    context.startService(intent)
-                } catch (e: IllegalStateException) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    try {
+                        androidx.core.content.ContextCompat.startForegroundService(context, intent)
+                    } catch (e: Exception) {
+                        Log.w("DownloadService", "startForegroundService no permitido directamente desde background, intentando startService", e)
                         try {
-                            androidx.core.content.ContextCompat.startForegroundService(context, intent)
-                        } catch (e2: Throwable) {
-                            Log.w("DownloadService", "No se pudo iniciar startForegroundService desde background context", e2)
-                        }
+                            context.startService(intent)
+                        } catch (_: Exception) {}
                     }
+                } else {
+                    context.startService(intent)
                 }
             } catch (e: Throwable) {
                 Log.e("DownloadService", "Error iniciando DownloadForegroundService", e)
@@ -132,21 +128,26 @@ class DownloadForegroundService : Service() {
                     try {
                         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, 0)
                     } catch (e2: Throwable) {
-                        Log.e("DownloadService", "Error en fallback startForeground", e2)
-                        stopSelf()
+                        Log.w("DownloadService", "Sistema operativo no permitió startForeground (${e2.message}). Continuando en segundo plano sin detener descarga.")
+                        try {
+                            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+                            manager?.notify(NOTIFICATION_ID, notification)
+                        } catch (_: Exception) {}
                     }
                 }
             } else {
                 try {
                     ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, 0)
                 } catch (e: Throwable) {
-                    Log.e("DownloadService", "Error en startForeground pre-Q", e)
-                    stopSelf()
+                    Log.w("DownloadService", "startForeground falló en pre-Q: ${e.message}")
+                    try {
+                        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+                        manager?.notify(NOTIFICATION_ID, notification)
+                    } catch (_: Exception) {}
                 }
             }
         } catch (e: Throwable) {
-            Log.e("DownloadService", "Error llamando promoteToForeground", e)
-            stopSelf()
+            Log.w("DownloadService", "Excepción no fatal en promoteToForeground: ${e.message}")
         }
     }
 
