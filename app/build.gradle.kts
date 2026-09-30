@@ -186,8 +186,11 @@ android {
       "ExtraTranslation"          // claves legacy que aún no se borran
     )
     // Baseline: snapshot de issues existentes. Solo NUEVOS issues bloquean el build.
-    // Si no existe el archivo, lint reporta todo (útil para detectar regresiones).
-    baseline = file("lint-baseline.xml")
+    // Si no existe el archivo, no se fuerza baseline para no romper builds de CI al auto-crearlo.
+    val baselineFile = file("lint-baseline.xml")
+    if (baselineFile.exists()) {
+      baseline = baselineFile
+    }
   }
 }
 

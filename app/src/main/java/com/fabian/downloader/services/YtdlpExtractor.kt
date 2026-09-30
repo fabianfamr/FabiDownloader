@@ -90,7 +90,7 @@ class YtdlpExtractor {
                         try {
                             val retryResp = YoutubeDL.getInstance().execute(request, processId)
                             val jsonRaw = retryResp.out
-                            if (jsonRaw != null) {
+                            if (jsonRaw.isNotBlank()) {
                                 val json = JSONObject(jsonRaw)
                                 val defaultAuthor = if (isInstagram) Config.DEFAULT_AUTHOR_INSTAGRAM else Config.STATUS_UNKNOWN
                                 return@withContext com.fabian.downloader.utils.YtdlpParser.parseMetadata(json, defaultAuthor)

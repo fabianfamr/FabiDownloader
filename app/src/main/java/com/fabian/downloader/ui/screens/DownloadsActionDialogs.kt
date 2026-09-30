@@ -30,6 +30,7 @@ import com.fabian.downloader.ui.theme.FabiColors
 import com.fabian.downloader.ui.viewmodels.DownloadsViewModel
 import com.fabian.downloader.utils.ToastUtils
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadsOptionBottomSheet(
@@ -345,6 +346,7 @@ fun DownloadsConvertDialog(
     )
 }
 
+@Suppress("DEPRECATION")
 @Composable
 fun DownloadsErrorDialog(
     errorMsg: String?,

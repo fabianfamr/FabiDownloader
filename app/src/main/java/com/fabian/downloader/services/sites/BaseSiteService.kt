@@ -158,7 +158,7 @@ open class BaseSiteService(
                                     try {
                                         val retryResponse = YoutubeDL.getInstance().execute(request, processId)
                                         val jsonRaw = retryResponse.out
-                                        if (jsonRaw != null) {
+                                        if (jsonRaw.isNotBlank()) {
                                             val json = JSONObject(jsonRaw)
                                             return@async com.fabian.downloader.utils.YtdlpParser.parseMetadata(
                                                 json,

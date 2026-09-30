@@ -153,6 +153,14 @@ object PathUtils {
 
     fun migrateOldStructureIfNeeded(context: Context) {
         val prefs = context.getSharedPreferences("path_utils_prefs", Context.MODE_PRIVATE)
+
+        // 1. Auto-reparación: Aplanar y limpiar cualquier anidamiento corrupto de 'downloads' (ej. downloads/downloads/...)
+        try {
+            repairAndFlattenNestedDownloadsFolders(context)
+        } catch (e: Exception) {
+            android.util.Log.e(Config.TAG_PATH_UTILS, "Error repairing nested downloads folders", e)
+        }
+
         if (prefs.getBoolean("old_structure_migrated", false)) return
 
         try {
@@ -162,17 +170,59 @@ object PathUtils {
                 targetDownloadsDir.mkdirs()
             }
 
-            val oldCandidateDirs = listOf(
-                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), Config.APP_NAME),
-                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), Config.APP_NAME_LOWER.replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }),
-                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "Download/${Config.APP_NAME}")
+            // Migrar antiguas subcarpetas directas en root (root/video, root/audio, root/image)
+            val legacyDirectMedia = listOf(
+                Pair(File(root, "video"), File(targetDownloadsDir, "video")),
+                Pair(File(root, "audio"), File(targetDownloadsDir, "audio")),
+                Pair(File(root, "image"), File(targetDownloadsDir, "image"))
             )
+            for ((oldMediaDir, targetMediaDir) in legacyDirectMedia) {
+                if (oldMediaDir.exists() && oldMediaDir.isDirectory) {
+                    try {
+                        if (oldMediaDir.canonicalPath != targetMediaDir.canonicalPath) {
+                            moveDirectoryContents(oldMediaDir, targetMediaDir)
+                            if (oldMediaDir.listFiles().isNullOrEmpty()) {
+                                oldMediaDir.delete()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.w(Config.TAG_PATH_UTILS, "Error migrating direct media folder: ${oldMediaDir.name}", e)
+                    }
+                }
+            }
+
+            // Migrar únicamente directorios obsoletos externos (NUNCA el propio 'root')
+            val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val oldCandidateDirs = mutableListOf<File>()
+            if (publicDownloads != null) {
+                oldCandidateDirs.add(File(publicDownloads, "Download/${Config.APP_NAME}"))
+                val lowerDir = File(publicDownloads, Config.APP_NAME_LOWER)
+                try {
+                    if (lowerDir.canonicalPath != root.canonicalPath) {
+                        oldCandidateDirs.add(lowerDir)
+                    }
+                } catch (_: Exception) {}
+            }
 
             for (oldDir in oldCandidateDirs) {
-                if (oldDir.exists() && oldDir.isDirectory && oldDir.absolutePath != targetDownloadsDir.absolutePath) {
-                    moveDirectoryContents(oldDir, targetDownloadsDir)
-                    if (oldDir.listFiles().isNullOrEmpty()) {
-                        oldDir.delete()
+                if (oldDir.exists() && oldDir.isDirectory) {
+                    try {
+                        val oldCanon = oldDir.canonicalPath
+                        val rootCanon = root.canonicalPath
+                        val targetCanon = targetDownloadsDir.canonicalPath
+                        // Protección estricta: No procesar si oldDir es igual o ancestro/descendiente de root o target
+                        if (oldCanon != rootCanon &&
+                            oldCanon != targetCanon &&
+                            !targetCanon.startsWith(oldCanon + File.separator) &&
+                            !oldCanon.startsWith(targetCanon + File.separator)
+                        ) {
+                            moveDirectoryContents(oldDir, targetDownloadsDir)
+                            if (oldDir.listFiles().isNullOrEmpty()) {
+                                oldDir.delete()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.w(Config.TAG_PATH_UTILS, "Error migrating old candidate: ${oldDir.absolutePath}", e)
                     }
                 }
             }
@@ -182,9 +232,131 @@ object PathUtils {
         }
     }
 
+    /**
+     * Repara y rescata archivos de carpetas 'downloads' anidadas accidentalmente
+     * (por ejemplo: Download/FabiDownloader/downloads/downloads/...)
+     * moviendo los archivos a su carpeta correspondiente (video, audio, image)
+     * y eliminando los directorios anidados sobrantes.
+     */
+    fun repairAndFlattenNestedDownloadsFolders(context: Context) {
+        val root = getRootFolder(context)
+        val targetDownloadsDir = File(root, "downloads")
+        if (targetDownloadsDir.exists() && targetDownloadsDir.isDirectory) {
+            flattenNestedDownloads(targetDownloadsDir, targetDownloadsDir)
+        }
+
+        val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        if (publicDownloads != null) {
+            val pubFabi = File(publicDownloads, Config.PATH_ROOT_FOLDER)
+            val pubDownloads = File(pubFabi, "downloads")
+            if (pubDownloads.exists() && pubDownloads.isDirectory) {
+                flattenNestedDownloads(pubDownloads, pubDownloads)
+            }
+        }
+    }
+
+    fun flattenNestedDownloads(currentDir: File, baseDownloadsDir: File) {
+        if (!currentDir.exists() || !currentDir.isDirectory) return
+
+        val children = currentDir.listFiles() ?: return
+        for (child in children) {
+            if (child.isDirectory) {
+                if (child.name.equals("downloads", ignoreCase = true)) {
+                    // Se encontró una carpeta 'downloads' anidada dentro de downloads
+                    rescueFilesFromFolder(child, baseDownloadsDir)
+                    deleteDirRecursivelySafely(child)
+                } else if (child.name.equals("video", ignoreCase = true) ||
+                           child.name.equals("audio", ignoreCase = true) ||
+                           child.name.equals("image", ignoreCase = true)) {
+                    // Dentro de video/audio/image, verificar si hay un 'downloads' anidado accidental
+                    val nestedDownloads = File(child, "downloads")
+                    if (nestedDownloads.exists() && nestedDownloads.isDirectory) {
+                        rescueFilesFromFolder(nestedDownloads, baseDownloadsDir)
+                        deleteDirRecursivelySafely(nestedDownloads)
+                    }
+                } else {
+                    flattenNestedDownloads(child, baseDownloadsDir)
+                }
+            }
+        }
+    }
+
+    private fun rescueFilesFromFolder(folder: File, baseDownloadsDir: File) {
+        val items = folder.listFiles() ?: return
+        for (item in items) {
+            if (item.isDirectory) {
+                rescueFilesFromFolder(item, baseDownloadsDir)
+                deleteDirRecursivelySafely(item)
+            } else if (item.isFile) {
+                val ext = item.extension.lowercase()
+                val isVideo = ext == "mp4" || ext == "webm" || ext == "mkv" || ext == "avi" || ext == "mov" || ext == "flv"
+                val isImage = ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "webp"
+                val isAudio = ext == "mp3" || ext == "m4a" || ext == "ogg" || ext == "wav" || ext == "aac" || ext == "flac" || ext == "opus"
+
+                val targetSubdir = when {
+                    isVideo -> File(baseDownloadsDir, "video")
+                    isImage -> File(baseDownloadsDir, "image")
+                    isAudio -> File(baseDownloadsDir, "audio")
+                    else -> baseDownloadsDir
+                }
+                if (!targetSubdir.exists()) targetSubdir.mkdirs()
+
+                var destFile = File(targetSubdir, item.name)
+                if (destFile.exists()) {
+                    if (destFile.length() == item.length() && item.length() > 0L) {
+                        item.delete()
+                        continue
+                    }
+                    val baseName = item.nameWithoutExtension
+                    var counter = 1
+                    while (destFile.exists()) {
+                        destFile = File(targetSubdir, "${baseName}_$counter.$ext")
+                        counter++
+                    }
+                }
+
+                val moved = item.renameTo(destFile)
+                if (!moved) {
+                    try {
+                        item.copyTo(destFile, overwrite = true)
+                        item.delete()
+                    } catch (_: Exception) {}
+                }
+            }
+        }
+    }
+
+    private fun deleteDirRecursivelySafely(dir: File) {
+        try {
+            dir.deleteRecursively()
+        } catch (_: Exception) {}
+    }
+
     private fun moveDirectoryContents(source: File, destination: File) {
+        try {
+            val srcCanon = source.canonicalPath
+            val destCanon = destination.canonicalPath
+            // Protección contra recursión infinita
+            if (srcCanon == destCanon || destCanon.startsWith(srcCanon + File.separator)) {
+                android.util.Log.w(Config.TAG_PATH_UTILS, "Aborted circular move: $srcCanon -> $destCanon")
+                return
+            }
+        } catch (_: Exception) {
+            return
+        }
+
         if (!destination.exists()) destination.mkdirs()
         source.listFiles()?.forEach { file ->
+            try {
+                val fileCanon = file.canonicalPath
+                val destCanon = destination.canonicalPath
+                if (fileCanon == destCanon || destCanon.startsWith(fileCanon + File.separator)) {
+                    return@forEach
+                }
+            } catch (_: Exception) {
+                return@forEach
+            }
+
             val destFile = File(destination, file.name)
             if (file.isDirectory) {
                 moveDirectoryContents(file, destFile)

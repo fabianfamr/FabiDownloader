@@ -69,7 +69,7 @@ object NativeMediaExtractor {
             val json = JSONObject(body)
             val title = json.optString("title", "Video de TikTok")
             val author = json.optString("author_name", "TikTok")
-            val thumb = json.optString("thumbnail_url", null)
+            val thumb = json.optString("thumbnail_url").takeIf { it.isNotBlank() }
             return NativeVideoDetails(
                 title = title.take(80),
                 author = author,
@@ -94,7 +94,7 @@ object NativeMediaExtractor {
             val json = JSONObject(body)
             val title = json.optString("title", "Publicación de Reddit")
             val author = json.optString("author_name", "Reddit")
-            val thumb = json.optString("thumbnail_url", null)
+            val thumb = json.optString("thumbnail_url").takeIf { it.isNotBlank() }
             return NativeVideoDetails(
                 title = title.take(80),
                 author = author,
@@ -184,7 +184,7 @@ object NativeMediaExtractor {
                 if (type == "video" || type == "animated_gif") {
                     val videoInfo = media.optJSONObject("video_info")
                     val variants = videoInfo?.optJSONArray("variants") ?: continue
-                    val thumb = media.optString("media_url_https", null)
+                    val thumb = media.optString("media_url_https").takeIf { it.isNotBlank() }
 
                     val streamList = mutableListOf<StreamFormat>()
                     val sizesMap = mutableMapOf<String, Double>()
@@ -286,7 +286,7 @@ object NativeMediaExtractor {
                 val itag = fmt.optInt("itag")
                 val qualityLabel = fmt.optString("qualityLabel", "360p")
                 val height = fmt.optInt("height", 360)
-                val directUrl = fmt.optString("url", null)
+                val directUrl = fmt.optString("url").takeIf { it.isNotBlank() }
                 val contentLength = fmt.optLong("contentLength", 0L)
                 val sizeMb = if (contentLength > 0) contentLength / (1024.0 * 1024.0) else 0.0
 
