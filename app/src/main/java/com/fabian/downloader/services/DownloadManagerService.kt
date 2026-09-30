@@ -125,6 +125,7 @@ class DownloadManagerService private constructor(
         isForced: Boolean = false
     ) {
         val url = com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(rawUrl)
+        DownloadForegroundService.start(application)
         serviceScope.launch {
             var newId: Long = existingId ?: 0L
             try {

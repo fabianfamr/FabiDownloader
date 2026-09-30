@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 class DownloadForegroundService : Service() {
 
     private var serviceStartTimeMs: Long = 0L
+    private var isPromotedToForeground: Boolean = false
     private var wakeLock: android.os.PowerManager.WakeLock? = null
     private var wifiLock: android.net.wifi.WifiManager.WifiLock? = null
 
@@ -41,6 +42,8 @@ class DownloadForegroundService : Service() {
 
         fun start(context: Context) {
             try {
+                if (isRunning) return
+
                 val intent = Intent(context, DownloadForegroundService::class.java).apply {
                     action = ACTION_START
                     setClass(context, DownloadForegroundService::class.java)
@@ -48,14 +51,28 @@ class DownloadForegroundService : Service() {
                     setPackage(context.packageName)
                 }
 
+                val isFg = try {
+                    com.fabian.downloader.MyApplication.getInstance().isAppInForeground
+                } catch (_: Exception) { true }
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    try {
-                        androidx.core.content.ContextCompat.startForegroundService(context, intent)
-                    } catch (e: Exception) {
-                        Log.w("DownloadService", "startForegroundService no permitido directamente desde background, intentando startService", e)
+                    if (isFg) {
+                        try {
+                            androidx.core.content.ContextCompat.startForegroundService(context, intent)
+                        } catch (e: Exception) {
+                            Log.w("DownloadService", "Error llamando startForegroundService", e)
+                            try {
+                                context.startService(intent)
+                            } catch (_: Exception) {}
+                        }
+                    } else {
+                        // En Android 12+, si la app está en background, no llamar startForegroundService()
+                        // para evitar ForegroundServiceStartNotAllowedException y ForegroundServiceDidNotStartInTimeException
                         try {
                             context.startService(intent)
-                        } catch (_: Exception) {}
+                        } catch (e: Exception) {
+                            Log.w("DownloadService", "No se pudo iniciar servicio desde background", e)
+                        }
                     }
                 } else {
                     context.startService(intent)
@@ -116,38 +133,46 @@ class DownloadForegroundService : Service() {
         return START_NOT_STICKY
     }
 
-    private fun promoteToForeground() {
+    private fun promoteToForeground(): Boolean {
+        if (isPromotedToForeground) return true
         try {
             createNotificationChannel()
             val notification = createNotification()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 try {
                     ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+                    isPromotedToForeground = true
+                    return true
                 } catch (e: Throwable) {
                     Log.w("DownloadService", "Fallo startForeground con DATA_SYNC, fallback a estándar", e)
                     try {
                         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, 0)
+                        isPromotedToForeground = true
+                        return true
                     } catch (e2: Throwable) {
-                        Log.w("DownloadService", "Sistema operativo no permitió startForeground (${e2.message}). Continuando en segundo plano sin detener descarga.")
-                        try {
-                            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
-                            manager?.notify(NOTIFICATION_ID, notification)
-                        } catch (_: Exception) {}
+                        Log.w("DownloadService", "startForeground no permitido por el sistema: ${e2.message}. Cancelando foreground para evitar crash.")
+                        // Detener inmediatamente este servicio para cancelar el timer de Context.startForegroundService()
+                        // y evitar RemoteServiceException$ForegroundServiceDidNotStartInTimeException.
+                        // Las descargas continúan activas en segundo plano dentro de DownloadManagerService.
+                        stopSelf()
+                        return false
                     }
                 }
             } else {
                 try {
                     ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, 0)
+                    isPromotedToForeground = true
+                    return true
                 } catch (e: Throwable) {
                     Log.w("DownloadService", "startForeground falló en pre-Q: ${e.message}")
-                    try {
-                        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
-                        manager?.notify(NOTIFICATION_ID, notification)
-                    } catch (_: Exception) {}
+                    stopSelf()
+                    return false
                 }
             }
         } catch (e: Throwable) {
-            Log.w("DownloadService", "Excepción no fatal en promoteToForeground: ${e.message}")
+            Log.w("DownloadService", "Excepción en promoteToForeground: ${e.message}")
+            stopSelf()
+            return false
         }
     }
 
@@ -192,6 +217,7 @@ class DownloadForegroundService : Service() {
     override fun onDestroy() {
         instance = null
         isRunning = false
+        isPromotedToForeground = false
         try {
             com.fabian.downloader.utils.DeviceOptimizationHelper.releaseDownloadLocks(wakeLock, wifiLock)
             wakeLock = null
