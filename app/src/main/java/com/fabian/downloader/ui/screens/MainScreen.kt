@@ -17,6 +17,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -212,82 +214,240 @@ fun MainScreen(
         label = "floatY"
     )
 
+    val windowWidthClass = com.fabian.downloader.ui.LocalWindowWidthClass.current
+    val isWide = windowWidthClass.isWide
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(colors.background)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            AnimatedVisibility(
-                visible = searchBarVisible,
-                enter = fadeIn(tween(300, easing = FastOutSlowInEasing)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, easing = FastOutSlowInEasing))
+        if (isWide) {
+            // Diseño Adaptativo para Tablets y Pantallas Anchas (2 columnas)
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .padding(horizontal = 32.dp, vertical = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(32.dp)
             ) {
+                // Columna Izquierda: Logo, Título y Campo de Entrada URL
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .weight(1.1f)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 24.dp)
-                            .graphicsLayer { translationY = floatY },
-                        contentAlignment = Alignment.Center
+                    AnimatedVisibility(
+                        visible = searchBarVisible,
+                        enter = fadeIn(tween(300, easing = FastOutSlowInEasing)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, easing = FastOutSlowInEasing))
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_app_logo),
-                            contentDescription = stringResource(R.string.main_app_title),
-                            modifier = Modifier.size(120.dp)
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp)
+                                    .graphicsLayer { translationY = floatY },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_app_logo),
+                                    contentDescription = stringResource(R.string.main_app_title),
+                                    modifier = Modifier.size(110.dp)
+                                )
+                            }
+
+                            Text(
+                                text = stringResource(R.string.main_paste_link_title),
+                                style = TextStyle(
+                                    brush = Brush.horizontalGradient(listOf(colors.accent, Color(0xFF7B61FF)))
+                                ),
+                                fontSize = 32.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                textAlign = TextAlign.Center,
+                                lineHeight = 1.3.sp,
+                                modifier = Modifier.padding(bottom = 20.dp)
+                            )
+                        }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    MainUrlInputSection(
+                        query = query,
+                        onQueryChange = { query = it },
+                        detectedPlatform = detectedPlatform,
+                        searchBarVisible = searchBarVisible,
+                        colors = colors,
+                        scope = scope,
+                        onAnalyzeSuccess = { targetQuery ->
+                            viewModel.saveSearch(targetQuery)
+                            urlToDownloadInDialog = targetQuery
+                            query = ""
+                        }
+                    )
 
-                    Text(
-                        text = stringResource(R.string.main_paste_link_title),
-                        style = TextStyle(
-                            brush = Brush.horizontalGradient(listOf(colors.accent, Color(0xFF7B61FF)))
-                        ),
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        textAlign = TextAlign.Center,
-                        lineHeight = 1.3.sp,
-                        modifier = Modifier.padding(bottom = 24.dp)
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Tarjeta Informativa Expressive de Plataformas Compatibles en Tablet
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = colors.card,
+                        shape = RoundedCornerShape(22.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, colors.border)
+                    ) {
+                        Column(modifier = Modifier.padding(20.dp)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .background(colors.accent, CircleShape)
+                                )
+                                Text(
+                                    text = "Plataformas Compatibles (+1000 sitios)",
+                                    color = colors.accent,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = "Descarga videos en máxima calidad (hasta 4K/60fps) y audio en MP3/M4A/FLAC con metadatos y carátula.",
+                                color = colors.textSecondary,
+                                fontSize = 13.sp,
+                                lineHeight = 18.sp
+                            )
+                            Spacer(modifier = Modifier.height(14.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                platforms.take(6).forEach { platform ->
+                                    Surface(
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = colors.cardSecondary,
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, colors.border)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = platform.icon,
+                                                contentDescription = platform.label,
+                                                tint = platform.color,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                            Text(
+                                                text = platform.label,
+                                                color = colors.textPrimary,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Columna Derecha: Descargas Recientes
+                Column(
+                    modifier = Modifier
+                        .weight(0.9f)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    MainRecentDownloadsSection(
+                        recentDownloads = recentDownloads,
+                        contentVisible = contentVisible,
+                        colors = colors,
+                        onNavigateToDownloads = onNavigateToDownloads,
+                        onOpenFile = openFile
                     )
                 }
             }
+        } else {
+            // Diseño Estándar para Teléfonos Móviles (1 columna centrada)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                AnimatedVisibility(
+                    visible = searchBarVisible,
+                    enter = fadeIn(tween(300, easing = FastOutSlowInEasing)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, easing = FastOutSlowInEasing))
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp)
+                                .graphicsLayer { translationY = floatY },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_app_logo),
+                                contentDescription = stringResource(R.string.main_app_title),
+                                modifier = Modifier.size(120.dp)
+                            )
+                        }
 
-            MainUrlInputSection(
-                query = query,
-                onQueryChange = { query = it },
-                detectedPlatform = detectedPlatform,
-                searchBarVisible = searchBarVisible,
-                colors = colors,
-                scope = scope,
-                onAnalyzeSuccess = { targetQuery ->
-                    viewModel.saveSearch(targetQuery)
-                    urlToDownloadInDialog = targetQuery
-                    query = ""
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text = stringResource(R.string.main_paste_link_title),
+                            style = TextStyle(
+                                brush = Brush.horizontalGradient(listOf(colors.accent, Color(0xFF7B61FF)))
+                            ),
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 1.3.sp,
+                            modifier = Modifier.padding(bottom = 24.dp)
+                        )
+                    }
                 }
-            )
 
-            Spacer(modifier = Modifier.height(36.dp))
+                MainUrlInputSection(
+                    query = query,
+                    onQueryChange = { query = it },
+                    detectedPlatform = detectedPlatform,
+                    searchBarVisible = searchBarVisible,
+                    colors = colors,
+                    scope = scope,
+                    onAnalyzeSuccess = { targetQuery ->
+                        viewModel.saveSearch(targetQuery)
+                        urlToDownloadInDialog = targetQuery
+                        query = ""
+                    }
+                )
 
-            MainRecentDownloadsSection(
-                recentDownloads = recentDownloads,
-                contentVisible = contentVisible,
-                colors = colors,
-                onNavigateToDownloads = onNavigateToDownloads,
-                onOpenFile = openFile
-            )
+                Spacer(modifier = Modifier.height(36.dp))
 
-            Spacer(modifier = Modifier.height(24.dp))
+                MainRecentDownloadsSection(
+                    recentDownloads = recentDownloads,
+                    contentVisible = contentVisible,
+                    colors = colors,
+                    onNavigateToDownloads = onNavigateToDownloads,
+                    onOpenFile = openFile
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
 
         if (urlToDownloadInDialog != null) {

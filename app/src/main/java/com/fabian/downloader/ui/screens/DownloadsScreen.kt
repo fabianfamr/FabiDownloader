@@ -11,8 +11,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -38,6 +40,7 @@ import com.fabian.downloader.configs.Config
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.database.DownloadRecord
 import com.fabian.downloader.ui.AppSettings
+import com.fabian.downloader.ui.LocalWindowWidthClass
 import com.fabian.downloader.ui.components.AppIcons
 import com.fabian.downloader.ui.components.RealtimeSpeedCardBanner
 import com.fabian.downloader.ui.components.SpeedSliderDialog
@@ -375,6 +378,12 @@ fun DownloadsScreen(
             }
         }
 
+        val windowWidthClass = LocalWindowWidthClass.current
+        val isWide = windowWidthClass.isWide
+        val gridColumns = remember(isWide) {
+            if (isWide) GridCells.Adaptive(minSize = 360.dp) else GridCells.Fixed(1)
+        }
+
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
@@ -415,9 +424,14 @@ fun DownloadsScreen(
                 }
             }
 
-            LazyColumn(
+            LazyVerticalGrid(
+                columns = gridColumns,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+                contentPadding = PaddingValues(
+                    horizontal = if (isWide) 24.dp else 20.dp,
+                    vertical = 12.dp
+                ),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalArrangement = Arrangement.spacedBy(if (AppSettings.cardStyle == "Minimalista") 8.dp else 14.dp)
             ) {
                 if (page == 0) {
@@ -436,10 +450,11 @@ fun DownloadsScreen(
                             )
                         }
                     } else {
-                        item {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
                             Box(
                                 modifier = Modifier
-                                    .fillParentMaxSize()
+                                    .fillMaxWidth()
+                                    .heightIn(min = 320.dp)
                                     .padding(bottom = 60.dp), 
                                 contentAlignment = Alignment.Center
                             ) {
@@ -464,7 +479,7 @@ fun DownloadsScreen(
                     }
                 } else {
                     if (AppSettings.showRealtimeSpeedCard) {
-                        item {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
                             RealtimeSpeedCardBanner(
                                 activeDownloads = downloading,
                                 accentColor = fColors.accent,
@@ -478,10 +493,12 @@ fun DownloadsScreen(
                         }
                     }
                     if (filteredDownloading.isNotEmpty()) {
-                        @OptIn(ExperimentalFoundationApi::class)
-                        stickyHeader {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
                             val anyActive = filteredDownloading.any { !it.isPaused && it.speed != "FAILED" }
-                            Surface(modifier = Modifier.fillMaxWidth(), color = fColors.background) {
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                color = fColors.background
+                            ) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -533,10 +550,11 @@ fun DownloadsScreen(
                             )
                         }
                     } else {
-                        item {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
                             Box(
                                 modifier = Modifier
-                                    .fillParentMaxSize()
+                                    .fillMaxWidth()
+                                    .heightIn(min = 320.dp)
                                     .padding(bottom = 60.dp), 
                                 contentAlignment = Alignment.Center
                             ) {

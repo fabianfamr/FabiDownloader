@@ -9,6 +9,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -123,6 +124,17 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         )
     }
 
+    val windowWidthClass = com.fabian.downloader.ui.LocalWindowWidthClass.current
+    val isWide = windowWidthClass.isWide
+
+    val categories = listOf(
+        stringResource(R.string.settings_cat_downloads),
+        stringResource(R.string.settings_cat_library),
+        stringResource(R.string.settings_cat_appearance),
+        stringResource(R.string.settings_cat_advanced),
+        stringResource(R.string.settings_cat_system)
+    )
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -135,94 +147,215 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                 animationSpec = tween(300, easing = FastOutSlowInEasing)
             )
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.settings_title),
-                    color = C_white,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-
-                // Categorías de Configuración
-                val categories = listOf(
-                    stringResource(R.string.settings_cat_downloads),
-                    stringResource(R.string.settings_cat_library),
-                    stringResource(R.string.settings_cat_appearance),
-                    stringResource(R.string.settings_cat_advanced),
-                    stringResource(R.string.settings_cat_system)
-                )
+            if (isWide) {
+                // Layout Master-Detail Two-Pane Adaptativo para Tablets y Pantallas Grandes
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 20.dp)
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .fillMaxSize()
+                        .statusBarsPadding()
+                        .padding(horizontal = 28.dp, vertical = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                    categories.forEach { category ->
-                        val isSelected = category == selectedCategory
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(if (isSelected) C_accent.copy(alpha = 0.15f) else C_card2)
-                                .border(1.5.dp, if (isSelected) C_accent else C_border, RoundedCornerShape(12.dp))
-                                .clickable { selectedCategory = category }
-                                .padding(horizontal = 16.dp, vertical = 10.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    // Panel Izquierdo: Lista de Categorías con Tarjetas M3 Expresivas
+                    Column(
+                        modifier = Modifier
+                            .width(280.dp)
+                            .fillMaxHeight()
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_title),
+                            color = C_white,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            modifier = Modifier.padding(bottom = 20.dp, start = 4.dp)
+                        )
+
+                        categories.forEach { category ->
+                            val isSelected = category == selectedCategory
+                            val icon = when(category) {
+                                stringResource(R.string.settings_cat_downloads) -> AppIcons.Download
+                                stringResource(R.string.settings_cat_library) -> AppIcons.Library
+                                stringResource(R.string.settings_cat_appearance) -> AppIcons.Palette
+                                stringResource(R.string.settings_cat_advanced) -> AppIcons.Build
+                                else -> AppIcons.Settings
+                            }
+
+                            Surface(
+                                onClick = { selectedCategory = category },
+                                shape = RoundedCornerShape(18.dp),
+                                color = if (isSelected) C_accent.copy(alpha = 0.16f) else C_card,
+                                border = BorderStroke(
+                                    1.5.dp,
+                                    if (isSelected) C_accent else C_border
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
                             ) {
-                                val icon = when(category) {
-                                    stringResource(R.string.settings_cat_downloads) -> AppIcons.Download
-                                    stringResource(R.string.settings_cat_library) -> AppIcons.Library
-                                    stringResource(R.string.settings_cat_appearance) -> AppIcons.Palette
-                                    stringResource(R.string.settings_cat_advanced) -> AppIcons.Build
-                                    else -> AppIcons.Settings
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(38.dp)
+                                            .background(
+                                                if (isSelected) C_accent else C_card2,
+                                                RoundedCornerShape(12.dp)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = icon,
+                                            contentDescription = null,
+                                            tint = if (isSelected) Color.White else C_gray1,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = category,
+                                            color = if (isSelected) C_accent else C_white,
+                                            fontSize = 14.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold
+                                        )
+                                    }
+                                    if (isSelected) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(6.dp)
+                                                .background(C_accent, CircleShape)
+                                        )
+                                    }
                                 }
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = null,
-                                    tint = if (isSelected) C_accent else C_gray1,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Text(
-                                    text = category,
-                                    color = if (isSelected) C_accent else C_white,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
+                            }
+                        }
+                    }
+
+                    // Panel Derecho: Contenedor con la Sección de Ajustes Activa
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        shape = RoundedCornerShape(24.dp),
+                        color = C_card,
+                        border = BorderStroke(1.dp, C_border)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
+                                .padding(24.dp)
+                        ) {
+                            when (selectedCategory) {
+                                stringResource(R.string.settings_cat_downloads) -> {
+                                    DownloadsSettingsSection(fColors = fColors, launcher = launcher)
+                                }
+                                stringResource(R.string.settings_cat_library) -> {
+                                    LibrarySettingsSection(fColors = fColors)
+                                }
+                                stringResource(R.string.settings_cat_appearance) -> {
+                                    AppearanceSettingsSection(fColors = fColors)
+                                }
+                                stringResource(R.string.settings_cat_advanced) -> {
+                                    AdvancedSettingsSection(fColors = fColors)
+                                }
+                                stringResource(R.string.settings_cat_system) -> {
+                                    SystemSettingsSection(
+                                        fColors = fColors,
+                                        ctx = ctx,
+                                        onUpdateFound = { updateFound = it }
+                                    )
+                                }
                             }
                         }
                     }
                 }
+            } else {
+                // Layout Estándar Compacto para Teléfonos
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .statusBarsPadding()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 20.dp, vertical = 20.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_title),
+                        color = C_white,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
 
-                when (selectedCategory) {
-                    stringResource(R.string.settings_cat_downloads) -> {
-                        DownloadsSettingsSection(fColors = fColors, launcher = launcher)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 20.dp)
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        categories.forEach { category ->
+                            val isSelected = category == selectedCategory
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (isSelected) C_accent.copy(alpha = 0.15f) else C_card2)
+                                    .border(1.5.dp, if (isSelected) C_accent else C_border, RoundedCornerShape(12.dp))
+                                    .clickable { selectedCategory = category }
+                                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    val icon = when(category) {
+                                        stringResource(R.string.settings_cat_downloads) -> AppIcons.Download
+                                        stringResource(R.string.settings_cat_library) -> AppIcons.Library
+                                        stringResource(R.string.settings_cat_appearance) -> AppIcons.Palette
+                                        stringResource(R.string.settings_cat_advanced) -> AppIcons.Build
+                                        else -> AppIcons.Settings
+                                    }
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = null,
+                                        tint = if (isSelected) C_accent else C_gray1,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        text = category,
+                                        color = if (isSelected) C_accent else C_white,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
                     }
-                    stringResource(R.string.settings_cat_library) -> {
-                        LibrarySettingsSection(fColors = fColors)
-                    }
-                    stringResource(R.string.settings_cat_appearance) -> {
-                        AppearanceSettingsSection(fColors = fColors)
-                    }
-                    stringResource(R.string.settings_cat_advanced) -> {
-                        AdvancedSettingsSection(fColors = fColors)
-                    }
-                    stringResource(R.string.settings_cat_system) -> {
-                        SystemSettingsSection(
-                            fColors = fColors,
-                            ctx = ctx,
-                            onUpdateFound = { updateFound = it }
-                        )
+
+                    when (selectedCategory) {
+                        stringResource(R.string.settings_cat_downloads) -> {
+                            DownloadsSettingsSection(fColors = fColors, launcher = launcher)
+                        }
+                        stringResource(R.string.settings_cat_library) -> {
+                            LibrarySettingsSection(fColors = fColors)
+                        }
+                        stringResource(R.string.settings_cat_appearance) -> {
+                            AppearanceSettingsSection(fColors = fColors)
+                        }
+                        stringResource(R.string.settings_cat_advanced) -> {
+                            AdvancedSettingsSection(fColors = fColors)
+                        }
+                        stringResource(R.string.settings_cat_system) -> {
+                            SystemSettingsSection(
+                                fColors = fColors,
+                                ctx = ctx,
+                                onUpdateFound = { updateFound = it }
+                            )
+                        }
                     }
                 }
             }

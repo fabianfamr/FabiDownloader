@@ -255,6 +255,11 @@ fun MyApplicationTheme(
     }
 
     CompositionLocalProvider(LocalFabiColors provides fabiColors) {
-        MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            shapes = ExpressiveShapes,
+            content = content
+        )
     }
 }

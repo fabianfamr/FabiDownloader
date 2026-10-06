@@ -230,6 +230,8 @@ fun SharePopupScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 640.dp)
+                .align(Alignment.CenterHorizontally)
                 .verticalScroll(rememberScrollState())
                 .navigationBarsPadding()
                 .padding(horizontal = 24.dp)

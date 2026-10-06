@@ -45,15 +45,16 @@ object PathUtils {
                 dir.mkdirs()
             }
             if (!dir.exists()) return false
+            if (dir.canWrite()) return true
             val testFile = File(dir, ".test_write_${System.currentTimeMillis()}.tmp")
             if (testFile.createNewFile()) {
                 testFile.delete()
                 true
             } else {
-                false
+                dir.canWrite()
             }
         } catch (_: Exception) {
-            false
+            try { dir.canWrite() } catch (_: Exception) { false }
         }
     }
 
@@ -528,10 +529,11 @@ object PathUtils {
         }
 
         if (configuredDir != null) {
-            val finalFolder = if (configuredDir.name.equals(subfolderName, ignoreCase = true)) {
-                configuredDir
-            } else {
-                File(configuredDir, subfolderName)
+            val finalFolder = when {
+                configuredDir.name.equals(subfolderName, ignoreCase = true) -> configuredDir
+                configuredDir.name.equals("downloads", ignoreCase = true) -> File(configuredDir, subfolderName)
+                configuredDir.name.equals(Config.PATH_ROOT_FOLDER, ignoreCase = true) -> File(configuredDir, "downloads/$subfolderName")
+                else -> File(configuredDir, subfolderName)
             }
             if (isWritableDir(finalFolder)) {
                 android.util.Log.d(Config.TAG_PATH_UTILS, "Successfully verified configured folder: ${finalFolder.absolutePath}")

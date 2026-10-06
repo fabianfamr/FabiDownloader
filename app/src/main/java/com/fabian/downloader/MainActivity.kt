@@ -85,6 +85,9 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         com.fabian.downloader.utils.PathUtils.ensureFabiDirectories(this)
+        if (com.fabian.downloader.services.DownloadManagerService.getInstance(this).hasActiveDownloads()) {
+            com.fabian.downloader.services.DownloadForegroundService.start(this)
+        }
     }
 
     private fun checkAndRequestPermissions() {
