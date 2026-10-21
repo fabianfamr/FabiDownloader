@@ -39,8 +39,21 @@ enum class DeviceBrand(val displayName: String, val systemLayerName: String) {
     }
 }
 
+enum class HardwareTier(
+    val displayName: String,
+    val baseFragments: Int,
+    val maxSafeFragments: Int,
+    val maxParallelDownloads: Int
+) {
+    LOW("Básica", 2, 3, 1),
+    MID("Media", 4, 6, 2),
+    HIGH("Alta", 6, 8, 3),
+    ULTRA("Ultra", 8, 12, 4)
+}
+
 data class DeviceDownloadTuning(
     val defaultConcurrentFragments: Int,
+    val maxSafeFragments: Int = 8,
     val httpChunkSize: String,
     val bufferSize: String,
     val threadPriority: Int,
@@ -52,72 +65,123 @@ object DeviceOptimizationHelper {
     val currentBrand: DeviceBrand by lazy { DeviceBrand.detectCurrent() }
 
     /**
+     * Detecta el perfil de hardware en tiempo de ejecución (núcleos de CPU y memoria de la JVM)
+     * para balancear el número de fragmentos y colas simultáneas sin saturar el sistema.
+     */
+    fun detectHardwareTier(): HardwareTier {
+        val numCores = Runtime.getRuntime().availableProcessors().coerceAtLeast(1)
+        val maxMemoryMb = (Runtime.getRuntime().maxMemory() / (1024 * 1024)).toInt()
+
+        return when {
+            numCores >= 8 && maxMemoryMb >= 384 -> HardwareTier.ULTRA
+            numCores >= 6 && maxMemoryMb >= 256 -> HardwareTier.HIGH
+            numCores >= 4 && maxMemoryMb >= 160 -> HardwareTier.MID
+            else -> HardwareTier.LOW
+        }
+    }
+
+    /**
+     * Calcula de forma dinámica el número óptimo de descargas simultáneas en la cola,
+     * considerando el tier del hardware y el estado de la batería.
+     */
+    fun getDynamicMaxConcurrentDownloads(context: Context): Int {
+        val tier = detectHardwareTier()
+        return tier.maxParallelDownloads
+    }
+
+    /**
      * Devuelve parámetros de descarga calibrados automáticamente de forma interna
      * según el fabricante, CPU y el comportamiento de gestión de memoria/I/O de cada marca.
      */
     fun getAutoTuning(): DeviceDownloadTuning {
         val brand = currentBrand
-        val numCores = Runtime.getRuntime().availableProcessors().coerceAtLeast(1)
-        val maxMemoryMb = (Runtime.getRuntime().maxMemory() / (1024 * 1024)).toInt()
+        val tier = detectHardwareTier()
+
+        val baseFragments = when (tier) {
+            HardwareTier.ULTRA -> 8
+            HardwareTier.HIGH -> 6
+            HardwareTier.MID -> 4
+            HardwareTier.LOW -> 2
+        }
+
+        val maxFragments = when (tier) {
+            HardwareTier.ULTRA -> 12
+            HardwareTier.HIGH -> 8
+            HardwareTier.MID -> 6
+            HardwareTier.LOW -> 3
+        }
+
+        val chunkSize = when (tier) {
+            HardwareTier.ULTRA, HardwareTier.HIGH -> "10M"
+            HardwareTier.MID -> "8M"
+            HardwareTier.LOW -> "4M"
+        }
+
+        val buffer = when (tier) {
+            HardwareTier.ULTRA, HardwareTier.HIGH -> "64K"
+            HardwareTier.MID -> "32K"
+            HardwareTier.LOW -> "16K"
+        }
 
         return when (brand) {
             DeviceBrand.XIAOMI -> {
-                // MIUI / HyperOS gestiona agresivamente procesos con alto número de hilos de red
                 DeviceDownloadTuning(
-                    defaultConcurrentFragments = 2,
-                    httpChunkSize = "4M",
-                    bufferSize = "32K",
+                    defaultConcurrentFragments = minOf(baseFragments, 6),
+                    maxSafeFragments = minOf(maxFragments, 8),
+                    httpChunkSize = chunkSize,
+                    bufferSize = buffer,
                     threadPriority = android.os.Process.THREAD_PRIORITY_BACKGROUND,
                     socketTimeoutMs = 15000
                 )
             }
             DeviceBrand.SAMSUNG -> {
-                // Samsung One UI optimizado para estabilidad de red y respeto al ancho de banda
                 DeviceDownloadTuning(
-                    defaultConcurrentFragments = 3,
-                    httpChunkSize = "5M",
-                    bufferSize = "32K",
+                    defaultConcurrentFragments = baseFragments,
+                    maxSafeFragments = maxFragments,
+                    httpChunkSize = chunkSize,
+                    bufferSize = buffer,
                     threadPriority = android.os.Process.THREAD_PRIORITY_BACKGROUND,
                     socketTimeoutMs = 12000
                 )
             }
             DeviceBrand.HUAWEI -> {
-                // EMUI restringe los sockets concurrentes; se usa chunk moderado y buffer estándar
                 DeviceDownloadTuning(
-                    defaultConcurrentFragments = 2,
-                    httpChunkSize = "4M",
-                    bufferSize = "16K",
+                    defaultConcurrentFragments = minOf(baseFragments, 4),
+                    maxSafeFragments = minOf(maxFragments, 6),
+                    httpChunkSize = chunkSize,
+                    bufferSize = if (tier == HardwareTier.LOW) "16K" else "32K",
                     threadPriority = android.os.Process.THREAD_PRIORITY_BACKGROUND,
                     socketTimeoutMs = 15000
                 )
             }
             DeviceBrand.OPPO -> {
-                // ColorOS / RealmeOS tiene excelente estabilidad con fragmentación de 3 y buffer 32K
                 DeviceDownloadTuning(
-                    defaultConcurrentFragments = 3,
-                    httpChunkSize = "5M",
-                    bufferSize = "32K",
+                    defaultConcurrentFragments = baseFragments,
+                    maxSafeFragments = maxFragments,
+                    httpChunkSize = chunkSize,
+                    bufferSize = buffer,
                     threadPriority = android.os.Process.THREAD_PRIORITY_BACKGROUND,
                     socketTimeoutMs = 12000
                 )
             }
             DeviceBrand.VIVO -> {
-                // FuntouchOS / OriginOS
                 DeviceDownloadTuning(
-                    defaultConcurrentFragments = 2,
-                    httpChunkSize = "4M",
-                    bufferSize = "32K",
+                    defaultConcurrentFragments = minOf(baseFragments, 6),
+                    maxSafeFragments = minOf(maxFragments, 8),
+                    httpChunkSize = chunkSize,
+                    bufferSize = buffer,
                     threadPriority = android.os.Process.THREAD_PRIORITY_BACKGROUND,
                     socketTimeoutMs = 12000
                 )
             }
             DeviceBrand.GENERIC -> {
                 DeviceDownloadTuning(
-                    defaultConcurrentFragments = 2,
-                    httpChunkSize = "4M",
-                    bufferSize = "16K",
+                    defaultConcurrentFragments = baseFragments,
+                    maxSafeFragments = maxFragments,
+                    httpChunkSize = chunkSize,
+                    bufferSize = buffer,
                     threadPriority = android.os.Process.THREAD_PRIORITY_BACKGROUND,
-                    socketTimeoutMs = 10000
+                    socketTimeoutMs = 12000
                 )
             }
         }

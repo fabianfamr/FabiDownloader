@@ -76,7 +76,12 @@ class DownloadQueueManager(
                             }
                         }
 
-                        var maxParallel = AppSettings.maxConcurrentDownloads
+                        val dynamicCap = com.fabian.downloader.utils.DeviceOptimizationHelper.getDynamicMaxConcurrentDownloads(application)
+                        var maxParallel = if (AppSettings.maxConcurrentDownloads <= 0) {
+                            dynamicCap
+                        } else {
+                            AppSettings.maxConcurrentDownloads
+                        }
                         val batteryManager = BatteryOptimizerManager.getInstance(application)
                         if (AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
                             if (AppSettings.batteryLowAction == Config.BATTERY_ACTION_OPTIMIZE ||

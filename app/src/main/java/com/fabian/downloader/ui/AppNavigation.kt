@@ -50,13 +50,17 @@ fun FabiDownloaderApp(
     val currentRoute = navBackStackEntry?.destination?.route
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(startOnDownloads) {
-        if (startOnDownloads) {
-            navController.navigate(Screen.Downloads.route + "?initialPage=$initialPage") {
-                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-            }
+    LaunchedEffect(startOnDownloads, currentRoute) {
+        if (startOnDownloads && currentRoute != null) {
+            try {
+                if (navController.currentDestination != null) {
+                    navController.navigate(Screen.Downloads.route + "?initialPage=$initialPage") {
+                        popUpTo(Screen.Main.route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            } catch (_: Throwable) {}
             onConsumedStartOnDownloads()
         }
     }
@@ -120,7 +124,7 @@ fun FabiDownloaderApp(
                                 onClick = {
                                     if (currentRoute != screen.route && currentRoute?.startsWith(screen.route) != true) {
                                         navController.navigate(screen.route) {
-                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                            popUpTo(Screen.Main.route) { saveState = true }
                                             launchSingleTop = true
                                             restoreState = true
                                         }
@@ -236,7 +240,7 @@ fun FabiDownloaderApp(
                                                     .clickable {
                                                         if (currentRoute != screen.route && currentRoute?.startsWith(screen.route) != true) {
                                                             navController.navigate(screen.route) {
-                                                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                                                popUpTo(Screen.Main.route) { saveState = true }
                                                                 launchSingleTop = true
                                                                 restoreState = true
                                                             }

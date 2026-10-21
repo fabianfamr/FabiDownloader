@@ -80,6 +80,8 @@ object YtdlpCommandBuilder {
                 val supportedVideoFormats = listOf("mp4", "mkv", "webm")
                 val finalVideoFormat = if (supportedVideoFormats.contains(targetFormat)) targetFormat else "mp4"
                 addOption("--merge-output-format", finalVideoFormat)
+                // Remuxing directo por stream copy sin re-codificación en CPU
+                addOption("--postprocessor-args", "FFmpegVideoRemuxer:-c copy")
             }
 
             if (isYoutube) {
@@ -102,14 +104,15 @@ object YtdlpCommandBuilder {
             }
 
             addOption("-o", "${destFolder.absolutePath}/$fileNameWithoutExt.downloading")
-            addOption("--no-part")
+            // Reanudación nativa con archivos .part (estilo Seal / YTDL-nis)
+            addOption("--continue")
 
             val cookiesFile = File(MyApplication.getInstance().filesDir, Config.COOKIES_FILE_NAME)
             if (cookiesFile.exists() && cookiesFile.length() > 0) {
                 addOption("--cookies", cookiesFile.absolutePath)
             }
 
-            // Paralelismo y velocidad
+            // Paralelismo y velocidad calibrados según hardware y batería
             val appCtx = MyApplication.getInstance()
             val batteryManager = BatteryOptimizerManager.getInstance(appCtx)
             val isBatteryLowMode = settings.batteryOptimizationEnabled && 
@@ -124,18 +127,17 @@ object YtdlpCommandBuilder {
                 1
             }
             val userFragments = settings.concurrentFragments.toIntOrNull() ?: brandTuning.defaultConcurrentFragments
+            val maxSafe = brandTuning.maxSafeFragments
             val safeFragments = when {
                 isBatteryLowMode -> 1
-                activeCount > 2 -> 1
-                activeCount > 1 -> 2
-                else -> userFragments.coerceIn(1, 3)
+                activeCount > 2 -> (userFragments / 2).coerceIn(1, maxSafe)
+                activeCount > 1 -> (userFragments * 3 / 4).coerceIn(1, maxSafe)
+                else -> userFragments.coerceIn(1, maxSafe)
             }
             addOption("--concurrent-fragments", safeFragments.toString())
 
             addOption("--buffer-size", brandTuning.bufferSize)
-            if (!isYoutube) {
-                addOption("--http-chunk-size", brandTuning.httpChunkSize)
-            }
+            addOption("--http-chunk-size", brandTuning.httpChunkSize)
 
             val maxSpeed = if (isBatteryLowMode) {
                 if (settings.maxSpeed == Config.SPEED_UNLIMITED || 
@@ -177,11 +179,7 @@ object YtdlpCommandBuilder {
                 addOption("--no-playlist")
             }
 
-            addOption("--force-overwrites")
             addOption("--no-mtime")
-            // Nota: --continue se retiró. Con --no-part no se generan archivos .part que
-            // reanudar, por lo que --continue era código muerto; --force-overwrites ya
-            // garantiza un reinicio limpio en cada reintento.
             if (settings.bypassGeo) {
                 addOption("--geo-bypass")
             }

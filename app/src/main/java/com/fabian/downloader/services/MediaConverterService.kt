@@ -72,21 +72,28 @@ class MediaConverterService(private val context: Context) {
                         addOption("--audio-format", "opus")
                     }
                     "mp4" -> {
-                        addOption("--recode-video", "mp4")
                         if (targetHeight != null && targetHeight > 0) {
+                            addOption("--recode-video", "mp4")
                             addOption("--postprocessor-args", "FFmpegVideoConvertor:-vf scale=-2:$targetHeight -c:a copy")
+                        } else {
+                            // Remuxing directo ultrarrápido (stream copy sin re-codificación en CPU)
+                            addOption("--remux-video", "mp4")
                         }
                     }
                     "mkv" -> {
-                        addOption("--recode-video", "mkv")
                         if (targetHeight != null && targetHeight > 0) {
+                            addOption("--recode-video", "mkv")
                             addOption("--postprocessor-args", "FFmpegVideoConvertor:-vf scale=-2:$targetHeight -c:a copy")
+                        } else {
+                            addOption("--remux-video", "mkv")
                         }
                     }
                     else -> {
-                        addOption("--recode-video", cleanTargetExt)
                         if (targetHeight != null && targetHeight > 0) {
+                            addOption("--recode-video", cleanTargetExt)
                             addOption("--postprocessor-args", "FFmpegVideoConvertor:-vf scale=-2:$targetHeight -c:a copy")
+                        } else {
+                            addOption("--remux-video", cleanTargetExt)
                         }
                     }
                 }

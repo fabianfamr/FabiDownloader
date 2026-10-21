@@ -102,7 +102,15 @@ class DownloadExecutor(
         id: Long,
         passedThumbnailUrl: String?
     ): DownloadTaskSpec {
-        if (!connectionService.checkConnection()) {
+        val hasNet = try {
+            if (!connectionService.checkConnection(strict = false)) {
+                kotlinx.coroutines.delay(600)
+                connectionService.checkConnection(strict = false)
+            } else true
+        } catch (_: Exception) {
+            true
+        }
+        if (!hasNet) {
             throw DownloadException(application.getString(R.string.downloads_toast_no_connection))
         }
 
@@ -209,7 +217,9 @@ class DownloadExecutor(
         val downloadingFile = destFolder.listFiles { _, name ->
             (name.startsWith("${fileNameWithoutExt}.") ||
                 name == "$fileNameWithoutExt.downloading") &&
-                name.contains(".downloading", ignoreCase = true)
+                name.contains(".downloading", ignoreCase = true) &&
+                !name.endsWith(".part", ignoreCase = true) &&
+                !name.endsWith(".ytdl", ignoreCase = true)
         }?.firstOrNull()
 
         return if (downloadingFile != null) {
@@ -247,13 +257,15 @@ class DownloadExecutor(
             destFolder.listFiles { _, name ->
                 name.startsWith("${fileNameWithoutExt}.") &&
                     Config.VALID_EXTENSIONS.any { ext -> name.endsWith(".$ext", ignoreCase = true) } &&
-                    !name.contains(".downloading", ignoreCase = true)
+                    !name.contains(".downloading", ignoreCase = true) &&
+                    !name.endsWith(".part", ignoreCase = true) &&
+                    !name.endsWith(".ytdl", ignoreCase = true)
             }?.firstOrNull()
         }
     }
 
     /**
-     * Post-procesado: detección de formato/quality mismatch y auto-conversión.
+     * Post-procesado: remuxing directo y extracción de streams sin re-codificación en CPU.
      */
     private suspend fun postProcessFile(
         id: Long,
@@ -266,11 +278,9 @@ class DownloadExecutor(
         var finalFile = actualFile
         var finalExt = ext
         val requestedExt = spec.format.uppercase().trim()
-        val requestedHeight = spec.quality.filter { it.isDigit() }.toIntOrNull()
         val isRequestedAudio = Config.AUDIO_EXTENSIONS.any { it.equals(requestedExt, ignoreCase = true) }
 
         var needsAutoConversion = false
-        var conversionTargetHeight: Int? = null
 
         if (isRequestedAudio) {
             val hasVideo = MediaMetadataHelper.hasVideoStream(actualFile)
@@ -278,25 +288,19 @@ class DownloadExecutor(
                 needsAutoConversion = true
             }
         } else {
-            if (requestedExt == "MP4" && ext != "MP4") {
+            // Optimización de rendimiento estilo Seal/NewPipe:
+            // Si el formato solicitado es MP4/MKV/WEBM y difiere del contenedor descargado,
+            // se ejecuta remuxing por copia directa (-c copy) sin transcodificar por software.
+            val validVideoContainers = listOf("MP4", "MKV", "WEBM")
+            if (requestedExt in validVideoContainers && ext != requestedExt) {
                 needsAutoConversion = true
-            }
-            if (requestedHeight != null && requestedHeight > 0) {
-                val resolution = MediaMetadataHelper.getVideoResolution(actualFile)
-                if (resolution != null) {
-                    val currentHeight = resolution.second
-                    if (Math.abs(currentHeight - requestedHeight) > 16) {
-                        needsAutoConversion = true
-                        conversionTargetHeight = requestedHeight
-                    }
-                }
             }
         }
 
         if (needsAutoConversion) {
             finalFile = runAutoConversion(
                 id, actualFile, spec, videoTitle, requestedExt,
-                isRequestedAudio, conversionTargetHeight
+                isRequestedAudio, conversionTargetHeight = null
             )
             finalExt = finalFile.extension.uppercase()
         }

@@ -109,25 +109,28 @@ class ConnectionService {
                     val hasInternetCap = capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
                     val isValidated = capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true
 
+                    // En tablets o dispositivos donde activeNetwork tarda en actualizarse,
+                    // verificar si cualquiera de las redes disponibles tiene INTERNET
+                    val anyNetworkHasInternet = if (!hasInternetCap) {
+                        try {
+                            connectivityManager.allNetworks.any { net ->
+                                connectivityManager.getNetworkCapabilities(net)
+                                    ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+                            }
+                        } catch (_: Exception) {
+                            false
+                        }
+                    } else false
+
                     val reallyOnline = when {
                         // Sistema ya validó: listo
                         isValidated -> true
-                        // Sin capacidad INTERNET: definitivamente offline
-                        !hasInternetCap -> false
-                        // Capacidad INTERNET pero sin validación: probar reachability
-                        else -> {
-                            val reachable = isReachable()
-                            if (reachable) true
-                            // Modo no estricto: dejar que la descarga intente (firewall raro)
-                            else if (!strict) {
-                                Log.w(
-                                    TAG,
-                                    "Reachability falló pero el sistema reporta INTERNET. " +
-                                        "Permitiendo intento (modo no estricto)."
-                                )
-                                true
-                            } else false
+                        hasInternetCap || anyNetworkHasInternet -> {
+                            // Si el sistema reporta internet y no es estricto, permitir proceder
+                            if (!strict) true else isReachable()
                         }
+                        // Sin capacidad reportada por el sistema: verificar con socket real TCP antes de declarar offline
+                        else -> isReachable()
                     }
 
                     lastSocketCheckTime = now
@@ -141,17 +144,23 @@ class ConnectionService {
             }
 
         /**
-         * Prueba reachability contra dos DNS públicos. Devuelve `true`
-         * si al menos uno responde en menos de 2s.
+         * Prueba conectividad real mediante apertura de socket TCP rápido (puerto 53 DNS o 443 HTTPS).
+         * A diferencia de InetAddress.isReachable() (que intenta ICMP echo o puerto 7 y suele fallar
+         * en Android por permisos SELinux), un socket TCP a DNS/HTTPS es 100% fiable en Android.
          */
         private fun isReachable(): Boolean {
-            val hosts = listOf("1.1.1.1", "8.8.8.8")
-            for (host in hosts) {
+            val targets = listOf(
+                Pair("8.8.8.8", 53),
+                Pair("1.1.1.1", 53),
+                Pair("www.google.com", 443)
+            )
+            for ((host, port) in targets) {
                 try {
-                    val addr = java.net.InetAddress.getByName(host)
-                    if (addr.isReachable(2000)) return true
+                    java.net.Socket().use { socket ->
+                        socket.connect(java.net.InetSocketAddress(host, port), 1200)
+                        return true
+                    }
                 } catch (_: Exception) {
-                    // Intentar siguiente host
                 }
             }
             return false

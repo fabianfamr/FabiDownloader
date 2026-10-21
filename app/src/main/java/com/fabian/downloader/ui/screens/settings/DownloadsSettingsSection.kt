@@ -143,7 +143,7 @@ fun DownloadsSettingsSection(
     if (showThreadsDialog) {
         SelectionDialog(
             title = stringResource(R.string.settings_threads),
-            options = listOf("1", "3", "5", "8", "12", "16"),
+            options = listOf("1", "2", "4", "6", "8", "12", "16"),
             selectedOption = concurrentFragmentsState,
             onSelection = {
                 AppSettings.concurrentFragments = it
@@ -422,6 +422,19 @@ fun DownloadsSettingsSection(
                 card2Color = C_card2
             ) {
                 showEarlyStartThresholdDialog = true
+            }
+            HorizontalDivider(color = C_border, thickness = 1.dp)
+            val hwTier = remember { com.fabian.downloader.utils.DeviceOptimizationHelper.detectHardwareTier() }
+            val hwBrand = remember { com.fabian.downloader.utils.DeviceOptimizationHelper.currentBrand }
+            SettingsRow(
+                icon = AppIcons.Speed,
+                title = "Perfil de hardware",
+                trailing = "${hwTier.displayName} (${hwBrand.displayName})",
+                colorAccent = C_accent,
+                textColor = C_white,
+                grayColor = C_gray1,
+                card2Color = C_card2
+            ) {
             }
         }
     }
