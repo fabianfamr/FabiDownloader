@@ -1,127 +1,113 @@
-# Plan de Optimización de Alto Rendimiento y Aceleración de Descargas
+# Plan de Auditoría Exhaustiva y Resolución Modular de Errores
 
-Plan integral para maximizar la velocidad de descarga, optimizar el uso de CPU/RAM/batería y acelerar el procesamiento de medios, integrando las mejores prácticas de proyectos líderes de código abierto en GitHub (Seal, YTDL-nis y NewPipe).
+Plan estratégico de diagnóstico estático profundo y resolución sistemática de errores críticos de estabilidad, fallos de descarga, pérdidas de concurrencia y anomalías de ciclo de vida en toda la aplicación, organizados en cuatro subsistemas lógicos independientes.
 
 > [!IMPORTANT]
-> **Decisiones Críticas Confirmadas por el Usuario (Fase 1):**
-> - **Estrategia de aceleración**: Fragmentos paralelos nativos de `yt-dlp` (`--concurrent-fragments` adaptativo de 4 a 8 hilos de red) y habilitación de archivos `.part` con reanudación (`--continue`), eliminando re-descargas completas ante cortes de red.
-> - **Concurrencia de cola**: Asignación dinámica basada en hardware (`Runtime.availableProcessors()` y memoria RAM disponible) con limitador automático bajo batería baja.
-> - **Post-procesamiento de medios**: Copia directa de flujos (*stream copy* / remuxing sin re-codificación) en lugar de transcodificaciones lentas por CPU en Android, reduciendo el tiempo de finalización de minutos a milisegundos.
+> **Decisiones Clave Confirmadas por el Usuario (Fase 1):**
+> - **Prioridad de Errores**: Errores críticos de estabilidad, fallos en descargas y caídas de la aplicación (evitando bloqueos en hilos de ejecución o paradas inesperadas).
+> - **Método de Diagnóstico**: Análisis estático profundo y revisión modular de código fuente, examinando contratos de tipos, concurrencia, gestión de corrutinas y casos límite.
+> - **Estrategia de Ejecución**: Agrupación y aplicación de correcciones por subsistema funcional en bloques lógicos independientes y verificables.
 
 ---
 
 ## 1. Overview & Core Concept
 
-### Qué resuelve este plan
-Actualmente, el proceso de descarga sufre de tres cuellos de botella clave identificados en el código:
-1. **Límites rígidos en fragmentos**: Se restringían los fragmentos paralelos a un máximo de 3 y se deshabilitaba la reanudación con `--no-part`, lo que causaba descargas lentas en redes rápidas y pérdida total del progreso ante desconexiones.
-2. **Re-codificación innecesaria por CPU**: `postProcessFile` ejecutaba conversiones completas de escala de video con FFmpeg si la resolución difería ligeramente, saturando el procesador del dispositivo móvil durante minutos.
-3. **Colas estáticas**: La cola de descargas no medía dinámicamente la memoria ni los núcleos disponibles del dispositivo para balancear el paralelismo.
+### Objetivo de la Auditoría
+Garantizar la estabilidad absoluta de la aplicación en condiciones reales de uso (conexiones inestables, cambio de redes, suspensión de procesos en segundo plano, cancelación/pausa rápida de tareas y variaciones de hardware en Android 10 a 14).
 
-### Valor para el usuario
-- **Velocidad multiplicada (hasta 3-4x más rápida)**: Descarga simultánea de fragmentos de audio/video y chunks HTTP optimizados para evitar el estrangulamiento de los servidores de contenido.
-- **Tolerancia a fallos y reanudación instantánea**: Si la conexión se interrumpe al 80%, la descarga se reanuda desde ese punto exacto sin perder datos.
-- **Post-procesamiento casi instantáneo**: El archivo pasa de "descargando" a "completado" en menos de un segundo gracias al ensamblado directo por remuxing sin recodificar.
-- **Uso eficiente de batería y memoria**: La aplicación ajusta su agresividad según la gama del dispositivo, los núcleos disponibles y el estado de la batería.
+### Grupos de Trabajo (Subsistemas)
+1. **Grupo 1: Motor de Descarga y Pipeline de Ejecución (`services/`, `pipeline/`)**: Resolución de estados inconsistentes entre tareas en cola, sincronización de mutexes, reanudación limpia sin corrupción de títulos y gestión de procesos del motor `yt-dlp`.
+2. **Grupo 2: Red, Conectividad y Extracción de Medios (`network/`, `services/sites/`)**: Validación de conectividad heterogénea (datos móviles, Wi-Fi, portales cautivos), timeouts estrictos en extracción para evitar colas bloqueadas y robustez en peticiones de metadatos.
+3. **Grupo 3: Almacenamiento, Archivos y Persistencia Room (`database/`, `utils/PathUtils`)**: Prevención de excepciones por Scoped Storage en Android 13/14, verificación segura de espacio en disco, transacciones atómicas en base de datos y limpieza de archivos temporales huérfanos.
+4. **Grupo 4: Interfaz de Usuario, Ciclo de Vida y Notificaciones (`ui/`, `receivers/`, `workers/`)**: Protección contra navegación prematura en Compose, sincronización de `LiveProgress` sin saturar el hilo principal, gestión del receptor de compartir (`ShareReceiverActivity`) y cancelación de canales de notificación.
 
 ---
 
-## 2. Experiencia de Usuario y Ajustes Visuales
+## 2. Experiencia de Usuario y Estabilidad Visual
 
-### Flujos de Usuario Principales
-1. **Descarga Rápida con Reanudación Transparente**: El usuario inicia una descarga; la barra de progreso refleja la velocidad en tiempo real con indicador dinámico de fragmentos activos y ancho de banda aprovechado. Si hay una pérdida momentánea de señal, el estado pasa a pausa/reintento y se reanuda automáticamente en el punto alcanzado.
-2. **Gestión Dinámica de Concurrencia**: Al encolar múltiples elementos, el sistema activa automáticamente el número óptimo de descargas simultáneas (por ejemplo, 3 en dispositivos octa-core con 6GB+ RAM, o 1-2 en dispositivos más modestos), manteniendo el teléfono fluido y sin sobrecalentamiento.
-3. **Indicador de Post-Procesamiento Ultrarrápido**: La fase de empaquetado final ya no congela la interfaz con tiempos de espera prolongados; la notificación finaliza de forma inmediata con feedback háptico y visual claro.
-
-### Controles en Pantalla de Ajustes
-- **Selector de Modo de Descarga**:
-  - *Modo Turbo* (Concurrencia alta de 6-8 fragmentos en Wi-Fi/5G).
-  - *Modo Adaptativo Inteligente* (Equilibrio automático según CPU/batería - Recomendado).
-  - *Modo Ahorro de Datos/Batería* (Fragmentación mínima, preservación de batería).
-- **Indicador de Rendimiento del Hardware**: Vista informativa que detecta núcleos de CPU, RAM disponible y perfil calibrado para el dispositivo.
+### Impacto Directo para el Usuario
+- **Descargas a Prueba de Fallos**: Las descargas ya no se quedarán congeladas en estados infinitos de "Conectando" o "Calculando". En caso de error externo real (bloqueo del servidor o enlace inválido), la aplicación proporciona un diagnóstico claro y recuperable con un solo toque.
+- **Transiciones y Navegación Suaves**: Eliminación de bloqueos de fotogramas (*jank*) al desplazarse por listas grandes de descargas activas, aislando el cálculo de progreso en hilos secundarios.
+- **Consistencia Visual en Títulos y Estados**: Eliminación de acumulaciones repetitivas de prefijos como `[FALLIDO]` en los títulos al reintentar, preservando siempre el nombre limpio del contenido multimedia.
 
 ---
 
-## 3. Decisiones Técnicas y Comparativa con GitHub
+## 3. Decisiones Técnicas y Plan de Resolución por Grupos
 
-### Decisión 1: Fragmentación Nativa vs. Aria2c
-- **Enfoque Elegido**: Fragmentación paralela nativa de `yt-dlp` (`--concurrent-fragments 4..8`) con reanudación por `.part` y `--continue`.
-- **Por qué**: Como demuestran proyectos como Seal y YTDL-nis, `yt-dlp` en sus versiones modernas maneja streams HLS y DASH en paralelo con un rendimiento comparable a aria2c en Android, pero sin requerir binarios externos adicionales, enlaces de arquitectura C/C++ ni sobrecargar la inicialización de procesos en el sistema.
-- **Alternativas descartadas**: Incorporar un binario compilado de aria2c agrega peso al APK, complejidad de permisos NDK y consumo adicional de descriptores de archivos.
+### Grupo 1: Motor de Descargas y Pipeline (Prioridad Alta)
+- **Problema Detectado**: En `DownloadManagerService` y `DownloadActionReceiver`, la reanudación y el reencolado de tareas fallidas utilizaban manipulación de cadenas con `substringAfter(STATUS_FAILED_PREFIX)`, lo que eliminaba partes del título legítimo si contenía caracteres coincidentes. Asimismo, cuando una tarea fallaba antes de iniciar el hilo de trabajo, el estado en la base de datos podía quedar desincronizado del semáforo de cola.
+- **Acción Correctiva**:
+  - Reemplazar toda manipulación de títulos con desinfección pura `removePrefix().trim()`.
+  - Asegurar que cualquier fallo durante `startDownload` libere inmediatamente cualquier id retenido en `processingIds` o `forcedDownloadIds`.
+  - Fortalecer la destrucción de procesos nativos en `pauseDownloadInternal` y `requeueDownload`.
 
-### Decisión 2: Remuxing Directo (`-c copy`) frente a Transcodificación
-- **Enfoque Elegido**: Empaquetado por contenedor (`--merge-output-format mp4/mkv`) sin filtros de re-escalado FFmpeg a nivel de CPU.
-- **Por qué**: En smartphones, la transcodificación por software con FFmpeg de videos 1080p o 4K genera calor extremo, drenaje severo de batería y bloqueos por Out-Of-Memory (OOM). Las aplicaciones de referencia en GitHub descargan el flujo de video y audio en el mejor contenedor compatible y sólo realizan remuxing directo (`copy`), reservando la recodificación exclusivamente a la herramienta manual de conversión si el usuario la solicita explícitamente.
-- **Alternativas descartadas**: Re-escalar video automáticamente ante diferencias menores de resolución.
+### Grupo 2: Red y Extracción de Metadatos (Prioridad Alta)
+- **Problema Detectado**: La extracción de oEmbed y metadatos HTML en `ExtractionService` ejecuta llamadas bloqueantes con `withTimeoutOrNull(4000)`. Si un host tarda o se cuelga, el socket subyacente de OkHttp podía quedar activo consumiendo descriptores de archivo.
+- **Acción Correctiva**:
+  - Configurar timeouts de conexión y lectura específicos en el cliente de extracción (2.5s connect, 4s read).
+  - Cancelar explícitamente la llamada `Call` de OkHttp en bloques `finally` ante cualquier timeout o cancelación de corrutina.
+  - Asegurar que la detección de redes móviles en `isCellularNetwork` maneje correctamente VPNs y conexiones puenteadas.
 
-### Decisión 3: Asignación Dinámica de Recursos de Cola
-- **Enfoque Elegido**: Un evaluador dinámico en tiempo de ejecución que calcula `maxConcurrentDownloads` en base a:
-  - Núcleos activos: `Runtime.getRuntime().availableProcessors()`
-  - Límite de memoria heap de la JVM: `Runtime.getRuntime().maxMemory()`
-  - Estado del gestor térmico y de batería (`BatteryOptimizerManager`)
-- **Por qué**: Evita el problema común de que varios procesos concurrentes de Python/yt-dlp compitan por el ancho de banda del bus de memoria y el almacenamiento flash en dispositivos de gama media/baja, mientras desata toda la potencia en terminales de gama alta.
+### Grupo 3: Almacenamiento y Persistencia (Prioridad Media-Alta)
+- **Problema Detectado**: `hasEnoughStorageSpace` y `checkStorageSpace` en `DownloadExecutor` evalúan `destFolder.absolutePath` usando `StatFs`. Si la carpeta de destino no ha sido creada en disco en ese instante, `StatFs` puede lanzar `IllegalArgumentException` no capturada en algunas versiones de Android.
+- **Acción Correctiva**:
+  - Asegurar la existencia de directorios (`destFolder.mkdirs()`) antes de instanciar `StatFs`, con fallback seguro al directorio de archivos interno de la app.
+  - Sincronizar las operaciones de borrado físico en disco con las transacciones de Room para evitar referencias a archivos inexistentes en la galería de descargas.
+
+### Grupo 4: UI, Ciclo de Vida y Notificaciones (Prioridad Media)
+- **Problema Detectado**: En `DownloadsViewModel`, el combinador de flujos `combine(storageService.getAllDownloads(), liveProgressFlow)` emite actualizaciones con alta frecuencia. Si hay 5 o más descargas simultáneas actualizándose a 10Hz, la UI en Compose recompone elementos innecesariamente.
+- **Acción Correctiva**:
+  - Implementar muestreo (*throttling/conflation*) en el flujo de progreso en vivo hacia la UI (máximo 4 actualizaciones por segundo por elemento en pantalla).
+  - Asegurar que `ShareReceiverActivity` valide exhaustivamente el intent de entrada (`Intent.ACTION_SEND`) contra cadenas vacías, esquemas no soportados o datos binarios inválidos antes de abrir el diálogo de descarga.
 
 ---
 
-## 4. Arquitectura del Sistema y Flujo de Datos
+## 4. Arquitectura de Auditoría y Verificación
 
 ```
  ┌─────────────────────────────────────────────────────────────┐
- │                      Capa de Usuario                        │
- │   URL Input / Compartir  ──▶  DownloadsScreen / Settings   │
+ │                Auditoría Modular por Grupos                 │
+ └──────────────────────────────┬──────────────────────────────┘
+                                │
+        ┌───────────────────────┼───────────────────────┐
+        ▼                       ▼                       ▼
+ ┌───────────────┐       ┌───────────────┐       ┌───────────────┐
+ │   Grupo 1     │       │   Grupo 2     │       │   Grupo 3/4   │
+ │   Pipeline    │       │   Red & Web   │       │ Persistencia  │
+ │  & Ejecución  │       │  Extracción   │       │  UI & Ciclo   │
+ └──────┬────────┘       └───────┬───────┘       └───────┬───────┘
+        │                        │                       │
+        └───────────────────────┼───────────────────────┘
+                                ▼
+ ┌─────────────────────────────────────────────────────────────┐
+ │         Ejecución de Correcciones Atómicas por Grupo         │
+ │   • Sin regresiones en APIs ni firmas existentes            │
+ │   • Manejo tipado de excepciones (StorageException, etc.)   │
  └──────────────────────────────┬──────────────────────────────┘
                                 │
                                 ▼
  ┌─────────────────────────────────────────────────────────────┐
- │                 Hardware Resource Profiler                  │
- │   • CPU Cores   • Max Heap RAM   • Estado Térmico/Batería   │
- └──────────────────────────────┬──────────────────────────────┘
-                                │ Ajusta cupos y fragmentos
-                                ▼
- ┌─────────────────────────────────────────────────────────────┐
- │                 DownloadQueueManager Dinámico               │
- │   • Semáforo dinámico de concurrencia                       │
- │   • Priorización de descargas forzadas vs. normales         │
- └──────────────────────────────┬──────────────────────────────┘
-                                │ Dispara tareas
-                                ▼
- ┌─────────────────────────────────────────────────────────────┐
- │                 YtdlpCommandBuilder Optimizado              │
- │   • --concurrent-fragments (4 a 8 adaptativo)               │
- │   • Archivos .part + --continue (Reanudación total)         │
- │   • --http-chunk-size 10M & buffer tuning                   │
- │   • Selección de flujos nativos sin re-codificación         │
- └──────────────────────────────┬──────────────────────────────┘
-                                │ Ejecución con persistencia
-                                ▼
- ┌─────────────────────────────────────────────────────────────┐
- │                     Stream Remuxer                          │
- │   • Fusión MP4/MKV directa (-c copy)                        │
- │   • Extracción de audio lossless / stream nativo            │
- │   • Finalización instantánea en disco y BD                  │
+ │               Verificación Final del Sistema                │
+ │   • Compilación limpia con compile_applet                   │
+ │   • Suite de pruebas unitarias JVM y Robolectric             │
  └─────────────────────────────────────────────────────────────┘
 ```
 
-### Mapeo de Componentes a Modificar en la Ejecución
-1. **`YtdlpCommandBuilder`**:
-   - Eliminar el bloqueo forzado de fragmentos en 3 (`coerceIn(1, 3)`), permitiendo de 1 a 8 según el perfil del hardware y ajustes del usuario.
-   - Reemplazar `--no-part` por la gestión de archivos temporales `.part` y `--continue`, garantizando reanudación transparente.
-   - Ajustar `--http-chunk-size` a 10M de forma segura para mitigar la limitación de velocidad impuesta por servidores de video.
-2. **`DeviceOptimizationHelper`**:
-   - Implementar cálculo dinámico del perfil de hardware (`HardwareTier`: Low, Mid, High, Ultra) evaluando núcleos y memoria libre.
-   - Configurar tamaños de buffer y fragmentos óptimos por nivel.
-3. **`DownloadQueueManager`**:
-   - Calcular la capacidad de paralelismo en base al perfil de hardware y la batería, evitando saturación del sistema.
-4. **`DownloadExecutor`**:
-   - Optimizar `postProcessFile`: suprimir la re-codificación automática de video por resolución cuando el formato descargado ya sea compatible, utilizando remuxing directo ultrarrápido.
-5. **`AppSettings` y UI de Ajustes**:
-   - Exponer opciones actualizadas para fragmentación paralela (1, 2, 4, 6, 8, Automático) y modo de aceleración en la interfaz.
-
 ---
 
-## 5. Plan de Verificación y Pruebas
+## 5. Fases de Ejecución del Plan
 
-- **Pruebas de Carga de Cola**: Validar que la asignación dinámica de slots no supere el umbral seguro de memoria en dispositivos con recursos limitados.
-- **Pruebas de Reanudación de Descargas**: Simular interrupción forzada de red durante la descarga y verificar que la reanudación con `--continue` parte del porcentaje previo sin reiniciar desde cero.
-- **Pruebas de Post-Procesado Instantáneo**: Comprobar que videos descargados en MP4/MKV se entregan en menos de 1 segundo tras finalizar los fragmentos sin entrar en transcodificación por FFmpeg.
-- **Verificación de Compilación**: Ejecutar `compile_applet` para confirmar la ausencia de errores de sintaxis, imports o tipos en todo el proyecto.
+1. **Fase 1 (Grupo 1 - Core & Pipeline)**:
+   - Limpieza y blindaje de `DownloadManagerService` y `DownloadActionReceiver`.
+   - Garantía de liberación de recursos en cancelaciones y reintentos.
+2. **Fase 2 (Grupo 2 - Red & Extracción)**:
+   - Blindaje de timeouts y cancelación de sockets en `ExtractionService`.
+   - Verificación adaptativa de redes en `isCellularNetwork`.
+3. **Fase 3 (Grupo 3 - Almacenamiento & Room)**:
+   - Protección de `StatFs` en `DownloadExecutor`.
+   - Normalización de rutas y limpieza transaccional en `StorageService` y `PathUtils`.
+4. **Fase 4 (Grupo 4 - UI, Ciclo de Vida y Notificaciones)**:
+   - Optimización de tasa de emisión en `DownloadsViewModel`.
+   - Blindaje de intents en `ShareReceiverActivity`.
+5. **Fase 5 (Validación Global)**:
+   - Ejecución de `compile_applet` y suite completa de pruebas unitarias (`testDebugUnitTest`).

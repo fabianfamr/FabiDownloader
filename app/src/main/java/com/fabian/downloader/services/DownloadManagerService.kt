@@ -304,6 +304,7 @@ class DownloadManagerService private constructor(
         }
 
         try {
+            SnapChunkDownloader.cancelTask(id.toString())
             YoutubeDL.getInstance().destroyProcessById(id.toString())
         } catch (_: Exception) {}
 
@@ -332,7 +333,7 @@ class DownloadManagerService private constructor(
                 if (currentRecord != null) {
                     var cleanTitle = currentRecord.title
                     while (cleanTitle.startsWith(Config.STATUS_FAILED_PREFIX)) {
-                        cleanTitle = cleanTitle.substringAfter(Config.STATUS_FAILED_PREFIX)
+                        cleanTitle = cleanTitle.removePrefix(Config.STATUS_FAILED_PREFIX).trim()
                     }
                     val currentProgress = if (currentRecord.progress < 0) 0 else currentRecord.progress
                     storageService.updateDownloadInfo(id, cleanTitle, Config.STATUS_QUEUED)
@@ -343,6 +344,7 @@ class DownloadManagerService private constructor(
             }
 
             try {
+                SnapChunkDownloader.cancelTask(id.toString())
                 YoutubeDL.getInstance().destroyProcessById(id.toString())
             } catch (_: Exception) {}
             activeCalls[id]?.cancel()

@@ -473,6 +473,7 @@ class DownloadExecutor(
     private fun cleanupDownload(id: Long, videoTitle: String, oldPriority: Int) {
         progressTracker.removeProgress(id)
         activeCalls.remove(id)
+        SnapChunkDownloader.cancelTask(id.toString())
         try {
             YoutubeDL.getInstance().destroyProcessById(id.toString())
         } catch (e: Exception) {
@@ -517,6 +518,7 @@ class DownloadExecutor(
 
     fun stopDownloadForStorage(id: Long) {
         if (id <= 0) return
+        SnapChunkDownloader.cancelTask(id.toString())
         try {
             YoutubeDL.getInstance().destroyProcessById(id.toString())
         } catch (e: Exception) {

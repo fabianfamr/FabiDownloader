@@ -226,13 +226,48 @@ open class BaseSiteService(
         fileNameWithoutExt: String, processId: String?,
         onProgress: (progress: Float, sizeText: String, speedText: String) -> Unit
     ): Boolean = withContext(Dispatchers.IO) {
+        val cleanUrl = cleanUrl(com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url))
+        val targetProcessId = processId ?: java.util.UUID.randomUUID().toString()
+
+        // Modo SnapTube Turbo: Intento de descarga directa multihilo acelerada si existe stream nativo
+        val isVideoMp4 = format.equals("mp4", ignoreCase = true) || format.equals(Config.FORMAT_MP4, ignoreCase = true)
+        val isAudioM4a = format.equals("m4a", ignoreCase = true) || format.equals(Config.FORMAT_M4A, ignoreCase = true)
+
+        if (isVideoMp4 || isAudioM4a) {
+            try {
+                val nativeDetails = com.fabian.downloader.services.NativeMediaExtractor.extractNatively(cleanUrl)
+                val directStream = nativeDetails?.streamFormats?.firstOrNull { it.url != null && it.url.startsWith("http") }
+                if (directStream?.url != null) {
+                    val headers = mutableMapOf<String, String>()
+                    customUserAgent?.let { if (it.isNotEmpty()) headers["User-Agent"] = it }
+                    customReferer?.let { if (it.isNotEmpty()) headers["Referer"] = it }
+
+                    Log.i(Config.TAG_BASE_SITE_SERVICE, "Iniciando descarga acelerada SnapChunkDownloader para $cleanUrl")
+                    val snapSuccess = com.fabian.downloader.services.SnapChunkDownloader.downloadDirectMedia(
+                        mediaUrl = directStream.url,
+                        destFolder = destFolder,
+                        fileNameWithoutExt = fileNameWithoutExt,
+                        format = if (isAudioM4a) "m4a" else "mp4",
+                        processId = targetProcessId,
+                        customHeaders = headers,
+                        onProgress = onProgress
+                    )
+                    if (snapSuccess) {
+                        return@withContext true
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(Config.TAG_BASE_SITE_SERVICE, "SnapChunkDownloader no pudo completar descarga directa: ${e.message}. Continuando con yt-dlp...")
+            }
+        }
+
         downloader.descargar(
             rawVideoUrl = url,
             quality = quality,
             format = format,
             destFolder = destFolder,
             fileNameWithoutExt = fileNameWithoutExt,
-            processId = processId ?: java.util.UUID.randomUUID().toString(),
+            processId = targetProcessId,
             customizeRequest = { request ->
                 customizeDownloaderRequest(request, url)
             },

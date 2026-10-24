@@ -45,7 +45,8 @@ object NativeMediaExtractor {
             when {
                 UrlUtils.isYoutubeUrl(cleanUrl) -> extractYoutubeInnerTube(cleanUrl)
                 UrlUtils.isTwitterUrl(cleanUrl) -> extractTwitterSyndication(cleanUrl)
-                UrlUtils.isTikTokUrl(cleanUrl) -> extractTikTokOembed(cleanUrl)
+                UrlUtils.isTikTokUrl(cleanUrl) -> extractTikTokDirectOrOembed(cleanUrl)
+                UrlUtils.isInstagramUrl(cleanUrl) -> extractInstagramDirect(cleanUrl)
                 UrlUtils.isRedditUrl(cleanUrl) -> extractRedditOembed(cleanUrl)
                 isDirectMediaLink(cleanUrl) -> extractDirectMediaLink(cleanUrl)
                 else -> null
@@ -54,6 +55,163 @@ object NativeMediaExtractor {
             Log.w(TAG, "Error en extracción nativa para $cleanUrl: ${e.message}")
             null
         }
+    }
+
+    private fun extractInstagramDirect(url: String): NativeVideoDetails? {
+        val shortcodeRegex = Regex("""(?:p|reel|tv)/([a-zA-Z0-9_-]+)""")
+        val shortcode = shortcodeRegex.find(url)?.groupValues?.getOrNull(1) ?: return null
+        val endpoints = listOf(
+            "https://www.instagram.com/p/$shortcode/?__a=1&__d=dis",
+            "https://www.instagram.com/reel/$shortcode/?__a=1&__d=dis"
+        )
+
+        for (endpoint in endpoints) {
+            try {
+                val request = Request.Builder()
+                    .url(endpoint)
+                    .addHeader("User-Agent", Config.UA_INSTAGRAM)
+                    .addHeader("Accept", "*/*")
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) return@use
+                    val body = response.body?.string() ?: return@use
+                    val json = JSONObject(body)
+
+                    // Estructura 1: items[0]
+                    val items = json.optJSONArray("items")
+                    if (items != null && items.length() > 0) {
+                        val firstItem = items.getJSONObject(0)
+                        val caption = firstItem.optJSONObject("caption")?.optString("text", "Instagram Video") ?: "Instagram Video"
+                        val user = firstItem.optJSONObject("user")?.optString("username", "Instagram") ?: "Instagram"
+                        val videoVersions = firstItem.optJSONArray("video_versions")
+                        val thumb = firstItem.optJSONObject("image_versions2")?.optJSONArray("candidates")?.optJSONObject(0)?.optString("url")
+
+                        if (videoVersions != null && videoVersions.length() > 0) {
+                            val bestVideo = videoVersions.getJSONObject(0)
+                            val directUrl = bestVideo.optString("url")
+                            val width = bestVideo.optInt("width", 720)
+                            val height = bestVideo.optInt("height", 1280)
+                            val qualityLabel = if (height >= 1080 || width >= 1080) "1080p" else "720p"
+
+                            val stream = StreamFormat(
+                                quality = qualityLabel,
+                                format = "MP4",
+                                url = directUrl,
+                                height = height,
+                                approximateSizeMb = 15.0,
+                                isVideo = true,
+                                isAudio = true
+                            )
+                            return NativeVideoDetails(
+                                title = caption.lines().firstOrNull()?.take(60) ?: "Instagram Video",
+                                author = user,
+                                thumbnailUrl = thumb,
+                                streamFormats = listOf(stream),
+                                formatSizes = mapOf(qualityLabel to 15.0, "Original" to 15.0)
+                            )
+                        }
+                    }
+
+                    // Estructura 2: graphql.shortcode_media
+                    val media = json.optJSONObject("graphql")?.optJSONObject("shortcode_media")
+                    if (media != null && media.optBoolean("is_video", false)) {
+                        val directUrl = media.optString("video_url")
+                        val thumb = media.optString("display_url")
+                        val owner = media.optJSONObject("owner")?.optString("username", "Instagram") ?: "Instagram"
+                        if (directUrl.isNotBlank()) {
+                            val stream = StreamFormat(
+                                quality = "720p",
+                                format = "MP4",
+                                url = directUrl,
+                                approximateSizeMb = 12.0,
+                                isVideo = true,
+                                isAudio = true
+                            )
+                            return NativeVideoDetails(
+                                title = "Video de $owner",
+                                author = owner,
+                                thumbnailUrl = thumb,
+                                streamFormats = listOf(stream),
+                                formatSizes = mapOf("720p" to 12.0)
+                            )
+                        }
+                    }
+                }
+            } catch (_: Exception) {}
+        }
+        return null
+    }
+
+    private fun extractTikTokDirectOrOembed(url: String): NativeVideoDetails? {
+        // Intento 1: Extractor directo rápido (TikWM / endpoint público)
+        try {
+            val encodedUrl = java.net.URLEncoder.encode(url, "UTF-8")
+            val tikwmEndpoint = "https://www.tikwm.com/api/?url=$encodedUrl"
+            val request = Request.Builder()
+                .url(tikwmEndpoint)
+                .addHeader("User-Agent", Config.UA_TIKTOK_MOBILE)
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    val body = response.body?.string()
+                    if (!body.isNullOrBlank()) {
+                        val json = JSONObject(body)
+                        val data = json.optJSONObject("data")
+                        if (data != null) {
+                            val title = data.optString("title", "TikTok Video").take(70)
+                            val author = data.optJSONObject("author")?.optString("nickname", "TikTok") ?: "TikTok"
+                            val thumb = data.optString("cover")
+                            val playUrl = data.optString("play")
+                            val hdPlayUrl = data.optString("hdplay").ifEmpty { playUrl }
+                            val sizeBytes = data.optLong("size", 0L)
+                            val sizeMb = if (sizeBytes > 0) sizeBytes / (1024.0 * 1024.0) else 10.0
+
+                            val streams = mutableListOf<StreamFormat>()
+                            if (hdPlayUrl.isNotBlank()) {
+                                streams.add(
+                                    StreamFormat(
+                                        quality = "HD (Sin Marca)",
+                                        format = "MP4",
+                                        url = hdPlayUrl,
+                                        approximateSizeMb = sizeMb,
+                                        isVideo = true,
+                                        isAudio = true
+                                    )
+                                )
+                            }
+                            if (playUrl.isNotBlank() && playUrl != hdPlayUrl) {
+                                streams.add(
+                                    StreamFormat(
+                                        quality = "720p",
+                                        format = "MP4",
+                                        url = playUrl,
+                                        approximateSizeMb = sizeMb * 0.8,
+                                        isVideo = true,
+                                        isAudio = true
+                                    )
+                                )
+                            }
+
+                            if (streams.isNotEmpty()) {
+                                return NativeVideoDetails(
+                                    title = title,
+                                    author = author,
+                                    thumbnailUrl = thumb,
+                                    durationSeconds = data.optLong("duration", 0L),
+                                    streamFormats = streams,
+                                    formatSizes = mapOf("HD (Sin Marca)" to sizeMb, "720p" to sizeMb)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+
+        // Fallback: oEmbed estándar
+        return extractTikTokOembed(url)
     }
 
     private fun extractTikTokOembed(url: String): NativeVideoDetails? {
