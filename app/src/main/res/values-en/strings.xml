@@ -1,4 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- strings.xml — idioma: en (generado por scripts/i18n_assemble.py) -->
     <string name="app_name">Fabi Downloader</string>
     <string name="shortcut_library">Library</string>
     <string name="shortcut_download">Download</string>
@@ -23,4 +25,5 @@
     <string name="storage_permission_grant">Grant Permission</string>
     <string name="scoped_storage_active">Scoped Storage Active</string>
     <string name="status_retrying">Retrying...</string>
+    <string name="main_invalid_url_toast">The clipboard doesn\'t contain a valid link</string>
 </resources>

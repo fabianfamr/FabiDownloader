@@ -309,7 +309,7 @@ fun MainScreen(
                                         .background(colors.accent, CircleShape)
                                 )
                                 Text(
-                                    text = "Plataformas Compatibles (+1000 sitios)",
+                                    text = stringResource(R.string.main_platforms_supported),
                                     color = colors.accent,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold
@@ -317,7 +317,7 @@ fun MainScreen(
                             }
                             Spacer(modifier = Modifier.height(10.dp))
                             Text(
-                                text = "Descarga videos en máxima calidad (hasta 4K/60fps) y audio en MP3/M4A/FLAC con metadatos y carátula.",
+                                text = stringResource(R.string.main_features_desc),
                                 color = colors.textSecondary,
                                 fontSize = 13.sp,
                                 lineHeight = 18.sp

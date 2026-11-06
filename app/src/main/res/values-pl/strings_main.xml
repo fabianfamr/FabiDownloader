@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_main.xml — idioma: pl (generado por scripts/i18n_assemble.py) -->
+    <string name="main_error_file_not_found">Plik nie istnieje lub został usunięty</string>
+    <string name="main_error_opening_file">Błąd otwierania: %1$s</string>
+    <string name="main_app_title">FabiDownloader</string>
+    <string name="main_ready_to_download">Gotowe do pobierania</string>
+    <string name="main_paste_link_title">Wklej swój link</string>
+    <string name="main_paste_link_subtitle">Automatycznie wykrywamy platformę</string>
+    <string name="main_input_placeholder">Wklej link do wideo lub audio...</string>
+    <string name="main_clear_button">Wyczyść</string>
+    <string name="main_paste_button">Wklej</string>
+    <string name="main_analyze_button">Pobierz</string>
+    <string name="main_analyzing">Przetwarzanie...</string>
+    <string name="main_invalid_link">Wprowadź prawidłowy link</string>
+    <string name="main_quick_download_title">Pobieranie jednym dotknięciem</string>
+    <string name="main_processing_link">Przetwarzanie linku...</string>
+    <string name="main_downloading_mp3">🎵 Pobieranie audio MP3...</string>
+    <string name="main_only_mp3">Tylko MP3</string>
+    <string name="main_downloading_m4a">🎵 Pobieranie audio M4A...</string>
+    <string name="main_only_m4a">Tylko M4A</string>
+    <string name="main_downloading_mp4">📹 Pobieranie wideo MP4 (720p)...</string>
+    <string name="main_video_mp4">Wideo MP4</string>
+    <string name="main_recent_downloads">Ostatnie pobrania</string>
+    <string name="main_view_all">Zobacz wszystkie</string>
+    <string name="main_completed">Ukończono</string>
+    <string name="main_in_progress">W toku</string>
+    <string name="main_clipboard_detected_title">Wykryto link w schowku</string>
+    <string name="main_discard_button">Odrzuć</string>
+    <string name="main_clipboard_audio_only">Tylko audio</string>
+    <string name="main_analyze_short">Pobierz</string>
+    <string name="main_detecting_prefix">Wykryliśmy </string>
+    <string name="main_detecting_suffix"> automatycznie</string>
+    <string name="main_analyzing_state">Przetwarzanie...</string>
+    <string name="main_link_detected_state">Wykryto link!</string>
+    <string name="main_tab_home">Start</string>
+    <string name="main_tab_library">Biblioteka</string>
+    <string name="main_tab_settings">Ustawienia</string>
+    <string name="main_tab_download_settings">Ustawienia pobierania</string>
+    <string name="main_download_settings_title">Ustawienia pobierania</string>
+    <string name="main_back">Wstecz</string>
+    <string name="main_platforms_supported">Obsługiwane platformy (+1000 stron)</string>
+    <string name="main_features_desc">Pobieraj filmy w maksymalnej jakości (do 4K/60fps) i audio w MP3/M4A/FLAC z metadanymi i okładką.</string>
+</resources>

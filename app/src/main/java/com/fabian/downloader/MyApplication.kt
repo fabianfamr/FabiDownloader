@@ -7,6 +7,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.fabian.downloader.configs.Config
+import com.yausername.aria2c.Aria2c
 import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
 import kotlinx.coroutines.CoroutineScope
@@ -133,6 +134,15 @@ class MyApplication : Application(), ImageLoaderFactory {
 
                 YoutubeDL.getInstance().init(this@MyApplication)
                 FFmpeg.getInstance().init(this@MyApplication)
+                // Motor externo de descargas (portado de Seal): aria2c multi-protocolo.
+                // Se inicializa junto a yt-dlp para que --downloader libaria2c.so funcione.
+                try {
+                    Aria2c.getInstance().init(this@MyApplication)
+                } catch (e: Exception) {
+                    // aria2c es opcional: si falla, yt-dlp sigue descargando con su
+                    // descargador nativo (concurrent-fragments). No se bloquea la app.
+                    Log.w(Config.TAG_YT_DLP, "Aria2c no pudo inicializarse; se usará el descargador nativo", e)
+                }
 
                 isInitialized = true
                 isYoutubeDLReady = true
@@ -282,6 +292,11 @@ class MyApplication : Application(), ImageLoaderFactory {
             }
             YoutubeDL.getInstance().init(context)
             FFmpeg.getInstance().init(context)
+            try {
+                Aria2c.getInstance().init(context)
+            } catch (e: Exception) {
+                Log.w(Config.TAG_YT_DLP, "Aria2c no pudo reinicializarse tras el reset", e)
+            }
             isInitialized = true
             isYoutubeDLReady = true
             Log.i(Config.TAG_YT_DLP, "yt-dlp directory cleanly re-initialized from APK assets")
@@ -393,6 +408,11 @@ class MyApplication : Application(), ImageLoaderFactory {
         return try {
             YoutubeDL.getInstance().init(context)
             FFmpeg.getInstance().init(context)
+            try {
+                Aria2c.getInstance().init(context)
+            } catch (e: Exception) {
+                Log.w(Config.TAG_YT_DLP, "Aria2c no pudo inicializarse en el rescate", e)
+            }
             isYoutubeDLReady = true
             isInitialized = true
             Log.i(Config.TAG_YT_DLP, "Inicialización directa de rescate completada exitosamente")

@@ -34,7 +34,11 @@ android {
   }
 
   androidResources {
-    localeFilters += listOf("es", "en", "de", "fr", "ja", "ru")
+    // 16 idiomas: es (por defecto) + en, de, fr, ja, ru + pt, it, zh, ko, ar, hi, tr, id, vi, pl
+    localeFilters += listOf(
+      "es", "en", "de", "fr", "ja", "ru",
+      "pt", "it", "zh", "ko", "ar", "hi", "tr", "id", "vi", "pl"
+    )
   }
 
   splits {
@@ -225,6 +229,8 @@ dependencies {
   implementation(libs.converter.kotlinx.serialization)
   implementation(libs.youtubedl.android)
   implementation(libs.youtubedl.ffmpeg)
+  // Motor de descarga externo aria2c (portado del motor de Seal)
+  implementation(libs.youtubedl.aria2c)
   implementation(libs.coil.compose)
   implementation(libs.coil.video)
   implementation(libs.converter.moshi)

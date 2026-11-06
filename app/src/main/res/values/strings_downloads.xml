@@ -141,4 +141,19 @@
     <!-- Fallback titles -->
     <string name="downloads_default_title">Descarga</string>
     <string name="downloads_default_domain">Internet</string>
+    <string name="title_fallback_instagram">Instagram Video</string>
+    <string name="title_fallback_tiktok">Video de TikTok</string>
+    <string name="title_fallback_reddit">Publicación de Reddit</string>
+    <string name="title_fallback_twitter">Video de X / Twitter</string>
+    <string name="title_fallback_youtube">Video de YouTube</string>
+    <string name="quality_no_watermark_hd">HD (Sin Marca)</string>
+
+    <!-- Rutas amigables -->
+    <string name="path_downloads_app">Descargas > FabiDownloader</string>
+    <string name="path_internal_storage">Almacenamiento interno</string>
+    <string name="path_sd_card">Tarjeta SD</string>
+    <string name="notif_channel_group">Descargas</string>
+    <string name="notif_action_copy_report">Copiar informe</string>
+    <string name="notif_error_copied">Informe de error copiado al portapapeles</string>
+    <string name="notif_queue_count">Descargas en curso... (%1$d activas)</string>
 </resources>

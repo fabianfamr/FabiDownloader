@@ -132,6 +132,13 @@ class DownloadQueueManager(
                         }
                     } catch (e: Exception) {
                         Log.e(Config.TAG_DOWNLOAD_MANAGER, "Error in queue loop", e)
+                    } finally {
+                        // Contador de descargas activas en la notificación del
+                        // servicio (portado de Seal: updateServiceNotificationForPlaylist)
+                        try {
+                            com.fabian.downloader.util.NotificationUtil
+                                .updateServiceNotificationForQueue(processingIds.size)
+                        } catch (_: Exception) {}
                     }
                 }
             } finally {
@@ -152,5 +159,11 @@ class DownloadQueueManager(
         if (removed) {
             triggerQueue()
         }
+        // Refrescar el contador de la notificación del servicio tras liberar
+        // un slot (portado de Seal: updateServiceNotificationForPlaylist).
+        try {
+            com.fabian.downloader.util.NotificationUtil
+                .updateServiceNotificationForQueue(processingIds.size)
+        } catch (_: Exception) {}
     }
 }

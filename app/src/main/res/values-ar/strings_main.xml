@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_main.xml — idioma: ar (generado por scripts/i18n_assemble.py) -->
+    <string name="main_error_file_not_found">الملف غير موجود أو تم حذفه</string>
+    <string name="main_error_opening_file">خطأ في الفتح: %1$s</string>
+    <string name="main_app_title">FabiDownloader</string>
+    <string name="main_ready_to_download">جاهز للتنزيل</string>
+    <string name="main_paste_link_title">الصق رابطك</string>
+    <string name="main_paste_link_subtitle">نتعرف على المنصة تلقائيًا</string>
+    <string name="main_input_placeholder">الصق رابط فيديو أو صوت...</string>
+    <string name="main_clear_button">مسح</string>
+    <string name="main_paste_button">لصق</string>
+    <string name="main_analyze_button">تنزيل</string>
+    <string name="main_analyzing">جارٍ المعالجة...</string>
+    <string name="main_invalid_link">يرجى إدخال رابط صالح</string>
+    <string name="main_quick_download_title">تنزيل بلمسة واحدة</string>
+    <string name="main_processing_link">جارٍ معالجة الرابط...</string>
+    <string name="main_downloading_mp3">🎵 جارٍ تنزيل صوت MP3...</string>
+    <string name="main_only_mp3">MP3 فقط</string>
+    <string name="main_downloading_m4a">🎵 جارٍ تنزيل صوت M4A...</string>
+    <string name="main_only_m4a">M4A فقط</string>
+    <string name="main_downloading_mp4">📹 جارٍ تنزيل فيديو MP4 (720p)...</string>
+    <string name="main_video_mp4">فيديو MP4</string>
+    <string name="main_recent_downloads">التنزيلات الأخيرة</string>
+    <string name="main_view_all">عرض الكل</string>
+    <string name="main_completed">مكتمل</string>
+    <string name="main_in_progress">قيد التنفيذ</string>
+    <string name="main_clipboard_detected_title">تم اكتشاف رابط في الحافظة</string>
+    <string name="main_discard_button">تجاهل</string>
+    <string name="main_clipboard_audio_only">صوت فقط</string>
+    <string name="main_analyze_short">تنزيل</string>
+    <string name="main_detecting_prefix">تعرّفنا على </string>
+    <string name="main_detecting_suffix"> تلقائيًا</string>
+    <string name="main_analyzing_state">جارٍ المعالجة...</string>
+    <string name="main_link_detected_state">تم اكتشاف الرابط!</string>
+    <string name="main_tab_home">الرئيسية</string>
+    <string name="main_tab_library">المكتبة</string>
+    <string name="main_tab_settings">الإعدادات</string>
+    <string name="main_tab_download_settings">إعدادات التنزيل</string>
+    <string name="main_download_settings_title">إعدادات التنزيل</string>
+    <string name="main_back">رجوع</string>
+    <string name="main_platforms_supported">المنصات المدعومة (+1000 موقع)</string>
+    <string name="main_features_desc">نزّل الفيديوهات بأعلى جودة (حتى 4K/60fps) والصوت بصيغة MP3/M4A/FLAC مع البيانات الوصفية والغلاف.</string>
+</resources>

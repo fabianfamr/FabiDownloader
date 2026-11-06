@@ -2,9 +2,10 @@ package com.fabian.downloader.services.sites
 
 import android.util.Log
 import com.fabian.downloader.configs.Config
+import com.fabian.downloader.download.Downloader
+import com.fabian.downloader.download.TaskFactory
 import com.fabian.downloader.services.InfoMedia
-import com.fabian.downloader.services.YtdlpDownloader
-import com.fabian.downloader.services.YtdlpExtractor
+import com.fabian.downloader.ui.AppSettings
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
 import kotlinx.coroutines.*
@@ -33,8 +34,6 @@ open class BaseSiteService(
             activeExtractions.clear()
         }
     }
-
-    private val downloader = YtdlpDownloader()
 
     override fun customizeExtractorRequest(request: YoutubeDLRequest, url: String) {
         // Shared options between extractor and downloader
@@ -144,7 +143,7 @@ open class BaseSiteService(
                             val parsed = com.fabian.downloader.utils.YtdlpParser.parseMetadata(
                                 json,
                                 defaultAuthor = Config.STATUS_UNKNOWN,
-                                defaultTitle = "Video de $displayName"
+                                defaultTitle = com.fabian.downloader.utils.AppStrings.videoOf(displayName)
                             )
                             return@async parsed
                         } catch (e: Exception) {
@@ -163,7 +162,7 @@ open class BaseSiteService(
                                             return@async com.fabian.downloader.utils.YtdlpParser.parseMetadata(
                                                 json,
                                                 defaultAuthor = Config.STATUS_UNKNOWN,
-                                                defaultTitle = "Video de $displayName"
+                                                defaultTitle = com.fabian.downloader.utils.AppStrings.videoOf(displayName)
                                             )
                                         }
                                     } catch (retryEx: Exception) {
@@ -229,11 +228,17 @@ open class BaseSiteService(
         val cleanUrl = cleanUrl(com.fabian.downloader.pipeline.DownloadAssemblyLine.station1_cleanUrl(url))
         val targetProcessId = processId ?: java.util.UUID.randomUUID().toString()
 
-        // Modo SnapTube Turbo: Intento de descarga directa multihilo acelerada si existe stream nativo
+        // Descarga acelerada directa (SnapChunkDownloader): OPT-IN explícito.
+        // El motor principal es yt-dlp con aria2c (igual que Seal); el turbo solo
+        // se usa si el sitio declara FAST_HTTP_STREAM y el usuario lo activa,
+        // porque puede elegir un stream equivocado (solo audio/solo video).
         val isVideoMp4 = format.equals("mp4", ignoreCase = true) || format.equals(Config.FORMAT_MP4, ignoreCase = true)
         val isAudioM4a = format.equals("m4a", ignoreCase = true) || format.equals(Config.FORMAT_M4A, ignoreCase = true)
 
-        if (isVideoMp4 || isAudioM4a) {
+        if ((isVideoMp4 || isAudioM4a) &&
+            AppSettings.useFastHttpStream &&
+            capabilities.contains(SiteCapability.FAST_HTTP_STREAM)
+        ) {
             try {
                 val nativeDetails = com.fabian.downloader.services.NativeMediaExtractor.extractNatively(cleanUrl)
                 val directStream = nativeDetails?.streamFormats?.firstOrNull { it.url != null && it.url.startsWith("http") }
@@ -242,7 +247,8 @@ open class BaseSiteService(
                     customUserAgent?.let { if (it.isNotEmpty()) headers["User-Agent"] = it }
                     customReferer?.let { if (it.isNotEmpty()) headers["Referer"] = it }
 
-                    Log.i(Config.TAG_BASE_SITE_SERVICE, "Iniciando descarga acelerada SnapChunkDownloader para $cleanUrl")
+                    android.util.Log.i(Config.TAG_BASE_SITE_SERVICE,
+                        "Descarga acelerada directa (opt-in) para $cleanUrl")
                     val snapSuccess = com.fabian.downloader.services.SnapChunkDownloader.downloadDirectMedia(
                         mediaUrl = directStream.url,
                         destFolder = destFolder,
@@ -257,21 +263,32 @@ open class BaseSiteService(
                     }
                 }
             } catch (e: Exception) {
-                Log.w(Config.TAG_BASE_SITE_SERVICE, "SnapChunkDownloader no pudo completar descarga directa: ${e.message}. Continuando con yt-dlp...")
+                android.util.Log.w(Config.TAG_BASE_SITE_SERVICE,
+                    "SnapChunkDownloader no pudo completar descarga directa: ${e.message}. Continuando con yt-dlp...")
             }
         }
 
-        downloader.descargar(
-            rawVideoUrl = url,
+        // ------------------------------------------------------------------
+        // MOTOR DE SEAL: yt-dlp + aria2c con ordenador de formatos -S.
+        // La tarea encapsula url/calidad/formato/destino y el processId permite
+        // pausar/cancelar desde la UI con destroyProcessById (como en Seal).
+        // ------------------------------------------------------------------
+        val task = TaskFactory.create(
+            url = cleanUrl,
             quality = quality,
             format = format,
             destFolder = destFolder,
             fileNameWithoutExt = fileNameWithoutExt,
-            processId = targetProcessId,
-            customizeRequest = { request ->
+            taskId = targetProcessId,
+            title = fileNameWithoutExt
+        )
+
+        Downloader.downloadVideo(
+            task = task,
+            customizer = { request ->
                 customizeDownloaderRequest(request, url)
             },
-            alProgresar = onProgress
+            onProgress = onProgress
         )
     }
 }

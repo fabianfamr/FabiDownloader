@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings.xml — idioma: zh (generado por scripts/i18n_assemble.py) -->
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">媒体库</string>
+    <string name="shortcut_download">下载</string>
+    <string name="downloads_realtime_speed_title">实时速度</string>
+    <string name="downloads_active_downloads_count">%1$d 个下载任务进行中</string>
+    <string name="downloads_active_count">%1$d 个进行中</string>
+    <string name="downloads_pause_all">全部暂停</string>
+    <string name="downloads_resume_all">全部继续</string>
+    <string name="downloads_force_download_title">强制下载</string>
+    <string name="downloads_force_download_desc">忽略并发限制立即开始</string>
+    <string name="playlist_badge">播放列表（%1$d 个视频）</string>
+    <string name="playlist_options_header">批量下载选项</string>
+    <string name="playlist_format_video">视频（MP4）</string>
+    <string name="playlist_format_mp3">音频（MP3）</string>
+    <string name="playlist_format_m4a">音频（M4A）</string>
+    <string name="playlist_unselect_all">全部取消选择</string>
+    <string name="playlist_select_all">全选</string>
+    <string name="playlist_selected_count">已选 %1$d / %2$d</string>
+    <string name="playlist_download_batch_button">下载批次（%1$d）</string>
+    <string name="storage_permission_title">存储权限</string>
+    <string name="storage_permission_desc">需要存储权限才能保存您的视频和音频下载。</string>
+    <string name="storage_permission_grant">授予权限</string>
+    <string name="scoped_storage_active">安全存储已启用（Scoped Storage）</string>
+    <string name="status_retrying">正在重试...</string>
+    <string name="main_invalid_url_toast">剪贴板中没有有效的链接</string>
+</resources>

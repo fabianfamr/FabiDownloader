@@ -1,7 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- strings.xml — idioma: de (generado por scripts/i18n_assemble.py) -->
     <string name="app_name">Fabi Downloader</string>
-    <string name="shortcut_library">Library</string>
-    <string name="shortcut_download">Download</string>
+    <string name="shortcut_library">Bibliothek</string>
+    <string name="shortcut_download">Herunterladen</string>
     <string name="downloads_realtime_speed_title">Echtzeit-Geschwindigkeit</string>
     <string name="downloads_active_downloads_count">%1$d aktive Downloads</string>
     <string name="downloads_active_count">%1$d aktiv</string>
@@ -21,6 +23,7 @@
     <string name="storage_permission_title">Speicherberechtigung</string>
     <string name="storage_permission_desc">Speicherberechtigungen sind erforderlich, um Ihre Video- und Audio-Downloads zu speichern.</string>
     <string name="storage_permission_grant">Berechtigung erteilen</string>
-    <string name="scoped_storage_active">Scoped Storage Active</string>
-    <string name="status_retrying">Wiederholen...</string>
+    <string name="scoped_storage_active">Geschützter Speicher aktiv (Scoped Storage)</string>
+    <string name="status_retrying">Wird wiederholt...</string>
+    <string name="main_invalid_url_toast">Die Zwischenablage enthält keinen gültigen Link</string>
 </resources>

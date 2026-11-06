@@ -275,4 +275,16 @@
     <string name="ytdlp_update_success_msg">¡yt-dlp se actualizó exitosamente!</string>
     <string name="ytdlp_update_reset_success_msg">¡Motor restablecido exitosamente a los binarios del APK!</string>
     <string name="ytdlp_update_error_msg">Error en el proceso: %1$s</string>
+
+    <!-- Permisos y perfil de hardware -->
+    <string name="settings_all_files_access">Acceso a todos los archivos</string>
+    <string name="settings_permission_granted">Concedido</string>
+    <string name="settings_permission_optional_tap">Opcional (Tocar)</string>
+    <string name="settings_hardware_profile">Perfil de hardware</string>
+    <string name="settings_hardware_profile_value">%1$s (%2$s)</string>
+    <string name="hw_tier_low">Básica</string>
+    <string name="hw_tier_mid">Media</string>
+    <string name="hw_tier_high">Alta</string>
+    <string name="hw_tier_ultra">Ultra</string>
+    <string name="hw_brand_generic">Android Estándar</string>
 </resources>

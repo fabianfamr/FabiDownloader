@@ -21,7 +21,7 @@ class ExtractionService {
         val thumbnailUrl: String? = null,
         val formatSizes: Map<String, Double> = emptyMap(),
         val platformId: String = "generic",
-        val platformName: String = "Enlace Directo",
+        val platformName: String = com.fabian.downloader.utils.AppStrings.directLink(),
         val brandColorHex: String = "#607D8B"
     )
 
@@ -39,7 +39,7 @@ class ExtractionService {
         val author: String,
         val items: List<PlaylistItem>,
         val platformId: String = "generic",
-        val platformName: String = "Lista de reproducción",
+        val platformName: String = com.fabian.downloader.utils.AppStrings.playlistDefault(),
         val brandColorHex: String = "#607D8B"
     )
     
@@ -344,7 +344,7 @@ class ExtractionService {
         }
 
         // 6. Generic Fallback
-        val fallback = if (service.siteId == "generic") "Enlace Directo" else "Video de ${service.displayName}"
+        val fallback = if (service.siteId == "generic") com.fabian.downloader.utils.AppStrings.directLink() else com.fabian.downloader.utils.AppStrings.videoOf(service.displayName)
         titleCache[cleanUrl] = fallback
         return@withContext fallback
     }

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_share.xml — idioma: ko (generado por scripts/i18n_assemble.py) -->
+    <string name="share_error_empty">공유된 링크가 비어 있습니다</string>
+    <string name="share_direct_link">직접 링크</string>
+    <string name="share_video_of">%1$s의 동영상</string>
+    <string name="share_error_analyze">링크를 처리할 수 없습니다. 빠른 다운로드를 시도하시겠습니까?</string>
+    <string name="share_options_title">다운로드 옵션</string>
+    <string name="share_close">닫기</string>
+    <string name="share_download_prefix">다운로드</string>
+    <string name="share_music_section">음악</string>
+    <string name="share_video_section">동영상</string>
+    <string name="share_image_section">이미지</string>
+    <string name="share_format_jpg">JPG (HD)</string>
+    <string name="share_format_png">PNG (무손실)</string>
+    <string name="share_format_webp">WEBP (최적화)</string>
+    <string name="share_download_button">다운로드</string>
+    <string name="share_select_option">옵션을 선택하세요</string>
+    <string name="share_thumbnail">동영상 썸네일</string>
+    <string name="share_analyzing">링크 처리 중...</string>
+    <string name="share_error">오류</string>
+    <string name="share_retry">재시도</string>
+    <string name="share_quick_download">빠른 다운로드</string>
+    <string name="share_size">크기:</string>
+    <string name="share_started_title">다운로드가 시작되었습니다!</string>
+    <string name="share_started_subtitle">다운로드가 정상적으로 시작되었습니다</string>
+    <string name="share_not_now">나중에</string>
+    <string name="share_view">보기</string>
+    <string name="share_size_mb">%1$.1f MB</string>
+    <string name="share_size_auto">...</string>
+    <string name="share_size_loading">...</string>
+    <string name="share_not_available">사용 불가</string>
+    <string name="share_quality_classic_mp3">클래식 MP3 (320K)</string>
+    <string name="share_quality_mp3_192">MP3 (192K)</string>
+    <string name="share_quality_mp3_128">MP3 (128K)</string>
+    <string name="share_quality_fast_m4a">빠름 (64K M4A)</string>
+    <string name="share_quality_fhd_1080">풀HD (1080p)</string>
+    <string name="share_quality_hq_720">고화질 (720p)</string>
+    <string name="share_quality_std_480">표준 (480p)</string>
+    <string name="share_quality_fast_360">빠름 (360p)</string>
+    <string name="share_category_music">Music</string>
+    <string name="share_category_video">Video</string>
+    <string name="share_category_image">Image</string>
+    <string name="notif_report_url_id">URL ID: %1$d</string>
+    <string name="notif_report_title_label">제목: %1$s</string>
+    <string name="notif_report_error_label">오류: %1$s</string>
+</resources>

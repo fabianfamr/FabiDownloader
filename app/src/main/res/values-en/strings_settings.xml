@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- strings_settings.xml — idioma: en (generado por scripts/i18n_assemble.py) -->
     <string name="settings_title">Settings</string>
     <string name="settings_subtitle">Adjust app preferences</string>
     <string name="settings_theme">Theme</string>
@@ -19,9 +20,6 @@
     <string name="settings_update_latest">Already on the latest version</string>
     <string name="settings_update_status">Status: %1$s</string>
     <string name="settings_update_error">Error updating: %1$s</string>
-    <string name="settings_cookies">Configure Cookies (cookies.txt)</string>
-    <string name="settings_configured">Configured</string>
-    <string name="settings_not_configured">Not configured</string>
     <string name="settings_section_about">About Fabi Downloader</string>
     <string name="settings_version">App Version</string>
     <string name="settings_version_value">Fabi Downloader v%1$s</string>
@@ -29,6 +27,9 @@
     <string name="settings_open">Open</string>
     <string name="settings_license">License</string>
     <string name="settings_license_value">MIT License - Open Source</string>
+    <string name="settings_cookies">Configure Cookies (cookies.txt)</string>
+    <string name="settings_configured">Configured</string>
+    <string name="settings_not_configured">Not configured</string>
     <string name="settings_cookies_description">Paste the contents of a cookies.txt file in Netscape format for downloads with age restrictions, private content, or limits (e.g., private Instagram or YouTube).</string>
     <string name="settings_cookies_placeholder"># Netscape HTTP Cookie File...</string>
     <string name="settings_cookies_saved">Cookies saved successfully</string>
@@ -52,24 +53,20 @@
     <string name="settings_section_advanced">Advanced &amp; Privacy</string>
     <string name="settings_section_storage">Storage</string>
     <string name="settings_section_general_header">General</string>
-
     <string name="settings_theme_visual">Visual Theme</string>
     <string name="settings_dynamic_color">Dynamic Color</string>
     <string name="settings_dynamic_color_desc">Use system colors (Android 12+)</string>
     <string name="settings_accent_color">Accent Color</string>
-
     <string name="settings_notif_global">Global Notifications</string>
     <string name="settings_notif_global_desc">Enable/Disable alerts</string>
     <string name="settings_notif_progress">Download Progress</string>
     <string name="settings_notif_progress_desc">Show ongoing downloads in the notification bar</string>
     <string name="settings_notif_speed">Show Speed</string>
     <string name="settings_notif_speed_desc">In the notification bar</string>
-
     <string name="settings_history">Keep History</string>
     <string name="settings_history_desc">Save download list</string>
     <string name="settings_retry">Auto Retry</string>
     <string name="settings_retry_desc">Retry if network fails</string>
-
     <string name="settings_wifi_only">Download on Wi-Fi Only</string>
     <string name="settings_wifi_only_desc">Save mobile data</string>
     <string name="settings_auto_download">Auto Download</string>
@@ -80,7 +77,6 @@
     <string name="settings_threads">Download Threads</string>
     <string name="settings_simultaneous">Simultaneous Downloads</string>
     <string name="settings_simultaneous_desc">Maximum active transfers</string>
-
     <string name="settings_thumbnail">Embed Thumbnails</string>
     <string name="settings_thumbnail_desc">Add covers to files</string>
     <string name="settings_metadata">Embed Metadata</string>
@@ -91,7 +87,6 @@
     <string name="settings_subtitles_desc">Embed subtitles if available</string>
     <string name="settings_confirm_delete">Confirm Deletion</string>
     <string name="settings_confirm_delete_desc">Ask before deleting</string>
-
     <string name="settings_sponsorblock">SponsorBlock</string>
     <string name="settings_sponsorblock_desc">Skip sponsored parts</string>
     <string name="settings_allow_duplicates">Allow Duplicate Downloads</string>
@@ -103,23 +98,19 @@
     <string name="settings_yt_args">yt-dlp Arguments</string>
     <string name="settings_yt_args_default">Default</string>
     <string name="settings_clipboard_action">Clipboard Action</string>
-
     <string name="settings_download_dir">Download Directory</string>
     <string name="settings_clear_cache">Clear Cache</string>
     <string name="settings_clear_cache_desc">Free up space from temporary files</string>
     <string name="settings_clearing">Clearing...</string>
     <string name="settings_cache_cleared">Cache cleared</string>
-
     <string name="settings_version_title">App Version</string>
     <string name="settings_github_repo">GitHub Repository</string>
     <string name="settings_view_code">View Code</string>
-
     <string name="settings_update_now">Update Now</string>
     <string name="settings_update_later">Later</string>
     <string name="settings_update_changes">Changes in this version:</string>
     <string name="settings_update_searching">Searching...</string>
     <string name="settings_update_now_btn">Check Now</string>
-
     <string name="settings_quality_video">Video Quality</string>
     <string name="settings_format_video_title">Video Format</string>
     <string name="settings_threads_parallel">Parallel Download Threads</string>
@@ -130,8 +121,6 @@
     <string name="settings_cookies_title">Configure Cookies (cookies.txt)</string>
     <string name="settings_yt_args_placeholder">--restrict-filenames</string>
     <string name="settings_error_prefix">Error: %1$s</string>
-
-    <!-- DownloadSettingsScreen sections and labels -->
     <string name="settings_section_customization">Customization</string>
     <string name="settings_language">Language</string>
     <string name="settings_select_language">Select Language</string>
@@ -164,8 +153,6 @@
     <string name="settings_simultaneous_downloads">Simultaneous downloads</string>
     <string name="settings_max_transfers">Maximum active transfers</string>
     <string name="settings_custom_args">Custom yt-dlp arguments</string>
-
-    <!-- Dialogs -->
     <string name="settings_select_quality">Select Quality</string>
     <string name="settings_select_video_format">Select Video Format</string>
     <string name="settings_select_audio_format">Select Audio Format</string>
@@ -205,11 +192,9 @@
     <string name="settings_amoled_mode_desc">Pure black background for AMOLED displays</string>
     <string name="settings_user_agent_title">Custom User-Agent</string>
     <string name="settings_user_agent_desc">Custom browser header for downloads</string>
-
     <string name="settings_update_ytdlp_success">yt-dlp binary updated successfully</string>
     <string name="settings_update_ytdlp_error">Error updating yt-dlp binary</string>
     <string name="settings_logs_copied">Error logs copied to clipboard</string>
-
     <string name="settings_cat_downloads">Downloads</string>
     <string name="settings_cat_library">Library</string>
     <string name="settings_cat_appearance">Appearance</string>
@@ -222,8 +207,6 @@
     <string name="settings_header_metadata">Metadata and Tags</string>
     <string name="settings_header_subtitles">Subtitles and Chapters</string>
     <string name="settings_header_filters">Filters and Restrictions</string>
-
-
     <string name="settings_header_visual_style">Visual Style</string>
     <string name="settings_header_notifications">Notifications and Alerts</string>
     <string name="settings_header_download_behavior">Download Behavior</string>
@@ -232,16 +215,10 @@
     <string name="settings_header_cache">Cleanup and Cache</string>
     <string name="settings_header_temp_files">Temporary Files</string>
     <string name="settings_header_battery">Power and Battery</string>
-
-
     <string name="settings_update_binary">Update binary</string>
     <string name="settings_copy_errors">Copy app errors</string>
     <string name="settings_copying">Copying...</string>
-
-
     <string name="settings_copy_clipboard">Copy to clipboard</string>
-
-    <!-- User-friendly menu options -->
     <string name="settings_quality_best">Best quality available</string>
     <string name="settings_quality_audio_only">Audio only</string>
     <string name="settings_speed_unlimited">Unlimited</string>
@@ -256,8 +233,6 @@
     <string name="settings_accent_steel_gray">Steel Gray</string>
     <string name="settings_battery_action_optimize">Pause downloads</string>
     <string name="settings_battery_action_limit">Limit speed and threads</string>
-
-    <!-- yt-dlp Hot-Swap Dialog -->
     <string name="ytdlp_update_dialog_title">yt-dlp Engine Updater</string>
     <string name="ytdlp_update_installed_version">Installed version</string>
     <string name="ytdlp_update_latest_version">Latest on GitHub</string>
@@ -275,4 +250,14 @@
     <string name="ytdlp_update_success_msg">yt-dlp updated successfully!</string>
     <string name="ytdlp_update_reset_success_msg">Engine successfully reset to APK binaries!</string>
     <string name="ytdlp_update_error_msg">Error during process: %1$s</string>
+    <string name="settings_all_files_access">All files access</string>
+    <string name="settings_permission_granted">Granted</string>
+    <string name="settings_permission_optional_tap">Optional (Tap)</string>
+    <string name="settings_hardware_profile">Hardware profile</string>
+    <string name="settings_hardware_profile_value">%1$s (%2$s)</string>
+    <string name="hw_tier_low">Entry</string>
+    <string name="hw_tier_mid">Mid</string>
+    <string name="hw_tier_high">High</string>
+    <string name="hw_tier_ultra">Ultra</string>
+    <string name="hw_brand_generic">Standard Android</string>
 </resources>

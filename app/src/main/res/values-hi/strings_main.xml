@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_main.xml — idioma: hi (generado por scripts/i18n_assemble.py) -->
+    <string name="main_error_file_not_found">फ़ाइल मौजूद नहीं है या हटा दी गई</string>
+    <string name="main_error_opening_file">खोलने में त्रुटि: %1$s</string>
+    <string name="main_app_title">FabiDownloader</string>
+    <string name="main_ready_to_download">डाउनलोड के लिए तैयार</string>
+    <string name="main_paste_link_title">अपना लिंक पेस्ट करें</string>
+    <string name="main_paste_link_subtitle">हम प्लेटफ़ॉर्म अपने आप पहचानते हैं</string>
+    <string name="main_input_placeholder">वीडियो या ऑडियो लिंक पेस्ट करें...</string>
+    <string name="main_clear_button">साफ़ करें</string>
+    <string name="main_paste_button">पेस्ट करें</string>
+    <string name="main_analyze_button">डाउनलोड</string>
+    <string name="main_analyzing">प्रोसेसिंग...</string>
+    <string name="main_invalid_link">कृपया एक मान्य लिंक दर्ज करें</string>
+    <string name="main_quick_download_title">एक टैप डाउनलोड</string>
+    <string name="main_processing_link">लिंक प्रोसेस हो रहा है...</string>
+    <string name="main_downloading_mp3">🎵 MP3 ऑडियो डाउनलोड हो रहा है...</string>
+    <string name="main_only_mp3">केवल MP3</string>
+    <string name="main_downloading_m4a">🎵 M4A ऑडियो डाउनलोड हो रहा है...</string>
+    <string name="main_only_m4a">केवल M4A</string>
+    <string name="main_downloading_mp4">📹 MP4 वीडियो (720p) डाउनलोड हो रहा है...</string>
+    <string name="main_video_mp4">MP4 वीडियो</string>
+    <string name="main_recent_downloads">हाल के डाउनलोड</string>
+    <string name="main_view_all">सभी देखें</string>
+    <string name="main_completed">पूर्ण</string>
+    <string name="main_in_progress">प्रगति पर</string>
+    <string name="main_clipboard_detected_title">क्लिपबोर्ड में लिंक मिला</string>
+    <string name="main_discard_button">खारिज करें</string>
+    <string name="main_clipboard_audio_only">केवल ऑडियो</string>
+    <string name="main_analyze_short">डाउनलोड</string>
+    <string name="main_detecting_prefix">हमने स्वतः पहचाना: </string>
+    <string name="main_detecting_suffix"></string>
+    <string name="main_analyzing_state">प्रोसेसिंग...</string>
+    <string name="main_link_detected_state">लिंक मिल गया!</string>
+    <string name="main_tab_home">होम</string>
+    <string name="main_tab_library">लाइब्रेरी</string>
+    <string name="main_tab_settings">सेटिंग्स</string>
+    <string name="main_tab_download_settings">डाउनलोड सेटिंग्स</string>
+    <string name="main_download_settings_title">डाउनलोड सेटिंग्स</string>
+    <string name="main_back">वापस</string>
+    <string name="main_platforms_supported">समर्थित प्लेटफ़ॉर्म (+1000 साइट)</string>
+    <string name="main_features_desc">अधिकतम गुणवत्ता (4K/60fps तक) वीडियो और मेटाडेटा व कवर सहित MP3/M4A/FLAC ऑडियो डाउनलोड करें।</string>
+</resources>

@@ -1,24 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Download Status Strings -->
+    <!-- strings_config.xml — idioma: de (generado por scripts/i18n_assemble.py) -->
     <string name="status_failed_prefix">Fehlgeschlagen: </string>
-    <string name="status_queued">In Warteschlange...</string>
+    <string name="status_queued">In der Warteschlange...</string>
     <string name="status_waiting">Warten...</string>
     <string name="status_connecting">Verbinden...</string>
-    <string name="status_downloading">Herunterladen...</string>
+    <string name="status_downloading">Wird heruntergeladen...</string>
     <string name="status_completed">Abgeschlossen</string>
     <string name="status_calculating">Berechnen...</string>
-    <string name="status_finalizing">Fertigstellen...</string>
+    <string name="status_finalizing">Abschließen...</string>
     <string name="status_zero_mb">0 MB</string>
     <string name="status_unknown">Unbekannt</string>
-    <string name="status_default_title">Unbenanntes Video</string>
+    <string name="status_default_title">Video ohne Titel</string>
     <string name="status_default_author_instagram">Instagram-Nutzer</string>
-
-    <!-- UI Placeholder Titles -->
-    <string name="title_processing_link">Link verarbeiten...</string>
-    <string name="title_analyzing_shared">Geteilten Link analysieren...</string>
-
-    <!-- Quality Preset Options -->
+    <string name="title_unknown_author">Unbekannt</string>
+    <string name="title_publication_of">Beitrag von %1$s</string>
+    <string name="title_tweet_of">Tweet von %1$s</string>
+    <string name="title_live_of">Live von %1$s</string>
+    <string name="playlist_default_title">Wiedergabeliste</string>
+    <string name="status_cancelled_by_user">Vom Benutzer abgebrochen</string>
+    <string name="error_empty_segment">Leerer Inhalt in Segment %1$d</string>
+    <string name="title_processing_link">Link wird verarbeitet...</string>
+    <string name="title_analyzing_shared">Geteilter Link wird analysiert...</string>
     <string name="quality_best">Beste verfügbare</string>
     <string name="quality_4k">4K (2160p)</string>
     <string name="quality_1080p">1080p Full HD</string>
@@ -26,49 +29,33 @@
     <string name="quality_480p">480p SD</string>
     <string name="quality_360p">360p</string>
     <string name="quality_audio_only">Nur Audio (MP3)</string>
-
-    <!-- Theme Options -->
     <string name="theme_system">System</string>
     <string name="theme_light">Hell</string>
     <string name="theme_dark">Dunkel</string>
-
-    <!-- Card Style Options -->
     <string name="card_style_detailed">Detailliert mit Vorschaubild</string>
-    <string name="card_style_compact">Kompakte Liste</string>
+    <string name="card_style_compact">Kompakt als Liste</string>
     <string name="card_style_minimal">Minimalistisch</string>
-
-    <!-- Audio Bitrate Options -->
     <string name="audio_bitrate_320">320 kbps (Maximal)</string>
     <string name="audio_bitrate_256">256 kbps</string>
     <string name="audio_bitrate_192">192 kbps (Standard)</string>
     <string name="audio_bitrate_128">128 kbps (Leicht)</string>
-
-    <!-- Paused Notification Timeout Options -->
     <string name="timeout_1_min">1 Minute</string>
     <string name="timeout_5_min">5 Minuten</string>
     <string name="timeout_10_min">10 Minuten</string>
     <string name="timeout_30_min">30 Minuten</string>
     <string name="timeout_never">Nie</string>
-
-    <!-- Battery Low Threshold Options -->
     <string name="battery_threshold_15">15%</string>
     <string name="battery_threshold_20">20%</string>
     <string name="battery_threshold_25">25%</string>
     <string name="battery_threshold_30">30%</string>
-
-    <!-- Battery Low Action Options -->
     <string name="battery_action_optimize">Ressourcen optimieren</string>
     <string name="battery_action_limit">Gleichzeitigkeit begrenzen</string>
-
-    <!-- Accent Color Options -->
-    <string name="accent_electric_blue">Elektrisches Blau</string>
-    <string name="accent_emerald_green">Smaragdgrün</string>
-    <string name="accent_royal_purple">Königliches Lila</string>
+    <string name="accent_electric_blue">Elektrisch-Blau</string>
+    <string name="accent_emerald_green">Smaragd-Grün</string>
+    <string name="accent_royal_purple">Königs-Purpur</string>
     <string name="accent_sunset_orange">Sonnenuntergangs-Orange</string>
-    <string name="accent_hot_pink">Kräftiges Pink</string>
+    <string name="accent_hot_pink">Knallpink</string>
     <string name="accent_steel_gray">Stahlgrau</string>
-
-    <!-- Speed Limit Options -->
     <string name="speed_unlimited">Unbegrenzt</string>
     <string name="speed_100k">100 KB/s</string>
     <string name="speed_250k">250 KB/s</string>
@@ -79,8 +66,6 @@
     <string name="speed_10m">10 MB/s</string>
     <string name="speed_20m">20 MB/s</string>
     <string name="speed_50m">50 MB/s</string>
-
-    <!-- Storage Margin Safety Options -->
     <string name="storage_margin_disabled">Deaktiviert</string>
     <string name="storage_margin_100mb">100 MB</string>
     <string name="storage_margin_250mb">250 MB</string>
@@ -90,8 +75,6 @@
     <string name="storage_margin_3gb">3 GB</string>
     <string name="storage_margin_5gb">5 GB</string>
     <string name="storage_margin_10gb">10 GB</string>
-
-    <!-- Bot Detection Patterns -->
     <string name="bot_detection_pattern">Sign in to confirm you</string>
     <string name="bot_detection_login">login</string>
 </resources>

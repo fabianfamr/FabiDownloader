@@ -3,6 +3,7 @@ package com.fabian.downloader.services
 import android.util.Log
 import com.fabian.downloader.configs.Config
 import com.fabian.downloader.network.NetworkClient
+import com.fabian.downloader.utils.AppStrings
 import com.fabian.downloader.utils.UrlUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -82,7 +83,7 @@ object NativeMediaExtractor {
                     val items = json.optJSONArray("items")
                     if (items != null && items.length() > 0) {
                         val firstItem = items.getJSONObject(0)
-                        val caption = firstItem.optJSONObject("caption")?.optString("text", "Instagram Video") ?: "Instagram Video"
+                        val caption = firstItem.optJSONObject("caption")?.optString("text", AppStrings.instagramFallback()) ?: AppStrings.instagramFallback()
                         val user = firstItem.optJSONObject("user")?.optString("username", "Instagram") ?: "Instagram"
                         val videoVersions = firstItem.optJSONArray("video_versions")
                         val thumb = firstItem.optJSONObject("image_versions2")?.optJSONArray("candidates")?.optJSONObject(0)?.optString("url")
@@ -104,7 +105,7 @@ object NativeMediaExtractor {
                                 isAudio = true
                             )
                             return NativeVideoDetails(
-                                title = caption.lines().firstOrNull()?.take(60) ?: "Instagram Video",
+                                title = caption.lines().firstOrNull()?.take(60) ?: AppStrings.instagramFallback(),
                                 author = user,
                                 thumbnailUrl = thumb,
                                 streamFormats = listOf(stream),
@@ -129,7 +130,7 @@ object NativeMediaExtractor {
                                 isAudio = true
                             )
                             return NativeVideoDetails(
-                                title = "Video de $owner",
+                                title = AppStrings.videoOf(owner),
                                 author = owner,
                                 thumbnailUrl = thumb,
                                 streamFormats = listOf(stream),
@@ -160,7 +161,7 @@ object NativeMediaExtractor {
                         val json = JSONObject(body)
                         val data = json.optJSONObject("data")
                         if (data != null) {
-                            val title = data.optString("title", "TikTok Video").take(70)
+                            val title = data.optString("title", AppStrings.tiktokFallback()).take(70)
                             val author = data.optJSONObject("author")?.optString("nickname", "TikTok") ?: "TikTok"
                             val thumb = data.optString("cover")
                             val playUrl = data.optString("play")
@@ -169,10 +170,11 @@ object NativeMediaExtractor {
                             val sizeMb = if (sizeBytes > 0) sizeBytes / (1024.0 * 1024.0) else 10.0
 
                             val streams = mutableListOf<StreamFormat>()
+                            val hdNoWatermarkLabel = AppStrings.noWatermarkHd()
                             if (hdPlayUrl.isNotBlank()) {
                                 streams.add(
                                     StreamFormat(
-                                        quality = "HD (Sin Marca)",
+                                        quality = hdNoWatermarkLabel,
                                         format = "MP4",
                                         url = hdPlayUrl,
                                         approximateSizeMb = sizeMb,
@@ -201,7 +203,7 @@ object NativeMediaExtractor {
                                     thumbnailUrl = thumb,
                                     durationSeconds = data.optLong("duration", 0L),
                                     streamFormats = streams,
-                                    formatSizes = mapOf("HD (Sin Marca)" to sizeMb, "720p" to sizeMb)
+                                    formatSizes = mapOf(hdNoWatermarkLabel to sizeMb, "720p" to sizeMb)
                                 )
                             }
                         }
@@ -225,7 +227,7 @@ object NativeMediaExtractor {
             if (!response.isSuccessful) return null
             val body = response.body?.string() ?: return null
             val json = JSONObject(body)
-            val title = json.optString("title", "Video de TikTok")
+            val title = json.optString("title", AppStrings.tiktokFallback())
             val author = json.optString("author_name", "TikTok")
             val thumb = json.optString("thumbnail_url").takeIf { it.isNotBlank() }
             return NativeVideoDetails(
@@ -250,7 +252,7 @@ object NativeMediaExtractor {
             if (!response.isSuccessful) return null
             val body = response.body?.string() ?: return null
             val json = JSONObject(body)
-            val title = json.optString("title", "Publicación de Reddit")
+            val title = json.optString("title", AppStrings.redditFallback())
             val author = json.optString("author_name", "Reddit")
             val thumb = json.optString("thumbnail_url").takeIf { it.isNotBlank() }
             return NativeVideoDetails(
@@ -332,7 +334,7 @@ object NativeMediaExtractor {
             val body = response.body?.string() ?: return null
             val json = JSONObject(body)
 
-            val text = json.optString("text", "Video de X / Twitter")
+            val text = json.optString("text", AppStrings.twitterFallback())
             val user = json.optJSONObject("user")?.optString("name", "X") ?: "X"
             val mediaEntities = json.optJSONArray("mediaDetails") ?: return null
 
@@ -421,7 +423,7 @@ object NativeMediaExtractor {
             val json = JSONObject(body)
 
             val videoDetails = json.optJSONObject("videoDetails") ?: return null
-            val title = videoDetails.optString("title", "Video de YouTube")
+            val title = videoDetails.optString("title", AppStrings.youtubeFallback())
             val author = videoDetails.optString("author", "YouTube")
             val durationSeconds = videoDetails.optLong("lengthSeconds", 0L)
             val thumbnails = videoDetails.optJSONObject("thumbnail")?.optJSONArray("thumbnails")

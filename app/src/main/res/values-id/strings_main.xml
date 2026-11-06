@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_main.xml — idioma: id (generado por scripts/i18n_assemble.py) -->
+    <string name="main_error_file_not_found">Berkas tidak ada atau telah dihapus</string>
+    <string name="main_error_opening_file">Gagal membuka: %1$s</string>
+    <string name="main_app_title">FabiDownloader</string>
+    <string name="main_ready_to_download">Siap mengunduh</string>
+    <string name="main_paste_link_title">Tempel tautan Anda</string>
+    <string name="main_paste_link_subtitle">Kami mendeteksi platform secara otomatis</string>
+    <string name="main_input_placeholder">Tempel tautan video atau audio...</string>
+    <string name="main_clear_button">Bersihkan</string>
+    <string name="main_paste_button">Tempel</string>
+    <string name="main_analyze_button">Unduh</string>
+    <string name="main_analyzing">Memproses...</string>
+    <string name="main_invalid_link">Masukkan tautan yang valid</string>
+    <string name="main_quick_download_title">Unduhan Sekali Ketuk</string>
+    <string name="main_processing_link">Memproses tautan...</string>
+    <string name="main_downloading_mp3">🎵 Mengunduh audio MP3...</string>
+    <string name="main_only_mp3">Hanya MP3</string>
+    <string name="main_downloading_m4a">🎵 Mengunduh audio M4A...</string>
+    <string name="main_only_m4a">Hanya M4A</string>
+    <string name="main_downloading_mp4">📹 Mengunduh video MP4 (720p)...</string>
+    <string name="main_video_mp4">Video MP4</string>
+    <string name="main_recent_downloads">Unduhan Terbaru</string>
+    <string name="main_view_all">Lihat semua</string>
+    <string name="main_completed">Selesai</string>
+    <string name="main_in_progress">Berjalan</string>
+    <string name="main_clipboard_detected_title">Tautan terdeteksi di papan klip</string>
+    <string name="main_discard_button">Abaikan</string>
+    <string name="main_clipboard_audio_only">Hanya Audio</string>
+    <string name="main_analyze_short">Unduh</string>
+    <string name="main_detecting_prefix">Kami mendeteksi </string>
+    <string name="main_detecting_suffix"> secara otomatis</string>
+    <string name="main_analyzing_state">Memproses...</string>
+    <string name="main_link_detected_state">Tautan Terdeteksi!</string>
+    <string name="main_tab_home">Beranda</string>
+    <string name="main_tab_library">Pustaka</string>
+    <string name="main_tab_settings">Pengaturan</string>
+    <string name="main_tab_download_settings">Pengaturan unduhan</string>
+    <string name="main_download_settings_title">Pengaturan Unduhan</string>
+    <string name="main_back">Kembali</string>
+    <string name="main_platforms_supported">Platform yang Didukung (+1000 situs)</string>
+    <string name="main_features_desc">Unduh video dengan kualitas maksimum (hingga 4K/60fps) dan audio MP3/M4A/FLAC dengan metadata dan sampul.</string>
+</resources>

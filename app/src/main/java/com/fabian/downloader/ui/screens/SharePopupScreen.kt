@@ -187,21 +187,24 @@ fun SharePopupScreen(
     }
 
     var selectedOptionId by remember {
+        // FIX: se comparaba el valor almacenado (canónico: "audio_only", "320k", "1080p")
+        // contra texto visible en español ("Solo Audio", "320 kbps (Máxima)"), de modo que
+        // esas ramas nunca coincidían y la preselección ignoraba la calidad preferida.
         mutableStateOf(
-            if (cleanUrl.contains("music.youtube.com") || cleanUrl.contains("spotify") || cleanUrl.contains("soundcloud") || AppSettings.selectedQuality.contains("Solo Audio")) {
+            if (cleanUrl.contains("music.youtube.com") || cleanUrl.contains("spotify") || cleanUrl.contains("soundcloud") || AppSettings.selectedQuality == Config.QUALITY_AUDIO_ONLY) {
                 when (AppSettings.defaultAudioBitrate) {
-                    "320 kbps (Máxima)", "320 kbps" -> "music_320"
-                    "256 kbps", "192 kbps" -> "music_192"
-                    "128 kbps" -> "music_128"
+                    Config.BITRATE_320 -> "music_320"
+                    Config.BITRATE_256, Config.BITRATE_192 -> "music_192"
+                    Config.BITRATE_128 -> "music_128"
                     else -> "music_320"
                 }
             } else {
                 when {
-                    AppSettings.selectedQuality.contains("1080p") -> "video_1080"
-                    AppSettings.selectedQuality.contains("720p") -> "video_720"
-                    AppSettings.selectedQuality.contains("480p") -> "video_480"
-                    AppSettings.selectedQuality.contains("360p") -> "video_360"
-                    AppSettings.selectedQuality.contains("2160p") || AppSettings.selectedQuality.contains("4K") -> "video_1080"
+                    AppSettings.selectedQuality.contains("2160p") || AppSettings.selectedQuality == Config.QUALITY_4K -> "video_1080"
+                    AppSettings.selectedQuality.contains("1080p") || AppSettings.selectedQuality == Config.QUALITY_1080P -> "video_1080"
+                    AppSettings.selectedQuality.contains("720p") || AppSettings.selectedQuality == Config.QUALITY_720P -> "video_720"
+                    AppSettings.selectedQuality.contains("480p") || AppSettings.selectedQuality == Config.QUALITY_480P -> "video_480"
+                    AppSettings.selectedQuality.contains("360p") || AppSettings.selectedQuality == Config.QUALITY_360P -> "video_360"
                     else -> AppSettings.lastDownloadedOptionId.ifEmpty { "video_720" }
                 }
             }

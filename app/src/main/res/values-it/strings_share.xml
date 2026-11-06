@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_share.xml — idioma: it (generado por scripts/i18n_assemble.py) -->
+    <string name="share_error_empty">Il link condiviso è vuoto</string>
+    <string name="share_direct_link">Link Diretto</string>
+    <string name="share_video_of">Video di %1$s</string>
+    <string name="share_error_analyze">Impossibile elaborare il link. Vuoi provare un download rapido?</string>
+    <string name="share_options_title">Opzioni di Download</string>
+    <string name="share_close">Chiudi</string>
+    <string name="share_download_prefix">Scarica</string>
+    <string name="share_music_section">MUSICA</string>
+    <string name="share_video_section">VIDEO</string>
+    <string name="share_image_section">IMMAGINE</string>
+    <string name="share_format_jpg">JPG (HD)</string>
+    <string name="share_format_png">PNG (Senza perdita)</string>
+    <string name="share_format_webp">WEBP (Ottimizzato)</string>
+    <string name="share_download_button">Scarica</string>
+    <string name="share_select_option">Seleziona un\'opzione</string>
+    <string name="share_thumbnail">Miniatura del video</string>
+    <string name="share_analyzing">Elaborazione link...</string>
+    <string name="share_error">Errore</string>
+    <string name="share_retry">Riprova</string>
+    <string name="share_quick_download">Download Rapido</string>
+    <string name="share_size">Dimensione:</string>
+    <string name="share_started_title">Download avviato!</string>
+    <string name="share_started_subtitle">Il tuo download è iniziato correttamente</string>
+    <string name="share_not_now">Non ora</string>
+    <string name="share_view">Vedi</string>
+    <string name="share_size_mb">%1$.1f MB</string>
+    <string name="share_size_auto">...</string>
+    <string name="share_size_loading">...</string>
+    <string name="share_not_available">Non disponibile</string>
+    <string name="share_quality_classic_mp3">MP3 Classico (320K)</string>
+    <string name="share_quality_mp3_192">MP3 (192K)</string>
+    <string name="share_quality_mp3_128">MP3 (128K)</string>
+    <string name="share_quality_fast_m4a">Veloce (64K M4A)</string>
+    <string name="share_quality_fhd_1080">Full HD (1080p)</string>
+    <string name="share_quality_hq_720">Alta qualità (720p)</string>
+    <string name="share_quality_std_480">Standard (480p)</string>
+    <string name="share_quality_fast_360">Veloce (360p)</string>
+    <string name="share_category_music">Music</string>
+    <string name="share_category_video">Video</string>
+    <string name="share_category_image">Image</string>
+    <string name="notif_report_url_id">ID URL: %1$d</string>
+    <string name="notif_report_title_label">Titolo: %1$s</string>
+    <string name="notif_report_error_label">Errore: %1$s</string>
+</resources>

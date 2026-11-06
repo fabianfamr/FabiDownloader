@@ -215,14 +215,14 @@ object SnapChunkDownloader {
                     if (!response.isSuccessful && response.code != 206) {
                         throw IllegalStateException("HTTP ${response.code} en segmento $i")
                     }
-                    val body = response.body ?: throw IllegalStateException("Cuerpo vacío en segmento $i")
+                    val body = response.body ?: throw IllegalStateException(com.fabian.downloader.utils.AppStrings.emptySegment(i))
                     val inputStream = body.byteStream()
                     val buffer = ByteArray(32 * 1024)
                     var bytesRead: Int
 
                     while (inputStream.read(buffer).also { bytesRead = it } != -1) {
                         if (isCancelled.get() || !isActive) {
-                            throw CancellationException("Cancelado por usuario")
+                            throw CancellationException(com.fabian.downloader.utils.AppStrings.cancelledByUser())
                         }
                         synchronized(fileLock) {
                             raf.seek(currentStart)

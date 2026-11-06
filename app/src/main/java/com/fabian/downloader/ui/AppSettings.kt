@@ -268,6 +268,23 @@ object AppSettings {
         get() = _embedChapters.value
         set(value) { if (_embedChapters.value != value) { _embedChapters.value = value; saveBoolean(Config.PREF_EMBED_CHAPTERS, value); notifyChanged(Config.PREF_EMBED_CHAPTERS) } }
 
+    // Motor de descarga (portado de Seal)
+    // useAria2c: descargador externo multi-protocolo (--downloader libaria2c.so).
+    //   Activado por defecto: es el motor que hace fiable a Seal. Si se desactiva,
+    //   se usa el descargador nativo de yt-dlp con --concurrent-fragments.
+    // useFastHttpStream: descarga directa HTTP acelerada (SnapChunkDownloader) para
+    //   sitios con FAST_HTTP_STREAM. Desactivada por defecto: yt-dlp es más fiable
+    //   y el turbo podía guardar un stream equivocado (solo audio/solo video).
+    private val _useAria2c = mutableStateOf(true)
+    var useAria2c: Boolean
+        get() = _useAria2c.value
+        set(value) { if (_useAria2c.value != value) { _useAria2c.value = value; saveBoolean(Config.PREF_USE_ARIA2C, value); notifyChanged(Config.PREF_USE_ARIA2C) } }
+
+    private val _useFastHttpStream = mutableStateOf(false)
+    var useFastHttpStream: Boolean
+        get() = _useFastHttpStream.value
+        set(value) { if (_useFastHttpStream.value != value) { _useFastHttpStream.value = value; saveBoolean(Config.PREF_USE_FAST_HTTP_STREAM, value); notifyChanged(Config.PREF_USE_FAST_HTTP_STREAM) } }
+
     // Apariencia y UI
     private val _themePreference = mutableStateOf(Config.THEME_SYSTEM)
     val themePreferenceState: State<String> get() = _themePreference
@@ -380,6 +397,8 @@ object AppSettings {
         _quickShareMode.value = prefs.getBoolean(Config.PREF_QUICK_SHARE_MODE, true)
         _allowDuplicateDownloads.value = prefs.getBoolean(Config.PREF_ALLOW_DUPLICATE_DOWNLOADS, true)
         _embedChapters.value = prefs.getBoolean(Config.PREF_EMBED_CHAPTERS, true)
+        _useAria2c.value = prefs.getBoolean(Config.PREF_USE_ARIA2C, true)
+        _useFastHttpStream.value = prefs.getBoolean(Config.PREF_USE_FAST_HTTP_STREAM, false)
         _amoledMode.value = prefs.getBoolean(Config.PREF_AMOLED_MODE, false)
         _markAsMV.value = prefs.getBoolean(Config.PREF_MARK_AS_MV, false)
     }

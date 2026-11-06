@@ -127,16 +127,19 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun MyApplicationTheme(
-    themePreference: String = "Sistema",
+    themePreference: String = com.fabian.downloader.configs.Config.THEME_SYSTEM,
     dynamicColor: Boolean = true,
-    accentColorName: String = "Azul Eléctrico",
+    accentColorName: String = com.fabian.downloader.configs.Config.ACCENT_ELECTRIC_BLUE,
     amoledMode: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
+    // FIX: la preferencia se guarda con claves canónicas ("light"/"dark"/"system").
+    // Antes sólo se comparaban los literales legados en español ("Claro"/"Oscuro"),
+    // de modo que el modo elegido en Ajustes nunca se aplicaba.
     val darkTheme = when (themePreference) {
-        "Claro" -> false
-        "Oscuro" -> true
+        com.fabian.downloader.configs.Config.THEME_LIGHT, "Claro" -> false
+        com.fabian.downloader.configs.Config.THEME_DARK, "Oscuro" -> true
         else -> isSystemInDarkTheme()
     }
     

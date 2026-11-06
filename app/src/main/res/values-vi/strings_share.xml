@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_share.xml — idioma: vi (generado por scripts/i18n_assemble.py) -->
+    <string name="share_error_empty">Liên kết được chia sẻ trống</string>
+    <string name="share_direct_link">Liên kết trực tiếp</string>
+    <string name="share_video_of">Video của %1$s</string>
+    <string name="share_error_analyze">Không thể xử lý liên kết. Bạn có muốn thử tải nhanh không?</string>
+    <string name="share_options_title">Tùy chọn tải xuống</string>
+    <string name="share_close">Đóng</string>
+    <string name="share_download_prefix">Tải</string>
+    <string name="share_music_section">NHẠC</string>
+    <string name="share_video_section">VIDEO</string>
+    <string name="share_image_section">ẢNH</string>
+    <string name="share_format_jpg">JPG (HD)</string>
+    <string name="share_format_png">PNG (Không mất dữ liệu)</string>
+    <string name="share_format_webp">WEBP (Tối ưu)</string>
+    <string name="share_download_button">Tải xuống</string>
+    <string name="share_select_option">Chọn một tùy chọn</string>
+    <string name="share_thumbnail">Hình thu nhỏ video</string>
+    <string name="share_analyzing">Đang xử lý liên kết...</string>
+    <string name="share_error">Lỗi</string>
+    <string name="share_retry">Thử lại</string>
+    <string name="share_quick_download">Tải nhanh</string>
+    <string name="share_size">Kích thước:</string>
+    <string name="share_started_title">Đã bắt đầu tải!</string>
+    <string name="share_started_subtitle">Bản tải của bạn đã bắt đầu thành công</string>
+    <string name="share_not_now">Chưa phải bây giờ</string>
+    <string name="share_view">Xem</string>
+    <string name="share_size_mb">%1$.1f MB</string>
+    <string name="share_size_auto">...</string>
+    <string name="share_size_loading">...</string>
+    <string name="share_not_available">Không khả dụng</string>
+    <string name="share_quality_classic_mp3">MP3 cổ điển (320K)</string>
+    <string name="share_quality_mp3_192">MP3 (192K)</string>
+    <string name="share_quality_mp3_128">MP3 (128K)</string>
+    <string name="share_quality_fast_m4a">Nhanh (64K M4A)</string>
+    <string name="share_quality_fhd_1080">Full HD (1080p)</string>
+    <string name="share_quality_hq_720">Chất lượng cao (720p)</string>
+    <string name="share_quality_std_480">Tiêu chuẩn (480p)</string>
+    <string name="share_quality_fast_360">Nhanh (360p)</string>
+    <string name="share_category_music">Music</string>
+    <string name="share_category_video">Video</string>
+    <string name="share_category_image">Image</string>
+    <string name="notif_report_url_id">ID URL: %1$d</string>
+    <string name="notif_report_title_label">Tiêu đề: %1$s</string>
+    <string name="notif_report_error_label">Lỗi: %1$s</string>
+</resources>

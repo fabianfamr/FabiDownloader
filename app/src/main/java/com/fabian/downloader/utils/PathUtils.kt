@@ -457,7 +457,7 @@ object PathUtils {
 
     fun getDisplayDownloadLocation(locationSetting: String = com.fabian.downloader.ui.AppSettings.downloadLocation): String {
         if (locationSetting.isEmpty() || locationSetting == Config.PATH_DOWNLOAD_LOCATION_DEFAULT || locationSetting.equals("downloads", ignoreCase = true)) {
-            return "Descargas > FabiDownloader"
+            return AppStrings.downloadsAppFolder()
         }
         if (locationSetting.startsWith("content://")) {
             try {
@@ -467,23 +467,23 @@ object PathUtils {
                     val split = treePart.split(":", limit = 2)
                     val type = split[0]
                     val relPath = if (split.size > 1) split[1].trimStart('/') else ""
-                    val prefix = if ("primary".equals(type, ignoreCase = true)) "Almacenamiento interno" else "Tarjeta SD"
+                    val prefix = if ("primary".equals(type, ignoreCase = true)) AppStrings.internalStorage() else AppStrings.sdCard()
                     return if (relPath.isNotEmpty()) "$prefix > $relPath" else prefix
                 }
             } catch (e: Exception) {
                 android.util.Log.e(Config.TAG_PATH_UTILS, "Error decoding SAF uri for display: ${e.message}")
             }
-            return "Descargas > FabiDownloader"
+            return AppStrings.downloadsAppFolder()
         }
         if (locationSetting.startsWith("/storage/emulated/0/")) {
             val rel = locationSetting.removePrefix("/storage/emulated/0/").trim('/')
-            return if (rel.isNotEmpty()) "Almacenamiento interno > $rel" else "Almacenamiento interno"
+            return if (rel.isNotEmpty()) "${AppStrings.internalStorage()} > $rel" else AppStrings.internalStorage()
         }
         if (locationSetting.startsWith("/")) {
             return locationSetting
         }
         val cleanRel = locationSetting.trim('/')
-        return "Descargas > FabiDownloader/$cleanRel"
+        return "${AppStrings.downloadsAppFolder()}/$cleanRel"
     }
  
     fun getDownloadFolder(context: Context, format: String): File {

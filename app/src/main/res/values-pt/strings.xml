@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings.xml — idioma: pt (generado por scripts/i18n_assemble.py) -->
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">Biblioteca</string>
+    <string name="shortcut_download">Baixar</string>
+    <string name="downloads_realtime_speed_title">Velocidade em Tempo Real</string>
+    <string name="downloads_active_downloads_count">%1$d downloads ativos</string>
+    <string name="downloads_active_count">%1$d ao vivo</string>
+    <string name="downloads_pause_all">Pausar tudo</string>
+    <string name="downloads_resume_all">Retomar tudo</string>
+    <string name="downloads_force_download_title">Forçar download</string>
+    <string name="downloads_force_download_desc">Iniciar imediatamente ignorando o limite de concorrência</string>
+    <string name="playlist_badge">PLAYLIST (%1$d VÍDEOS)</string>
+    <string name="playlist_options_header">OPÇÕES DE DOWNLOAD DO LOTE</string>
+    <string name="playlist_format_video">Vídeo (MP4)</string>
+    <string name="playlist_format_mp3">Áudio (MP3)</string>
+    <string name="playlist_format_m4a">Áudio (M4A)</string>
+    <string name="playlist_unselect_all">Desmarcar todos</string>
+    <string name="playlist_select_all">Selecionar todos</string>
+    <string name="playlist_selected_count">%1$d de %2$d selecionados</string>
+    <string name="playlist_download_batch_button">BAIXAR LOTE (%1$d)</string>
+    <string name="storage_permission_title">Permissão de Armazenamento</string>
+    <string name="storage_permission_desc">São necessárias permissões de armazenamento para salvar seus downloads de vídeo e áudio.</string>
+    <string name="storage_permission_grant">Conceder Permissão</string>
+    <string name="scoped_storage_active">Armazenamento Seguro Ativo (Scoped Storage)</string>
+    <string name="status_retrying">Tentando novamente...</string>
+    <string name="main_invalid_url_toast">A área de transferência não contém um link válido</string>
+</resources>

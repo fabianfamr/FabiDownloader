@@ -43,4 +43,9 @@
     <string name="share_category_music">Music</string>
     <string name="share_category_video">Video</string>
     <string name="share_category_image">Image</string>
+
+    <!-- Informe de error (notificación, portado de Seal) -->
+    <string name="notif_report_url_id">URL ID: %1$d</string>
+    <string name="notif_report_title_label">Título: %1$s</string>
+    <string name="notif_report_error_label">Error: %1$s</string>
 </resources>

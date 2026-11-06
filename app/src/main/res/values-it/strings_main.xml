@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_main.xml — idioma: it (generado por scripts/i18n_assemble.py) -->
+    <string name="main_error_file_not_found">Il file non esiste o è stato eliminato</string>
+    <string name="main_error_opening_file">Errore durante l\'apertura: %1$s</string>
+    <string name="main_app_title">FabiDownloader</string>
+    <string name="main_ready_to_download">Pronto per scaricare</string>
+    <string name="main_paste_link_title">Incolla il tuo link</string>
+    <string name="main_paste_link_subtitle">Rileviamo la piattaforma automaticamente</string>
+    <string name="main_input_placeholder">Incolla il link del video o dell\'audio...</string>
+    <string name="main_clear_button">Pulisci</string>
+    <string name="main_paste_button">Incolla</string>
+    <string name="main_analyze_button">Scarica</string>
+    <string name="main_analyzing">Elaborazione...</string>
+    <string name="main_invalid_link">Inserisci un link valido</string>
+    <string name="main_quick_download_title">Download con un Tocco</string>
+    <string name="main_processing_link">Elaborazione link...</string>
+    <string name="main_downloading_mp3">🎵 Scarico audio MP3...</string>
+    <string name="main_only_mp3">Solo MP3</string>
+    <string name="main_downloading_m4a">🎵 Scarico audio M4A...</string>
+    <string name="main_only_m4a">Solo M4A</string>
+    <string name="main_downloading_mp4">📹 Scarico video MP4 (720p)...</string>
+    <string name="main_video_mp4">Video MP4</string>
+    <string name="main_recent_downloads">Download Recenti</string>
+    <string name="main_view_all">Vedi tutti</string>
+    <string name="main_completed">Completato</string>
+    <string name="main_in_progress">In corso</string>
+    <string name="main_clipboard_detected_title">Link rilevato negli appunti</string>
+    <string name="main_discard_button">Scarta</string>
+    <string name="main_clipboard_audio_only">Solo Audio</string>
+    <string name="main_analyze_short">Scarica</string>
+    <string name="main_detecting_prefix">Rileviamo </string>
+    <string name="main_detecting_suffix"> automaticamente</string>
+    <string name="main_analyzing_state">Elaborazione...</string>
+    <string name="main_link_detected_state">Link Rilevato!</string>
+    <string name="main_tab_home">Home</string>
+    <string name="main_tab_library">Libreria</string>
+    <string name="main_tab_settings">Impostazioni</string>
+    <string name="main_tab_download_settings">Impostazioni download</string>
+    <string name="main_download_settings_title">Impostazioni di Download</string>
+    <string name="main_back">Indietro</string>
+    <string name="main_platforms_supported">Piattaforme Supportate (+1000 siti)</string>
+    <string name="main_features_desc">Scarica video in qualità massima (fino a 4K/60fps) e audio in MP3/M4A/FLAC con metadati e copertina.</string>
+</resources>

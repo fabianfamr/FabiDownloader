@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings.xml — idioma: it (generado por scripts/i18n_assemble.py) -->
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">Libreria</string>
+    <string name="shortcut_download">Scarica</string>
+    <string name="downloads_realtime_speed_title">Velocità in Tempo Reale</string>
+    <string name="downloads_active_downloads_count">%1$d download attivi</string>
+    <string name="downloads_active_count">%1$d attivi</string>
+    <string name="downloads_pause_all">Metti in pausa tutto</string>
+    <string name="downloads_resume_all">Riprendi tutto</string>
+    <string name="downloads_force_download_title">Forza download</string>
+    <string name="downloads_force_download_desc">Avvia subito ignorando il limite di concorrenza</string>
+    <string name="playlist_badge">PLAYLIST (%1$d VIDEO)</string>
+    <string name="playlist_options_header">OPZIONI DI SCARICAMENTO DEL LOTTO</string>
+    <string name="playlist_format_video">Video (MP4)</string>
+    <string name="playlist_format_mp3">Audio (MP3)</string>
+    <string name="playlist_format_m4a">Audio (M4A)</string>
+    <string name="playlist_unselect_all">Deseleziona tutto</string>
+    <string name="playlist_select_all">Seleziona tutto</string>
+    <string name="playlist_selected_count">%1$d di %2$d selezionati</string>
+    <string name="playlist_download_batch_button">SCARICA LOTTO (%1$d)</string>
+    <string name="storage_permission_title">Permesso di Archiviazione</string>
+    <string name="storage_permission_desc">I permessi di archiviazione sono necessari per salvare i tuoi download di video e audio.</string>
+    <string name="storage_permission_grant">Concedi Permesso</string>
+    <string name="scoped_storage_active">Archiviazione Sicura Attiva (Scoped Storage)</string>
+    <string name="status_retrying">Riprovo...</string>
+    <string name="main_invalid_url_toast">Gli appunti non contengono un link valido</string>
+</resources>

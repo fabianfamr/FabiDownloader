@@ -200,8 +200,8 @@ fun DownloadsSettingsSection(
                 val hasAllFilesAccess = com.fabian.downloader.utils.StoragePermissionUtils.isAllFilesAccessGranted()
                 SettingsRow(
                     icon = AppIcons.Folder,
-                    title = "Acceso a todos los archivos",
-                    trailing = if (hasAllFilesAccess) "Concedido" else "Opcional (Tocar)",
+                    title = stringResource(R.string.settings_all_files_access),
+                    trailing = if (hasAllFilesAccess) stringResource(R.string.settings_permission_granted) else stringResource(R.string.settings_permission_optional_tap),
                     colorAccent = if (hasAllFilesAccess) C_accent else C_gray1,
                     textColor = C_white,
                     grayColor = C_gray1,
@@ -428,8 +428,12 @@ fun DownloadsSettingsSection(
             val hwBrand = remember { com.fabian.downloader.utils.DeviceOptimizationHelper.currentBrand }
             SettingsRow(
                 icon = AppIcons.Speed,
-                title = "Perfil de hardware",
-                trailing = "${hwTier.displayName} (${hwBrand.displayName})",
+                title = stringResource(R.string.settings_hardware_profile),
+                trailing = stringResource(
+                    R.string.settings_hardware_profile_value,
+                    com.fabian.downloader.utils.SettingsLabels.getHardwareTierLabel(ctx, hwTier),
+                    com.fabian.downloader.utils.SettingsLabels.getDeviceBrandLabel(ctx, hwBrand)
+                ),
                 colorAccent = C_accent,
                 textColor = C_white,
                 grayColor = C_gray1,

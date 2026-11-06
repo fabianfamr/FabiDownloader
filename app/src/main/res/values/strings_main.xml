@@ -42,4 +42,8 @@
     <!-- Screen titles -->
     <string name="main_download_settings_title">Ajustes de Descarga</string>
     <string name="main_back">Volver atrás</string>
+
+    <!-- Tarjeta de plataformas -->
+    <string name="main_platforms_supported">Plataformas Compatibles (+1000 sitios)</string>
+    <string name="main_features_desc">Descarga videos en máxima calidad (hasta 4K/60fps) y audio en MP3/M4A/FLAC con metadatos y carátula.</string>
 </resources>

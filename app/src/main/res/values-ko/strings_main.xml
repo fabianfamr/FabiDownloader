@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_main.xml — idioma: ko (generado por scripts/i18n_assemble.py) -->
+    <string name="main_error_file_not_found">파일이 없거나 삭제되었습니다</string>
+    <string name="main_error_opening_file">열기 오류: %1$s</string>
+    <string name="main_app_title">FabiDownloader</string>
+    <string name="main_ready_to_download">다운로드 준비 완료</string>
+    <string name="main_paste_link_title">링크를 붙여넣으세요</string>
+    <string name="main_paste_link_subtitle">플랫폼을 자동으로 감지합니다</string>
+    <string name="main_input_placeholder">동영상 또는 오디오 링크 붙여넣기...</string>
+    <string name="main_clear_button">지우기</string>
+    <string name="main_paste_button">붙여넣기</string>
+    <string name="main_analyze_button">다운로드</string>
+    <string name="main_analyzing">처리 중...</string>
+    <string name="main_invalid_link">유효한 링크를 입력하세요</string>
+    <string name="main_quick_download_title">원 터치 다운로드</string>
+    <string name="main_processing_link">링크 처리 중...</string>
+    <string name="main_downloading_mp3">🎵 MP3 오디오 다운로드 중...</string>
+    <string name="main_only_mp3">MP3만</string>
+    <string name="main_downloading_m4a">🎵 M4A 오디오 다운로드 중...</string>
+    <string name="main_only_m4a">M4A만</string>
+    <string name="main_downloading_mp4">📹 MP4 동영상(720p) 다운로드 중...</string>
+    <string name="main_video_mp4">MP4 동영상</string>
+    <string name="main_recent_downloads">최근 다운로드</string>
+    <string name="main_view_all">모두 보기</string>
+    <string name="main_completed">완료</string>
+    <string name="main_in_progress">진행 중</string>
+    <string name="main_clipboard_detected_title">클립보드에서 링크 감지됨</string>
+    <string name="main_discard_button">무시</string>
+    <string name="main_clipboard_audio_only">오디오만</string>
+    <string name="main_analyze_short">다운로드</string>
+    <string name="main_detecting_prefix">자동으로 감지했습니다: </string>
+    <string name="main_detecting_suffix"></string>
+    <string name="main_analyzing_state">처리 중...</string>
+    <string name="main_link_detected_state">링크가 감지되었습니다!</string>
+    <string name="main_tab_home">홈</string>
+    <string name="main_tab_library">라이브러리</string>
+    <string name="main_tab_settings">설정</string>
+    <string name="main_tab_download_settings">다운로드 설정</string>
+    <string name="main_download_settings_title">다운로드 설정</string>
+    <string name="main_back">뒤로</string>
+    <string name="main_platforms_supported">지원 플랫폼 (1000+ 사이트)</string>
+    <string name="main_features_desc">최고 화질(최대 4K/60fps) 동영상과 메타데이터·커버가 포함된 MP3/M4A/FLAC 오디오를 다운로드하세요.</string>
+</resources>

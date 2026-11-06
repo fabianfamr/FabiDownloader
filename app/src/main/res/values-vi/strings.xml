@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings.xml — idioma: vi (generado por scripts/i18n_assemble.py) -->
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">Thư viện</string>
+    <string name="shortcut_download">Tải xuống</string>
+    <string name="downloads_realtime_speed_title">Tốc độ thời gian thực</string>
+    <string name="downloads_active_downloads_count">%1$d lượt tải đang hoạt động</string>
+    <string name="downloads_active_count">%1$d đang chạy</string>
+    <string name="downloads_pause_all">Tạm dừng tất cả</string>
+    <string name="downloads_resume_all">Tiếp tục tất cả</string>
+    <string name="downloads_force_download_title">Buộc tải xuống</string>
+    <string name="downloads_force_download_desc">Bắt đầu ngay lập tức bỏ qua giới hạn đồng thời</string>
+    <string name="playlist_badge">DANH SÁCH PHÁT (%1$d VIDEO)</string>
+    <string name="playlist_options_header">TÙY CHỌN TẢI HÀNG LOẠT</string>
+    <string name="playlist_format_video">Video (MP4)</string>
+    <string name="playlist_format_mp3">Âm thanh (MP3)</string>
+    <string name="playlist_format_m4a">Âm thanh (M4A)</string>
+    <string name="playlist_unselect_all">Bỏ chọn tất cả</string>
+    <string name="playlist_select_all">Chọn tất cả</string>
+    <string name="playlist_selected_count">Đã chọn %1$d/%2$d</string>
+    <string name="playlist_download_batch_button">TẢI HÀNG LOẠT (%1$d)</string>
+    <string name="storage_permission_title">Quyền Bộ nhớ</string>
+    <string name="storage_permission_desc">Cần quyền bộ nhớ để lưu các bản tải video và âm thanh của bạn.</string>
+    <string name="storage_permission_grant">Cấp quyền</string>
+    <string name="scoped_storage_active">Bộ nhớ an toàn đang hoạt động (Scoped Storage)</string>
+    <string name="status_retrying">Đang thử lại...</string>
+    <string name="main_invalid_url_toast">Clipboard không chứa liên kết hợp lệ</string>
+</resources>

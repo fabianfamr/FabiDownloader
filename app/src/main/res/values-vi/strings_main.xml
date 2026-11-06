@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_main.xml — idioma: vi (generado por scripts/i18n_assemble.py) -->
+    <string name="main_error_file_not_found">Tệp không tồn tại hoặc đã bị xóa</string>
+    <string name="main_error_opening_file">Lỗi khi mở: %1$s</string>
+    <string name="main_app_title">FabiDownloader</string>
+    <string name="main_ready_to_download">Sẵn sàng tải xuống</string>
+    <string name="main_paste_link_title">Dán liên kết của bạn</string>
+    <string name="main_paste_link_subtitle">Chúng tôi tự động nhận diện nền tảng</string>
+    <string name="main_input_placeholder">Dán liên kết video hoặc âm thanh...</string>
+    <string name="main_clear_button">Xóa</string>
+    <string name="main_paste_button">Dán</string>
+    <string name="main_analyze_button">Tải xuống</string>
+    <string name="main_analyzing">Đang xử lý...</string>
+    <string name="main_invalid_link">Vui lòng nhập liên kết hợp lệ</string>
+    <string name="main_quick_download_title">Tải xuống một chạm</string>
+    <string name="main_processing_link">Đang xử lý liên kết...</string>
+    <string name="main_downloading_mp3">🎵 Đang tải âm thanh MP3...</string>
+    <string name="main_only_mp3">Chỉ MP3</string>
+    <string name="main_downloading_m4a">🎵 Đang tải âm thanh M4A...</string>
+    <string name="main_only_m4a">Chỉ M4A</string>
+    <string name="main_downloading_mp4">📹 Đang tải video MP4 (720p)...</string>
+    <string name="main_video_mp4">Video MP4</string>
+    <string name="main_recent_downloads">Tải gần đây</string>
+    <string name="main_view_all">Xem tất cả</string>
+    <string name="main_completed">Hoàn tất</string>
+    <string name="main_in_progress">Đang thực hiện</string>
+    <string name="main_clipboard_detected_title">Phát hiện liên kết trong clipboard</string>
+    <string name="main_discard_button">Bỏ qua</string>
+    <string name="main_clipboard_audio_only">Chỉ âm thanh</string>
+    <string name="main_analyze_short">Tải xuống</string>
+    <string name="main_detecting_prefix">Chúng tôi nhận diện </string>
+    <string name="main_detecting_suffix"> tự động</string>
+    <string name="main_analyzing_state">Đang xử lý...</string>
+    <string name="main_link_detected_state">Đã phát hiện liên kết!</string>
+    <string name="main_tab_home">Trang chủ</string>
+    <string name="main_tab_library">Thư viện</string>
+    <string name="main_tab_settings">Cài đặt</string>
+    <string name="main_tab_download_settings">Cài đặt tải xuống</string>
+    <string name="main_download_settings_title">Cài đặt tải xuống</string>
+    <string name="main_back">Quay lại</string>
+    <string name="main_platforms_supported">Nền tảng được hỗ trợ (+1000 trang)</string>
+    <string name="main_features_desc">Tải video chất lượng tối đa (lên đến 4K/60fps) và âm thanh MP3/M4A/FLAC kèm siêu dữ liệu và ảnh bìa.</string>
+</resources>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings.xml — idioma: ko (generado por scripts/i18n_assemble.py) -->
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">라이브러리</string>
+    <string name="shortcut_download">다운로드</string>
+    <string name="downloads_realtime_speed_title">실시간 속도</string>
+    <string name="downloads_active_downloads_count">진행 중인 다운로드 %1$d개</string>
+    <string name="downloads_active_count">%1$d개 진행 중</string>
+    <string name="downloads_pause_all">모두 일시정지</string>
+    <string name="downloads_resume_all">모두 재개</string>
+    <string name="downloads_force_download_title">강제 다운로드</string>
+    <string name="downloads_force_download_desc">동시성 제한을 무시하고 즉시 시작</string>
+    <string name="playlist_badge">재생목록 (%1$d개 영상)</string>
+    <string name="playlist_options_header">일괄 다운로드 옵션</string>
+    <string name="playlist_format_video">동영상 (MP4)</string>
+    <string name="playlist_format_mp3">오디오 (MP3)</string>
+    <string name="playlist_format_m4a">오디오 (M4A)</string>
+    <string name="playlist_unselect_all">모두 선택 해제</string>
+    <string name="playlist_select_all">모두 선택</string>
+    <string name="playlist_selected_count">%2$d개 중 %1$d개 선택됨</string>
+    <string name="playlist_download_batch_button">일괄 다운로드 (%1$d)</string>
+    <string name="storage_permission_title">저장소 권한</string>
+    <string name="storage_permission_desc">동영상 및 오디오 다운로드를 저장하려면 저장소 권한이 필요합니다.</string>
+    <string name="storage_permission_grant">권한 부여</string>
+    <string name="scoped_storage_active">안전 저장소 활성화 (Scoped Storage)</string>
+    <string name="status_retrying">다시 시도 중...</string>
+    <string name="main_invalid_url_toast">클립보드에 유효한 링크가 없습니다</string>
+</resources>

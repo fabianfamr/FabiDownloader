@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_main.xml — idioma: tr (generado por scripts/i18n_assemble.py) -->
+    <string name="main_error_file_not_found">Dosya yok veya silindi</string>
+    <string name="main_error_opening_file">Açma hatası: %1$s</string>
+    <string name="main_app_title">FabiDownloader</string>
+    <string name="main_ready_to_download">İndirmeye hazır</string>
+    <string name="main_paste_link_title">Bağlantını yapıştır</string>
+    <string name="main_paste_link_subtitle">Platformu otomatik algılıyoruz</string>
+    <string name="main_input_placeholder">Video veya ses bağlantısını yapıştır...</string>
+    <string name="main_clear_button">Temizle</string>
+    <string name="main_paste_button">Yapıştır</string>
+    <string name="main_analyze_button">İndir</string>
+    <string name="main_analyzing">İşleniyor...</string>
+    <string name="main_invalid_link">Lütfen geçerli bir bağlantı girin</string>
+    <string name="main_quick_download_title">Tek Dokunuşla İndir</string>
+    <string name="main_processing_link">Bağlantı işleniyor...</string>
+    <string name="main_downloading_mp3">🎵 MP3 ses indiriliyor...</string>
+    <string name="main_only_mp3">Yalnızca MP3</string>
+    <string name="main_downloading_m4a">🎵 M4A ses indiriliyor...</string>
+    <string name="main_only_m4a">Yalnızca M4A</string>
+    <string name="main_downloading_mp4">📹 MP4 video (720p) indiriliyor...</string>
+    <string name="main_video_mp4">MP4 video</string>
+    <string name="main_recent_downloads">Son İndirmeler</string>
+    <string name="main_view_all">Tümünü gör</string>
+    <string name="main_completed">Tamamlandı</string>
+    <string name="main_in_progress">Devam ediyor</string>
+    <string name="main_clipboard_detected_title">Panoda bağlantı algılandı</string>
+    <string name="main_discard_button">Yoksay</string>
+    <string name="main_clipboard_audio_only">Yalnızca Ses</string>
+    <string name="main_analyze_short">İndir</string>
+    <string name="main_detecting_prefix">Otomatik algıladık: </string>
+    <string name="main_detecting_suffix"></string>
+    <string name="main_analyzing_state">İşleniyor...</string>
+    <string name="main_link_detected_state">Bağlantı Algılandı!</string>
+    <string name="main_tab_home">Ana sayfa</string>
+    <string name="main_tab_library">Kitaplık</string>
+    <string name="main_tab_settings">Ayarlar</string>
+    <string name="main_tab_download_settings">İndirme ayarları</string>
+    <string name="main_download_settings_title">İndirme Ayarları</string>
+    <string name="main_back">Geri</string>
+    <string name="main_platforms_supported">Desteklenen Platformlar (+1000 site)</string>
+    <string name="main_features_desc">Videoları en yüksek kalitede (4K/60fps\'e kadar) ve sesleri meta veriler ve kapakla birlikte MP3/M4A/FLAC olarak indirin.</string>
+</resources>

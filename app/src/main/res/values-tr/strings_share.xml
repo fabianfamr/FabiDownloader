@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_share.xml — idioma: tr (generado por scripts/i18n_assemble.py) -->
+    <string name="share_error_empty">Paylaşılan bağlantı boş</string>
+    <string name="share_direct_link">Doğrudan Bağlantı</string>
+    <string name="share_video_of">%1$s videosu</string>
+    <string name="share_error_analyze">Bağlantı işlenemedi. Hızlı indirme denemek ister misiniz?</string>
+    <string name="share_options_title">İndirme Seçenekleri</string>
+    <string name="share_close">Kapat</string>
+    <string name="share_download_prefix">İndir</string>
+    <string name="share_music_section">MÜZİK</string>
+    <string name="share_video_section">VİDEO</string>
+    <string name="share_image_section">GÖRSEL</string>
+    <string name="share_format_jpg">JPG (HD)</string>
+    <string name="share_format_png">PNG (Kayıpsız)</string>
+    <string name="share_format_webp">WEBP (Optimize)</string>
+    <string name="share_download_button">İndir</string>
+    <string name="share_select_option">Bir seçenek seçin</string>
+    <string name="share_thumbnail">Video küçük resmi</string>
+    <string name="share_analyzing">Bağlantı işleniyor...</string>
+    <string name="share_error">Hata</string>
+    <string name="share_retry">Yeniden dene</string>
+    <string name="share_quick_download">Hızlı İndirme</string>
+    <string name="share_size">Boyut:</string>
+    <string name="share_started_title">İndirme başladı!</string>
+    <string name="share_started_subtitle">İndirmeniz başarıyla başladı</string>
+    <string name="share_not_now">Şimdi değil</string>
+    <string name="share_view">Gör</string>
+    <string name="share_size_mb">%1$.1f MB</string>
+    <string name="share_size_auto">...</string>
+    <string name="share_size_loading">...</string>
+    <string name="share_not_available">Kullanılamaz</string>
+    <string name="share_quality_classic_mp3">Klasik MP3 (320K)</string>
+    <string name="share_quality_mp3_192">MP3 (192K)</string>
+    <string name="share_quality_mp3_128">MP3 (128K)</string>
+    <string name="share_quality_fast_m4a">Hızlı (64K M4A)</string>
+    <string name="share_quality_fhd_1080">Tam HD (1080p)</string>
+    <string name="share_quality_hq_720">Yüksek kalite (720p)</string>
+    <string name="share_quality_std_480">Standart (480p)</string>
+    <string name="share_quality_fast_360">Hızlı (360p)</string>
+    <string name="share_category_music">Music</string>
+    <string name="share_category_video">Video</string>
+    <string name="share_category_image">Image</string>
+    <string name="notif_report_url_id">URL kimliği: %1$d</string>
+    <string name="notif_report_title_label">Başlık: %1$s</string>
+    <string name="notif_report_error_label">Hata: %1$s</string>
+</resources>

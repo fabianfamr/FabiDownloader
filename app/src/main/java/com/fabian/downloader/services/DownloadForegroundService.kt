@@ -236,31 +236,10 @@ class DownloadForegroundService : Service() {
     }
 
     private fun createNotification(): Notification {
-        val channelIdToUse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) Config.NOTIF_CHANNEL_PROGRESS else "default"
-        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        val appIntent = Intent(this, com.fabian.downloader.MainActivity::class.java).apply {
-            setClass(this@DownloadForegroundService, com.fabian.downloader.MainActivity::class.java)
-            component = android.content.ComponentName(this@DownloadForegroundService, com.fabian.downloader.MainActivity::class.java)
-            setPackage(packageName)
-            setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            putExtra(Config.EXTRA_NAVIGATE_TO_DOWNLOADS, true)
-            putExtra(Config.EXTRA_INITIAL_PAGE, 1)
-        }
-        val appPendingIntent = PendingIntent.getActivity(
-            this,
-            9999,
-            appIntent,
-            flags
-        )
-        return NotificationCompat.Builder(this, channelIdToUse)
-            .setContentTitle(getString(R.string.app_name))
-            .setContentText(getString(R.string.notif_foreground_service))
-            .setSmallIcon(R.drawable.ic_cloud_download)
-            .setPriority(NotificationCompat.PRIORITY_MIN)
-            .setCategory(NotificationCompat.CATEGORY_SERVICE)
-            .setOngoing(true)
-            .setContentIntent(appPendingIntent)
-            .build()
+        // Notificación del servicio delegada en el sistema de Seal
+        // (NotificationUtil.makeServiceNotification): misma estructura,
+        // con FOREGROUND_SERVICE_IMMEDIATE y PendingIntent hacia la app.
+        return com.fabian.downloader.util.NotificationUtil.makeServiceNotification(this)
     }
 
     private fun createNotificationChannel() {

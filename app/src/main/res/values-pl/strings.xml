@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings.xml — idioma: pl (generado por scripts/i18n_assemble.py) -->
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">Biblioteka</string>
+    <string name="shortcut_download">Pobierz</string>
+    <string name="downloads_realtime_speed_title">Prędkość w czasie rzeczywistym</string>
+    <string name="downloads_active_downloads_count">%1$d aktywnych pobrań</string>
+    <string name="downloads_active_count">%1$d aktywnych</string>
+    <string name="downloads_pause_all">Wstrzymaj wszystkie</string>
+    <string name="downloads_resume_all">Wznów wszystkie</string>
+    <string name="downloads_force_download_title">Wymuś pobieranie</string>
+    <string name="downloads_force_download_desc">Rozpocznij natychmiast, ignorując limit równoległości</string>
+    <string name="playlist_badge">PLAYLISTA (%1$d FILMÓW)</string>
+    <string name="playlist_options_header">OPCJE POBIERANIA PARTII</string>
+    <string name="playlist_format_video">Wideo (MP4)</string>
+    <string name="playlist_format_mp3">Audio (MP3)</string>
+    <string name="playlist_format_m4a">Audio (M4A)</string>
+    <string name="playlist_unselect_all">Odznacz wszystkie</string>
+    <string name="playlist_select_all">Zaznacz wszystkie</string>
+    <string name="playlist_selected_count">Wybrano %1$d z %2$d</string>
+    <string name="playlist_download_batch_button">POBIERZ PARTIĘ (%1$d)</string>
+    <string name="storage_permission_title">Uprawnienie do pamięci</string>
+    <string name="storage_permission_desc">Uprawnienia do pamięci są wymagane do zapisywania pobranych filmów i audio.</string>
+    <string name="storage_permission_grant">Nadaj uprawnienie</string>
+    <string name="scoped_storage_active">Bezpieczna pamięć aktywna (Scoped Storage)</string>
+    <string name="status_retrying">Ponawianie...</string>
+    <string name="main_invalid_url_toast">Schowek nie zawiera prawidłowego linku</string>
+</resources>

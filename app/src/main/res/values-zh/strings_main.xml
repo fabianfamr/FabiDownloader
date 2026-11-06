@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_main.xml — idioma: zh (generado por scripts/i18n_assemble.py) -->
+    <string name="main_error_file_not_found">文件不存在或已被删除</string>
+    <string name="main_error_opening_file">打开失败：%1$s</string>
+    <string name="main_app_title">FabiDownloader</string>
+    <string name="main_ready_to_download">准备下载</string>
+    <string name="main_paste_link_title">粘贴你的链接</string>
+    <string name="main_paste_link_subtitle">我们会自动识别平台</string>
+    <string name="main_input_placeholder">粘贴视频或音频链接...</string>
+    <string name="main_clear_button">清空</string>
+    <string name="main_paste_button">粘贴</string>
+    <string name="main_analyze_button">下载</string>
+    <string name="main_analyzing">处理中...</string>
+    <string name="main_invalid_link">请输入有效的链接</string>
+    <string name="main_quick_download_title">一键下载</string>
+    <string name="main_processing_link">正在处理链接...</string>
+    <string name="main_downloading_mp3">🎵 正在下载 MP3 音频...</string>
+    <string name="main_only_mp3">仅 MP3</string>
+    <string name="main_downloading_m4a">🎵 正在下载 M4A 音频...</string>
+    <string name="main_only_m4a">仅 M4A</string>
+    <string name="main_downloading_mp4">📹 正在下载 MP4 视频（720p）...</string>
+    <string name="main_video_mp4">MP4 视频</string>
+    <string name="main_recent_downloads">最近下载</string>
+    <string name="main_view_all">查看全部</string>
+    <string name="main_completed">已完成</string>
+    <string name="main_in_progress">进行中</string>
+    <string name="main_clipboard_detected_title">在剪贴板中检测到链接</string>
+    <string name="main_discard_button">忽略</string>
+    <string name="main_clipboard_audio_only">仅音频</string>
+    <string name="main_analyze_short">下载</string>
+    <string name="main_detecting_prefix">我们自动识别了 </string>
+    <string name="main_detecting_suffix"></string>
+    <string name="main_analyzing_state">处理中...</string>
+    <string name="main_link_detected_state">已检测到链接！</string>
+    <string name="main_tab_home">首页</string>
+    <string name="main_tab_library">媒体库</string>
+    <string name="main_tab_settings">设置</string>
+    <string name="main_tab_download_settings">下载设置</string>
+    <string name="main_download_settings_title">下载设置</string>
+    <string name="main_back">返回</string>
+    <string name="main_platforms_supported">支持的平台（1000+ 站点）</string>
+    <string name="main_features_desc">以最高画质（最高 4K/60fps）下载视频，以 MP3/M4A/FLAC 下载音频，包含元数据和封面。</string>
+</resources>

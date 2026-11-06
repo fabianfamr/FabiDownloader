@@ -87,7 +87,7 @@ object YtdlpParser {
         return firstLine
     }
 
-    fun parseMetadata(json: JSONObject, defaultAuthor: String = "Desconocido", defaultTitle: String = "Video sin título"): InfoMedia {
+    fun parseMetadata(json: JSONObject, defaultAuthor: String = AppStrings.unknownAuthor(), defaultTitle: String = AppStrings.untitledVideo()): InfoMedia {
         var rawTitle = json.optString("title", "").trim()
         val description = json.optString("description", "").trim()
         val uploader = json.optString("uploader", json.optString("uploader_id", "")).trim()
@@ -113,7 +113,7 @@ object YtdlpParser {
                 rawTitle = if (cleanDesc.isNotEmpty()) {
                     if (uploader.isNotEmpty()) "@$uploader: $cleanDesc" else cleanDesc
                 } else if (uploader.isNotEmpty()) {
-                    "Publicación de @$uploader"
+                    AppStrings.publicationOf("@$uploader")
                 } else {
                     defaultTitle
                 }
@@ -122,7 +122,7 @@ object YtdlpParser {
                 rawTitle = if (cleanDesc.isNotEmpty()) {
                     if (uploader.isNotEmpty()) "@$uploader: $cleanDesc" else cleanDesc
                 } else if (uploader.isNotEmpty()) {
-                    "Video de @$uploader"
+                    AppStrings.videoOf("@$uploader")
                 } else {
                     defaultTitle
                 }
@@ -131,7 +131,7 @@ object YtdlpParser {
                 rawTitle = if (cleanDesc.isNotEmpty()) {
                     if (uploader.isNotEmpty()) "@$uploader: $cleanDesc" else cleanDesc
                 } else if (uploader.isNotEmpty()) {
-                    "Tweet de @$uploader"
+                    AppStrings.tweetOf("@$uploader")
                 } else {
                     defaultTitle
                 }
@@ -145,7 +145,7 @@ object YtdlpParser {
                         streamTitle
                     }
                 } else if (channelName.isNotEmpty()) {
-                    "Directo de $channelName"
+                    AppStrings.liveOf(channelName)
                 } else {
                     defaultTitle
                 }
@@ -297,7 +297,7 @@ object YtdlpParser {
         return bestAudioSize
     }
 
-    fun parsePlaylist(json: JSONObject, defaultAuthor: String = "Desconocido", defaultTitle: String = "Lista de reproducción"): com.fabian.downloader.services.ExtractionService.ExtractedPlaylist? {
+    fun parsePlaylist(json: JSONObject, defaultAuthor: String = AppStrings.unknownAuthor(), defaultTitle: String = AppStrings.playlistDefault()): com.fabian.downloader.services.ExtractionService.ExtractedPlaylist? {
         val entriesArray = json.optJSONArray("entries") ?: return null
         if (entriesArray.length() == 0) return null
 

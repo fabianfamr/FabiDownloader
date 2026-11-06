@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings.xml — idioma: hi (generado por scripts/i18n_assemble.py) -->
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">लाइब्रेरी</string>
+    <string name="shortcut_download">डाउनलोड</string>
+    <string name="downloads_realtime_speed_title">रीयल-टाइम गति</string>
+    <string name="downloads_active_downloads_count">%1$d सक्रिय डाउनलोड</string>
+    <string name="downloads_active_count">%1$d लाइव</string>
+    <string name="downloads_pause_all">सभी रोकें</string>
+    <string name="downloads_resume_all">सभी फिर शुरू करें</string>
+    <string name="downloads_force_download_title">डाउनलोड बलपूर्वक करें</string>
+    <string name="downloads_force_download_desc">समानांतर सीमा को नज़रअंदाज़ करते हुए तुरंत शुरू करें</string>
+    <string name="playlist_badge">प्लेलिस्ट (%1$d वीडियो)</string>
+    <string name="playlist_options_header">बैच डाउनलोड विकल्प</string>
+    <string name="playlist_format_video">वीडियो (MP4)</string>
+    <string name="playlist_format_mp3">ऑडियो (MP3)</string>
+    <string name="playlist_format_m4a">ऑडियो (M4A)</string>
+    <string name="playlist_unselect_all">सभी अचयनित करें</string>
+    <string name="playlist_select_all">सभी चुनें</string>
+    <string name="playlist_selected_count">%2$d में से %1$d चयनित</string>
+    <string name="playlist_download_batch_button">बैच डाउनलोड करें (%1$d)</string>
+    <string name="storage_permission_title">स्टोरेज अनुमति</string>
+    <string name="storage_permission_desc">आपके वीडियो और ऑडियो डाउनलोड सहेजने के लिए स्टोरेज अनुमतियाँ आवश्यक हैं।</string>
+    <string name="storage_permission_grant">अनुमति दें</string>
+    <string name="scoped_storage_active">सुरक्षित स्टोरेज सक्रिय (Scoped Storage)</string>
+    <string name="status_retrying">पुनः प्रयास...</string>
+    <string name="main_invalid_url_toast">क्लिपबोर्ड में कोई मान्य लिंक नहीं है</string>
+</resources>

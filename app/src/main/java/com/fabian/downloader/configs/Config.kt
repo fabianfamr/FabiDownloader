@@ -127,6 +127,8 @@ object Config {
     const val PREF_ALLOW_DUPLICATE_DOWNLOADS = "allowDuplicateDownloads"
     const val PREF_EMBED_CHAPTERS = "embedChapters"
     const val PREF_AMOLED_MODE = "amoledMode"
+    const val PREF_USE_ARIA2C = "useAria2c"
+    const val PREF_USE_FAST_HTTP_STREAM = "useFastHttpStream"
 
     // Issue 4.2 (aviso de seguridad): esta preferencia expone un toggle de bypass
     // SSL que puede dejar TODAS las conexiones inseguras. Recomendación: eliminar
@@ -249,12 +251,22 @@ object Config {
     const val EXTRA_NAVIGATE_TO_DOWNLOADS = "navigate_to_downloads"
     const val EXTRA_INITIAL_PAGE = "initialPage"
 
+    // Extras de las notificaciones (portado de Seal: NotificationActionReceiver)
+    const val EXTRA_TASK_ID = "com.fabian.downloader.EXTRA_TASK_ID"
+    const val EXTRA_NOTIFICATION_ID = "com.fabian.downloader.EXTRA_NOTIFICATION_ID"
+    const val EXTRA_ERROR_REPORT = "com.fabian.downloader.EXTRA_ERROR_REPORT"
+
     const val ACTION_OPEN = "com.fabian.downloader.ACTION_OPEN"
     const val ACTION_SHARE = "com.fabian.downloader.ACTION_SHARE"
     const val ACTION_RETRY = "com.fabian.downloader.ACTION_RETRY"
     const val ACTION_PAUSE = "com.fabian.downloader.ACTION_PAUSE"
     const val ACTION_RESUME = "com.fabian.downloader.ACTION_RESUME"
     const val ACTION_CANCEL = "com.fabian.downloader.ACTION_CANCEL"
+
+    // Acciones de notificación (portado de Seal: NotificationActionReceiver):
+    // cancelar la tarea por taskId y copiar el informe de error al portapapeles.
+    const val ACTION_CANCEL_TASK = "com.fabian.downloader.ACTION_CANCEL_TASK"
+    const val ACTION_ERROR_REPORT = "com.fabian.downloader.ACTION_ERROR_REPORT"
 
     // Notification Channel IDs
     const val NOTIF_CHANNEL_PROGRESS = "downloads_channel_progress"
@@ -295,6 +307,10 @@ object Config {
     const val BOT_DETECTION_LOGIN = "login"
     @StringRes val BOT_DETECTION_PATTERN_RES = R.string.bot_detection_pattern
     @StringRes val BOT_DETECTION_LOGIN_RES = R.string.bot_detection_login
+
+    // Motor de descarga externo (portado de Seal)
+    const val ARIA2C_DOWNLOADER = "libaria2c.so"
+    const val OUTPUT_TEMPLATE_EXT = ".%(ext)s"
 
     // Valid media file extensions
     val VALID_EXTENSIONS = listOf("mp4", "mp3", "m4a", "webm", "ogg", "wav", "mkv", "jpg", "jpeg", "png", "webp", "aac", "flac", "opus")

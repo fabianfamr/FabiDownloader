@@ -17,6 +17,27 @@ object SettingsLabels {
         else -> quality
     }
 
+    /** Etiqueta localizada del perfil de hardware (LOW/MID/HIGH/ULTRA). */
+    fun getHardwareTierLabel(context: Context, tier: com.fabian.downloader.utils.HardwareTier): String =
+        when (tier) {
+            com.fabian.downloader.utils.HardwareTier.LOW -> context.getString(R.string.hw_tier_low)
+            com.fabian.downloader.utils.HardwareTier.MID -> context.getString(R.string.hw_tier_mid)
+            com.fabian.downloader.utils.HardwareTier.HIGH -> context.getString(R.string.hw_tier_high)
+            com.fabian.downloader.utils.HardwareTier.ULTRA -> context.getString(R.string.hw_tier_ultra)
+        }
+
+    /**
+     * Etiqueta localizada de la marca del dispositivo. Los nombres de capas del
+     * sistema (One UI, MIUI/HyperOS...) son nombres propios y no se traducen;
+     * sólo se localiza la entrada genérica "Android Estándar".
+     */
+    fun getDeviceBrandLabel(context: Context, brand: com.fabian.downloader.utils.DeviceBrand): String =
+        if (brand == com.fabian.downloader.utils.DeviceBrand.GENERIC) {
+            context.getString(R.string.hw_brand_generic)
+        } else {
+            brand.displayName
+        }
+
     fun getQualityOptions(context: Context, rawOptions: List<String>): List<Pair<String, String>> {
         return rawOptions.map { key -> key to getQualityLabel(context, key) }
     }

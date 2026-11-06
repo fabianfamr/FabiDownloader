@@ -1,25 +1,55 @@
 package com.fabian.downloader.receivers
 
 import android.content.BroadcastReceiver
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import android.widget.Toast
 import com.fabian.downloader.utils.ToastUtils
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.services.DownloadManagerService
 import com.fabian.downloader.services.StorageService
+import com.fabian.downloader.util.NotificationUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.fabian.downloader.R
 import com.fabian.downloader.configs.Config
+import com.yausername.youtubedl_android.YoutubeDL
 
 class DownloadActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null || intent == null) return
 
         val action = intent.action
+
+        // ------------------------------------------------------------------
+        // Acciones de notificación portadas de Seal (NotificationActionReceiver):
+        // cancelar la tarea por taskId y copiar el informe de error.
+        // ------------------------------------------------------------------
+        when (action) {
+            Config.ACTION_CANCEL_TASK -> {
+                val taskId = intent.getStringExtra(Config.EXTRA_TASK_ID)
+                val notificationId =
+                    intent.getIntExtra(Config.EXTRA_NOTIFICATION_ID, -1)
+                cancelTask(context, taskId, notificationId)
+                return
+            }
+
+            Config.ACTION_ERROR_REPORT -> {
+                val report = intent.getStringExtra(Config.EXTRA_ERROR_REPORT)
+                val notificationId =
+                    intent.getIntExtra(Config.EXTRA_NOTIFICATION_ID, -1)
+                if (!report.isNullOrEmpty()) {
+                    copyErrorReport(context, report, notificationId)
+                }
+                return
+            }
+        }
+
         val downloadId = intent.getLongExtra(Config.EXTRA_DOWNLOAD_ID, -1L)
         if (downloadId == -1L) {
             Log.e(Config.TAG_DOWNLOAD_ACTION_RECEIVER,
@@ -69,6 +99,69 @@ class DownloadActionReceiver : BroadcastReceiver() {
                 pendingResult?.finish()
             }
         }
+    }
+
+    /**
+     * Cancela una tarea de descarga desde la notificación (portado de Seal:
+     * `NotificationActionReceiver.cancelTask`). Mata el proceso yt-dlp por
+     * taskId con `destroyProcessById` y borra la descarga de la cola/base de
+     * datos, igual que el botón "Cancelar" de las notificaciones de Seal.
+     */
+    private fun cancelTask(context: Context, taskId: String?, notificationId: Int) {
+        if (taskId.isNullOrEmpty()) return
+        // Si la notificación mapeada es la del servicio (9999), no cancelamos
+        // directamente: deleteDownload restaura la notificación base o detiene
+        // el servicio según queden descargas activas (evita crashes de ciclo
+        // de vida del foreground service en Android 12+).
+        if (notificationId > 0 &&
+            notificationId != com.fabian.downloader.util.NotificationUtil.SERVICE_NOTIFICATION_ID
+        ) {
+            NotificationUtil.cancelNotification(notificationId)
+        }
+
+        try {
+            YoutubeDL.getInstance().destroyProcessById(taskId)
+            Log.d(Config.TAG_DOWNLOAD_ACTION_RECEIVER, "Task (id:$taskId) was killed.")
+        } catch (e: Exception) {
+            Log.w(Config.TAG_DOWNLOAD_ACTION_RECEIVER,
+                "No se pudo destruir el proceso $taskId", e)
+        }
+
+        // taskId == id del registro de descarga (DownloadExecutor pasa
+        // processId = id.toString()), así que delegamos en el borrado completo.
+        val downloadId = taskId.toLongOrNull()
+        if (downloadId != null && downloadId > 0) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    DownloadManagerService.getInstance(context).deleteDownload(downloadId)
+                } catch (e: Exception) {
+                    Log.w(Config.TAG_DOWNLOAD_ACTION_RECEIVER,
+                        "Error eliminando la descarga $downloadId tras cancelar", e)
+                }
+            }
+        }
+    }
+
+    /**
+     * Copia el informe de error al portapapeles (portado de Seal:
+     * `NotificationActionReceiver.copyErrorReport`), muestra un toast y
+     * descarta la notificación.
+     */
+    private fun copyErrorReport(context: Context, report: String, notificationId: Int) {
+        try {
+            val clipboard =
+                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText(null, report))
+            Toast.makeText(
+                context,
+                context.getString(R.string.notif_error_copied),
+                Toast.LENGTH_SHORT
+            ).show()
+        } catch (e: Exception) {
+            Log.w(Config.TAG_DOWNLOAD_ACTION_RECEIVER,
+                "No se pudo copiar el informe de error", e)
+        }
+        if (notificationId > 0) NotificationUtil.cancelNotification(notificationId)
     }
 
     /**

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings.xml — idioma: ar (generado por scripts/i18n_assemble.py) -->
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">المكتبة</string>
+    <string name="shortcut_download">تنزيل</string>
+    <string name="downloads_realtime_speed_title">السرعة في الوقت الفعلي</string>
+    <string name="downloads_active_downloads_count">%1$d تنزيلات نشطة</string>
+    <string name="downloads_active_count">%1$d نشط</string>
+    <string name="downloads_pause_all">إيقاف الكل مؤقتًا</string>
+    <string name="downloads_resume_all">استئناف الكل</string>
+    <string name="downloads_force_download_title">إجبار التنزيل</string>
+    <string name="downloads_force_download_desc">البدء فورًا مع تجاهل حد التزامن</string>
+    <string name="playlist_badge">قائمة تشغيل (%1$d فيديو)</string>
+    <string name="playlist_options_header">خيارات التنزيل الدفعي</string>
+    <string name="playlist_format_video">فيديو (MP4)</string>
+    <string name="playlist_format_mp3">صوت (MP3)</string>
+    <string name="playlist_format_m4a">صوت (M4A)</string>
+    <string name="playlist_unselect_all">إلغاء تحديد الكل</string>
+    <string name="playlist_select_all">تحديد الكل</string>
+    <string name="playlist_selected_count">%1$d من %2$d محدد</string>
+    <string name="playlist_download_batch_button">تنزيل الدفعة (%1$d)</string>
+    <string name="storage_permission_title">إذن التخزين</string>
+    <string name="storage_permission_desc">أذونات التخزين مطلوبة لحفظ تنزيلات الفيديو والصوت.</string>
+    <string name="storage_permission_grant">منح الإذن</string>
+    <string name="scoped_storage_active">التخزين الآمن مفعّل (Scoped Storage)</string>
+    <string name="status_retrying">إعادة المحاولة...</string>
+    <string name="main_invalid_url_toast">لا يحتوي الحافظة على رابط صالح</string>
+</resources>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings.xml — idioma: tr (generado por scripts/i18n_assemble.py) -->
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">Kitaplık</string>
+    <string name="shortcut_download">İndir</string>
+    <string name="downloads_realtime_speed_title">Gerçek Zamanlı Hız</string>
+    <string name="downloads_active_downloads_count">%1$d aktif indirme</string>
+    <string name="downloads_active_count">%1$d canlı</string>
+    <string name="downloads_pause_all">Tümünü duraklat</string>
+    <string name="downloads_resume_all">Tümünü sürdür</string>
+    <string name="downloads_force_download_title">İndirmeyi zorla</string>
+    <string name="downloads_force_download_desc">Eşzamanlılık sınırını yok sayarak hemen başlat</string>
+    <string name="playlist_badge">OYNATMA LİSTESİ (%1$d VİDEO)</string>
+    <string name="playlist_options_header">TOPLU İNDİRME SEÇENEKLERİ</string>
+    <string name="playlist_format_video">Video (MP4)</string>
+    <string name="playlist_format_mp3">Ses (MP3)</string>
+    <string name="playlist_format_m4a">Ses (M4A)</string>
+    <string name="playlist_unselect_all">Tümünü bırak</string>
+    <string name="playlist_select_all">Tümünü seç</string>
+    <string name="playlist_selected_count">%2$d içinden %1$d seçildi</string>
+    <string name="playlist_download_batch_button">TOPLU İNDİR (%1$d)</string>
+    <string name="storage_permission_title">Depolama İzni</string>
+    <string name="storage_permission_desc">Video ve ses indirmelerinizi kaydetmek için depolama izinleri gereklidir.</string>
+    <string name="storage_permission_grant">İzin Ver</string>
+    <string name="scoped_storage_active">Güvenli Depolama Etkin (Scoped Storage)</string>
+    <string name="status_retrying">Yeniden deneniyor...</string>
+    <string name="main_invalid_url_toast">Panoda geçerli bir bağlantı yok</string>
+</resources>

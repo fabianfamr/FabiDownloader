@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings.xml — idioma: id (generado por scripts/i18n_assemble.py) -->
+    <string name="app_name">Fabi Downloader</string>
+    <string name="shortcut_library">Pustaka</string>
+    <string name="shortcut_download">Unduh</string>
+    <string name="downloads_realtime_speed_title">Kecepatan Waktu Nyata</string>
+    <string name="downloads_active_downloads_count">%1$d unduhan aktif</string>
+    <string name="downloads_active_count">%1$d berjalan</string>
+    <string name="downloads_pause_all">Jeda semua</string>
+    <string name="downloads_resume_all">Lanjutkan semua</string>
+    <string name="downloads_force_download_title">Paksa unduhan</string>
+    <string name="downloads_force_download_desc">Mulai segera abaikan batas konkurensi</string>
+    <string name="playlist_badge">PLAYLIST (%1$d VIDEO)</string>
+    <string name="playlist_options_header">OPSI UNDUH MASSAL</string>
+    <string name="playlist_format_video">Video (MP4)</string>
+    <string name="playlist_format_mp3">Audio (MP3)</string>
+    <string name="playlist_format_m4a">Audio (M4A)</string>
+    <string name="playlist_unselect_all">Batalkan semua pilihan</string>
+    <string name="playlist_select_all">Pilih semua</string>
+    <string name="playlist_selected_count">%1$d dari %2$d dipilih</string>
+    <string name="playlist_download_batch_button">UNDUH MASSAL (%1$d)</string>
+    <string name="storage_permission_title">Izin Penyimpanan</string>
+    <string name="storage_permission_desc">Izin penyimpanan diperlukan untuk menyimpan unduhan video dan audio Anda.</string>
+    <string name="storage_permission_grant">Berikan Izin</string>
+    <string name="scoped_storage_active">Penyimpanan Aman Aktif (Scoped Storage)</string>
+    <string name="status_retrying">Mencoba lagi...</string>
+    <string name="main_invalid_url_toast">Papan klip tidak berisi tautan yang valid</string>
+</resources>

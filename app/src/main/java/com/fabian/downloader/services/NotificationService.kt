@@ -46,6 +46,8 @@ class NotificationService(private val context: Context) {
         synchronized(this) {
             if (foregroundDownloadId == id) {
                 foregroundDownloadId = null
+                // Liberar el slot del servicio para el contador de cola.
+                com.fabian.downloader.util.NotificationUtil.isForegroundSlotOwnedByProgress = false
                 // Si el servicio en segundo plano sigue corriendo, restaurar la notificación base
                 // en lugar de cancelar el ID 9999 para prevenir excepciones de ciclo de vida en Android 12+
                 if (DownloadForegroundService.isRunning) {
@@ -87,42 +89,8 @@ class NotificationService(private val context: Context) {
     companion object {
         fun createAllNotificationChannels(context: Context) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                try {
-                    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
-
-                    // Canal 1: Descargas en curso y servicio en segundo plano (Silencioso para no vibrar continuamente)
-                    val progressChannel = NotificationChannel(
-                        Config.NOTIF_CHANNEL_PROGRESS,
-                        context.getString(R.string.notif_channel_progress),
-                        NotificationManager.IMPORTANCE_LOW
-                    ).apply {
-                        description = context.getString(R.string.notif_channel_progress_desc)
-                        setShowBadge(false)
-                    }
-                    manager.createNotificationChannel(progressChannel)
-
-                    // Canal 2: Descargas completadas con éxito (Con sonido y notificación estándar)
-                    val statusChannel = NotificationChannel(
-                        Config.NOTIF_CHANNEL_STATUS,
-                        context.getString(R.string.notif_channel_status),
-                        NotificationManager.IMPORTANCE_DEFAULT
-                    ).apply {
-                        description = context.getString(R.string.notif_channel_status_desc)
-                        setShowBadge(true)
-                    }
-                    manager.createNotificationChannel(statusChannel)
-
-                    // Canal 3: Descargas fallidas y errores (Con sonido y alerta)
-                    val failedChannel = NotificationChannel(
-                        Config.NOTIF_CHANNEL_FAILED,
-                        context.getString(R.string.notif_channel_failed),
-                        NotificationManager.IMPORTANCE_DEFAULT
-                    ).apply {
-                        description = context.getString(R.string.notif_channel_failed_desc)
-                        setShowBadge(true)
-                    }
-                    manager.createNotificationChannel(failedChannel)
-                } catch (_: Throwable) {}
+                // Grupo de canales + canales (estructura de Seal: NotificationUtil.createNotificationChannel)
+                com.fabian.downloader.util.NotificationUtil.createNotificationChannel(context)
             }
         }
     }
@@ -198,6 +166,9 @@ class NotificationService(private val context: Context) {
         val notificationId = synchronized(this) {
             if (foregroundDownloadId == null || foregroundDownloadId == id) {
                 foregroundDownloadId = id
+                // Marcar que el slot del servicio ahora muestra el progreso,
+                // para que el contador de cola (NotificationUtil) no lo sobrescriba.
+                com.fabian.downloader.util.NotificationUtil.isForegroundSlotOwnedByProgress = true
                 9999
             } else {
                 id
@@ -233,8 +204,28 @@ class NotificationService(private val context: Context) {
             .setOnlyAlertOnce(true)
             .setContentIntent(appPendingIntent)
             .build()
-            
-        notificationManager.notify(notificationId, notification)
+
+        // ------------------------------------------------------------------
+        // Acción "Cancelar" sobre la notificación de progreso (portado de
+        // Seal: NotificationUtil.notifyProgress). El botón mata el proceso
+        // yt-dlp por taskId y borra la descarga, sin abrir la app.
+        // ------------------------------------------------------------------
+        val cancelActionIntent = com.fabian.downloader.util.NotificationUtil
+            .makeCancelTaskPendingIntent(
+                context = context,
+                taskId = id.toString(),
+                downloadId = id.toLong(),
+                notificationId = notificationId
+            )
+        val notificationWithCancel = NotificationCompat.Builder(context, notification)
+            .addAction(
+                R.drawable.ic_cloud_download,
+                localizedCtx.getString(R.string.notif_action_cancel),
+                cancelActionIntent
+            )
+            .build()
+
+        notificationManager.notify(notificationId, notificationWithCancel)
     }
 
     suspend fun showDownloadPaused(
@@ -294,7 +285,46 @@ class NotificationService(private val context: Context) {
             .setContentIntent(appPendingIntent)
             .build()
 
-        notificationManager.notify(notificationId, notification)
+        // ------------------------------------------------------------------
+        // Acciones "Reanudar" y "Cancelar" en la notificación de pausa
+        // (filosofía de notificaciones accionables de Seal). Reanudar
+        // relanza la descarga conservando el .part (--continue); Cancelar
+        // destruye el proceso yt-dlp y borra la descarga por taskId.
+        // ------------------------------------------------------------------
+        val resumeIntent = Intent(context, DownloadActionReceiver::class.java).apply {
+            setClass(context, DownloadActionReceiver::class.java)
+            component = ComponentName(context, DownloadActionReceiver::class.java)
+            setPackage(context.packageName)
+            action = Config.ACTION_RESUME
+            putExtra(Config.EXTRA_DOWNLOAD_ID, id.toLong())
+        }
+        val resumePendingIntent = PendingIntent.getBroadcast(
+            context,
+            id + 530000,
+            resumeIntent,
+            flags
+        )
+        val cancelPendingIntent =
+            com.fabian.downloader.util.NotificationUtil.makeCancelTaskPendingIntent(
+                context = context,
+                taskId = id.toString(),
+                downloadId = id.toLong(),
+                notificationId = notificationId
+            )
+        val notificationWithActions = NotificationCompat.Builder(context, notification)
+            .addAction(
+                R.drawable.ic_cloud_download,
+                context.getString(R.string.notif_action_resume),
+                resumePendingIntent
+            )
+            .addAction(
+                R.drawable.ic_cloud_download,
+                context.getString(R.string.notif_action_cancel),
+                cancelPendingIntent
+            )
+            .build()
+
+        notificationManager.notify(notificationId, notificationWithActions)
 
         // Programar el auto-descarte según la configuración
         val timeoutMs = com.fabian.downloader.ui.AppSettings.pausedNotificationTimeoutMs
@@ -457,6 +487,27 @@ class NotificationService(private val context: Context) {
 
         val channelIdToUse = channelFailedId
 
+        // ------------------------------------------------------------------
+        // Acción "Copiar informe" (portado de Seal: NotificationUtil.notifyError).
+        // Copia el informe de error completo al portapapeles para pegarlo en
+        // un reporte de bug, como el botón de las notificaciones de error de Seal.
+        // ------------------------------------------------------------------
+        val failedNotificationId = id + 500000
+        val errorReport = StringBuilder()
+            .append(context.getString(R.string.app_name))
+            .append(" — ").append(context.getString(R.string.notif_title_failed))
+            .append("\n\n")
+            .append(context.getString(R.string.notif_report_url_id, id))
+            .append("\n").append(context.getString(R.string.notif_report_title_label, cleanTitle))
+            .append("\n").append(context.getString(R.string.notif_report_error_label, errorMsg))
+            .toString()
+        val copyReportPendingIntent =
+            com.fabian.downloader.util.NotificationUtil.makeCopyErrorReportPendingIntent(
+                context = context,
+                report = errorReport,
+                notificationId = failedNotificationId
+            )
+
         val notification = NotificationCompat.Builder(context, channelIdToUse)
             .setContentTitle(context.getString(R.string.notif_title_failed))
             .setContentText("$cleanTitle\n$errorMsg")
@@ -467,6 +518,7 @@ class NotificationService(private val context: Context) {
             .setOngoing(false)
             .setContentIntent(appPendingIntent)
             .addAction(R.drawable.ic_cloud_download, context.getString(R.string.notif_action_retry), retryPendingIntent)
+            .addAction(R.drawable.ic_cloud_download, context.getString(R.string.notif_action_copy_report), copyReportPendingIntent)
             .build()
 
         notificationManager.notify(id + 500000, notification)

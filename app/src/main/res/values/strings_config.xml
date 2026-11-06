@@ -13,6 +13,13 @@
     <string name="status_unknown">Desconocido</string>
     <string name="status_default_title">Video sin título</string>
     <string name="status_default_author_instagram">Instagram User</string>
+    <string name="title_unknown_author">Desconocido</string>
+    <string name="title_publication_of">Publicación de %1$s</string>
+    <string name="title_tweet_of">Tweet de %1$s</string>
+    <string name="title_live_of">Directo de %1$s</string>
+    <string name="playlist_default_title">Lista de reproducción</string>
+    <string name="status_cancelled_by_user">Cancelado por usuario</string>
+    <string name="error_empty_segment">Cuerpo vacío en segmento %1$d</string>
 
     <!-- UI Placeholder Titles -->
     <string name="title_processing_link">Procesando enlace...</string>

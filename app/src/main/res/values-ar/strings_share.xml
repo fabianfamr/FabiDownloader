@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_share.xml — idioma: ar (generado por scripts/i18n_assemble.py) -->
+    <string name="share_error_empty">الرابط المشترك فارغ</string>
+    <string name="share_direct_link">رابط مباشر</string>
+    <string name="share_video_of">فيديو من %1$s</string>
+    <string name="share_error_analyze">تعذّرت معالجة الرابط. هل تريد تجربة تنزيل سريع؟</string>
+    <string name="share_options_title">خيارات التنزيل</string>
+    <string name="share_close">إغلاق</string>
+    <string name="share_download_prefix">تنزيل</string>
+    <string name="share_music_section">موسيقى</string>
+    <string name="share_video_section">فيديو</string>
+    <string name="share_image_section">صورة</string>
+    <string name="share_format_jpg">JPG (HD)</string>
+    <string name="share_format_png">PNG (بدون فقدان)</string>
+    <string name="share_format_webp">WEBP (محسّن)</string>
+    <string name="share_download_button">تنزيل</string>
+    <string name="share_select_option">اختر خيارًا</string>
+    <string name="share_thumbnail">الصورة المصغرة للفيديو</string>
+    <string name="share_analyzing">جارٍ معالجة الرابط...</string>
+    <string name="share_error">خطأ</string>
+    <string name="share_retry">إعادة المحاولة</string>
+    <string name="share_quick_download">تنزيل سريع</string>
+    <string name="share_size">الحجم:</string>
+    <string name="share_started_title">بدأ التنزيل!</string>
+    <string name="share_started_subtitle">بدأ تنزيلك بنجاح</string>
+    <string name="share_not_now">ليس الآن</string>
+    <string name="share_view">عرض</string>
+    <string name="share_size_mb">%1$.1f MB</string>
+    <string name="share_size_auto">...</string>
+    <string name="share_size_loading">...</string>
+    <string name="share_not_available">غير متاح</string>
+    <string name="share_quality_classic_mp3">MP3 كلاسيكي (320K)</string>
+    <string name="share_quality_mp3_192">MP3 (192K)</string>
+    <string name="share_quality_mp3_128">MP3 (128K)</string>
+    <string name="share_quality_fast_m4a">سريع (64K M4A)</string>
+    <string name="share_quality_fhd_1080">دقة عالية جدًا (1080p)</string>
+    <string name="share_quality_hq_720">جودة عالية (720p)</string>
+    <string name="share_quality_std_480">قياسي (480p)</string>
+    <string name="share_quality_fast_360">سريع (360p)</string>
+    <string name="share_category_music">Music</string>
+    <string name="share_category_video">Video</string>
+    <string name="share_category_image">Image</string>
+    <string name="notif_report_url_id">معرف الرابط: %1$d</string>
+    <string name="notif_report_title_label">العنوان: %1$s</string>
+    <string name="notif_report_error_label">الخطأ: %1$s</string>
+</resources>

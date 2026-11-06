@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- strings_share.xml — idioma: hi (generado por scripts/i18n_assemble.py) -->
+    <string name="share_error_empty">साझा किया गया लिंक खाली है</string>
+    <string name="share_direct_link">डायरेक्ट लिंक</string>
+    <string name="share_video_of">%1$s का वीडियो</string>
+    <string name="share_error_analyze">लिंक प्रोसेस नहीं हो सका। क्या तेज़ डाउनलोड आज़माना चाहते हैं?</string>
+    <string name="share_options_title">डाउनलोड विकल्प</string>
+    <string name="share_close">बंद करें</string>
+    <string name="share_download_prefix">डाउनलोड</string>
+    <string name="share_music_section">संगीत</string>
+    <string name="share_video_section">वीडियो</string>
+    <string name="share_image_section">छवि</string>
+    <string name="share_format_jpg">JPG (HD)</string>
+    <string name="share_format_png">PNG (लॉसलेस)</string>
+    <string name="share_format_webp">WEBP (अनुकूलित)</string>
+    <string name="share_download_button">डाउनलोड</string>
+    <string name="share_select_option">एक विकल्प चुनें</string>
+    <string name="share_thumbnail">वीडियो थंबनेल</string>
+    <string name="share_analyzing">लिंक प्रोसेस हो रहा है...</string>
+    <string name="share_error">त्रुटि</string>
+    <string name="share_retry">पुनः प्रयास</string>
+    <string name="share_quick_download">तेज़ डाउनलोड</string>
+    <string name="share_size">आकार:</string>
+    <string name="share_started_title">डाउनलोड शुरू हो गया!</string>
+    <string name="share_started_subtitle">आपका डाउनलोड सफलतापूर्वक शुरू हो गया</string>
+    <string name="share_not_now">अभी नहीं</string>
+    <string name="share_view">देखें</string>
+    <string name="share_size_mb">%1$.1f MB</string>
+    <string name="share_size_auto">...</string>
+    <string name="share_size_loading">...</string>
+    <string name="share_not_available">उपलब्ध नहीं</string>
+    <string name="share_quality_classic_mp3">क्लासिक MP3 (320K)</string>
+    <string name="share_quality_mp3_192">MP3 (192K)</string>
+    <string name="share_quality_mp3_128">MP3 (128K)</string>
+    <string name="share_quality_fast_m4a">तेज़ (64K M4A)</string>
+    <string name="share_quality_fhd_1080">फुल HD (1080p)</string>
+    <string name="share_quality_hq_720">उच्च गुणवत्ता (720p)</string>
+    <string name="share_quality_std_480">मानक (480p)</string>
+    <string name="share_quality_fast_360">तेज़ (360p)</string>
+    <string name="share_category_music">Music</string>
+    <string name="share_category_video">Video</string>
+    <string name="share_category_image">Image</string>
+    <string name="notif_report_url_id">URL ID: %1$d</string>
+    <string name="notif_report_title_label">शीर्षक: %1$s</string>
+    <string name="notif_report_error_label">त्रुटि: %1$s</string>
+</resources>
