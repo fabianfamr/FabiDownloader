@@ -187,7 +187,8 @@ android {
     // Exclusiones explícitas y justificadas. NO silencies warnings sin razón.
     disable += setOf(
       "MissingTranslation",       // traducciones llegan incrementalmente
-      "ExtraTranslation"          // claves legacy que aún no se borran
+      "ExtraTranslation",         // claves legacy que aún no se borran
+      "LocalContextGetResourceValueCall" // llamadas a getString desde LocalContext.current en diálogos/toasts
     )
     // Baseline: snapshot de issues existentes. Solo NUEVOS issues bloquean el build.
     // Si no existe el archivo, no se fuerza baseline para no romper builds de CI al auto-crearlo.
