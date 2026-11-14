@@ -316,7 +316,7 @@ fun SystemSettingsSection(
     ) {
         Column {
             Row(
-                modifier = Modifier.padding(14.dp, 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(14.dp, 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -355,10 +355,17 @@ fun SystemSettingsSection(
             }
             HorizontalDivider(color = C_border, thickness = 1.dp)
             SettingsRow(AppIcons.Code, stringResource(R.string.settings_github_repo), stringResource(R.string.settings_view_code), C_accent, C_white, C_gray1, C_card2) {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Config.GITHUB_URL)).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                try {
+                    val url = Config.GITHUB_URL
+                    if (url.startsWith("https://") || url.startsWith("http://")) {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        ctx.startActivity(intent)
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(ctx, ctx.getString(R.string.main_error_opening_file, e.localizedMessage ?: ""), Toast.LENGTH_SHORT).show()
                 }
-                ctx.startActivity(intent)
             }
             HorizontalDivider(color = C_border, thickness = 1.dp)
             SettingsRow(
@@ -373,9 +380,13 @@ fun SystemSettingsSection(
                 if (!isCopyingErrors) {
                     scope.launch {
                         isCopyingErrors = true
-                        ErrorLogManager.copyErrorsToClipboard(ctx)
+                        val copied = ErrorLogManager.copyErrorsToClipboard(ctx)
                         isCopyingErrors = false
-                        Toast.makeText(ctx, ctx.getString(R.string.settings_logs_copied), Toast.LENGTH_LONG).show()
+                        if (copied) {
+                            Toast.makeText(ctx, ctx.getString(R.string.settings_logs_copied), Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(ctx, ctx.getString(R.string.settings_error_prefix, "clipboard"), Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
             }

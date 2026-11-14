@@ -213,9 +213,6 @@ object TaskFactory {
             if (settings.bypassGeo) {
                 addOption("--geo-bypass")
             }
-            if (AppSettings.bypassSslVerification) {
-                addOption("--no-check-certificate")
-            }
 
             addOption("--socket-timeout", "10")
             addOption("--retries", "3")
@@ -258,10 +255,49 @@ object TaskFactory {
         }
     }
 
+    private fun tokenizeCustomArgs(input: String): List<String> {
+        val tokens = mutableListOf<String>()
+        val current = StringBuilder()
+        var quoteChar: Char? = null
+        var escaping = false
+        for (ch in input.trim()) {
+            when {
+                escaping -> {
+                    current.append(ch)
+                    escaping = false
+                }
+                ch == '\\' && quoteChar != '\'' -> {
+                    escaping = true
+                }
+                quoteChar != null -> {
+                    if (ch == quoteChar) {
+                        quoteChar = null
+                    } else {
+                        current.append(ch)
+                    }
+                }
+                ch == '"' || ch == '\'' -> {
+                    quoteChar = ch
+                }
+                ch.isWhitespace() -> {
+                    if (current.isNotEmpty()) {
+                        tokens.add(current.toString())
+                        current.clear()
+                    }
+                }
+                else -> current.append(ch)
+            }
+        }
+        if (current.isNotEmpty()) {
+            tokens.add(current.toString())
+        }
+        return tokens
+    }
+
     private fun YoutubeDLRequest.applyCustomArguments(customArgs: String) {
-        if (customArgs.isEmpty()) return
+        if (customArgs.isBlank()) return
         try {
-            val tokens = customArgs.trim().split(Regex("\\s+"))
+            val tokens = tokenizeCustomArgs(customArgs)
             var i = 0
             while (i < tokens.size) {
                 val token = tokens[i]

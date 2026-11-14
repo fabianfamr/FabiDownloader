@@ -41,19 +41,15 @@ object StoragePermissionUtils {
 
     /**
      * Comprueba si el usuario ha concedido los permisos necesarios para guardar archivos en el almacenamiento.
+     * Desde Android 10 (API 29+) Scoped Storage / MediaStore / SAF no requiere permiso de escritura global.
      */
     fun hasStoragePermission(context: Context): Boolean {
         return when {
-            // Android 11+ (API 30+): Se usa el permiso de administración de archivos
-            isAndroid11OrHigher() -> {
-                isAllFilesAccessGranted()
-            }
-            // Android 10 y anteriores (API < 30)
-            else -> {
-                val writeStorage = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-                val readStorage = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-                writeStorage && readStorage
-            }
+            isScopedStorage() -> true
+            else -> ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
         }
     }
 
@@ -62,16 +58,13 @@ object StoragePermissionUtils {
      */
     fun getRequiredPermissions(): Array<String> {
         return when {
-            isAndroid11OrHigher() -> emptyArray()
-            else -> arrayOf(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            )
+            isScopedStorage() -> emptyArray()
+            else -> arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
     }
 
     /**
-     * Verifica si la aplicación tiene permiso de administración de todos los archivos (MANAGE_EXTERNAL_STORAGE).
+     * Indica si la aplicación puede operar sin restricciones de acceso de archivos en el ámbito permitido.
      */
     fun isAllFilesAccessGranted(): Boolean {
         return if (isAndroid11OrHigher()) {
@@ -82,21 +75,11 @@ object StoragePermissionUtils {
     }
 
     /**
-     * Construye un Intent para dirigir al usuario a la pantalla de configuración del permiso de administración de archivos.
+     * Construye un Intent para dirigir al usuario a los ajustes de la aplicación.
      */
     fun getAllFilesAccessIntent(context: Context): Intent {
-        return if (isAndroid11OrHigher()) {
-            try {
-                Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                    data = Uri.parse("package:${context.packageName}")
-                }
-            } catch (e: Exception) {
-                Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-            }
-        } else {
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.parse("package:${context.packageName}")
-            }
+        return Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.parse("package:${context.packageName}")
         }
     }
 

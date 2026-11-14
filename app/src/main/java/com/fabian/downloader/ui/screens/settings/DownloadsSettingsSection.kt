@@ -195,24 +195,6 @@ fun DownloadsSettingsSection(
             ) {
                 launcher.launch(null)
             }
-            if (com.fabian.downloader.utils.StoragePermissionUtils.isAndroid11OrHigher()) {
-                HorizontalDivider(color = C_border, thickness = 1.dp)
-                val hasAllFilesAccess = com.fabian.downloader.utils.StoragePermissionUtils.isAllFilesAccessGranted()
-                SettingsRow(
-                    icon = AppIcons.Folder,
-                    title = stringResource(R.string.settings_all_files_access),
-                    trailing = if (hasAllFilesAccess) stringResource(R.string.settings_permission_granted) else stringResource(R.string.settings_permission_optional_tap),
-                    colorAccent = if (hasAllFilesAccess) C_accent else C_gray1,
-                    textColor = C_white,
-                    grayColor = C_gray1,
-                    card2Color = C_card2
-                ) {
-                    try {
-                        val intent = com.fabian.downloader.utils.StoragePermissionUtils.getAllFilesAccessIntent(ctx)
-                        ctx.startActivity(intent)
-                    } catch (_: Exception) {}
-                }
-            }
         }
     }
 

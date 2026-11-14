@@ -160,8 +160,7 @@ object NotificationUtil {
             context,
             notificationId + 600000,
             intent,
-            PendingIntent.FLAG_ONE_SHOT or
-                PendingIntent.FLAG_IMMUTABLE or
+            PendingIntent.FLAG_IMMUTABLE or
                 PendingIntent.FLAG_UPDATE_CURRENT
         )
     }
@@ -187,8 +186,7 @@ object NotificationUtil {
             context,
             notificationId + 700000,
             intent,
-            PendingIntent.FLAG_ONE_SHOT or
-                PendingIntent.FLAG_IMMUTABLE or
+            PendingIntent.FLAG_IMMUTABLE or
                 PendingIntent.FLAG_UPDATE_CURRENT
         )
     }

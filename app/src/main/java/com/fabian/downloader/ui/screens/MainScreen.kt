@@ -15,6 +15,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -269,7 +270,7 @@ fun MainScreen(
                                 fontSize = 32.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 textAlign = TextAlign.Center,
-                                lineHeight = 1.3.sp,
+                                lineHeight = 38.sp,
                                 modifier = Modifier.padding(bottom = 20.dp)
                             )
                         }
@@ -324,7 +325,9 @@ fun MainScreen(
                             )
                             Spacer(modifier = Modifier.height(14.dp))
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState()),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 platforms.take(6).forEach { platform ->
@@ -416,7 +419,7 @@ fun MainScreen(
                             fontSize = 28.sp,
                             fontWeight = FontWeight.ExtraBold,
                             textAlign = TextAlign.Center,
-                            lineHeight = 1.3.sp,
+                            lineHeight = 34.sp,
                             modifier = Modifier.padding(bottom = 24.dp)
                         )
                     }
@@ -450,9 +453,10 @@ fun MainScreen(
             }
         }
 
-        if (urlToDownloadInDialog != null) {
+        val dialogUrl = urlToDownloadInDialog
+        if (dialogUrl != null) {
             SharePopupScreen(
-                url = urlToDownloadInDialog!!,
+                url = dialogUrl,
                 viewModel = viewModel,
                 onClose = { urlToDownloadInDialog = null },
                 onNavigateToDownloads = {

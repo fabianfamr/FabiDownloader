@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +51,9 @@ import com.fabian.downloader.ui.viewmodels.MainViewModel
 import com.fabian.downloader.utils.PathUtils
 import com.fabian.downloader.utils.ToastUtils
 import kotlinx.coroutines.launch
+
+private enum class DownloadSortOrder { DATE, NAME, SIZE }
+private enum class DownloadFilterType { ALL, MUSIC, VIDEO }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,26 +85,25 @@ fun DownloadsScreen(
     val sortDateStr = stringResource(R.string.downloads_sort_date)
     val sortNameStr = stringResource(R.string.downloads_sort_name)
     val sortSizeStr = stringResource(R.string.downloads_sort_size)
-    var sortOrder by remember { mutableStateOf(sortDateStr) }
+    var sortOrder by rememberSaveable { mutableStateOf(DownloadSortOrder.DATE) }
 
     val downloading = remember(downloads) { downloads.filter { !it.isCompleted } }
-    val completed = remember(downloads, sortOrder, sortDateStr, sortNameStr, sortSizeStr) {
+    val completed = remember(downloads, sortOrder) {
         val list = downloads.filter { it.isCompleted }
         when (sortOrder) {
-            sortDateStr -> list.sortedByDescending { it.timestamp }
-            sortNameStr -> list.sortedBy { it.title }
-            sortSizeStr -> list.sortedByDescending { rec ->
-                val s = rec.size.uppercase().trim()
+            DownloadSortOrder.DATE -> list.sortedByDescending { it.timestamp }
+            DownloadSortOrder.NAME -> list.sortedBy { it.title }
+            DownloadSortOrder.SIZE -> list.sortedByDescending { rec ->
+                val s = rec.size.uppercase().replace(',', '.').trim()
                 val num = Regex("""[\d.]+""").find(s)?.value?.toDoubleOrNull() ?: 0.0
                 when {
-                    s.contains("GB") -> (num * 1024 * 1024 * 1024).toLong()
-                    s.contains("MB") -> (num * 1024 * 1024).toLong()
-                    s.contains("KB") -> (num * 1024).toLong()
+                    s.contains("GB") || s.contains("GIB") -> (num * 1024 * 1024 * 1024).toLong()
+                    s.contains("MB") || s.contains("MIB") -> (num * 1024 * 1024).toLong()
+                    s.contains("KB") || s.contains("KIB") -> (num * 1024).toLong()
                     s.contains("B") -> num.toLong()
                     else -> 0L
                 }
             }
-            else -> list
         }
     }
 
@@ -197,7 +200,7 @@ fun DownloadsScreen(
     }
 
     val fColors = MaterialTheme.fabiColors
-    val tabs = listOf(stringResource(R.string.downloads_tab_completed), ctx.getString(R.string.downloads_tab_progress))
+    val tabs = listOf(stringResource(R.string.downloads_tab_completed), stringResource(R.string.downloads_tab_progress))
     val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
@@ -271,21 +274,25 @@ fun DownloadsScreen(
                             .clip(RoundedCornerShape(16.dp))
                             .background(fColors.card)
                     ) {
-                        listOf(sortDateStr, sortNameStr, sortSizeStr).forEach { option ->
+                        listOf(
+                            DownloadSortOrder.DATE to sortDateStr,
+                            DownloadSortOrder.NAME to sortNameStr,
+                            DownloadSortOrder.SIZE to sortSizeStr
+                        ).forEach { (order, label) ->
                             DropdownMenuItem(
                                 text = {
                                     Text(
-                                        option,
-                                        fontWeight = if (sortOrder == option) FontWeight.Bold else FontWeight.Medium,
-                                        color = if (sortOrder == option) fColors.accent else fColors.textPrimary
+                                        label,
+                                        fontWeight = if (sortOrder == order) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (sortOrder == order) fColors.accent else fColors.textPrimary
                                     )
                                 },
                                 onClick = {
-                                    sortOrder = option
+                                    sortOrder = order
                                     expanded = false
                                 },
                                 leadingIcon = {
-                                    if (sortOrder == option) {
+                                    if (sortOrder == order) {
                                         Icon(AppIcons.Check, null, tint = fColors.accent, modifier = Modifier.size(16.dp))
                                     } else {
                                         Spacer(Modifier.size(16.dp))
@@ -346,7 +353,7 @@ fun DownloadsScreen(
             }
         }
 
-        var filterType by remember { mutableStateOf(ctx.getString(R.string.downloads_filter_all)) }
+        var filterType by rememberSaveable { mutableStateOf(DownloadFilterType.ALL) }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -354,10 +361,10 @@ fun DownloadsScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             listOf(
-                stringResource(R.string.downloads_filter_all),
-                stringResource(R.string.downloads_filter_music),
-                stringResource(R.string.downloads_filter_video)
-            ).forEach { type ->
+                DownloadFilterType.ALL to stringResource(R.string.downloads_filter_all),
+                DownloadFilterType.MUSIC to stringResource(R.string.downloads_filter_music),
+                DownloadFilterType.VIDEO to stringResource(R.string.downloads_filter_video)
+            ).forEach { (type, label) ->
                 val isSelected = filterType == type
                 Surface(
                     onClick = { filterType = type },
@@ -368,7 +375,7 @@ fun DownloadsScreen(
                 ) {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 12.dp)) {
                         Text(
-                            text = type,
+                            text = label,
                             color = if (isSelected) fColors.accent else fColors.textSecondary,
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
@@ -393,34 +400,34 @@ fun DownloadsScreen(
         ) { page ->
             val filteredCompleted = remember(completed, filterType) {
                 when (filterType) {
-                    ctx.getString(R.string.downloads_filter_music) -> completed.filter { 
-                        it.format.equals(Config.FORMAT_MP3, true) || 
-                        it.format.equals(Config.FORMAT_M4A, true) || 
-                        it.format.equals(Config.FORMAT_OGG, true) || 
-                        it.format.equals(Config.FORMAT_WAV, true) 
+                    DownloadFilterType.MUSIC -> completed.filter {
+                        it.format.equals(Config.FORMAT_MP3, true) ||
+                        it.format.equals(Config.FORMAT_M4A, true) ||
+                        it.format.equals(Config.FORMAT_OGG, true) ||
+                        it.format.equals(Config.FORMAT_WAV, true)
                     }
-                    ctx.getString(R.string.downloads_filter_video) -> completed.filter { 
-                        it.format.equals(Config.FORMAT_MP4, true) || 
-                        it.format.equals(Config.FORMAT_WEBM, true) || 
-                        it.format.equals("MKV", true) 
+                    DownloadFilterType.VIDEO -> completed.filter {
+                        it.format.equals(Config.FORMAT_MP4, true) ||
+                        it.format.equals(Config.FORMAT_WEBM, true) ||
+                        it.format.equals("MKV", true)
                     }
-                    else -> completed
+                    DownloadFilterType.ALL -> completed
                 }
             }
             val filteredDownloading = remember(downloading, filterType) {
                 when (filterType) {
-                    ctx.getString(R.string.downloads_filter_music) -> downloading.filter { 
-                        it.format.equals(Config.FORMAT_MP3, true) || 
-                        it.format.equals(Config.FORMAT_M4A, true) || 
-                        it.format.equals(Config.FORMAT_OGG, true) || 
-                        it.format.equals(Config.FORMAT_WAV, true) 
+                    DownloadFilterType.MUSIC -> downloading.filter {
+                        it.format.equals(Config.FORMAT_MP3, true) ||
+                        it.format.equals(Config.FORMAT_M4A, true) ||
+                        it.format.equals(Config.FORMAT_OGG, true) ||
+                        it.format.equals(Config.FORMAT_WAV, true)
                     }
-                    ctx.getString(R.string.downloads_filter_video) -> downloading.filter { 
-                        it.format.equals(Config.FORMAT_MP4, true) || 
-                        it.format.equals(Config.FORMAT_WEBM, true) || 
-                        it.format.equals("MKV", true) 
+                    DownloadFilterType.VIDEO -> downloading.filter {
+                        it.format.equals(Config.FORMAT_MP4, true) ||
+                        it.format.equals(Config.FORMAT_WEBM, true) ||
+                        it.format.equals("MKV", true)
                     }
-                    else -> downloading
+                    DownloadFilterType.ALL -> downloading
                 }
             }
 
@@ -432,7 +439,7 @@ fun DownloadsScreen(
                     vertical = 12.dp
                 ),
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalArrangement = Arrangement.spacedBy(if (AppSettings.cardStyle == "Minimalista") 8.dp else 14.dp)
+                verticalArrangement = Arrangement.spacedBy(if (AppSettings.cardStyle == Config.CARD_STYLE_MINIMAL) 8.dp else 14.dp)
             ) {
                 if (page == 0) {
                     if (filteredCompleted.isNotEmpty()) {
@@ -494,7 +501,11 @@ fun DownloadsScreen(
                     }
                     if (filteredDownloading.isNotEmpty()) {
                         item(span = { GridItemSpan(maxLineSpan) }) {
-                            val anyActive = filteredDownloading.any { !it.isPaused && it.speed != "FAILED" }
+                            val anyActive = filteredDownloading.any {
+                                !it.isPaused &&
+                                !it.speed.startsWith("FAILED", ignoreCase = true) &&
+                                !it.title.startsWith(Config.STATUS_FAILED_PREFIX)
+                            }
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
                                 color = fColors.background

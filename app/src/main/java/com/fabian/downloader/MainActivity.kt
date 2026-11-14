@@ -13,11 +13,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.room.Room
+import androidx.lifecycle.lifecycleScope
 import com.fabian.downloader.configs.Config
 import com.fabian.downloader.database.AppDatabase
 import com.fabian.downloader.ui.FabiDownloaderApp
 import com.fabian.downloader.ui.theme.MyApplicationTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     lateinit var database: AppDatabase
@@ -26,12 +28,15 @@ class MainActivity : ComponentActivity() {
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { _ ->
-        com.fabian.downloader.utils.PathUtils.ensureFabiDirectories(this)
+        val appCtx = applicationContext
+        lifecycleScope.launch(Dispatchers.IO) {
+            com.fabian.downloader.utils.PathUtils.ensureFabiDirectories(appCtx)
+        }
     }
 
     override fun attachBaseContext(newBase: android.content.Context) {
-        val prefs = newBase.getSharedPreferences("fabi_downloader_prefs", android.content.Context.MODE_PRIVATE)
-        val lang = prefs.getString("language", "Sistema") ?: "Sistema"
+        val prefs = newBase.getSharedPreferences(Config.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+        val lang = prefs.getString(Config.PREF_LANGUAGE, Config.DEFAULT_LANGUAGE) ?: Config.DEFAULT_LANGUAGE
         val context = com.fabian.downloader.utils.LocaleHelper.applyLocale(newBase, lang)
         super.attachBaseContext(context)
     }
@@ -45,7 +50,10 @@ class MainActivity : ComponentActivity() {
         initialPageState.value = intent.getIntExtra(Config.EXTRA_INITIAL_PAGE, 0)
         
         checkAndRequestPermissions()
-        com.fabian.downloader.utils.PathUtils.ensureFabiDirectories(this)
+        val appCtxForDirs = applicationContext
+        lifecycleScope.launch(Dispatchers.IO) {
+            com.fabian.downloader.utils.PathUtils.ensureFabiDirectories(appCtxForDirs)
+        }
         com.fabian.downloader.utils.DeviceOptimizationHelper.applyScreenAndWindowOptimizations(this)
         enableEdgeToEdge()
         setContent {
@@ -84,7 +92,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        com.fabian.downloader.utils.PathUtils.ensureFabiDirectories(this)
+        val appCtx = applicationContext
+        lifecycleScope.launch(Dispatchers.IO) {
+            com.fabian.downloader.utils.PathUtils.ensureFabiDirectories(appCtx)
+        }
         if (com.fabian.downloader.services.DownloadManagerService.getInstance(this).hasActiveDownloads()) {
             com.fabian.downloader.services.DownloadForegroundService.start(this)
         }
@@ -106,7 +117,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
-        com.fabian.downloader.utils.PathUtils.backupDatabaseToExternal(this)
+        val appCtx = applicationContext
+        lifecycleScope.launch(Dispatchers.IO) {
+            com.fabian.downloader.utils.PathUtils.backupDatabaseToExternal(appCtx)
+        }
     }
 
     override fun onDestroy() {

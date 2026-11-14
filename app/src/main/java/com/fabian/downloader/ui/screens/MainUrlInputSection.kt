@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -159,7 +160,7 @@ fun MainUrlInputSection(
                                             val cleanUrl = com.fabian.downloader.utils.UrlUtils.extractUrlFromText(clipText)
                                             if (cleanUrl.startsWith("http://") || cleanUrl.startsWith("https://")) {
                                                 onQueryChange(cleanUrl)
-                                            } else if (!clipText.startsWith("===") && !clipText.contains("REGISTRO DE ERRORES")) {
+                                            } else if (!clipText.startsWith("===") && !clipText.contains('\n') && cleanUrl.contains('.')) {
                                                 onQueryChange(cleanUrl)
                                             } else {
                                                 ToastUtils.show(ctx, ctx.getString(R.string.main_invalid_url_toast))
@@ -198,6 +199,18 @@ fun MainUrlInputSection(
         enter = fadeIn(tween(300, easing = FastOutSlowInEasing)) + slideInVertically(initialOffsetY = { 20 }, animationSpec = tween(300, easing = FastOutSlowInEasing))
     ) {
         val isQueryValid = query.isNotEmpty() && (query.startsWith("http") || query.contains("."))
+        val activeContainerColor = when (analyzeState) {
+            AnalyzeState.Success -> colors.success
+            AnalyzeState.Loading -> colors.accent.copy(alpha = 0.5f)
+            else -> if (isQueryValid) colors.accent else colors.cardSecondary
+        }
+        val activeContentColor = remember(activeContainerColor, colors.textSecondary, isQueryValid, analyzeState) {
+            if (isQueryValid || analyzeState != AnalyzeState.Idle) {
+                if (activeContainerColor.luminance() > 0.5f) Color(0xFF0A0A0C) else Color.White
+            } else {
+                colors.textSecondary
+            }
+        }
         Button(
             onClick = {
                 if (isQueryValid && analyzeState == AnalyzeState.Idle) {
@@ -221,12 +234,8 @@ fun MainUrlInputSection(
                 .testTag("submit_link_button"),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = when (analyzeState) {
-                    AnalyzeState.Success -> colors.success
-                    AnalyzeState.Loading -> colors.accent.copy(alpha = 0.5f)
-                    else -> if (isQueryValid) colors.accent else colors.cardSecondary
-                },
-                contentColor = if (isQueryValid || analyzeState != AnalyzeState.Idle) Color(0xFF0A0A0C) else colors.textSecondary,
+                containerColor = activeContainerColor,
+                contentColor = activeContentColor,
                 disabledContainerColor = colors.cardSecondary,
                 disabledContentColor = colors.textSecondary
             ),
@@ -244,12 +253,12 @@ fun MainUrlInputSection(
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(16.dp),
-                            color = Color(0xFF0A0A0C),
+                            color = activeContentColor,
                             strokeWidth = 2.dp
                         )
                         Text(
                             text = stringResource(R.string.main_analyzing_state),
-                            color = Color(0xFF0A0A0C),
+                            color = activeContentColor,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -262,12 +271,12 @@ fun MainUrlInputSection(
                         Icon(
                             imageVector = AppIcons.CheckCircle,
                             contentDescription = null,
-                            tint = Color(0xFF0A0A0C),
+                            tint = activeContentColor,
                             modifier = Modifier.size(18.dp)
                         )
                         Text(
                             text = stringResource(R.string.main_link_detected_state),
-                            color = Color(0xFF0A0A0C),
+                            color = activeContentColor,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -280,12 +289,12 @@ fun MainUrlInputSection(
                         Icon(
                             imageVector = AppIcons.Download,
                             contentDescription = null,
-                            tint = if (isQueryValid) Color(0xFF0A0A0C) else colors.textSecondary,
+                            tint = activeContentColor,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             text = stringResource(R.string.main_analyze_button),
-                            color = if (isQueryValid) Color(0xFF0A0A0C) else colors.textSecondary,
+                            color = activeContentColor,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold
                         )

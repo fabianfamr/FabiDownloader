@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -331,7 +332,10 @@ fun DownloadsConvertDialog(
                         }
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = Color(0xFF0A0A0C))
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.accent,
+                    contentColor = if (colors.accent.luminance() > 0.5f) Color(0xFF0A0A0C) else Color.White
+                )
             ) {
                 Text(stringResource(R.string.downloads_convert_button), fontWeight = FontWeight.Bold)
             }
@@ -395,7 +399,10 @@ fun DownloadsErrorDialog(
                     clipboardManager.setText(AnnotatedString(errorMsg))
                     ToastUtils.showShort(ctx, R.string.downloads_error_copied)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = colors.accent, contentColor = Color(0xFF0A0A0C))
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.accent,
+                    contentColor = if (colors.accent.luminance() > 0.5f) Color(0xFF0A0A0C) else Color.White
+                )
             ) {
                 Icon(AppIcons.Copy, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))

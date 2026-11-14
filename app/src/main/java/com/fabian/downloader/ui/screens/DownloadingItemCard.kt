@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fabian.downloader.R
+import com.fabian.downloader.configs.Config
 import com.fabian.downloader.database.DownloadRecord
 import com.fabian.downloader.ui.components.AppIcons
 import com.fabian.downloader.ui.components.MediaThumbnail
@@ -54,9 +56,10 @@ fun MobileDownloadingItem(
     val C_amber = fColors.amber
 
     val failedPrefix = stringResource(R.string.downloads_failed_prefix)
-    val isFailed = record.speed == "FAILED" || 
-            record.title.startsWith("Fallo: ") || 
-            record.title.startsWith("Failed: ") || 
+    val isFailed = record.speed.startsWith("FAILED", ignoreCase = true) ||
+            record.title.startsWith(Config.STATUS_FAILED_PREFIX) ||
+            record.title.startsWith("Fallo: ") ||
+            record.title.startsWith("Failed: ") ||
             record.title.startsWith(failedPrefix)
     val cleanTitle = remember(record.title) {
         var t = record.title
@@ -170,7 +173,10 @@ fun MobileDownloadingItem(
 
                 val speedText = remember(record.speed, record.isPaused, isFailed, record.progress, ctx) {
                     when {
-                        isFailed -> errRetryStr
+                        isFailed -> {
+                            val resolved = YtdlpParser.getLocalizedStatus(ctx, record.speed)
+                            resolved.ifBlank { errRetryStr }
+                        }
                         record.isPaused -> pausedStr
                         record.progress < 0 -> waitingStr
                         else -> YtdlpParser.getLocalizedStatus(ctx, record.speed)
@@ -227,7 +233,7 @@ fun MobileDownloadingItem(
                         Icon(
                             imageVector = AppIcons.Check,
                             contentDescription = null,
-                            tint = Color(0xFF0A0A0C),
+                            tint = if (C_accent.luminance() > 0.5f) Color(0xFF0A0A0C) else Color.White,
                             modifier = Modifier.size(16.dp)
                         )
                     }

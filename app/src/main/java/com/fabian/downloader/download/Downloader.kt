@@ -11,6 +11,7 @@ import com.yausername.youtubedl_android.YoutubeDL
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -33,6 +34,7 @@ import com.fabian.downloader.util.DownloadUtil
 object Downloader {
 
     private const val TAG = "DownloadEngine"
+    private val engineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     /**
      * Descarga una tarea con el motor de yt-dlp.
@@ -178,7 +180,7 @@ object Downloader {
                 if (YtdlpErrorResolver.isExtractorOrCipherError(t, lastLine)) {
                     try {
                         val appCtx = MyApplication.getInstance()
-                        CoroutineScope(Dispatchers.IO).launch {
+                        engineScope.launch {
                             try {
                                 com.fabian.downloader.managers.YtdlpUpdateManager
                                     .autoUpdateSilentlyOnFailure(appCtx)
@@ -231,8 +233,7 @@ object Downloader {
     }
 
     private fun lowerContainsDownload(line: String): Boolean {
-        val lower = line.lowercase()
-        return lower.contains("[download] destination") || lower.contains("[download]")
+        return line.contains("[download] destination:", ignoreCase = true)
     }
 
     private fun destroyQuietly(processId: String) {

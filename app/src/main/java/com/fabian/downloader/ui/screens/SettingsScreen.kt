@@ -13,11 +13,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -33,6 +35,10 @@ import com.fabian.downloader.ui.components.AppIcons
 import com.fabian.downloader.ui.screens.settings.*
 import com.fabian.downloader.ui.theme.fabiColors
 
+private enum class SettingsCategory {
+    DOWNLOADS, LIBRARY, APPEARANCE, ADVANCED, SYSTEM
+}
+
 @Composable
 fun SettingsScreen(modifier: Modifier = Modifier) {
     val ctx = LocalContext.current
@@ -43,7 +49,9 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
         if (uri != null) {
             val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
                     Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            ctx.contentResolver.takePersistableUriPermission(uri, takeFlags)
+            try {
+                ctx.contentResolver.takePersistableUriPermission(uri, takeFlags)
+            } catch (_: SecurityException) {}
             AppSettings.downloadLocation = uri.toString()
         }
     }
@@ -56,11 +64,15 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     val C_accent = fColors.accent
     val C_white = fColors.textPrimary
     val C_gray1 = fColors.textSecondary
+    val onAccentColor = remember(C_accent) {
+        if (C_accent.luminance() > 0.5f) Color(0xFF0A0A0C) else Color.White
+    }
 
-    var selectedCategory by remember { mutableStateOf(ctx.getString(R.string.settings_cat_downloads)) }
+    var selectedCategory by rememberSaveable { mutableStateOf(SettingsCategory.DOWNLOADS) }
     var updateFound by remember { mutableStateOf<UpdateInfo?>(null) }
 
-    if (updateFound != null) {
+    val pendingUpdate = updateFound
+    if (pendingUpdate != null) {
         AlertDialog(
             onDismissRequest = { updateFound = null },
             containerColor = C_card,
@@ -73,10 +85,10 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             text = {
                 Column {
                     Text(
-                        text = stringResource(R.string.settings_update_available_msg, updateFound!!.latestVersion),
+                        text = stringResource(R.string.settings_update_available_msg, pendingUpdate.latestVersion),
                         color = C_white
                     )
-                    if (updateFound!!.releaseNotes.isNotEmpty()) {
+                    if (pendingUpdate.releaseNotes.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = stringResource(R.string.settings_update_changes),
@@ -93,7 +105,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 .padding(8.dp)
                         ) {
                             Text(
-                                text = updateFound!!.releaseNotes,
+                                text = pendingUpdate.releaseNotes,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = C_gray1
                             )
@@ -104,13 +116,20 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
             confirmButton = {
                 Button(
                     onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateFound!!.downloadUrl)).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        try {
+                            val url = pendingUpdate.downloadUrl
+                            if (url.startsWith("https://") || url.startsWith("http://")) {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                                ctx.startActivity(intent)
+                            }
+                        } catch (e: Exception) {
+                            android.widget.Toast.makeText(ctx, ctx.getString(R.string.main_error_opening_file, e.localizedMessage ?: ""), android.widget.Toast.LENGTH_SHORT).show()
                         }
-                        ctx.startActivity(intent)
                         updateFound = null
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = C_accent, contentColor = Color.Black)
+                    colors = ButtonDefaults.buttonColors(containerColor = C_accent, contentColor = onAccentColor)
                 ) {
                     Text(stringResource(R.string.settings_update_now))
                 }
@@ -128,11 +147,11 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     val isWide = windowWidthClass.isWide
 
     val categories = listOf(
-        stringResource(R.string.settings_cat_downloads),
-        stringResource(R.string.settings_cat_library),
-        stringResource(R.string.settings_cat_appearance),
-        stringResource(R.string.settings_cat_advanced),
-        stringResource(R.string.settings_cat_system)
+        SettingsCategory.DOWNLOADS to stringResource(R.string.settings_cat_downloads),
+        SettingsCategory.LIBRARY to stringResource(R.string.settings_cat_library),
+        SettingsCategory.APPEARANCE to stringResource(R.string.settings_cat_appearance),
+        SettingsCategory.ADVANCED to stringResource(R.string.settings_cat_advanced),
+        SettingsCategory.SYSTEM to stringResource(R.string.settings_cat_system)
     )
 
     Box(
@@ -171,14 +190,14 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             modifier = Modifier.padding(bottom = 20.dp, start = 4.dp)
                         )
 
-                        categories.forEach { category ->
+                        categories.forEach { (category, categoryLabel) ->
                             val isSelected = category == selectedCategory
-                            val icon = when(category) {
-                                stringResource(R.string.settings_cat_downloads) -> AppIcons.Download
-                                stringResource(R.string.settings_cat_library) -> AppIcons.Library
-                                stringResource(R.string.settings_cat_appearance) -> AppIcons.Palette
-                                stringResource(R.string.settings_cat_advanced) -> AppIcons.Build
-                                else -> AppIcons.Settings
+                            val icon = when (category) {
+                                SettingsCategory.DOWNLOADS -> AppIcons.Download
+                                SettingsCategory.LIBRARY -> AppIcons.Library
+                                SettingsCategory.APPEARANCE -> AppIcons.Palette
+                                SettingsCategory.ADVANCED -> AppIcons.Build
+                                SettingsCategory.SYSTEM -> AppIcons.Settings
                             }
 
                             Surface(
@@ -210,13 +229,13 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                         Icon(
                                             imageVector = icon,
                                             contentDescription = null,
-                                            tint = if (isSelected) Color.White else C_gray1,
+                                            tint = if (isSelected) onAccentColor else C_gray1,
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = category,
+                                            text = categoryLabel,
                                             color = if (isSelected) C_accent else C_white,
                                             fontSize = 14.sp,
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold
@@ -250,19 +269,19 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 .padding(24.dp)
                         ) {
                             when (selectedCategory) {
-                                stringResource(R.string.settings_cat_downloads) -> {
+                                SettingsCategory.DOWNLOADS -> {
                                     DownloadsSettingsSection(fColors = fColors, launcher = launcher)
                                 }
-                                stringResource(R.string.settings_cat_library) -> {
+                                SettingsCategory.LIBRARY -> {
                                     LibrarySettingsSection(fColors = fColors)
                                 }
-                                stringResource(R.string.settings_cat_appearance) -> {
+                                SettingsCategory.APPEARANCE -> {
                                     AppearanceSettingsSection(fColors = fColors)
                                 }
-                                stringResource(R.string.settings_cat_advanced) -> {
+                                SettingsCategory.ADVANCED -> {
                                     AdvancedSettingsSection(fColors = fColors)
                                 }
-                                stringResource(R.string.settings_cat_system) -> {
+                                SettingsCategory.SYSTEM -> {
                                     SystemSettingsSection(
                                         fColors = fColors,
                                         ctx = ctx,
@@ -297,7 +316,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             .horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        categories.forEach { category ->
+                        categories.forEach { (category, categoryLabel) ->
                             val isSelected = category == selectedCategory
                             Box(
                                 modifier = Modifier
@@ -312,12 +331,12 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
-                                    val icon = when(category) {
-                                        stringResource(R.string.settings_cat_downloads) -> AppIcons.Download
-                                        stringResource(R.string.settings_cat_library) -> AppIcons.Library
-                                        stringResource(R.string.settings_cat_appearance) -> AppIcons.Palette
-                                        stringResource(R.string.settings_cat_advanced) -> AppIcons.Build
-                                        else -> AppIcons.Settings
+                                    val icon = when (category) {
+                                        SettingsCategory.DOWNLOADS -> AppIcons.Download
+                                        SettingsCategory.LIBRARY -> AppIcons.Library
+                                        SettingsCategory.APPEARANCE -> AppIcons.Palette
+                                        SettingsCategory.ADVANCED -> AppIcons.Build
+                                        SettingsCategory.SYSTEM -> AppIcons.Settings
                                     }
                                     Icon(
                                         imageVector = icon,
@@ -326,7 +345,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Text(
-                                        text = category,
+                                        text = categoryLabel,
                                         color = if (isSelected) C_accent else C_white,
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Bold
@@ -337,19 +356,19 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
 
                     when (selectedCategory) {
-                        stringResource(R.string.settings_cat_downloads) -> {
+                        SettingsCategory.DOWNLOADS -> {
                             DownloadsSettingsSection(fColors = fColors, launcher = launcher)
                         }
-                        stringResource(R.string.settings_cat_library) -> {
+                        SettingsCategory.LIBRARY -> {
                             LibrarySettingsSection(fColors = fColors)
                         }
-                        stringResource(R.string.settings_cat_appearance) -> {
+                        SettingsCategory.APPEARANCE -> {
                             AppearanceSettingsSection(fColors = fColors)
                         }
-                        stringResource(R.string.settings_cat_advanced) -> {
+                        SettingsCategory.ADVANCED -> {
                             AdvancedSettingsSection(fColors = fColors)
                         }
-                        stringResource(R.string.settings_cat_system) -> {
+                        SettingsCategory.SYSTEM -> {
                             SystemSettingsSection(
                                 fColors = fColors,
                                 ctx = ctx,

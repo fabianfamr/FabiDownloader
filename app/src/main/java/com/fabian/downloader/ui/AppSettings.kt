@@ -8,11 +8,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.edit
 import com.fabian.downloader.configs.Config
 import com.fabian.downloader.utils.PathUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.io.File
 
 object AppSettings {
     private lateinit var prefs: SharedPreferences
     private val listeners = mutableListOf<(String) -> Unit>()
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val cookiesFileLock = Any()
 
     fun addListener(listener: (String) -> Unit) {
         synchronized(listeners) {
@@ -119,11 +125,21 @@ object AppSettings {
         set(value) { if (_cookies.value != value) { _cookies.value = value; saveString(Config.PREF_COOKIES, value); syncCookiesFile(com.fabian.downloader.MyApplication.getInstance(), value); notifyChanged(Config.PREF_COOKIES) } }
 
     private fun syncCookiesFile(context: Context, cookieContent: String) {
-        try {
-            val cookiesFile = File(context.filesDir, Config.COOKIES_FILE_NAME)
-            if (cookieContent.trim().isEmpty()) { if (cookiesFile.exists()) cookiesFile.delete() }
-            else { cookiesFile.writeText(cookieContent) }
-        } catch (e: Exception) { Log.e(Config.TAG_APP_SETTINGS, "Error syncing cookies.txt", e) }
+        val appContext = context.applicationContext
+        ioScope.launch {
+            synchronized(cookiesFileLock) {
+                try {
+                    val cookiesFile = File(appContext.filesDir, Config.COOKIES_FILE_NAME)
+                    if (cookieContent.trim().isEmpty()) {
+                        if (cookiesFile.exists()) cookiesFile.delete()
+                    } else {
+                        cookiesFile.writeText(cookieContent)
+                    }
+                } catch (e: Exception) {
+                    Log.e(Config.TAG_APP_SETTINGS, "Error syncing cookies.txt", e)
+                }
+            }
+        }
     }
 
     // Opciones y Flags de Integración
@@ -184,8 +200,11 @@ object AppSettings {
 
     private val _bypassSslVerification = mutableStateOf(false)
     var bypassSslVerification: Boolean
-        get() = _bypassSslVerification.value
-        set(value) { if (_bypassSslVerification.value != value) { _bypassSslVerification.value = value; saveBoolean(Config.PREF_BYPASS_SSL_VERIFICATION, value); notifyChanged(Config.PREF_BYPASS_SSL_VERIFICATION) } }
+        get() = false
+        set(@Suppress("UNUSED_PARAMETER") value) {
+            _bypassSslVerification.value = false
+            saveBoolean(Config.PREF_BYPASS_SSL_VERIFICATION, false)
+        }
 
     private val _showProgressNotification = mutableStateOf(false)
     var showProgressNotification: Boolean
@@ -355,7 +374,16 @@ object AppSettings {
         }
 
         _maxSpeed.value = prefs.getString(Config.PREF_MAX_SPEED, Config.SPEED_UNLIMITED) ?: Config.SPEED_UNLIMITED
-        _themePreference.value = prefs.getString(Config.PREF_THEME_PREFERENCE, Config.THEME_SYSTEM) ?: Config.THEME_SYSTEM
+        val rawTheme = prefs.getString(Config.PREF_THEME_PREFERENCE, Config.THEME_SYSTEM) ?: Config.THEME_SYSTEM
+        val normalizedTheme = when (rawTheme) {
+            "Sistema" -> Config.THEME_SYSTEM
+            "Claro" -> Config.THEME_LIGHT
+            "Oscuro" -> Config.THEME_DARK
+            else -> rawTheme
+        }
+        _themePreference.value = normalizedTheme
+        if (normalizedTheme != rawTheme) saveString(Config.PREF_THEME_PREFERENCE, normalizedTheme)
+
         _language.value = prefs.getString(Config.PREF_LANGUAGE, Config.DEFAULT_LANGUAGE) ?: Config.DEFAULT_LANGUAGE
         _confirmOnDelete.value = prefs.getBoolean(Config.PREF_CONFIRM_ON_DELETE, true)
         _concurrentFragments.value = prefs.getString(Config.PREF_CONCURRENT_FRAGMENTS, Config.DEFAULT_CONCURRENT_FRAGMENTS) ?: Config.DEFAULT_CONCURRENT_FRAGMENTS
@@ -374,7 +402,8 @@ object AppSettings {
         _embedThumbnail.value = prefs.getBoolean(Config.PREF_EMBED_THUMBNAIL, true)
         _embedMetadata.value = prefs.getBoolean(Config.PREF_EMBED_METADATA, true)
         _bypassGeo.value = prefs.getBoolean(Config.PREF_BYPASS_GEO, true)
-        _bypassSslVerification.value = prefs.getBoolean(Config.PREF_BYPASS_SSL_VERIFICATION, false)
+        _bypassSslVerification.value = false
+        saveBoolean(Config.PREF_BYPASS_SSL_VERIFICATION, false)
         _showProgressNotification.value = prefs.getBoolean(Config.PREF_SHOW_PROGRESS_NOTIFICATION, false)
         _showDownloadSpeedInNotification.value = prefs.getBoolean(Config.PREF_SHOW_DOWNLOAD_SPEED_IN_NOTIFICATION, true)
         _selectedPausedNotificationTimeout.value = prefs.getString(Config.PREF_SELECTED_PAUSED_NOTIFICATION_TIMEOUT, Config.TIMEOUT_10_MIN) ?: Config.TIMEOUT_10_MIN
@@ -388,7 +417,14 @@ object AppSettings {
         _accentColorName.value = prefs.getString(Config.PREF_ACCENT_COLOR_NAME, Config.ACCENT_ELECTRIC_BLUE) ?: Config.ACCENT_ELECTRIC_BLUE
         val savedMargin = prefs.getString(Config.PREF_SELECTED_STORAGE_MARGIN, Config.STORAGE_MARGIN_500MB) ?: Config.STORAGE_MARGIN_500MB
         _selectedStorageMargin.value = if (savedMargin in storageMarginOptions) savedMargin else Config.STORAGE_MARGIN_500MB
-        _cardStyle.value = prefs.getString(Config.PREF_CARD_STYLE, Config.CARD_STYLE_DETAILED) ?: Config.CARD_STYLE_DETAILED
+        val rawCardStyle = prefs.getString(Config.PREF_CARD_STYLE, Config.CARD_STYLE_DETAILED) ?: Config.CARD_STYLE_DETAILED
+        val normalizedCardStyle = when (rawCardStyle) {
+            "Minimalista" -> Config.CARD_STYLE_MINIMAL
+            "Detallada" -> Config.CARD_STYLE_DETAILED
+            else -> rawCardStyle
+        }
+        _cardStyle.value = normalizedCardStyle
+        if (normalizedCardStyle != rawCardStyle) saveString(Config.PREF_CARD_STYLE, normalizedCardStyle)
         _showQualityBadge.value = prefs.getBoolean(Config.PREF_SHOW_QUALITY_BADGE, true)
         _showRealtimeSpeedCard.value = prefs.getBoolean(Config.PREF_SHOW_REALTIME_SPEED_CARD, false)
         _defaultAudioBitrate.value = prefs.getString(Config.PREF_DEFAULT_AUDIO_BITRATE, Config.BITRATE_192) ?: Config.BITRATE_192

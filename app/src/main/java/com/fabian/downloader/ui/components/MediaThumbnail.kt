@@ -17,6 +17,8 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -93,14 +95,23 @@ fun MediaThumbnail(
     val iconToUse = fallbackIcon ?: defaultIcon
     val colorToUse = fallbackColor ?: defaultColor
 
-    val localFileModel = remember(record.id, record.isCompleted, record.format, record.title) {
-        if (record.thumbnailUrl.isNullOrEmpty() && record.isCompleted) {
-            com.fabian.downloader.utils.PathUtils.getDownloadFile(
-                ctx,
-                record.title,
-                record.id,
-                record.format
-            )
+    val localFileModel by produceState<java.io.File?>(
+        initialValue = null,
+        record.id,
+        record.isCompleted,
+        record.format,
+        record.title,
+        record.thumbnailUrl
+    ) {
+        value = if (record.thumbnailUrl.isNullOrEmpty() && record.isCompleted) {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                com.fabian.downloader.utils.PathUtils.getDownloadFile(
+                    ctx,
+                    record.title,
+                    record.id,
+                    record.format
+                )
+            }
         } else {
             null
         }

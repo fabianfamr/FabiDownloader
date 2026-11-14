@@ -178,6 +178,7 @@ object DownloadAssemblyLine {
         }
 
         try {
+            PathUtils.deliverFileToSafTreeIfNeeded(context, outputFile)
             android.media.MediaScannerConnection.scanFile(
                 context,
                 arrayOf(outputFile.absolutePath),

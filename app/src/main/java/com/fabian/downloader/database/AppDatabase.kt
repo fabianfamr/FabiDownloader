@@ -20,10 +20,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         class Migration7To8 : Migration(7, 8) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // To apply unique constraint and indices to search_history, 
-                // we might need to handle duplicates if any exist.
-                // For simplicity, we just create indices. If duplicates exist, it will fail, 
-                // but usually there shouldn't be any if handled by the app.
+                db.execSQL("DELETE FROM `search_history` WHERE `id` NOT IN (SELECT MAX(`id`) FROM `search_history` GROUP BY `query`)")
                 db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_search_history_query` ON `search_history` (`query`)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_search_history_timestamp` ON `search_history` (`timestamp`)")
             }

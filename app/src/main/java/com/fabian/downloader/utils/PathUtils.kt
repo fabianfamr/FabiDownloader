@@ -8,6 +8,7 @@ import java.io.File
 @Suppress("DEPRECATION")
 object PathUtils {
     private val cachedFolders = java.util.concurrent.ConcurrentHashMap<String, File>()
+    private val hasRepairedNestedFolders = java.util.concurrent.atomic.AtomicBoolean(false)
 
     fun clearFolderCache() {
         cachedFolders.clear()
@@ -164,6 +165,13 @@ object PathUtils {
             val dbDir = File(root, "db")
             if (!dbDir.exists()) dbDir.mkdirs()
 
+            try {
+                val db = com.fabian.downloader.database.AppDatabase.getInstance(context.applicationContext)
+                db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(TRUNCATE)").use { cursor ->
+                    cursor.moveToFirst()
+                }
+            } catch (_: Exception) {}
+
             val internalDbFile = context.getDatabasePath(Config.DB_NAME)
             if (internalDbFile.exists() && internalDbFile.length() > 0L) {
                 val targetDbFile = File(dbDir, Config.DB_NAME)
@@ -242,7 +250,8 @@ object PathUtils {
      * moviendo los archivos a su carpeta correspondiente (video, audio, image)
      * y eliminando los directorios anidados sobrantes.
      */
-    fun repairAndFlattenNestedDownloadsFolders(context: Context) {
+    fun repairAndFlattenNestedDownloadsFolders(context: Context, force: Boolean = false) {
+        if (!force && !hasRepairedNestedFolders.compareAndSet(false, true)) return
         try {
             val root = getRootFolder(context)
             val targetDownloadsDir = File(root, "downloads")
@@ -631,17 +640,65 @@ object PathUtils {
         return sanitized
     }
 
+    fun deliverFileToSafTreeIfNeeded(context: Context, sourceFile: File): Boolean {
+        val locationSetting = com.fabian.downloader.ui.AppSettings.downloadLocation
+        if (!locationSetting.startsWith("content://") || !sourceFile.exists()) return false
+        val directFile = resolvePhysicalPathFromUri(context, locationSetting)
+        if (directFile != null && isWritableDir(directFile)) return false
+
+        return try {
+            val treeUri = android.net.Uri.parse(locationSetting)
+            val docId = android.provider.DocumentsContract.getTreeDocumentId(treeUri)
+            val parentDocUri = android.provider.DocumentsContract.buildDocumentUriUsingTree(treeUri, docId)
+            val ext = sourceFile.extension.lowercase()
+            val mimeType = when (ext) {
+                "mp4" -> "video/mp4"
+                "webm" -> "video/webm"
+                "mkv" -> "video/x-matroska"
+                "mp3" -> "audio/mpeg"
+                "m4a" -> "audio/mp4"
+                "ogg" -> "audio/ogg"
+                "wav" -> "audio/wav"
+                "jpg", "jpeg" -> "image/jpeg"
+                "png" -> "image/png"
+                "webp" -> "image/webp"
+                else -> "application/octet-stream"
+            }
+            val createdUri = android.provider.DocumentsContract.createDocument(
+                context.contentResolver,
+                parentDocUri,
+                mimeType,
+                sourceFile.name
+            ) ?: return false
+
+            context.contentResolver.openOutputStream(createdUri)?.use { out ->
+                sourceFile.inputStream().use { input ->
+                    input.copyTo(out)
+                }
+            } ?: return false
+            true
+        } catch (e: Exception) {
+            android.util.Log.w(Config.TAG_PATH_UTILS, "No se pudo copiar a árbol SAF: ${e.message}")
+            false
+        }
+    }
+
     fun getDownloadFile(context: Context, title: String, id: Long, format: String): File {
         val baseFolder = getDownloadFolder(context, format)
+        val extLower = format.lowercase()
         val sanitizedTitle = sanitizeFileName(title)
-        
-        // 1. Try clean path without ID in the primary download folder
-        var file = File(baseFolder, "$sanitizedTitle.${format.lowercase()}")
-        if (file.exists()) return file
+        val cleanedTitle = sanitizeFileName(YtdlpParser.cleanTitleOfSuffixes(title))
+        val candidateNames = linkedSetOf(
+            "$sanitizedTitle.$extLower",
+            "${sanitizedTitle}_$id.$extLower",
+            "$cleanedTitle.$extLower",
+            "${cleanedTitle}_$id.$extLower"
+        )
 
-        // 2. Try legacy path with ID
-        file = File(baseFolder, "${sanitizedTitle}_$id.${format.lowercase()}")
-        if (file.exists()) return file
+        for (candidate in candidateNames) {
+            val f = File(baseFolder, candidate)
+            if (f.exists()) return f
+        }
         
         // 3. Fallback search in all possible historical locations (including legacy names)
         val storageRoot = Environment.getExternalStorageDirectory()
@@ -680,18 +737,15 @@ object PathUtils {
                 folderList.add(File(storageRoot, sub))
                 folderList.add(File(storageRoot, "Android/$sub"))
             }
-            // Public downloads
             val publicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             if (publicDir != null) {
                 folderList.add(File(publicDir, sub))
             }
-            // Android/media
             context.externalMediaDirs.forEach { dir ->
                 if (dir != null) {
                     folderList.add(File(dir, sub))
                 }
             }
-            // App files directories
             folderList.add(File(context.getExternalFilesDir(null) ?: context.filesDir, sub))
         }
         
@@ -702,14 +756,14 @@ object PathUtils {
         folderList.add(context.filesDir)
 
         for (folder in folderList) {
-            val fNoId = File(folder, "$sanitizedTitle.${format.lowercase()}")
-            if (fNoId.exists()) return fNoId
-            val fWithId = File(folder, "${sanitizedTitle}_$id.${format.lowercase()}")
-            if (fWithId.exists()) return fWithId
+            for (candidate in candidateNames) {
+                val f = File(folder, candidate)
+                if (f.exists()) return f
+            }
         }
         
         // Default to the preferred folder without ID
-        return File(baseFolder, "$sanitizedTitle.${format.lowercase()}")
+        return File(baseFolder, "$sanitizedTitle.$extLower")
     }
 }
 

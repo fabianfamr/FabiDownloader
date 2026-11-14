@@ -87,6 +87,16 @@ class NotificationService(private val context: Context) {
     }
 
     companion object {
+        @Volatile
+        private var instance: NotificationService? = null
+
+        fun getInstance(context: Context): NotificationService {
+            val appCtx = context.applicationContext
+            return instance ?: synchronized(this) {
+                instance ?: NotificationService(appCtx).also { instance = it }
+            }
+        }
+
         fun createAllNotificationChannels(context: Context) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 // Grupo de canales + canales (estructura de Seal: NotificationUtil.createNotificationChannel)
@@ -233,7 +243,7 @@ class NotificationService(private val context: Context) {
         title: String,
         thumbnailUrl: String? = null
     ) {
-        if (!com.fabian.downloader.ui.AppSettings.showProgressNotification) {
+        if (!com.fabian.downloader.ui.AppSettings.notificationsEnabled) {
             return
         }
 
@@ -529,7 +539,7 @@ class NotificationService(private val context: Context) {
         if (cached != null) return@withContext cached
 
         try {
-            val imageLoader = coil.ImageLoader(context)
+            val imageLoader = coil.Coil.imageLoader(context)
             val request = coil.request.ImageRequest.Builder(context)
                 .data(url)
                 .size(256, 256)

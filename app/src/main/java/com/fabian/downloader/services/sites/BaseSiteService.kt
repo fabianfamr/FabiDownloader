@@ -43,9 +43,6 @@ open class BaseSiteService(
         request.addOption("--socket-timeout", "8")
         request.addOption("--retries", "2")
         request.addOption("--extractor-retries", "1")
-        if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
-            request.addOption("--no-check-certificate")
-        }
         request.addOption("--no-check-formats")
 
         customUserAgent?.let { ua ->
@@ -176,7 +173,7 @@ open class BaseSiteService(
                                 appCtx.resetAndReinitYtdlp(appCtx)
                             } else if (com.fabian.downloader.services.YtdlpErrorResolver.isExtractorOrCipherError(e, lowerMsg)) {
                                 Log.w(Config.TAG_BASE_SITE_SERVICE, "Posible extractor/firma desactualizada. Solicitando verificación silenciosa con ahorro de Wi-Fi...")
-                                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                                extractionScope.launch {
                                     com.fabian.downloader.managers.YtdlpUpdateManager.autoUpdateSilentlyOnFailure(appCtx)
                                 }
                             }

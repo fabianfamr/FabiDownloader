@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -238,22 +239,24 @@ fun YtdlpUpdateDialog(
                         }
                     }
                     UpdateState.IDLE -> {
-                        if (statusMessage != null) {
+                        val currentStatus = statusMessage
+                        val info = versionInfo
+                        if (currentStatus != null) {
                             Surface(
                                 color = if (isError) colors.errorDim else colors.success.copy(alpha = 0.15f),
                                 shape = RoundedCornerShape(10.dp),
                                 border = BorderStroke(1.dp, if (isError) colors.error else colors.success)
                             ) {
                                 Text(
-                                    text = statusMessage!!,
+                                    text = currentStatus,
                                     color = if (isError) colors.error else colors.success,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium,
                                     modifier = Modifier.padding(10.dp)
                                 )
                             }
-                        } else if (versionInfo != null) {
-                            if (versionInfo!!.hasUpdate) {
+                        } else if (info != null) {
+                            if (info.hasUpdate) {
                                 Surface(
                                     color = colors.accentDim,
                                     shape = RoundedCornerShape(10.dp),
@@ -286,7 +289,8 @@ fun YtdlpUpdateDialog(
                 }
 
                 // Changelog / Release Notes
-                if (!versionInfo?.releaseNotes.isNullOrEmpty()) {
+                val notes = versionInfo?.releaseNotes
+                if (!notes.isNullOrEmpty()) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
                             text = stringResource(R.string.ytdlp_update_notes_title),
@@ -303,7 +307,7 @@ fun YtdlpUpdateDialog(
                                 .padding(10.dp)
                         ) {
                             Text(
-                                text = versionInfo!!.releaseNotes,
+                                text = notes,
                                 color = colors.textSecondary,
                                 fontSize = 11.sp,
                                 lineHeight = 15.sp
@@ -344,7 +348,7 @@ fun YtdlpUpdateDialog(
                 enabled = !isBusy,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colors.accent,
-                    contentColor = Color(0xFF0A0A0C)
+                    contentColor = if (colors.accent.luminance() > 0.5f) Color(0xFF0A0A0C) else Color.White
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {

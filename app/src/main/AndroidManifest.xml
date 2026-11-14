@@ -93,6 +93,8 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="com.fabian.downloader.ACTION_PAUSE" />
+                <action android:name="com.fabian.downloader.ACTION_RESUME" />
+                <action android:name="com.fabian.downloader.ACTION_CANCEL" />
                 <action android:name="com.fabian.downloader.ACTION_OPEN" />
                 <action android:name="com.fabian.downloader.ACTION_SHARE" />
                 <action android:name="com.fabian.downloader.ACTION_RETRY" />

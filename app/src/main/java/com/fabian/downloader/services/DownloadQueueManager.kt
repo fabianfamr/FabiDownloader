@@ -6,6 +6,7 @@ import com.fabian.downloader.configs.Config
 import com.fabian.downloader.managers.BatteryOptimizerManager
 import com.fabian.downloader.ui.AppSettings
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -46,87 +47,76 @@ class DownloadQueueManager(
                 triggerQueue()
                 queueTrigger.collect {
                     try {
-                        val activeInDb = storageService.getActiveDownloadsDirect()
-                        val nextToProcess = activeInDb.filter {
-                            !it.isPaused &&
-                            it.speed != "FAILED" &&
-                            !it.title.startsWith(Config.STATUS_FAILED_PREFIX) &&
-                            !processingIds.contains(it.id)
-                        }
-
-                        val forcedToProcess = nextToProcess.filter { it.id in forcedDownloadIds }
-                        val normalToProcess = nextToProcess.filter { it.id !in forcedDownloadIds }
-
-                        if (forcedToProcess.isNotEmpty()) {
-                            DownloadForegroundService.start(application)
-                            forcedToProcess.forEach { record ->
-                                val id = record.id
-                                processingIds.add(id)
-                                val job = serviceScope.launch {
-                                    try {
-                                        downloadExecutor.runDownload(id, this)
-                                    } finally {
-                                        releaseSlot(id)
-                                    }
-                                }
-                                activeJobs[id] = job
-                                job.invokeOnCompletion {
-                                    releaseSlot(id)
-                                }
-                            }
-                        }
-
-                        val dynamicCap = com.fabian.downloader.utils.DeviceOptimizationHelper.getDynamicMaxConcurrentDownloads(application)
-                        var maxParallel = if (AppSettings.maxConcurrentDownloads <= 0) {
-                            dynamicCap
-                        } else {
-                            AppSettings.maxConcurrentDownloads
-                        }
-                        val batteryManager = BatteryOptimizerManager.getInstance(application)
-                        if (AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
-                            if (AppSettings.batteryLowAction == Config.BATTERY_ACTION_OPTIMIZE ||
-                                AppSettings.batteryLowAction == Config.BATTERY_ACTION_LIMIT) {
-                                maxParallel = 1
-                            }
-                        }
-
-                        val threshold = AppSettings.earlyStartThreshold
-                        val almostFinishedCount = if (threshold in 90..99) {
-                            processingIds.filter { it !in forcedDownloadIds }.count { id ->
-                                progressTracker.getProgress(id) in threshold..99
-                            }
-                        } else {
-                            0
-                        }
-
-                        // Limpieza de seguridad de IDs inactivos en processingIds
-                        val deadIds = processingIds.filter { id ->
-                            val job = activeJobs[id]
-                            job == null || !job.isActive
-                        }
-                        if (deadIds.isNotEmpty()) {
-                            deadIds.forEach { releaseSlot(it) }
-                        }
-
                         queueMutex.withLock {
+                            val deadIds = processingIds.filter { id ->
+                                val job = activeJobs[id]
+                                job == null || !job.isActive
+                            }
+                            if (deadIds.isNotEmpty()) {
+                                deadIds.forEach { releaseSlot(it) }
+                            }
+
+                            val activeInDb = storageService.getActiveDownloadsDirect()
+                            val nextToProcess = activeInDb.filter {
+                                !it.isPaused &&
+                                it.speed != "FAILED" &&
+                                !it.title.startsWith(Config.STATUS_FAILED_PREFIX) &&
+                                !processingIds.contains(it.id)
+                            }
+
+                            val forcedToProcess = nextToProcess.filter { it.id in forcedDownloadIds }
+                            val normalToProcess = nextToProcess.filter { it.id !in forcedDownloadIds }
+
+                            if (forcedToProcess.isNotEmpty()) {
+                                DownloadForegroundService.start(application)
+                                forcedToProcess.forEach { record ->
+                                    val id = record.id
+                                    processingIds.add(id)
+                                    val job = serviceScope.launch(start = CoroutineStart.LAZY) {
+                                        downloadExecutor.runDownload(id, this)
+                                    }
+                                    activeJobs[id] = job
+                                    job.invokeOnCompletion { releaseSlot(id) }
+                                    job.start()
+                                }
+                            }
+
+                            val dynamicCap = com.fabian.downloader.utils.DeviceOptimizationHelper.getDynamicMaxConcurrentDownloads(application)
+                            var maxParallel = if (AppSettings.maxConcurrentDownloads <= 0) {
+                                dynamicCap
+                            } else {
+                                AppSettings.maxConcurrentDownloads
+                            }
+                            val batteryManager = BatteryOptimizerManager.getInstance(application)
+                            if (AppSettings.batteryOptimizationEnabled && batteryManager.isBatteryLowAndNotCharging()) {
+                                if (AppSettings.batteryLowAction == Config.BATTERY_ACTION_OPTIMIZE ||
+                                    AppSettings.batteryLowAction == Config.BATTERY_ACTION_LIMIT) {
+                                    maxParallel = 1
+                                }
+                            }
+
+                            val threshold = AppSettings.earlyStartThreshold
+                            val almostFinishedCount = if (threshold in 90..99) {
+                                processingIds.filter { it !in forcedDownloadIds }.count { id ->
+                                    progressTracker.getProgress(id) in threshold..99
+                                }
+                            } else {
+                                0
+                            }
+
                             val activeNormalCount = processingIds.count { it !in forcedDownloadIds }
-                            val slotsAvailable = maxParallel - (activeNormalCount - almostFinishedCount)
+                            val slotsAvailable = (maxParallel - (activeNormalCount - almostFinishedCount)).coerceAtLeast(0)
                             if (slotsAvailable > 0 && normalToProcess.isNotEmpty()) {
                                 DownloadForegroundService.start(application)
                                 normalToProcess.take(slotsAvailable).forEach { record ->
                                     val id = record.id
                                     processingIds.add(id)
-                                    val job = serviceScope.launch {
-                                        try {
-                                            downloadExecutor.runDownload(id, this)
-                                        } finally {
-                                            releaseSlot(id)
-                                        }
+                                    val job = serviceScope.launch(start = CoroutineStart.LAZY) {
+                                        downloadExecutor.runDownload(id, this)
                                     }
                                     activeJobs[id] = job
-                                    job.invokeOnCompletion {
-                                        releaseSlot(id)
-                                    }
+                                    job.invokeOnCompletion { releaseSlot(id) }
+                                    job.start()
                                 }
                             }
                         }

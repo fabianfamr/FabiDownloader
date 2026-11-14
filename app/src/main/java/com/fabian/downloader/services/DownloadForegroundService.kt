@@ -19,10 +19,15 @@ import com.fabian.downloader.configs.Config
 import com.fabian.downloader.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class DownloadForegroundService : Service() {
 
+    private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var idleCheckJob: Job? = null
     private var serviceStartTimeMs: Long = 0L
     private var isPromotedToForeground: Boolean = false
     private var wakeLock: android.os.PowerManager.WakeLock? = null
@@ -56,26 +61,20 @@ class DownloadForegroundService : Service() {
                 } catch (_: Exception) { true }
 
                 if (isFg) {
-                    // En Android 8+ (API 26+), context.startService() inicia el servicio mientras la app
-                    // esté en primer plano, y dentro de onCreate() promoteToForeground() llama a startForeground().
-                    // Esto evita el temido crash ForegroundServiceDidNotStartInTimeException provocado por el timeout
-                    // estricto del SO cuando se invoca startForegroundService.
                     try {
-                        context.startService(intent)
-                    } catch (e: IllegalStateException) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            try {
-                                androidx.core.content.ContextCompat.startForegroundService(context, intent)
-                            } catch (e2: Throwable) {
-                                Log.w("DownloadService", "Error llamando startForegroundService: ${e2.message}")
-                            }
+                            androidx.core.content.ContextCompat.startForegroundService(context, intent)
+                        } else {
+                            context.startService(intent)
                         }
                     } catch (e: Throwable) {
-                        Log.w("DownloadService", "Error llamando startService en foreground: ${e.message}")
+                        try {
+                            context.startService(intent)
+                        } catch (e2: Throwable) {
+                            Log.w("DownloadService", "Error iniciando foreground service: ${e2.message}")
+                        }
                     }
                 } else {
-                    // Si la app está en segundo plano, en Android 12+ no forzar startForegroundService()
-                    // para evitar ForegroundServiceStartNotAllowedException y el timeout fatal.
                     try {
                         context.startService(intent)
                     } catch (e: Exception) {
@@ -126,8 +125,9 @@ class DownloadForegroundService : Service() {
             return START_NOT_STICKY
         }
         
-        CoroutineScope(Dispatchers.IO).launch {
-            kotlinx.coroutines.delay(3500) // Verificar tras 3.5 segundos si aún hay descargas activas
+        idleCheckJob?.cancel()
+        idleCheckJob = serviceScope.launch {
+            kotlinx.coroutines.delay(3500)
             try {
                 val hasActive = DownloadManagerService.getInstance(applicationContext).hasActiveDownloads()
                 if (!hasActive) {
@@ -219,6 +219,8 @@ class DownloadForegroundService : Service() {
         instance = null
         isRunning = false
         isPromotedToForeground = false
+        idleCheckJob?.cancel()
+        serviceScope.cancel()
         try {
             com.fabian.downloader.utils.DeviceOptimizationHelper.releaseDownloadLocks(wakeLock, wifiLock)
             wakeLock = null
@@ -236,9 +238,6 @@ class DownloadForegroundService : Service() {
     }
 
     private fun createNotification(): Notification {
-        // Notificación del servicio delegada en el sistema de Seal
-        // (NotificationUtil.makeServiceNotification): misma estructura,
-        // con FOREGROUND_SERVICE_IMMEDIATE y PendingIntent hacia la app.
         return com.fabian.downloader.util.NotificationUtil.makeServiceNotification(this)
     }
 
@@ -251,8 +250,12 @@ class DownloadForegroundService : Service() {
         try {
             val manager = DownloadManagerService.getInstance(applicationContext)
             if (!manager.hasActiveDownloads()) {
-                manager.onAppClosed()
-                stopSelf()
+                serviceScope.launch {
+                    manager.onAppClosed()
+                    Handler(Looper.getMainLooper()).post {
+                        try { stopSelf() } catch (_: Throwable) {}
+                    }
+                }
             } else {
                 Log.i("DownloadService", "La app se cerró de recientes pero hay descargas activas. El servicio en segundo plano continúa en ejecución.")
             }

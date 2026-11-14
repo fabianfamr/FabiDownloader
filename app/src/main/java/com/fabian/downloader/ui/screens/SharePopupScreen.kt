@@ -53,16 +53,16 @@ fun SharePopupScreen(
     val fColors = LocalFabiColors.current
     val cleanUrl = remember(url) { extractUrl(url) }
 
-    var title by remember { mutableStateOf<String?>(null) }
-    var thumbnailUrl by remember { mutableStateOf<String?>(null) }
-    var formatSizes by remember { mutableStateOf<Map<String, Double>?>(null) }
-    var platformInfoState by remember { mutableStateOf<Triple<String, String, String>?>(null) }
-    var extractedPlaylist by remember { mutableStateOf<ExtractionService.ExtractedPlaylist?>(null) }
+    var title by remember(cleanUrl) { mutableStateOf<String?>(null) }
+    var thumbnailUrl by remember(cleanUrl) { mutableStateOf<String?>(null) }
+    var formatSizes by remember(cleanUrl) { mutableStateOf<Map<String, Double>?>(null) }
+    var platformInfoState by remember(cleanUrl) { mutableStateOf<Triple<String, String, String>?>(null) }
+    var extractedPlaylist by remember(cleanUrl) { mutableStateOf<ExtractionService.ExtractedPlaylist?>(null) }
 
-    var isLoading by remember { mutableStateOf(true) }
-    var errorMsg by remember { mutableStateOf<String?>(null) }
-    var showDownloadStartedDialog by remember { mutableStateOf(false) }
-    var retryTrigger by remember { mutableStateOf(0) }
+    var isLoading by remember(cleanUrl) { mutableStateOf(true) }
+    var errorMsg by remember(cleanUrl) { mutableStateOf<String?>(null) }
+    var showDownloadStartedDialog by remember(cleanUrl) { mutableStateOf(false) }
+    var retryTrigger by remember(cleanUrl) { mutableStateOf(0) }
 
     LaunchedEffect(cleanUrl, retryTrigger) {
         if (cleanUrl.isEmpty()) {
@@ -125,7 +125,9 @@ fun SharePopupScreen(
 
         try {
             if (AppSettings.quickShareMode) {
-                title = if (service.siteId == "generic") ctx.getString(R.string.share_direct_link) else ctx.getString(R.string.share_video_of, service.displayName)
+                if (title == null) {
+                    title = if (service.siteId == "generic") ctx.getString(R.string.share_direct_link) else ctx.getString(R.string.share_video_of, service.displayName)
+                }
                 isLoading = false
             } else {
                 withTimeoutOrNull(800) {
@@ -186,10 +188,7 @@ fun SharePopupScreen(
         ).map { it.copy(sizeStr = getOptionSize(ctx, it, formatSizes)) }
     }
 
-    var selectedOptionId by remember {
-        // FIX: se comparaba el valor almacenado (canónico: "audio_only", "320k", "1080p")
-        // contra texto visible en español ("Solo Audio", "320 kbps (Máxima)"), de modo que
-        // esas ramas nunca coincidían y la preselección ignoraba la calidad preferida.
+    var selectedOptionId by remember(cleanUrl) {
         mutableStateOf(
             if (cleanUrl.contains("music.youtube.com") || cleanUrl.contains("spotify") || cleanUrl.contains("soundcloud") || AppSettings.selectedQuality == Config.QUALITY_AUDIO_ONLY) {
                 when (AppSettings.defaultAudioBitrate) {
@@ -288,7 +287,7 @@ fun SharePopupScreen(
                             val allOptions = musicOptions + videoOptions
                             val selected = allOptions.find { it.id == selectedOptionId } ?: musicOptions.first()
                             AppSettings.lastDownloadedOptionId = selected.id
-                            viewModel.downloadVideo(url = cleanUrl, quality = selected.quality, format = selected.format, title = title, thumbnailUrl = null)
+                            viewModel.downloadVideo(url = cleanUrl, quality = selected.quality, format = selected.format, title = title, thumbnailUrl = thumbnailUrl)
                             onClose()
                         }
                     )
@@ -372,9 +371,9 @@ fun SharePopupScreen(
                                     shape = CircleShape,
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.primary,
-                                        contentColor = Color.Black,
-                                        disabledContainerColor = Color(0xFF222226),
-                                        disabledContentColor = Color.Gray
+                                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                                        disabledContainerColor = fColors.border,
+                                        disabledContentColor = fColors.textDisabled
                                     ),
                                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
                                 ) {

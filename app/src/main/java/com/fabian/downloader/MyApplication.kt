@@ -69,14 +69,10 @@ class MyApplication : Application(), ImageLoaderFactory {
     private val ytdlpResetLock = java.util.concurrent.atomic.AtomicBoolean(false)
 
     override fun attachBaseContext(newBase: android.content.Context) {
-        val prefs = newBase.getSharedPreferences("fabi_downloader_prefs",
-            android.content.Context.MODE_PRIVATE)
-        val lang = prefs.getString("language", "Sistema") ?: "Sistema"
-        if (!lang.contains("Sistema")) {
-            val locale = if (lang.contains("English"))
-                java.util.Locale.forLanguageTag("en")
-            else
-                java.util.Locale.forLanguageTag("es")
+        val prefs = newBase.getSharedPreferences(Config.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+        val lang = prefs.getString(Config.PREF_LANGUAGE, Config.DEFAULT_LANGUAGE) ?: Config.DEFAULT_LANGUAGE
+        if (!lang.equals("system", ignoreCase = true) && !lang.contains("Sistema", ignoreCase = true)) {
+            val locale = com.fabian.downloader.utils.LocaleHelper.getLocaleForLanguage(lang)
             java.util.Locale.setDefault(locale)
             val config = android.content.res.Configuration(newBase.resources.configuration)
             config.setLocale(locale)

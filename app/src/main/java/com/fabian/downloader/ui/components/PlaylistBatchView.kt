@@ -8,8 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -42,10 +41,12 @@ fun PlaylistBatchView(
     onStartBatchDownload: (selectedItems: List<PlaylistItem>, quality: String, format: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var selectedFormat by remember { mutableStateOf(Config.FORMAT_MP4) }
-    var selectedQuality by remember { mutableStateOf("720p") }
-    
-    val selectedItemIds = remember { mutableStateListOf<String>().apply { addAll(playlist.items.map { it.id }) } }
+    var selectedFormat by remember(playlist) { mutableStateOf(Config.FORMAT_MP4) }
+    var selectedQuality by remember(playlist) { mutableStateOf("720p") }
+
+    val selectedItemIds = remember(playlist) {
+        mutableStateListOf<String>().apply { addAll(playlist.items.map { it.id }) }
+    }
     val isAllSelected = selectedItemIds.size == playlist.items.size
 
     val qualityOptions = if (selectedFormat == Config.FORMAT_MP4) {
@@ -55,6 +56,9 @@ fun PlaylistBatchView(
     }
 
     val fColors = MaterialTheme.fabiColors
+    val onAccentColor = remember(fColors.accent) {
+        if (fColors.accent.luminance() > 0.5f) Color(0xFF0A0A0C) else Color.White
+    }
 
     Column(
         modifier = modifier.fillMaxWidth()
@@ -187,12 +191,12 @@ fun PlaylistBatchView(
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
-                            tint = if (isSelected) fColors.background else fColors.textSecondary,
+                            tint = if (isSelected) onAccentColor else fColors.textSecondary,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
                             text = label,
-                            color = if (isSelected) fColors.background else fColors.textPrimary,
+                            color = if (isSelected) onAccentColor else fColors.textPrimary,
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                         )
@@ -290,10 +294,7 @@ fun PlaylistBatchView(
 
         // PLAYLIST ITEMS LIST
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 280.dp)
-                .verticalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             playlist.items.forEachIndexed { index, item ->
@@ -424,7 +425,7 @@ fun PlaylistBatchView(
             colors = ButtonDefaults.buttonColors(
                 containerColor = fColors.accent,
                 disabledContainerColor = fColors.border,
-                contentColor = fColors.background,
+                contentColor = onAccentColor,
                 disabledContentColor = fColors.textDisabled
             )
         ) {

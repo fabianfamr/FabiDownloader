@@ -26,8 +26,11 @@ object LocaleHelper {
         "🇵🇱 Polski"
     )
 
+    private val systemDefaultLocale: Locale = Locale.getDefault()
+
     fun getLocaleForLanguage(lang: String): Locale {
         return when {
+            lang.equals("system", ignoreCase = true) || lang.contains("Sistema", ignoreCase = true) || lang.isBlank() -> systemDefaultLocale
             lang.contains("English", ignoreCase = true) || lang.equals("en", ignoreCase = true) -> Locale.forLanguageTag("en")
             lang.contains("Español", ignoreCase = true) || lang.equals("es", ignoreCase = true) -> Locale.forLanguageTag("es")
             lang.contains("Français", ignoreCase = true) || lang.contains("French", ignoreCase = true) || lang.equals("fr", ignoreCase = true) -> Locale.forLanguageTag("fr")
@@ -44,7 +47,7 @@ object LocaleHelper {
             lang.contains("Bahasa", ignoreCase = true) || lang.contains("Indonesian", ignoreCase = true) || lang.equals("id", ignoreCase = true) -> Locale.forLanguageTag("id")
             lang.contains("Tiếng Việt", ignoreCase = true) || lang.contains("Vietnamese", ignoreCase = true) || lang.equals("vi", ignoreCase = true) -> Locale.forLanguageTag("vi")
             lang.contains("Polski", ignoreCase = true) || lang.contains("Polish", ignoreCase = true) || lang.equals("pl", ignoreCase = true) -> Locale.forLanguageTag("pl")
-            else -> Locale.getDefault()
+            else -> systemDefaultLocale
         }
     }
 
@@ -79,9 +82,6 @@ object LocaleHelper {
     }
 
     fun applyLocale(context: Context, lang: String): Context {
-        if (lang.contains("Sistema", ignoreCase = true)) {
-            return context
-        }
         val locale = getLocaleForLanguage(lang)
         Locale.setDefault(locale)
         val config = Configuration(context.resources.configuration)

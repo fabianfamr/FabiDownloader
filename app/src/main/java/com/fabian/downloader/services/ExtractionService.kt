@@ -377,7 +377,7 @@ class ExtractionService {
         // 3. Try super fast oEmbed
         val oEmbed = getOEmbedInfo(cleanUrl, downloadId)
         if (oEmbed != null) {
-            titleCache[cleanUrl] = oEmbed.first
+            titleCache[cleanUrl] = com.fabian.downloader.utils.YtdlpParser.cleanTitleOfSuffixes(oEmbed.first)
             val thumb = oEmbed.second ?: fallbackThumbnail
             thumbnailCache[cleanUrl] = thumb
             return@withContext thumb
@@ -386,7 +386,7 @@ class ExtractionService {
         // 4. Try HTML Scraping
         val scraped = scrapeHtmlMetadata(cleanUrl, downloadId)
         if (scraped != null) {
-            titleCache[cleanUrl] = scraped.first
+            titleCache[cleanUrl] = com.fabian.downloader.utils.YtdlpParser.cleanTitleOfSuffixes(scraped.first)
             val thumb = scraped.second ?: fallbackThumbnail
             thumbnailCache[cleanUrl] = thumb
             return@withContext thumb

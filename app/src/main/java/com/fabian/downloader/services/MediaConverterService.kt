@@ -51,7 +51,9 @@ class MediaConverterService(private val context: Context) {
                     "mp3" -> {
                         addOption("-x")
                         addOption("--audio-format", "mp3")
-                        val bitrateDigits = targetBitrate?.filter { it.isDigit() }
+                        val validBitrates = setOf("64", "96", "128", "160", "192", "256", "320")
+                        val bitrateDigits = targetBitrate?.filter { it.isDigit() }?.takeIf { it in validBitrates }
+                            ?: com.fabian.downloader.ui.AppSettings.defaultAudioBitrate.filter { it.isDigit() }.takeIf { it in validBitrates }
                         val qualityArg = if (!bitrateDigits.isNullOrEmpty()) "${bitrateDigits}k" else "0"
                         addOption("--audio-quality", qualityArg)
                     }
@@ -70,6 +72,14 @@ class MediaConverterService(private val context: Context) {
                     "opus" -> {
                         addOption("-x")
                         addOption("--audio-format", "opus")
+                    }
+                    "ogg" -> {
+                        addOption("-x")
+                        addOption("--audio-format", "ogg")
+                    }
+                    "wav" -> {
+                        addOption("-x")
+                        addOption("--audio-format", "wav")
                     }
                     "mp4" -> {
                         if (targetHeight != null && targetHeight > 0) {
@@ -119,7 +129,7 @@ class MediaConverterService(private val context: Context) {
             var finalOutputFile = expectedOutputFile
             if (!finalOutputFile.exists()) {
                 val foundFile = outputFolder.listFiles { _, name ->
-                    name.startsWith(fileNameWithoutExt) && name.endsWith(".$cleanTargetExt", ignoreCase = true)
+                    name.startsWith("$fileNameWithoutExt.") && name.endsWith(".$cleanTargetExt", ignoreCase = true)
                 }?.firstOrNull()
                 if (foundFile != null && foundFile.exists()) {
                     finalOutputFile = foundFile
@@ -153,12 +163,16 @@ class MediaConverterService(private val context: Context) {
             val outputFolder = PathUtils.getDownloadFolder(context, targetExt)
             val sanitizedTitle = PathUtils.sanitizeFileName(record.title).ifEmpty { "converted_${record.id}" }
 
+            val isAudioTarget = targetExt in listOf("mp3", "m4a", "aac", "flac", "opus", "ogg", "wav")
+            val validBitrateDigits = setOf("64", "96", "128", "160", "192", "256", "320")
+            val resolvedAudioBitrate = record.quality.filter { it.isDigit() }.takeIf { it in validBitrateDigits }
+                ?: com.fabian.downloader.ui.AppSettings.defaultAudioBitrate
             val fileResult = convertFile(
                 inputFile = inputFile,
                 outputFolder = outputFolder,
                 fileNameWithoutExt = sanitizedTitle,
                 targetExt = targetExt,
-                targetBitrate = if (targetExt in listOf("mp3", "m4a", "aac", "flac", "opus")) record.quality else null,
+                targetBitrate = if (isAudioTarget) resolvedAudioBitrate else null,
                 processId = UUID.randomUUID().toString()
             )
 

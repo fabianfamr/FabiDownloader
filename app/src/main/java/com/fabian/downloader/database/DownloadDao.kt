@@ -22,6 +22,9 @@ interface DownloadDao {
     @Query("UPDATE download_records SET title = :title, size = :size, thumbnailUrl = :thumbnailUrl WHERE id = :id")
     suspend fun updateDownloadInfoWithThumbnail(id: Long, title: String, size: String, thumbnailUrl: String?)
 
+    @Query("UPDATE download_records SET thumbnailUrl = :thumbnailUrl WHERE id = :id")
+    suspend fun updateDownloadThumbnail(id: Long, thumbnailUrl: String?)
+
     @Query("UPDATE download_records SET progress = :progress, size = :size, speed = :speed WHERE id = :id")
     suspend fun updateDownloadProgressSizeAndSpeed(id: Long, progress: Int, size: String, speed: String)
 

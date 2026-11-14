@@ -24,8 +24,8 @@ class ShareReceiverActivity : ComponentActivity() {
     }
 
     override fun attachBaseContext(newBase: android.content.Context) {
-        val prefs = newBase.getSharedPreferences("fabi_downloader_prefs", android.content.Context.MODE_PRIVATE)
-        val lang = prefs.getString("language", "Sistema") ?: "Sistema"
+        val prefs = newBase.getSharedPreferences(Config.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+        val lang = prefs.getString(Config.PREF_LANGUAGE, Config.DEFAULT_LANGUAGE) ?: Config.DEFAULT_LANGUAGE
         val context = com.fabian.downloader.utils.LocaleHelper.applyLocale(newBase, lang)
         super.attachBaseContext(context)
     }
@@ -113,12 +113,10 @@ class ShareReceiverActivity : ComponentActivity() {
             if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS)
             }
-        } else {
-            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                permissionsToRequest.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            }
-            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                permissionsToRequest.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        com.fabian.downloader.utils.StoragePermissionUtils.getRequiredPermissions().forEach { perm ->
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, perm) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(perm)
             }
         }
 

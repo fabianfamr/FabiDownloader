@@ -14,12 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fabian.downloader.R
+import com.fabian.downloader.configs.Config
 import com.fabian.downloader.ui.AppSettings
 import com.fabian.downloader.ui.components.AppIcons
 import com.fabian.downloader.ui.components.KeyValueSelectionDialog
@@ -110,10 +112,13 @@ fun AppearanceSettingsSection(fColors: FabiColors) {
                         .padding(4.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
+                    val onAccentColor = remember(C_accent) {
+                        if (C_accent.luminance() > 0.5f) Color(0xFF0A0A0C) else Color.White
+                    }
                     val modes = listOf(
-                        Triple("Sistema", AppIcons.Smartphone, stringResource(R.string.settings_theme_system)),
-                        Triple("Claro", AppIcons.LightMode, stringResource(R.string.settings_theme_light)),
-                        Triple("Oscuro", AppIcons.DarkMode, stringResource(R.string.settings_theme_dark))
+                        Triple(Config.THEME_SYSTEM, AppIcons.Smartphone, stringResource(R.string.settings_theme_system)),
+                        Triple(Config.THEME_LIGHT, AppIcons.LightMode, stringResource(R.string.settings_theme_light)),
+                        Triple(Config.THEME_DARK, AppIcons.DarkMode, stringResource(R.string.settings_theme_dark))
                     )
                     modes.forEach { item ->
                         val modeKey = item.first
@@ -139,12 +144,12 @@ fun AppearanceSettingsSection(fColors: FabiColors) {
                                 Icon(
                                     imageVector = icon,
                                     contentDescription = label,
-                                    tint = if (isSelected) Color.Black else C_gray1,
+                                    tint = if (isSelected) onAccentColor else C_gray1,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
                                     text = label,
-                                    color = if (isSelected) Color.Black else C_white,
+                                    color = if (isSelected) onAccentColor else C_white,
                                     fontSize = 12.sp,
                                     fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium
                                 )

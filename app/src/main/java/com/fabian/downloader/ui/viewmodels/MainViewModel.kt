@@ -18,7 +18,7 @@ class MainViewModel(application: Application, private val database: AppDatabase)
     private val storageService = StorageService.getInstance(application)
     private val extractionService = ExtractionService()
     private val connectionService = ConnectionService()
-    private val notificationService = NotificationService(application)
+    private val notificationService = NotificationService.getInstance(application)
 
     private val downloadManager = DownloadManagerService.getInstance(application)
 

@@ -183,83 +183,98 @@ object SnapChunkDownloader {
         isCancelled: AtomicBoolean,
         onProgress: (Float, String, String) -> Unit
     ): Boolean = coroutineScope {
+        val parentDir = tempFile.parentFile
+        if (parentDir != null) {
+            val usable = parentDir.usableSpace
+            if (usable > 0L && usable < totalBytes) {
+                throw java.io.IOException("Espacio insuficiente para descargar (${formatBytes(totalBytes)})")
+            }
+        }
+
         val raf = RandomAccessFile(tempFile, "rw")
-        raf.setLength(totalBytes)
+        try {
+            raf.setLength(totalBytes)
 
-        val chunkSize = totalBytes / numThreads
-        val downloadedBytes = AtomicLong(0L)
-        val lastProgressBytes = AtomicLong(0L)
-        var lastUpdateTime = System.currentTimeMillis()
+            val chunkSize = totalBytes / numThreads
+            val downloadedBytes = AtomicLong(0L)
+            val lastProgressBytes = AtomicLong(0L)
+            val lastUpdateTime = AtomicLong(System.currentTimeMillis())
 
-        val jobs = mutableListOf<Job>()
-        val fileLock = Any()
+            val jobs = mutableListOf<Job>()
+            val fileLock = Any()
+            val progressLock = Any()
 
-        for (i in 0 until numThreads) {
-            val startByte = i * chunkSize
-            val endByte = if (i == numThreads - 1) totalBytes - 1 else (startByte + chunkSize - 1)
+            for (i in 0 until numThreads) {
+                val startByte = i * chunkSize
+                val endByte = if (i == numThreads - 1) totalBytes - 1 else (startByte + chunkSize - 1)
 
-            val job = launch(Dispatchers.IO) {
-                var currentStart = startByte
-                val request = Request.Builder()
-                    .url(mediaUrl)
-                    .addHeader("Range", "bytes=$currentStart-$endByte")
-                    .apply {
-                        customHeaders.forEach { (k, v) -> addHeader(k, v) }
-                        if (!customHeaders.containsKey("User-Agent")) {
-                            addHeader("User-Agent", Config.UA_DESKTOP)
+                val job = launch(Dispatchers.IO) {
+                    var currentStart = startByte
+                    val request = Request.Builder()
+                        .url(mediaUrl)
+                        .addHeader("Range", "bytes=$currentStart-$endByte")
+                        .apply {
+                            customHeaders.forEach { (k, v) -> addHeader(k, v) }
+                            if (!customHeaders.containsKey("User-Agent")) {
+                                addHeader("User-Agent", Config.UA_DESKTOP)
+                            }
                         }
-                    }
-                    .build()
+                        .build()
 
-                client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful && response.code != 206) {
-                        throw IllegalStateException("HTTP ${response.code} en segmento $i")
-                    }
-                    val body = response.body ?: throw IllegalStateException(com.fabian.downloader.utils.AppStrings.emptySegment(i))
-                    val inputStream = body.byteStream()
-                    val buffer = ByteArray(32 * 1024)
-                    var bytesRead: Int
-
-                    while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                        if (isCancelled.get() || !isActive) {
-                            throw CancellationException(com.fabian.downloader.utils.AppStrings.cancelledByUser())
+                    client.newCall(request).execute().use { response ->
+                        if (response.code != 206) {
+                            throw IllegalStateException("HTTP ${response.code} (se requería 206 Partial Content) en segmento $i")
                         }
-                        synchronized(fileLock) {
-                            raf.seek(currentStart)
-                            raf.write(buffer, 0, bytesRead)
-                        }
-                        currentStart += bytesRead
-                        downloadedBytes.addAndGet(bytesRead.toLong())
+                        val body = response.body ?: throw IllegalStateException(com.fabian.downloader.utils.AppStrings.emptySegment(i))
+                        val inputStream = body.byteStream()
+                        val buffer = ByteArray(32 * 1024)
+                        var bytesRead: Int
 
-                        val now = System.currentTimeMillis()
-                        if (now - lastUpdateTime >= 250) {
-                            val elapsedSec = (now - lastUpdateTime) / 1000.0
-                            val currentTotal = downloadedBytes.get()
-                            val deltaBytes = currentTotal - lastProgressBytes.get()
-                            lastProgressBytes.set(currentTotal)
-                            lastUpdateTime = now
+                        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                            if (isCancelled.get() || !isActive) {
+                                throw CancellationException(com.fabian.downloader.utils.AppStrings.cancelledByUser())
+                            }
+                            synchronized(fileLock) {
+                                raf.seek(currentStart)
+                                raf.write(buffer, 0, bytesRead)
+                            }
+                            currentStart += bytesRead
+                            val currentTotal = downloadedBytes.addAndGet(bytesRead.toLong())
 
-                            val speedBps = if (elapsedSec > 0) (deltaBytes / elapsedSec).toLong() else 0L
-                            val speedStr = formatSpeed(speedBps)
-                            val pct = ((currentTotal.toDouble() / totalBytes) * 100.0).toFloat().coerceIn(0f, 99.5f)
-                            val sizeStr = "${formatBytes(currentTotal)} / ${formatBytes(totalBytes)}"
+                            var emitPayload: Triple<Float, String, String>? = null
+                            synchronized(progressLock) {
+                                val now = System.currentTimeMillis()
+                                val prevTime = lastUpdateTime.get()
+                                if (now - prevTime >= 250) {
+                                    val elapsedSec = (now - prevTime) / 1000.0
+                                    val deltaBytes = currentTotal - lastProgressBytes.getAndSet(currentTotal)
+                                    lastUpdateTime.set(now)
 
-                            onProgress(pct, sizeStr, speedStr)
+                                    val speedBps = if (elapsedSec > 0) (deltaBytes / elapsedSec).toLong() else 0L
+                                    val speedStr = formatSpeed(speedBps)
+                                    val pct = ((currentTotal.toDouble() / totalBytes) * 100.0).toFloat().coerceIn(0f, 99.5f)
+                                    val sizeStr = "${formatBytes(currentTotal)} / ${formatBytes(totalBytes)}"
+                                    emitPayload = Triple(pct, sizeStr, speedStr)
+                                }
+                            }
+                            emitPayload?.let { (pct, sizeStr, speedStr) ->
+                                onProgress(pct, sizeStr, speedStr)
+                            }
                         }
                     }
                 }
+                jobs.add(job)
             }
-            jobs.add(job)
-        }
 
-        try {
-            jobs.joinAll()
-            raf.close()
-            !isCancelled.get()
-        } catch (e: Exception) {
+            try {
+                jobs.joinAll()
+                !isCancelled.get()
+            } catch (e: Exception) {
+                jobs.forEach { it.cancel() }
+                false
+            }
+        } finally {
             try { raf.close() } catch (_: Exception) {}
-            jobs.forEach { it.cancel() }
-            false
         }
     }
 

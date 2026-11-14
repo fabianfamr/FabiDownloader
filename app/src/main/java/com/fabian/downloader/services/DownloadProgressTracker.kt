@@ -3,6 +3,7 @@ package com.fabian.downloader.services
 import com.fabian.downloader.configs.Config
 import com.fabian.downloader.ui.AppSettings
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +26,8 @@ class DownloadProgressTracker(
     val liveProgressFlow: StateFlow<Map<Long, LiveProgress>> = _liveProgressFlow.asStateFlow()
 
     private val activeProgresses = ConcurrentHashMap<Long, Int>()
+    private val dbJobs = ConcurrentHashMap<Long, Job>()
+    private val notifJobs = ConcurrentHashMap<Long, Job>()
 
     fun getProgress(id: Long): Int = activeProgresses[id] ?: 0
 
@@ -34,11 +37,17 @@ class DownloadProgressTracker(
 
     fun removeProgress(id: Long) {
         activeProgresses.remove(id)
+        dbJobs.remove(id)?.cancel()
+        notifJobs.remove(id)?.cancel()
         _liveProgressFlow.update { it - id }
     }
 
     fun clearAll() {
         activeProgresses.clear()
+        dbJobs.values.forEach { it.cancel() }
+        dbJobs.clear()
+        notifJobs.values.forEach { it.cancel() }
+        notifJobs.clear()
         _liveProgressFlow.value = emptyMap()
     }
 
@@ -77,15 +86,17 @@ class DownloadProgressTracker(
         // 2. Persistir en SQLite cada 5 segundos
         if (currentTime - lastDbPersistTime > 5000 || progress >= 100f) {
             onDbPersistDone(currentTime)
-            scope.launch {
+            dbJobs[id]?.cancel()
+            dbJobs[id] = scope.launch {
                 val currentRecord = storageService.getDownloadById(id)
+                val latest = _liveProgressFlow.value[id] ?: return@launch
                 if (currentRecord != null && !currentRecord.isPaused && !currentRecord.isCompleted) {
-                    val finalSize = if (displaySize == Config.STATUS_DOWNLOADING) {
+                    val finalSize = if (latest.sizeText == Config.STATUS_DOWNLOADING) {
                         currentRecord.size.takeIf { it != Config.STATUS_ZERO_MB && it.isNotEmpty() } ?: Config.STATUS_DOWNLOADING
                     } else {
-                        displaySize
+                        latest.sizeText
                     }
-                    storageService.updateDownloadProgressAndSizeAndSpeed(id, cappedProgress, finalSize, displaySpeed)
+                    storageService.updateDownloadProgressAndSizeAndSpeed(id, latest.progress, finalSize, latest.speedText)
                 }
             }
         }
@@ -93,20 +104,22 @@ class DownloadProgressTracker(
         // 3. Notificaciones del sistema
         if (AppSettings.notificationsEnabled && (progress >= 100f || (AppSettings.showProgressNotification && currentTime - lastNotificationUpdate > 1000))) {
             onNotificationDone(currentTime)
-            scope.launch {
+            notifJobs[id]?.cancel()
+            notifJobs[id] = scope.launch {
                 val currentRecord = storageService.getDownloadById(id)
+                val latest = _liveProgressFlow.value[id] ?: return@launch
                 if (currentRecord != null && !currentRecord.isPaused && !currentRecord.isCompleted) {
-                    val notifSize = if (displaySize == Config.STATUS_DOWNLOADING) {
+                    val notifSize = if (latest.sizeText == Config.STATUS_DOWNLOADING) {
                         currentRecord.size.takeIf { it != Config.STATUS_ZERO_MB && it.isNotEmpty() } ?: Config.STATUS_DOWNLOADING
                     } else {
-                        displaySize
+                        latest.sizeText
                     }
                     notificationService.showDownloadProgress(
                         id = id.toInt(),
                         title = videoTitle,
-                        progress = cappedProgress,
+                        progress = latest.progress,
                         thumbnailUrl = currentRecord.thumbnailUrl,
-                        speed = displaySpeed,
+                        speed = latest.speedText,
                         size = notifSize
                     )
                 }

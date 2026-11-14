@@ -60,6 +60,8 @@ class DownloadExecutor(
             0
         }
 
+        val storageSpaceExceeded = AtomicBoolean(false)
+
         try {
             try {
                 Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)
@@ -81,11 +83,21 @@ class DownloadExecutor(
 
             checkStorageSpace(spec.outputDirectory ?: PathUtils.getDownloadFolder(application, record.format), id)
 
-            val rawFile = executeDownload(id, spec, videoTitle, record.progress, scope)
+            val rawFile = executeDownload(id, spec, videoTitle, record.progress, storageSpaceExceeded, scope)
             val finalFile = postProcessFile(id, rawFile, spec, videoTitle, record)
 
             finalizeDownload(id, videoTitle, finalFile, passedThumbnailUrl)
         } catch (e: Exception) {
+            if (storageSpaceExceeded.get()) {
+                handleDownloadFailure(
+                    id,
+                    videoTitle,
+                    passedThumbnailUrl,
+                    StorageException(application.getString(R.string.downloads_error_storage)),
+                    scope
+                )
+                return
+            }
             if (e is CancellationException) return
             handleDownloadFailure(id, videoTitle, passedThumbnailUrl, e, scope)
         } finally {
@@ -154,6 +166,7 @@ class DownloadExecutor(
         spec: DownloadTaskSpec,
         videoTitle: String,
         initialProgress: Int,
+        storageSpaceExceeded: AtomicBoolean,
         scope: CoroutineScope
     ): File {
         val service = SiteServiceProvider.getServiceForUrl(spec.cleanUrl)
@@ -164,7 +177,6 @@ class DownloadExecutor(
         var lastDbPersistTime = 0L
         var lastNotificationUpdate = 0L
         var lastSpaceCheck = 0L
-        val storageSpaceExceeded = AtomicBoolean(false)
 
         val downloadSuccess = service.download(
             spec.cleanUrl, spec.quality, spec.format, destFolder, fileNameWithoutExt,
@@ -388,10 +400,18 @@ class DownloadExecutor(
         passedThumbnailUrl: String?
     ) {
         if (AppSettings.keepHistory) {
-            storageService.updateDownloadProgressAndSizeAndSpeed(
-                id, 100, Config.STATUS_COMPLETED, Config.STATUS_COMPLETED
-            )
-            storageService.markAsCompleted(id)
+            val formattedSize = if (finalFile.exists() && finalFile.length() > 0L) {
+                val sizeMb = finalFile.length() / (1024.0 * 1024.0)
+                if (sizeMb >= 1024.0) {
+                    String.format(java.util.Locale.US, "%.2f GB", sizeMb / 1024.0)
+                } else {
+                    String.format(java.util.Locale.US, "%.1f MB", maxOf(0.1, sizeMb))
+                }
+            } else {
+                Config.STATUS_COMPLETED
+            }
+            storageService.updateDownloadInfo(id, videoTitle, formattedSize)
+            storageService.markAsCompleted(id, formattedSize)
         } else {
             storageService.deleteDownload(id)
         }
@@ -544,13 +564,14 @@ class DownloadExecutor(
         try {
             val destFolder = PathUtils.getDownloadFolder(application, format)
             if (destFolder.exists() && destFolder.isDirectory) {
+                val idRegex = Regex("(^|[^0-9])$id([^0-9]|$)")
+                val cleanTitle = if (title != null) PathUtils.sanitizeFileName(title) else ""
                 destFolder.listFiles()?.forEach { file ->
                     val name = file.name
-                    val cleanTitle = if (title != null) PathUtils.sanitizeFileName(title) else ""
                     if ((name.endsWith(".part") || name.endsWith(".ytdl") ||
                             name.endsWith(".temp") || name.endsWith(".tmp") ||
                             name.endsWith(".downloading") || name.contains(".downloading")) &&
-                        (name.contains(id.toString()) ||
+                        (idRegex.containsMatchIn(name) ||
                             (cleanTitle.isNotEmpty() && name.startsWith(cleanTitle)))
                     ) {
                         file.delete()
@@ -563,7 +584,7 @@ class DownloadExecutor(
                         val baseName = name.substringBeforeLast(".")
                         if ((cleanTitle.isNotEmpty() &&
                                 baseName.equals(cleanTitle, ignoreCase = true)) ||
-                            baseName.contains(id.toString()) || name.startsWith("thumb_")
+                            baseName == "thumb_$id" || idRegex.containsMatchIn(baseName)
                         ) {
                             file.delete()
                         }

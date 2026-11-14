@@ -35,7 +35,14 @@ class DownloadActionReceiver : BroadcastReceiver() {
                 val taskId = intent.getStringExtra(Config.EXTRA_TASK_ID)
                 val notificationId =
                     intent.getIntExtra(Config.EXTRA_NOTIFICATION_ID, -1)
-                cancelTask(context, taskId, notificationId)
+                val pendingResult = goAsync()
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        cancelTask(context, taskId, notificationId)
+                    } finally {
+                        pendingResult?.finish()
+                    }
+                }
                 return
             }
 
@@ -83,7 +90,7 @@ class DownloadActionReceiver : BroadcastReceiver() {
                         resumeDownload(context, downloadId)
                     }
                     Config.ACTION_CANCEL -> {
-                        DownloadManagerService.getInstance(context).deleteDownload(downloadId)
+                        DownloadManagerService.getInstance(context).deleteDownloadNow(downloadId)
                     }
                     Config.ACTION_OPEN -> {
                         openFile(context, downloadId)
@@ -101,18 +108,8 @@ class DownloadActionReceiver : BroadcastReceiver() {
         }
     }
 
-    /**
-     * Cancela una tarea de descarga desde la notificación (portado de Seal:
-     * `NotificationActionReceiver.cancelTask`). Mata el proceso yt-dlp por
-     * taskId con `destroyProcessById` y borra la descarga de la cola/base de
-     * datos, igual que el botón "Cancelar" de las notificaciones de Seal.
-     */
-    private fun cancelTask(context: Context, taskId: String?, notificationId: Int) {
+    private suspend fun cancelTask(context: Context, taskId: String?, notificationId: Int) {
         if (taskId.isNullOrEmpty()) return
-        // Si la notificación mapeada es la del servicio (9999), no cancelamos
-        // directamente: deleteDownload restaura la notificación base o detiene
-        // el servicio según queden descargas activas (evita crashes de ciclo
-        // de vida del foreground service en Android 12+).
         if (notificationId > 0 &&
             notificationId != com.fabian.downloader.util.NotificationUtil.SERVICE_NOTIFICATION_ID
         ) {
@@ -127,26 +124,17 @@ class DownloadActionReceiver : BroadcastReceiver() {
                 "No se pudo destruir el proceso $taskId", e)
         }
 
-        // taskId == id del registro de descarga (DownloadExecutor pasa
-        // processId = id.toString()), así que delegamos en el borrado completo.
         val downloadId = taskId.toLongOrNull()
         if (downloadId != null && downloadId > 0) {
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    DownloadManagerService.getInstance(context).deleteDownload(downloadId)
-                } catch (e: Exception) {
-                    Log.w(Config.TAG_DOWNLOAD_ACTION_RECEIVER,
-                        "Error eliminando la descarga $downloadId tras cancelar", e)
-                }
+            try {
+                DownloadManagerService.getInstance(context).deleteDownloadNow(downloadId)
+            } catch (e: Exception) {
+                Log.w(Config.TAG_DOWNLOAD_ACTION_RECEIVER,
+                    "Error eliminando la descarga $downloadId tras cancelar", e)
             }
         }
     }
 
-    /**
-     * Copia el informe de error al portapapeles (portado de Seal:
-     * `NotificationActionReceiver.copyErrorReport`), muestra un toast y
-     * descarta la notificación.
-     */
     private fun copyErrorReport(context: Context, report: String, notificationId: Int) {
         try {
             val clipboard =
@@ -203,14 +191,15 @@ class DownloadActionReceiver : BroadcastReceiver() {
             val destFolder = com.fabian.downloader.utils.PathUtils
                 .getDownloadFolder(context, record.format)
             if (destFolder.exists()) {
+                val idRegex = Regex("(^|[^0-9])$downloadId([^0-9]|$)")
+                val sanitizedTitle = com.fabian.downloader.utils.PathUtils.sanitizeFileName(record.title)
                 destFolder.listFiles()?.forEach { file ->
                     val name = file.name
                     val isTemp = name.endsWith(".part") || name.endsWith(".ytdl") ||
                         name.endsWith(".temp") || name.endsWith(".tmp") ||
                         name.endsWith(".downloading") || name.contains(".downloading")
-                    if (isTemp && (name.contains(downloadId.toString()) ||
-                            name.startsWith(com.fabian.downloader.utils.PathUtils
-                                .sanitizeFileName(record.title)))) {
+                    if (isTemp && (idRegex.containsMatchIn(name) ||
+                            (sanitizedTitle.isNotEmpty() && name.startsWith(sanitizedTitle)))) {
                         file.delete()
                     }
                 }

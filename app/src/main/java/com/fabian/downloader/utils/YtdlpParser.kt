@@ -180,8 +180,7 @@ object YtdlpParser {
                 val height = formatoObj.optInt("height", 0)
                 val width = formatoObj.optInt("width", 0)
                 val realHeight = if (height > 0) height else if (width > 0) {
-                    // Estimar altura para videos verticales o formatos extraños si falta height
-                    if (width > height) (width * 9 / 16) else width
+                    if (width >= 1280) (width * 9 / 16) else width
                 } else 0
                 
                 val ext = formatoObj.optString("ext", "")
@@ -209,36 +208,44 @@ object YtdlpParser {
                 val totalBytes = if (bytes > 0 && vcodec != "none" && !vcodec.contains("audio only")) bytes + bestAudioSize else bytes
                 val mb = if (totalBytes > 0) totalBytes / (1024.0 * 1024.0) else 0.0
                 
+                fun putMaxSize(key: String, sizeMb: Double) {
+                    if (sizeMb <= 0.0) return
+                    val current = sizesMap[key] ?: 0.0
+                    if (sizeMb > current) {
+                        sizesMap[key] = sizeMb
+                    }
+                }
+
                 if (vcodec == "none" || vcodec.contains("audio only")) {
                     if (ext == "m4a") {
-                        sizesMap["audio_m4a"] = mb
-                        sizesMap["music_64"] = mb
-                        sizesMap["64"] = mb
+                        putMaxSize("audio_m4a", mb)
+                        putMaxSize("music_64", mb)
+                        putMaxSize("64", mb)
                     }
-                    if (ext == "mp3" || vcodec == "none" || vcodec.contains("audio only")) {
-                        sizesMap["audio_mp3"] = mb
-                        val abr = formatoObj.optDouble("abr", 0.0)
-                        val tbr = formatoObj.optDouble("tbr", 0.0)
-                        val bitRate = if (abr > 0.0) abr else tbr
-                        if (bitRate >= 280.0) {
-                            sizesMap["music_320"] = mb
-                            sizesMap["320"] = mb
-                        } else if (bitRate >= 160.0) {
-                            sizesMap["music_192"] = mb
-                            sizesMap["192"] = mb
-                        } else {
-                            sizesMap["music_128"] = mb
-                            sizesMap["128"] = mb
-                        }
+                    if (ext == "mp3" || !sizesMap.containsKey("audio_mp3")) {
+                        putMaxSize("audio_mp3", mb)
+                    }
+                    val abr = formatoObj.optDouble("abr", 0.0)
+                    val tbr = formatoObj.optDouble("tbr", 0.0)
+                    val bitRate = if (abr > 0.0) abr else tbr
+                    if (bitRate >= 280.0) {
+                        putMaxSize("music_320", mb)
+                        putMaxSize("320", mb)
+                    } else if (bitRate >= 160.0) {
+                        putMaxSize("music_192", mb)
+                        putMaxSize("192", mb)
+                    } else {
+                        putMaxSize("music_128", mb)
+                        putMaxSize("128", mb)
                     }
                 } else if (realHeight > 0) {
-                    sizesMap["video_${realHeight}p"] = mb
-                    sizesMap["${realHeight}p"] = mb
-                    sizesMap["video_$realHeight"] = mb
-                    if (realHeight >= 1080) sizesMap["video_1080"] = mb
-                    else if (realHeight >= 720) sizesMap["video_720"] = mb
-                    else if (realHeight >= 480) sizesMap["video_480"] = mb
-                    else if (realHeight >= 360) sizesMap["video_360"] = mb
+                    putMaxSize("video_${realHeight}p", mb)
+                    putMaxSize("${realHeight}p", mb)
+                    putMaxSize("video_$realHeight", mb)
+                    if (realHeight >= 1080) putMaxSize("video_1080", mb)
+                    else if (realHeight >= 720) putMaxSize("video_720", mb)
+                    else if (realHeight >= 480) putMaxSize("video_480", mb)
+                    else if (realHeight >= 360) putMaxSize("video_360", mb)
                 }
                 
                 if (totalBytes > tamañoBytesMax) tamañoBytesMax = totalBytes
@@ -403,7 +410,11 @@ object YtdlpParser {
             lower == "retrying" || lower == "reintentando" -> context.getString(com.fabian.downloader.R.string.downloads_status_retrying)
             lower == "completed" || lower == "completado" -> context.getString(com.fabian.downloader.R.string.downloads_status_completed)
             lower == "paused" || lower == "pausado" -> context.getString(com.fabian.downloader.R.string.downloads_status_paused)
-            lower == "failed" || lower.startsWith("failed:") || lower.startsWith("fallo:") -> context.getString(com.fabian.downloader.R.string.downloads_error_retry)
+            lower == "failed" -> context.getString(com.fabian.downloader.R.string.downloads_error_retry)
+            lower.startsWith("failed:") || lower.startsWith("fallo:") -> {
+                val detail = trimmed.substringAfter(':').trim()
+                detail.ifEmpty { context.getString(com.fabian.downloader.R.string.downloads_error_retry) }
+            }
             else -> formatSpeed(status)
         }
     }

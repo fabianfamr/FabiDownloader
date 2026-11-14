@@ -4,9 +4,10 @@ import com.fabian.downloader.configs.Config
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -22,6 +23,10 @@ data class InfoMedia(
 )
 
 class YtdlpExtractor {
+
+    companion object {
+        private val backgroundUpdateScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    }
 
     suspend fun obtenerDetallesVideo(rawVideoUrl: String, quality: String? = null, format: String? = null): InfoMedia? = withContext(Dispatchers.IO) {
         com.fabian.downloader.MyApplication.getInstance().ensureInitialized()
@@ -54,9 +59,6 @@ class YtdlpExtractor {
                 addOption("--no-check-formats")
                 if (!isYoutube) {
                     addOption("--referer", Config.REFERER_DEFAULT)
-                }
-                if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
-                    addOption("--no-check-certificate")
                 }
                 addOption("--geo-bypass")
                 addOption("--quiet")
@@ -105,7 +107,7 @@ class YtdlpExtractor {
                     Log.w(Config.TAG_YTDLP_EXTRACTOR, "Binario de yt-dlp corrupto. Reseteando desde APK assets...")
                     appCtx.resetAndReinitYtdlp(appCtx)
                 } else if (YtdlpErrorResolver.isExtractorOrCipherError(e, msg)) {
-                    launch {
+                    backgroundUpdateScope.launch {
                         com.fabian.downloader.managers.YtdlpUpdateManager.autoUpdateSilentlyOnFailure(appCtx)
                     }
                 }
@@ -141,9 +143,6 @@ class YtdlpExtractor {
                 addOption("--user-agent", Config.UA_DESKTOP)
             } else {
                 addOption("--referer", Config.REFERER_DEFAULT)
-            }
-            if (com.fabian.downloader.ui.AppSettings.bypassSslVerification) {
-                addOption("--no-check-certificate")
             }
             addOption("--geo-bypass")
             addOption("--quiet")

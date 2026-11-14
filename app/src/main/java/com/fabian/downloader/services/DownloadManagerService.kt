@@ -69,7 +69,7 @@ class DownloadManagerService private constructor(
                     StorageService.getInstance(app),
                     ExtractionService(),
                     ConnectionService(),
-                    NotificationService(app)
+                    NotificationService.getInstance(app)
                 ).also { instance = it }
             }
         }
@@ -150,6 +150,7 @@ class DownloadManagerService private constructor(
                 }
 
                 var provisionalTitle = ""
+                var shouldSkipExistingStart = false
                 startDownloadMutex.withLock {
                     if (existingId == null) {
                         val existing = storageService.getDownloadsByUrl(url)
@@ -192,6 +193,27 @@ class DownloadManagerService private constructor(
                         if (isForced) {
                             queueManager.forcedDownloadIds.add(newId)
                         }
+                    } else {
+                        val isAlreadyActive = queueManager.processingIds.contains(existingId) || activeJobs.containsKey(existingId)
+                        if (isAlreadyActive) {
+                            shouldSkipExistingStart = true
+                        } else {
+                            if (isForced) {
+                                queueManager.forcedDownloadIds.add(existingId)
+                            }
+                            storageService.updatePausedState(existingId, false)
+                            val existingRecord = storageService.getDownloadById(existingId)
+                            if (existingRecord != null) {
+                                var cleanTitle = existingRecord.title
+                                while (cleanTitle.startsWith(Config.STATUS_FAILED_PREFIX)) {
+                                    cleanTitle = cleanTitle.removePrefix(Config.STATUS_FAILED_PREFIX).trim()
+                                }
+                                val localThumb = PathUtils.saveThumbnail(application, existingRecord.thumbnailUrl, existingId)
+                                val cleanProgress = if (existingRecord.progress < 0) 0 else existingRecord.progress
+                                storageService.updateDownloadInfoWithThumbnail(existingId, cleanTitle, Config.STATUS_QUEUED, localThumb ?: existingRecord.thumbnailUrl)
+                                storageService.updateDownloadProgressAndSizeAndSpeed(existingId, cleanProgress, Config.STATUS_QUEUED, Config.STATUS_WAITING)
+                            }
+                        }
                     }
                 }
 
@@ -222,26 +244,24 @@ class DownloadManagerService private constructor(
 
                         if (finalTitle != capturedProvisionalTitle || localThumb != passedThumbnailUrl) {
                             val isAlreadyDownloading = queueManager.processingIds.contains(safeNewId) || activeJobs.containsKey(safeNewId)
-                            val titleToSave = if (isAlreadyDownloading) capturedProvisionalTitle else finalTitle
-                            storageService.updateDownloadInfoWithThumbnail(safeNewId, titleToSave, Config.STATUS_QUEUED, localThumb)
+                            if (isAlreadyDownloading) {
+                                if (localThumb != null && localThumb != passedThumbnailUrl) {
+                                    storageService.updateDownloadThumbnail(safeNewId, localThumb)
+                                }
+                            } else {
+                                val latestRecord = storageService.getDownloadById(safeNewId)
+                                if (latestRecord != null && !latestRecord.isCompleted && !latestRecord.isPaused) {
+                                    storageService.updateDownloadInfoWithThumbnail(
+                                        safeNewId,
+                                        finalTitle,
+                                        latestRecord.size,
+                                        localThumb ?: latestRecord.thumbnailUrl
+                                    )
+                                }
+                            }
                         }
                     }
-                } else {
-                    if (isForced) {
-                        queueManager.forcedDownloadIds.add(existingId)
-                    }
-                    storageService.updatePausedState(existingId, false)
-                    val existingRecord = storageService.getDownloadById(existingId)
-                    if (existingRecord != null) {
-                        var cleanTitle = existingRecord.title
-                        while (cleanTitle.startsWith(Config.STATUS_FAILED_PREFIX)) {
-                            cleanTitle = cleanTitle.substringAfter(Config.STATUS_FAILED_PREFIX)
-                        }
-                        val localThumb = PathUtils.saveThumbnail(application, existingRecord.thumbnailUrl, existingId)
-                        val cleanProgress = if (existingRecord.progress < 0) 0 else existingRecord.progress
-                        storageService.updateDownloadInfoWithThumbnail(existingId, cleanTitle, Config.STATUS_QUEUED, localThumb ?: existingRecord.thumbnailUrl)
-                        storageService.updateDownloadProgressAndSizeAndSpeed(existingId, cleanProgress, Config.STATUS_QUEUED, Config.STATUS_WAITING)
-                    }
+                } else if (!shouldSkipExistingStart) {
                     triggerQueue()
                 }
             } catch (e: Exception) {
@@ -370,11 +390,23 @@ class DownloadManagerService private constructor(
         }
     }
 
-    fun throttleActiveDownloads() {
+    fun throttleActiveDownloads(reduceBy: Int = 1) {
         serviceScope.launch {
             val activeIds = activeJobs.keys.toList()
             if (activeIds.size > 1) {
-                activeIds.drop(1).forEach { id -> requeueDownload(id) }
+                val countToRequeue = reduceBy.coerceIn(1, activeIds.size - 1)
+                activeIds.takeLast(countToRequeue).forEach { id -> requeueDownload(id) }
+            }
+            triggerQueue()
+        }
+    }
+
+    fun limitConcurrencyTo(maxParallel: Int = 1) {
+        serviceScope.launch {
+            val target = maxParallel.coerceAtLeast(1)
+            val activeIds = activeJobs.keys.toList()
+            if (activeIds.size > target) {
+                activeIds.drop(target).forEach { id -> requeueDownload(id) }
             }
             triggerQueue()
         }
@@ -382,40 +414,49 @@ class DownloadManagerService private constructor(
 
     fun deleteDownload(id: Long) {
         serviceScope.launch {
-            progressTracker.removeProgress(id)
-            queueManager.forcedDownloadIds.remove(id)
-            activeCalls[id]?.cancel()
-            val job = activeJobs[id]
-            job?.cancel()
-            activeCalls.remove(id)
-            activeJobs.remove(id)
-            queueManager.processingIds.remove(id)
-
-            try {
-                YoutubeDL.getInstance().destroyProcessById(id.toString())
-            } catch (_: Exception) {}
-
-            val record = storageService.getDownloadById(id)
-            if (record != null) {
-                val file = PathUtils.getDownloadFile(application, record.title, record.id, record.format)
-                if (file.exists()) file.delete()
-            }
-            if (AppSettings.cleanTempOnCancel) {
-                downloadExecutor.cleanTempFiles(id, record?.title, record?.format ?: "MP4")
-            }
-
-            val thumbnailsDir = File(application.filesDir, "thumbnails")
-            val thumbFile = File(thumbnailsDir, "thumb_$id.jpg")
-            if (thumbFile.exists()) thumbFile.delete()
-
-            storageService.deleteDownload(id)
-            notificationService.cancelNotification(id.toInt())
-
-            if (queueManager.processingIds.isEmpty()) {
-                DownloadForegroundService.stop(application)
-            }
-            triggerQueue()
+            deleteDownloadNow(id)
         }
+    }
+
+    suspend fun deleteDownloadNow(id: Long) {
+        progressTracker.removeProgress(id)
+        queueManager.forcedDownloadIds.remove(id)
+        activeCalls[id]?.cancel()
+        val job = activeJobs[id]
+        job?.cancel()
+        activeCalls.remove(id)
+        activeJobs.remove(id)
+        queueManager.processingIds.remove(id)
+
+        try {
+            SnapChunkDownloader.cancelTask(id.toString())
+            YoutubeDL.getInstance().destroyProcessById(id.toString())
+        } catch (_: Exception) {}
+
+        if (job != null) {
+            try { job.join() } catch (_: Exception) {}
+        }
+
+        val record = storageService.getDownloadById(id)
+        if (record != null) {
+            val file = PathUtils.getDownloadFile(application, record.title, record.id, record.format)
+            if (file.exists()) file.delete()
+        }
+        if (AppSettings.cleanTempOnCancel) {
+            downloadExecutor.cleanTempFiles(id, record?.title, record?.format ?: "MP4")
+        }
+
+        val thumbnailsDir = File(application.filesDir, "thumbnails")
+        val thumbFile = File(thumbnailsDir, "thumb_$id.jpg")
+        if (thumbFile.exists()) thumbFile.delete()
+
+        storageService.deleteDownload(id)
+        notificationService.cancelNotification(id.toInt())
+
+        if (queueManager.processingIds.isEmpty()) {
+            DownloadForegroundService.stop(application)
+        }
+        triggerQueue()
     }
 
     fun deleteDownloadHistory(id: Long) = deleteDownload(id)
@@ -472,8 +513,15 @@ class DownloadManagerService private constructor(
                 withTimeoutOrNull(3000) { jobsToCancel.forEach { it.join() } }
                 idsToReset.forEach { id ->
                     try {
+                        val currentRecord = storageService.getDownloadById(id)
+                        val preservedProgress = (currentRecord?.progress ?: 0).coerceAtLeast(0)
+                        val preservedSize = currentRecord?.size?.takeUnless {
+                            it == Config.STATUS_QUEUED || it == Config.STATUS_CONNECTING || it.isBlank()
+                        } ?: Config.STATUS_ZERO_MB
                         storageService.updatePausedState(id, true)
-                        storageService.updateDownloadProgressAndSizeAndSpeed(id, 0, Config.STATUS_WAITING, Config.STATUS_WAITING)
+                        storageService.updateDownloadProgressAndSizeAndSpeed(
+                            id, preservedProgress, preservedSize, Config.STATUS_WAITING
+                        )
                     } catch (_: Exception) {}
                 }
                 queueManager.processingIds.clear()

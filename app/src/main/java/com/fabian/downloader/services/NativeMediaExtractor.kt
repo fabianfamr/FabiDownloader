@@ -100,7 +100,7 @@ object NativeMediaExtractor {
                                 format = "MP4",
                                 url = directUrl,
                                 height = height,
-                                approximateSizeMb = 15.0,
+                                approximateSizeMb = 0.0,
                                 isVideo = true,
                                 isAudio = true
                             )
@@ -109,7 +109,7 @@ object NativeMediaExtractor {
                                 author = user,
                                 thumbnailUrl = thumb,
                                 streamFormats = listOf(stream),
-                                formatSizes = mapOf(qualityLabel to 15.0, "Original" to 15.0)
+                                formatSizes = emptyMap()
                             )
                         }
                     }
@@ -125,7 +125,7 @@ object NativeMediaExtractor {
                                 quality = "720p",
                                 format = "MP4",
                                 url = directUrl,
-                                approximateSizeMb = 12.0,
+                                approximateSizeMb = 0.0,
                                 isVideo = true,
                                 isAudio = true
                             )
@@ -134,7 +134,7 @@ object NativeMediaExtractor {
                                 author = owner,
                                 thumbnailUrl = thumb,
                                 streamFormats = listOf(stream),
-                                formatSizes = mapOf("720p" to 12.0)
+                                formatSizes = emptyMap()
                             )
                         }
                     }
@@ -167,7 +167,7 @@ object NativeMediaExtractor {
                             val playUrl = data.optString("play")
                             val hdPlayUrl = data.optString("hdplay").ifEmpty { playUrl }
                             val sizeBytes = data.optLong("size", 0L)
-                            val sizeMb = if (sizeBytes > 0) sizeBytes / (1024.0 * 1024.0) else 10.0
+                            val sizeMb = if (sizeBytes > 0L) sizeBytes / (1024.0 * 1024.0) else 0.0
 
                             val streams = mutableListOf<StreamFormat>()
                             val hdNoWatermarkLabel = AppStrings.noWatermarkHd()
@@ -189,7 +189,7 @@ object NativeMediaExtractor {
                                         quality = "720p",
                                         format = "MP4",
                                         url = playUrl,
-                                        approximateSizeMb = sizeMb * 0.8,
+                                        approximateSizeMb = if (sizeMb > 0.0) sizeMb * 0.8 else 0.0,
                                         isVideo = true,
                                         isAudio = true
                                     )
@@ -197,13 +197,18 @@ object NativeMediaExtractor {
                             }
 
                             if (streams.isNotEmpty()) {
+                                val tikTokSizes = if (sizeMb > 0.0) {
+                                    mapOf(hdNoWatermarkLabel to sizeMb, "720p" to sizeMb)
+                                } else {
+                                    emptyMap()
+                                }
                                 return NativeVideoDetails(
                                     title = title,
                                     author = author,
                                     thumbnailUrl = thumb,
                                     durationSeconds = data.optLong("duration", 0L),
                                     streamFormats = streams,
-                                    formatSizes = mapOf(hdNoWatermarkLabel to sizeMb, "720p" to sizeMb)
+                                    formatSizes = tikTokSizes
                                 )
                             }
                         }
@@ -369,7 +374,6 @@ object NativeMediaExtractor {
                                     isAudio = true
                                 )
                             )
-                            sizesMap[qualityLabel] = 12.0 // Estimado
                         }
                     }
 
@@ -396,6 +400,7 @@ object NativeMediaExtractor {
         val videoId = videoIdRegex.find(url)?.groupValues?.getOrNull(1) ?: return null
 
         val endpoint = "https://www.youtube.com/youtubei/v1/player"
+        val sysLocale = java.util.Locale.getDefault()
         val payload = JSONObject().apply {
             put("videoId", videoId)
             put("context", JSONObject().apply {
@@ -403,8 +408,8 @@ object NativeMediaExtractor {
                     put("clientName", "ANDROID")
                     put("clientVersion", "19.29.37")
                     put("androidSdkVersion", 30)
-                    put("hl", "es")
-                    put("gl", "ES")
+                    put("hl", sysLocale.language.ifEmpty { "en" })
+                    put("gl", sysLocale.country.ifEmpty { "US" })
                 })
             })
         }

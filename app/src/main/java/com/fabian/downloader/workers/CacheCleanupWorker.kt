@@ -60,14 +60,19 @@ class CacheCleanupWorker(
         fun performDirectCleanup(context: Context): Int {
             var count = 0
             try {
-                val downloadDirs = listOf(
+                val candidateDirs = listOf(
+                    com.fabian.downloader.utils.PathUtils.getDownloadFolder(context, com.fabian.downloader.configs.Config.FORMAT_MP4),
+                    com.fabian.downloader.utils.PathUtils.getDownloadFolder(context, com.fabian.downloader.configs.Config.FORMAT_MP3),
+                    com.fabian.downloader.utils.PathUtils.getDownloadFolder(context, com.fabian.downloader.configs.Config.FORMAT_JPG),
                     java.io.File(context.getExternalFilesDir(null), "FabiDownloader/downloads/video"),
                     java.io.File(context.getExternalFilesDir(null), "FabiDownloader/downloads/audio"),
                     java.io.File(context.getExternalFilesDir(null), "FabiDownloader/downloads/image"),
                     context.cacheDir
-                )
+                ).distinctBy { dir ->
+                    try { dir.canonicalPath } catch (_: Exception) { dir.absolutePath }
+                }
                 val tempSuffixes = setOf(".part", ".ytdl", ".temp", ".tmp", ".downloading")
-                for (dir in downloadDirs) {
+                for (dir in candidateDirs) {
                     if (!dir.exists() || !dir.isDirectory) continue
                     dir.listFiles()?.forEach { file ->
                         val name = file.name

@@ -50,14 +50,14 @@ fun FabiDownloaderApp(
     val currentRoute = navBackStackEntry?.destination?.route
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(startOnDownloads, currentRoute) {
+    LaunchedEffect(startOnDownloads, initialPage, currentRoute) {
         if (startOnDownloads && currentRoute != null) {
             try {
                 if (navController.currentDestination != null) {
                     navController.navigate(Screen.Downloads.route + "?initialPage=$initialPage") {
-                        popUpTo(Screen.Main.route) { saveState = true }
+                        popUpTo(Screen.Main.route) { saveState = false }
                         launchSingleTop = true
-                        restoreState = true
+                        restoreState = false
                     }
                 }
             } catch (_: Throwable) {}
@@ -334,9 +334,9 @@ fun FabiDownloaderApp(
                                     snackbarHostState = snackbarHostState,
                                     onNavigateToDownloads = {
                                         navController.navigate(Screen.Downloads.route + "?initialPage=1") {
-                                            popUpTo(Screen.Main.route) { saveState = true }
+                                            popUpTo(Screen.Main.route) { saveState = false }
                                             launchSingleTop = true
-                                            restoreState = true
+                                            restoreState = false
                                         }
                                     },
                                     onNavigateToSettings = {

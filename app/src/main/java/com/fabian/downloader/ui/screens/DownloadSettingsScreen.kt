@@ -32,7 +32,9 @@ fun DownloadSettingsScreen(
         if (uri != null) {
             val takeFlags: Int = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or
                     android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+            try {
+                context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+            } catch (_: SecurityException) {}
             AppSettings.downloadLocation = uri.toString()
         }
     }

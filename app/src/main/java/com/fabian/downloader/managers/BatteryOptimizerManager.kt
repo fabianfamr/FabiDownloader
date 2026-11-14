@@ -135,53 +135,21 @@ class BatteryOptimizerManager private constructor(private val context: Context) 
      * Si esos métodos no existen aún, el fallback es el comportamiento anterior.
      */
     fun evaluateBatteryStatus() {
+        val manager = DownloadManagerService.getInstance(context)
         if (isBatteryLowAndNotCharging()) {
-            val manager = DownloadManagerService.getInstance(context)
             when (AppSettings.batteryLowAction) {
                 Config.BATTERY_ACTION_OPTIMIZE -> {
                     Log.w(Config.TAG_DOWNLOAD_MANAGER,
-                        "Batería baja ($currentLevel%). " +
-                            "Optimizando: baja prioridad y concurrencia -1.")
-                    try {
-                        // Método preferido: si existe en DownloadManagerService, usarlo.
-                        // Fallback al método anterior para compatibilidad.
-                        val m = manager.javaClass.getMethod(
-                            "throttleActiveDownloads",
-                            Int::class.javaPrimitiveType
-                        )
-                        m.invoke(manager, 1)
-                    } catch (nsm: NoSuchMethodException) {
-                        // Compatibilidad: llamar al método sin parámetros.
-                        manager.throttleActiveDownloads()
-                    } catch (e: Exception) {
-                        Log.e(Config.TAG_DOWNLOAD_MANAGER,
-                            "Error aplicando OPTIMIZE", e)
-                        manager.throttleActiveDownloads()
-                    }
+                        "Batería baja ($currentLevel%). Optimizando concurrencia (-1).")
+                    manager.throttleActiveDownloads(1)
                 }
                 Config.BATTERY_ACTION_LIMIT -> {
                     Log.w(Config.TAG_DOWNLOAD_MANAGER,
-                        "Batería baja ($currentLevel%). " +
-                            "Limitando concurrencia a 1 (descargas secuenciales).")
-                    try {
-                        val m = manager.javaClass.getMethod(
-                            "limitConcurrencyTo",
-                            Int::class.javaPrimitiveType
-                        )
-                        m.invoke(manager, 1)
-                    } catch (nsm: NoSuchMethodException) {
-                        // Compatibilidad temporal.
-                        manager.throttleActiveDownloads()
-                    } catch (e: Exception) {
-                        Log.e(Config.TAG_DOWNLOAD_MANAGER,
-                            "Error aplicando LIMIT", e)
-                        manager.throttleActiveDownloads()
-                    }
+                        "Batería baja ($currentLevel%). Limitando concurrencia a 1.")
+                    manager.limitConcurrencyTo(1)
                 }
             }
         } else {
-            // Si la batería ya no está baja o está cargando, reanudar la cola.
-            val manager = DownloadManagerService.getInstance(context)
             manager.triggerQueue()
         }
     }

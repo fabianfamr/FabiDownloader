@@ -75,21 +75,29 @@ object ErrorLogManager {
      */
     private fun sanitizeForClipboard(line: String): String {
         var sanitized = line
-        // Tokens/cookies/auth/keys: `token=abc`, `Cookie: session=xyz`
-        sanitized = Regex("(?i)(token|cookie|auth|key|password|secret|session)=[^\\s&]+",
-            RegexOption.IGNORE_CASE)
-            .replace(sanitized) { m ->
-                val key = m.groupValues[1]
-                "$key=***REDACTED***"
-            }
-        // Authorization: Bearer xxx
-        sanitized = Regex("(?i)(authorization:\\s*)(bearer\\s+|basic\\s+)[^\\s]+",
-            RegexOption.IGNORE_CASE)
-            .replace(sanitized) { "${it.groupValues[1]}***REDACTED***" }
-        // URLs con parámetros de sesión: ?token=xxx, ?session=yyy
-        sanitized = Regex("(https?://[^\\s]+[?&](token|session|sid|auth)=[^\\s&]+)",
-            RegexOption.IGNORE_CASE)
-            .replace(sanitized) { "[URL_REDACTED]" }
+        // Tokens/cookies/auth/keys/signatures in query params or key=value pairs
+        sanitized = Regex(
+            "(?i)(token|cookie|auth|key|password|pass|pwd|secret|session|sid|sig|signature|expires|apikey|api_key|access_token|refresh_token|x-amz-[a-z0-9-]+|x-goog-[a-z0-9-]+)=[^\\s&\"']+",
+            RegexOption.IGNORE_CASE
+        ).replace(sanitized) { m ->
+            val key = m.groupValues[1]
+            "$key=***REDACTED***"
+        }
+        // Authorization: Bearer / Basic xxx
+        sanitized = Regex(
+            "(?i)(authorization:\\s*)(bearer\\s+|basic\\s+)[^\\s]+",
+            RegexOption.IGNORE_CASE
+        ).replace(sanitized) { "${it.groupValues[1]}***REDACTED***" }
+        // Netscape cookie file lines (domain\tTRUE/FALSE\tpath\tTRUE/FALSE\texpiry\tname\tvalue)
+        sanitized = Regex(
+            "(?m)^[^\\s#]+\\t(?:TRUE|FALSE)\\t[^\\t]*\\t(?:TRUE|FALSE)\\t\\d+\\t[^\\t]*\\t.*$",
+            RegexOption.IGNORE_CASE
+        ).replace(sanitized, "[COOKIE_LINE_REDACTED]")
+        // URLs con parámetros sensibles
+        sanitized = Regex(
+            "(https?://[^\\s]+[?&](?:token|session|sid|auth|sig|signature|expires|key|apikey|api_key|access_token|refresh_token|x-amz-[^=]+|x-goog-[^=]+)=[^\\s&]+)",
+            RegexOption.IGNORE_CASE
+        ).replace(sanitized) { "[URL_REDACTED]" }
         return sanitized
     }
 
@@ -131,6 +139,7 @@ object ErrorLogManager {
             val failedDownloads = allDownloads.filter {
                 it.title.startsWith(Config.STATUS_FAILED_PREFIX) ||
                     it.speed == "FAILED" ||
+                    it.speed.startsWith("FAILED", ignoreCase = true) ||
                     it.size.startsWith(Config.STATUS_FAILED_PREFIX) ||
                     it.progress < 0
             }.take(50)
@@ -139,10 +148,10 @@ object ErrorLogManager {
                     val dateStr = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
                         .format(Date(rec.timestamp))
                     sb.append("• ID: ${rec.id} | Fecha: $dateStr\n")
-                    sb.append("  Título/Estado: ${rec.title}\n")
+                    sb.append("  Título/Estado: ${sanitizeForClipboard(rec.title)}\n")
                     sb.append("  URL: ${sanitizeForClipboard(rec.url)}\n")
                     sb.append("  Formato: ${rec.format} | Calidad: ${rec.quality} " +
-                        "| Velocidad/Error: ${rec.speed}\n")
+                        "| Velocidad/Error: ${sanitizeForClipboard(rec.speed)}\n")
                     sb.append("  --------------------------------------\n")
                 }
                 sb.append("\n")
@@ -159,7 +168,8 @@ object ErrorLogManager {
             val db = AppDatabase.getInstance(context)
             val allDownloads = db.downloadDao().getAllDownloadsDirect()
             val activeDownloads = allDownloads.filter {
-                !it.isCompleted && !it.isPaused && it.speed != "FAILED" &&
+                !it.isCompleted && !it.isPaused &&
+                    !it.speed.startsWith("FAILED", ignoreCase = true) &&
                     !it.title.startsWith(Config.STATUS_FAILED_PREFIX)
             }
             if (activeDownloads.isNotEmpty()) {
@@ -167,10 +177,10 @@ object ErrorLogManager {
                     val dateStr = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
                         .format(Date(rec.timestamp))
                     sb.append("• ID: ${rec.id} | Fecha: $dateStr\n")
-                    sb.append("  Título: ${rec.title}\n")
+                    sb.append("  Título: ${sanitizeForClipboard(rec.title)}\n")
                     sb.append("  URL: ${sanitizeForClipboard(rec.url)}\n")
                     sb.append("  Progreso: ${rec.progress}% | Tamaño: ${rec.size} " +
-                        "| Estado: ${rec.speed}\n")
+                        "| Estado: ${sanitizeForClipboard(rec.speed)}\n")
                     sb.append("  --------------------------------------\n")
                 }
                 sb.append("\n")
@@ -184,32 +194,33 @@ object ErrorLogManager {
         // 4. Extracto de Logcat (errores recientes del sistema/app)
         sb.append("--- [4] REGISTRO DE ERRORES DEL SISTEMA (LOGCAT *:E) ---\n")
         try {
-            // Desde Android 13+ las apps solo pueden leer sus propias líneas
-            // sin permiso READ_LOGS. Filtramos por PID propio con --pid.
             val pid = android.os.Process.myPid().toString()
             val cmd = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                arrayOf("logcat", "-d", "-v", "threadtime", "--pid=$pid", "*:E")
+                listOf("logcat", "-d", "-v", "threadtime", "--pid=$pid", "*:E")
             } else {
-                arrayOf("logcat", "-d", "-v", "threadtime", "*:E")
+                listOf("logcat", "-d", "-v", "threadtime", "*:E")
             }
-            val process = Runtime.getRuntime().exec(cmd)
-            val reader = BufferedReader(InputStreamReader(process.inputStream))
+            val process = ProcessBuilder(cmd)
+                .redirectErrorStream(true)
+                .start()
             val logcatLines = mutableListOf<String>()
-            var line: String?
-            val appPid = pid
-            while (reader.readLine().also { line = it } != null) {
-                val l = line ?: break
-                // Filtro adicional para pre-S: solo líneas propias
-                val isOwn = l.contains(appPid) ||
-                    l.contains("com.fabian.downloader") ||
-                    l.contains("youtubedl") ||
-                    l.contains("yt-dlp")
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S || isOwn) {
-                    logcatLines.add(sanitizeForClipboard(l))
+            BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
+                var line: String?
+                while (reader.readLine().also { line = it } != null) {
+                    val l = line ?: break
+                    val isOwn = l.contains(pid) ||
+                        l.contains("com.fabian.downloader") ||
+                        l.contains("youtubedl") ||
+                        l.contains("yt-dlp")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S || isOwn) {
+                        logcatLines.add(sanitizeForClipboard(l))
+                    }
                 }
             }
-            reader.close()
-            process.waitFor()
+            val finished = process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)
+            if (!finished) {
+                process.destroyForcibly()
+            }
             if (logcatLines.isNotEmpty()) {
                 val lastLines = if (logcatLines.size > 150) logcatLines.takeLast(150) else logcatLines
                 sb.append(lastLines.joinToString("\n")).append("\n\n")
@@ -224,14 +235,19 @@ object ErrorLogManager {
     }
 
     suspend fun copyErrorsToClipboard(context: Context): Boolean = withContext(Dispatchers.IO) {
-        val formattedLogs = getFormattedLogs(context)
-        withContext(Dispatchers.Main) {
-            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
-                as ClipboardManager
-            val clip = ClipData.newPlainText("FabiDownloader_Error_Logs", formattedLogs)
-            clipboard.setPrimaryClip(clip)
+        try {
+            val formattedLogs = getFormattedLogs(context)
+            withContext(Dispatchers.Main) {
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
+                    as? ClipboardManager ?: return@withContext
+                val clip = ClipData.newPlainText("FabiDownloader_Error_Logs", formattedLogs)
+                clipboard.setPrimaryClip(clip)
+            }
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error copying logs to clipboard", e)
+            false
         }
-        true
     }
 
     fun clearErrorLogs(context: Context) {
